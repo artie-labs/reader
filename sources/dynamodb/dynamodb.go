@@ -1,9 +1,7 @@
 package dynamodb
 
 import (
-	"bufio"
 	"context"
-	"fmt"
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/dynamo"
 	"github.com/artie-labs/reader/lib/kafka"
@@ -13,8 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
-	"os"
-	"strings"
 	"time"
 )
 
@@ -42,17 +38,19 @@ func Load(ctx context.Context) *Store {
 		logger.FromContext(ctx).Fatalf("Failed to create session: %v", err)
 	}
 
-	return &Store{
+	store := &Store{
 		tableName:               cfg.DynamoDB.TableName,
 		streamArn:               cfg.DynamoDB.StreamArn,
 		offsetFilePath:          cfg.DynamoDB.OffsetFile,
 		lastProcessedSeqNumbers: make(map[string]string),
 		streams:                 dynamodbstreams.New(sess),
 	}
+
+	store.loadOffsets(ctx)
+	return store
 }
 
 func (s *Store) Run(ctx context.Context) {
-	s.loadOffsets(ctx)
 	ticker := time.NewTicker(flushOffsetInterval)
 	go func() {
 		for {
@@ -176,48 +174,4 @@ func (s *Store) Run(ctx context.Context) {
 			attempts = 0
 		}
 	}
-}
-
-func (s *Store) loadOffsets(ctx context.Context) {
-	log := logger.FromContext(ctx)
-	log.Infof("loading DynamoDB offsets from file: %s", s.offsetFilePath)
-	file, err := os.Open(s.offsetFilePath)
-	if err != nil {
-		log.WithError(err).Warn("failed to open DynamoDB offset file, so not using previously stored offsets...")
-		return
-	}
-
-	defer file.Close()
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		parts := strings.Split(scanner.Text(), ":")
-		if len(parts) == 2 {
-			shardID := parts[0]
-			sequenceNumber := parts[1]
-			s.lastProcessedSeqNumbers[shardID] = sequenceNumber
-		}
-	}
-	if err := scanner.Err(); err != nil {
-		log.Printf("Error reading offset file: %v", err)
-	}
-}
-
-func (s *Store) saveOffsets(ctx context.Context) {
-	file, err := os.Create(s.offsetFilePath)
-	if err != nil {
-		logger.FromContext(ctx).WithError(err).Fatal("failed to create DynamoDB offset file")
-	}
-
-	defer file.Close()
-
-	writer := bufio.NewWriter(file)
-	for shardID, sequenceNumber := range s.lastProcessedSeqNumbers {
-		_, err = writer.WriteString(fmt.Sprintf("%s:%s\n", shardID, sequenceNumber))
-		if err != nil {
-			logger.FromContext(ctx).WithError(err).Fatal("failed to write to DynamoDB offset file")
-			continue
-		}
-	}
-
-	_ = writer.Flush()
 }
