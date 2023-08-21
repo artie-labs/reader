@@ -21,7 +21,6 @@ func (d *DynamoDBTestSuite) TestOffsets_Complete() {
 	}
 
 	s.lastProcessedSeqNumbers = originalLastProcessedSeqNumbers
-	// Write the offsets to the file path.
 	s.saveOffsets(d.ctx)
 
 	s.lastProcessedSeqNumbers = map[string]string{}
