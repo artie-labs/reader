@@ -19,6 +19,14 @@ func (d *DynamoDBTestSuite) TestTransformAttributeValue() {
 			attr: &dynamodb.AttributeValue{
 				S: ptr.ToString("hello"),
 			},
+			expectedValue: "hello",
+		},
+		{
+			name: "number",
+			attr: &dynamodb.AttributeValue{
+				N: ptr.ToString("123"),
+			},
+			expectedValue: float64(123),
 		},
 	}
 

@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
 	"github.com/segmentio/kafka-go"
+	"strconv"
 	"time"
 )
 
@@ -27,7 +28,12 @@ func transformAttributeValue(attr *dynamodb.AttributeValue) interface{} {
 	case attr.S != nil:
 		return *attr.S
 	case attr.N != nil:
-		return *attr.N
+		if num, err := strconv.ParseFloat(*attr.N, 64); err == nil {
+			return num
+		} else {
+			// TODO: Should we throw an error here?
+			return nil
+		}
 	case attr.BOOL != nil:
 		return *attr.BOOL
 	case attr.M != nil:
@@ -42,6 +48,20 @@ func transformAttributeValue(attr *dynamodb.AttributeValue) interface{} {
 			list[i] = transformAttributeValue(item)
 		}
 		return list
+	case attr.SS != nil:
+		// Convert the string set to a slice of strings.
+		strSet := make([]string, len(attr.SS))
+		for i, s := range attr.SS {
+			strSet[i] = *s
+		}
+		return strSet
+	case attr.NS != nil:
+		// Convert the number set to a slice of strings (since the numbers are stored as strings).
+		numSet := make([]string, len(attr.NS))
+		for i, n := range attr.NS {
+			numSet[i] = *n
+		}
+		return numSet
 	}
 
 	return nil
