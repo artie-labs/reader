@@ -28,6 +28,93 @@ func (d *DynamoDBTestSuite) TestTransformAttributeValue() {
 			},
 			expectedValue: float64(123),
 		},
+		{
+			name: "boolean",
+			attr: &dynamodb.AttributeValue{
+				BOOL: ptr.ToBool(true),
+			},
+			expectedValue: true,
+		},
+		{
+			name: "map",
+			attr: &dynamodb.AttributeValue{
+				M: map[string]*dynamodb.AttributeValue{
+					"foo": {
+						S: ptr.ToString("bar"),
+					},
+					"bar": {
+						N: ptr.ToString("123"),
+					},
+					"nested_map": {
+						M: map[string]*dynamodb.AttributeValue{
+							"foo": {
+								S: ptr.ToString("bar"),
+							},
+						},
+					},
+				},
+			},
+			expectedValue: map[string]interface{}{
+				"foo": "bar",
+				"bar": float64(123),
+				"nested_map": map[string]interface{}{
+					"foo": "bar",
+				},
+			},
+		},
+		{
+			name: "list",
+			attr: &dynamodb.AttributeValue{
+				L: []*dynamodb.AttributeValue{
+					{
+						S: ptr.ToString("foo"),
+					},
+					{
+						N: ptr.ToString("123"),
+					},
+					{
+						M: map[string]*dynamodb.AttributeValue{
+							"foo": {
+								S: ptr.ToString("bar"),
+							},
+						},
+					},
+				},
+			},
+			expectedValue: []interface{}{
+				"foo",
+				float64(123),
+				map[string]interface{}{
+					"foo": "bar",
+				},
+			},
+		},
+		{
+			name: "string set",
+			attr: &dynamodb.AttributeValue{
+				SS: []*string{
+					ptr.ToString("foo"),
+					ptr.ToString("bar"),
+				},
+			},
+			expectedValue: []string{
+				"foo",
+				"bar",
+			},
+		},
+		{
+			name: "number set",
+			attr: &dynamodb.AttributeValue{
+				NS: []*string{
+					ptr.ToString("123"),
+					ptr.ToString("456"),
+				},
+			},
+			expectedValue: []float64{
+				123,
+				456,
+			},
+		},
 	}
 
 	for _, tc := range tcs {

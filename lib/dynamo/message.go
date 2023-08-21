@@ -23,15 +23,20 @@ type Message struct {
 	executionTime time.Time
 }
 
+func stringToFloat64(s string) (float64, error) {
+	return strconv.ParseFloat(s, 64)
+}
+
 func transformAttributeValue(attr *dynamodb.AttributeValue) interface{} {
 	switch {
 	case attr.S != nil:
 		return *attr.S
 	case attr.N != nil:
-		if num, err := strconv.ParseFloat(*attr.N, 64); err == nil {
-			return num
+		number, err := stringToFloat64(*attr.N)
+		if err == nil {
+			return number
 		} else {
-			// TODO: Should we throw an error here?
+			// TODO - should we throw an error here?
 			return nil
 		}
 	case attr.BOOL != nil:
@@ -57,10 +62,17 @@ func transformAttributeValue(attr *dynamodb.AttributeValue) interface{} {
 		return strSet
 	case attr.NS != nil:
 		// Convert the number set to a slice of strings (since the numbers are stored as strings).
-		numSet := make([]string, len(attr.NS))
+		numSet := make([]float64, len(attr.NS))
 		for i, n := range attr.NS {
-			numSet[i] = *n
+			number, err := stringToFloat64(*n)
+			if err != nil {
+				// TODO - should we throw an error here?
+				return nil
+			}
+
+			numSet[i] = number
 		}
+
 		return numSet
 	}
 
