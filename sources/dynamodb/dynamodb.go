@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/dynamo"
+	"github.com/artie-labs/reader/lib/kafka"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/ptr"
@@ -18,6 +19,7 @@ import (
 )
 
 type Store struct {
+	tableName               string
 	streamArn               string
 	offsetFilePath          string
 	lastProcessedSeqNumbers map[string]string
@@ -25,8 +27,7 @@ type Store struct {
 }
 
 const (
-	flushOffsetInterval = 1 * time.Minute
-
+	flushOffsetInterval = 30 * time.Second
 	// jitterSleepBaseMs - sleep for 5s as the base.
 	jitterSleepBaseMs = 5000
 )
@@ -42,6 +43,7 @@ func Load(ctx context.Context) *Store {
 	}
 
 	return &Store{
+		tableName:               cfg.DynamoDB.TableName,
 		streamArn:               cfg.DynamoDB.StreamArn,
 		offsetFilePath:          cfg.DynamoDB.OffsetFile,
 		lastProcessedSeqNumbers: make(map[string]string),
@@ -74,6 +76,7 @@ func (s *Store) Run(ctx context.Context) {
 
 		var retrievedMessages bool
 		var attempts int
+
 		for _, shard := range result.StreamDescription.Shards {
 			iteratorType := "TRIM_HORIZON"
 			var startingSequenceNumber string
@@ -112,21 +115,41 @@ func (s *Store) Run(ctx context.Context) {
 
 				getRecordsOutput, err := s.streams.GetRecords(getRecordsInput)
 				if err != nil {
-					log.Printf("Failed to get records for shard iterator: %v", err)
+					log.WithError(err).WithFields(map[string]interface{}{
+						"streamArn": s.streamArn,
+						"shardId":   *shard.ShardId,
+					}).Warn("failed to get records from shard iterator...")
 					break
 				}
 
 				// Print the records
 				for _, record := range getRecordsOutput.Records {
-					msg := dynamo.NewMessage(record)
-					if err = msg.Publish(); err != nil {
+					msg, err := dynamo.NewMessage(record, s.tableName)
+					if err != nil {
 						log.WithError(err).WithFields(map[string]interface{}{
 							"streamArn": s.streamArn,
 							"shardId":   *shard.ShardId,
-						}).Fatal("failed to publish message")
+							"record":    record,
+						}).Fatal("failed to cast message from DynamoDB")
 					}
 
-					fmt.Printf("Record: %v\n", record)
+					kafkaMsg, err := msg.KafkaMessage(ctx)
+					if err != nil {
+						log.WithError(err).WithFields(map[string]interface{}{
+							"streamArn": s.streamArn,
+							"shardId":   *shard.ShardId,
+							"record":    record,
+						}).Fatal("failed to cast message from DynamoDB")
+					}
+
+					err = kafka.FromContext(ctx).WriteMessages(ctx, kafkaMsg)
+					if err != nil {
+						log.WithError(err).WithFields(map[string]interface{}{
+							"streamArn": s.streamArn,
+							"shardId":   *shard.ShardId,
+							"record":    record,
+						}).Fatal("failed to write message to Kafka")
+					}
 				}
 
 				if len(getRecordsOutput.Records) > 0 {

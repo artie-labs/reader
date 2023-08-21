@@ -11,7 +11,7 @@ const ctxKey = "_cfg"
 
 type Kafka struct {
 	BootstrapServers string `yaml:"bootstrapServers"`
-	TopicPrefix      string `yaml:"topic"`
+	TopicPrefix      string `yaml:"topicPrefix"`
 	AwsEnabled       bool   `yaml:"awsEnabled"`
 }
 
@@ -21,6 +21,7 @@ type DynamoDB struct {
 	AwsAccessKeyID     string `yaml:"awsAccessKeyId"`
 	AwsSecretAccessKey string `yaml:"awsSecretAccessKey"`
 	StreamArn          string `yaml:"streamArn"`
+	TableName          string `yaml:"tableName"`
 }
 
 type Reporting struct {
