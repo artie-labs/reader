@@ -117,7 +117,10 @@ func (s *Store) Run(ctx context.Context) {
 				for _, record := range getRecordsOutput.Records {
 					msg := dynamo.NewMessage(record)
 					if err = msg.Publish(); err != nil {
-						log.Printf("Failed to publish message: %v", err)
+						log.WithError(err).WithFields(map[string]interface{}{
+							"streamArn": s.streamArn,
+							"shardId":   *shard.ShardId,
+						}).Fatal("failed to publish message")
 					}
 
 					fmt.Printf("Record: %v\n", record)
