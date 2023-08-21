@@ -43,6 +43,7 @@ func transformAttributeValue(attr *dynamodb.AttributeValue) interface{} {
 		}
 		return list
 	}
+
 	return nil
 }
 
