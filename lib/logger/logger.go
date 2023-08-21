@@ -33,7 +33,7 @@ func new(settings *config.Settings) *logrus.Logger {
 	log := logrus.New()
 	log.SetOutput(os.Stdout)
 
-	if settings != nil && settings.Reporting.Sentry != nil && settings.Reporting.Sentry.DSN != "" {
+	if settings != nil && settings.Reporting != nil && settings.Reporting.Sentry != nil && settings.Reporting.Sentry.DSN != "" {
 		hook, err := logrus_sentry.NewSentryHook(settings.Reporting.Sentry.DSN, []logrus.Level{
 			logrus.PanicLevel,
 			logrus.FatalLevel,

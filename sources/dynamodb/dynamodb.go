@@ -88,7 +88,10 @@ func (s *Store) Run(ctx context.Context) {
 				StreamArn:         ptr.ToString(s.streamArn),
 				ShardId:           shard.ShardId,
 				ShardIteratorType: ptr.ToString(iteratorType),
-				SequenceNumber:    ptr.ToString(startingSequenceNumber),
+			}
+
+			if startingSequenceNumber != "" {
+				iteratorInput.SequenceNumber = ptr.ToString(startingSequenceNumber)
 			}
 
 			iteratorOutput, err := s.streams.GetShardIterator(iteratorInput)
