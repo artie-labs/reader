@@ -3,6 +3,8 @@ module github.com/artie-labs/reader
 go 1.19
 
 require (
+	github.com/artie-labs/transfer v0.0.0-20230816211232-759a2f13025c
+	github.com/aws/aws-sdk-go v1.44.327
 	github.com/aws/aws-sdk-go-v2/config v1.18.19
 	github.com/evalphobia/logrus_sentry v0.8.2
 	github.com/segmentio/kafka-go v0.4.38
@@ -13,8 +15,6 @@ require (
 )
 
 require (
-	github.com/artie-labs/transfer v0.0.0-20230816211232-759a2f13025c // indirect
-	github.com/aws/aws-sdk-go v1.44.327 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.18.1 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.18 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.1 // indirect

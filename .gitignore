@@ -54,3 +54,7 @@ go.work
 
 # Application configs
 .personal
+
+# GoReleaser
+dist/
+

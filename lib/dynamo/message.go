@@ -13,8 +13,6 @@ import (
 	"time"
 )
 
-const maxPublishCount = 5
-
 type Message struct {
 	rowData       map[string]interface{}
 	primaryKey    map[string]interface{}
@@ -27,6 +25,8 @@ func stringToFloat64(s string) (float64, error) {
 	return strconv.ParseFloat(s, 64)
 }
 
+// transformAttributeValue converts a DynamoDB AttributeValue to a Go type.
+// References: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html
 func transformAttributeValue(attr *dynamodb.AttributeValue) interface{} {
 	switch {
 	case attr.S != nil:
