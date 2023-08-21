@@ -3,9 +3,10 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/kafka"
 	"github.com/artie-labs/reader/lib/logger"
+	"github.com/artie-labs/reader/sources/dynamodb"
 )
 
 func main() {
@@ -16,6 +17,8 @@ func main() {
 	// Logger as well
 	ctx := config.InjectIntoContext(context.Background(), configFilePath)
 	ctx = logger.InjectLoggerIntoCtx(ctx)
-	fmt.Println(ctx)
+	ctx = kafka.InjectIntoContext(ctx)
 
+	ddb := dynamodb.Load(ctx)
+	ddb.Run(ctx)
 }

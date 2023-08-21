@@ -1,4 +1,4 @@
-package main
+package dynamodb
 
 import (
 	"bufio"
@@ -7,11 +7,11 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/dynamo"
 	"github.com/artie-labs/reader/lib/logger"
+	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -24,31 +24,33 @@ type Store struct {
 	streams                 *dynamodbstreams.DynamoDBStreams
 }
 
-const flushOffsetInterval = 1 * time.Minute
+const (
+	flushOffsetInterval = 1 * time.Minute
 
-func Load(ctx context.Context, dynamoDB config.DynamoDB) *Store {
+	// jitterSleepBaseMs - sleep for 5s as the base.
+	jitterSleepBaseMs = 5000
+)
+
+func Load(ctx context.Context) *Store {
+	cfg := config.FromContext(ctx)
 	sess, err := session.NewSession(&aws.Config{
-		Region: ptr.ToString(dynamoDB.AwsRegion),
+		Region: ptr.ToString(cfg.DynamoDB.AwsRegion),
 	})
 
 	if err != nil {
-		log.Fatalf("Failed to create session: %v", err)
+		logger.FromContext(ctx).Fatalf("Failed to create session: %v", err)
 	}
 
-	// Create a DynamoDBStreams client from just a session.
-	svc := dynamodbstreams.New(sess)
-
 	return &Store{
-		streamArn:               dynamoDB.StreamArn,
-		offsetFilePath:          dynamoDB.OffsetFile,
+		streamArn:               cfg.DynamoDB.StreamArn,
+		offsetFilePath:          cfg.DynamoDB.OffsetFile,
 		lastProcessedSeqNumbers: make(map[string]string),
-		streams:                 svc,
+		streams:                 dynamodbstreams.New(sess),
 	}
 }
 
 func (s *Store) Run(ctx context.Context) {
 	s.loadOffsets(ctx)
-
 	ticker := time.NewTicker(flushOffsetInterval)
 	go func() {
 		for {
@@ -59,8 +61,8 @@ func (s *Store) Run(ctx context.Context) {
 		}
 	}()
 
+	log := logger.FromContext(ctx)
 	for {
-		// Describe stream
 		input := &dynamodbstreams.DescribeStreamInput{
 			StreamArn: aws.String(s.streamArn),
 		}
@@ -70,10 +72,11 @@ func (s *Store) Run(ctx context.Context) {
 			log.Fatalf("Failed to describe stream: %v", err)
 		}
 
-		// Go through each shard
+		var retrievedMessages bool
+		var attempts int
 		for _, shard := range result.StreamDescription.Shards {
 			iteratorType := "TRIM_HORIZON"
-			startingSequenceNumber := ""
+			var startingSequenceNumber string
 
 			if seqNumber, exists := s.lastProcessedSeqNumbers[*shard.ShardId]; exists {
 				iteratorType = "AFTER_SEQUENCE_NUMBER"
@@ -90,7 +93,10 @@ func (s *Store) Run(ctx context.Context) {
 
 			iteratorOutput, err := s.streams.GetShardIterator(iteratorInput)
 			if err != nil {
-				log.Printf("Failed to get shard iterator for shard %s: %v", *shard.ShardId, err)
+				log.WithError(err).WithFields(map[string]interface{}{
+					"streamArn": s.streamArn,
+					"shardId":   *shard.ShardId,
+				}).Warn("failed to get shard iterator...")
 				continue
 			}
 
@@ -118,6 +124,7 @@ func (s *Store) Run(ctx context.Context) {
 				}
 
 				if len(getRecordsOutput.Records) > 0 {
+					retrievedMessages = true
 					lastRecord := getRecordsOutput.Records[len(getRecordsOutput.Records)-1]
 					s.lastProcessedSeqNumbers[*shard.ShardId] = *lastRecord.Dynamodb.SequenceNumber
 				}
@@ -126,16 +133,28 @@ func (s *Store) Run(ctx context.Context) {
 			}
 		}
 
-		// Sleep for a defined interval before checking again
-		// TODO - Clean up
-		time.Sleep(10 * time.Minute)
+		if !retrievedMessages {
+			attempts += 1
+			sleepDuration := time.Duration(jitter.JitterMs(jitterSleepBaseMs, attempts)) * time.Millisecond
+			log.WithFields(map[string]interface{}{
+				"streamArn":     s.streamArn,
+				"sleepDuration": sleepDuration,
+				"attempts":      attempts,
+			}).Info("No messages retrieved this iteration, sleeping and will retry again")
+
+			time.Sleep(sleepDuration)
+		} else {
+			attempts = 0
+		}
 	}
 }
 
 func (s *Store) loadOffsets(ctx context.Context) {
+	log := logger.FromContext(ctx)
+	log.Infof("loading DynamoDB offsets from file: %s", s.offsetFilePath)
 	file, err := os.Open(s.offsetFilePath)
 	if err != nil {
-		logger.FromContext(ctx).WithError(err).Warn("failed opening offset file, so not using previously stored offsets...")
+		log.WithError(err).Warn("failed to open DynamoDB offset file, so not using previously stored offsets...")
 		return
 	}
 
@@ -157,7 +176,7 @@ func (s *Store) loadOffsets(ctx context.Context) {
 func (s *Store) saveOffsets(ctx context.Context) {
 	file, err := os.Create(s.offsetFilePath)
 	if err != nil {
-		logger.FromContext(ctx).WithError(err).Fatal("failed to create offset file")
+		logger.FromContext(ctx).WithError(err).Fatal("failed to create DynamoDB offset file")
 	}
 
 	defer file.Close()
@@ -166,7 +185,7 @@ func (s *Store) saveOffsets(ctx context.Context) {
 	for shardID, sequenceNumber := range s.lastProcessedSeqNumbers {
 		_, err = writer.WriteString(fmt.Sprintf("%s:%s\n", shardID, sequenceNumber))
 		if err != nil {
-			logger.FromContext(ctx).WithError(err).Fatal("failed to write to offset file")
+			logger.FromContext(ctx).WithError(err).Fatal("failed to write to DynamoDB offset file")
 			continue
 		}
 	}

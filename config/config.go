@@ -9,6 +9,12 @@ import (
 
 const ctxKey = "_cfg"
 
+type Kafka struct {
+	BootstrapServers string `yaml:"bootstrapServers"`
+	TopicPrefix      string `yaml:"topic"`
+	AwsEnabled       bool   `yaml:"awsEnabled"`
+}
+
 type DynamoDB struct {
 	OffsetFile         string `yaml:"offsetFile"`
 	AwsRegion          string `yaml:"awsRegion"`
@@ -28,6 +34,7 @@ type Sentry struct {
 type Settings struct {
 	DynamoDB  *DynamoDB  `yaml:"dynamodb"`
 	Reporting *Reporting `yaml:"reporting"`
+	Kafka     *Kafka     `yaml:"kafka"`
 }
 
 func InjectIntoContext(ctx context.Context, fp string) context.Context {
@@ -41,7 +48,7 @@ func InjectIntoContext(ctx context.Context, fp string) context.Context {
 	if err != nil {
 		log.Fatalf("failed to unmarshal config file, err: %v", err)
 	}
-	
+
 	return context.WithValue(ctx, ctxKey, &settings)
 }
 
