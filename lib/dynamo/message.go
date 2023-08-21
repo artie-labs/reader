@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
 	"github.com/segmentio/kafka-go"
+	"strconv"
 	"time"
 )
 
@@ -22,12 +23,22 @@ type Message struct {
 	executionTime time.Time
 }
 
+func stringToFloat64(s string) (float64, error) {
+	return strconv.ParseFloat(s, 64)
+}
+
 func transformAttributeValue(attr *dynamodb.AttributeValue) interface{} {
 	switch {
 	case attr.S != nil:
 		return *attr.S
 	case attr.N != nil:
-		return *attr.N
+		number, err := stringToFloat64(*attr.N)
+		if err == nil {
+			return number
+		} else {
+			// TODO - should we throw an error here?
+			return nil
+		}
 	case attr.BOOL != nil:
 		return *attr.BOOL
 	case attr.M != nil:
@@ -42,7 +53,29 @@ func transformAttributeValue(attr *dynamodb.AttributeValue) interface{} {
 			list[i] = transformAttributeValue(item)
 		}
 		return list
+	case attr.SS != nil:
+		// Convert the string set to a slice of strings.
+		strSet := make([]string, len(attr.SS))
+		for i, s := range attr.SS {
+			strSet[i] = *s
+		}
+		return strSet
+	case attr.NS != nil:
+		// Convert the number set to a slice of strings (since the numbers are stored as strings).
+		numSet := make([]float64, len(attr.NS))
+		for i, n := range attr.NS {
+			number, err := stringToFloat64(*n)
+			if err != nil {
+				// TODO - should we throw an error here?
+				return nil
+			}
+
+			numSet[i] = number
+		}
+
+		return numSet
 	}
+
 	return nil
 }
 

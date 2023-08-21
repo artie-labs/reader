@@ -92,7 +92,7 @@ func (s *Settings) Validate() error {
 	return nil
 }
 
-func InjectIntoContext(ctx context.Context, fp string) context.Context {
+func ReadConfig(fp string) (*Settings, error) {
 	bytes, err := os.ReadFile(fp)
 	if err != nil {
 		log.Fatalf("failed to read config file, err: %v", err)
@@ -104,7 +104,11 @@ func InjectIntoContext(ctx context.Context, fp string) context.Context {
 		log.Fatalf("failed to unmarshal config file, err: %v", err)
 	}
 
-	return context.WithValue(ctx, ctxKey, &settings)
+	return &settings, nil
+}
+
+func InjectIntoContext(ctx context.Context, settings *Settings) context.Context {
+	return context.WithValue(ctx, ctxKey, settings)
 }
 
 func FromContext(ctx context.Context) *Settings {
