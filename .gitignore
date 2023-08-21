@@ -1,6 +1,38 @@
-# If you prefer the allow list template instead of the deny list, see community template:
-# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
-#
+### Terraform ###
+# Local .terraform directories
+**/.terraform/*
+
+# Terraform lock
+*.terraform.lock.hcl
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# Crash log files
+crash.log
+
+# Exclude all .tfvars files, which are likely to contain sentitive data
+*.tfvars
+
+# Ignore override files as they are usually used for local dev overrides.
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Include override files you do wish to add to version control using negated pattern
+# !example_override.tf
+
+# Include tfplan files to ignore the plan file output as these can get large.
+# You can run `terraform show` to see the contents of the plan.
+*.tfplan
+*.tfplan.*
+
+# CLI configuration files
+.terraformrc
+terraform.rc
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -19,3 +51,6 @@
 
 # Go workspace file
 go.work
+
+# Application configs
+.personal
