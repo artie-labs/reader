@@ -64,6 +64,9 @@ func (s *Store) Run(ctx context.Context) {
 	}()
 
 	log := logger.FromContext(ctx)
+	var retrievedMessages bool
+	var attempts int
+
 	for {
 		input := &dynamodbstreams.DescribeStreamInput{
 			StreamArn: aws.String(s.streamArn),
@@ -73,9 +76,6 @@ func (s *Store) Run(ctx context.Context) {
 		if err != nil {
 			log.Fatalf("Failed to describe stream: %v", err)
 		}
-
-		var retrievedMessages bool
-		var attempts int
 
 		for _, shard := range result.StreamDescription.Shards {
 			iteratorType := "TRIM_HORIZON"
@@ -122,7 +122,6 @@ func (s *Store) Run(ctx context.Context) {
 					break
 				}
 
-				// Print the records
 				for _, record := range getRecordsOutput.Records {
 					msg, err := dynamo.NewMessage(record, s.tableName)
 					if err != nil {
@@ -156,6 +155,8 @@ func (s *Store) Run(ctx context.Context) {
 					retrievedMessages = true
 					lastRecord := getRecordsOutput.Records[len(getRecordsOutput.Records)-1]
 					s.lastProcessedSeqNumbers[*shard.ShardId] = *lastRecord.Dynamodb.SequenceNumber
+				} else {
+					break
 				}
 
 				shardIterator = getRecordsOutput.NextShardIterator
