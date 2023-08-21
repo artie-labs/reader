@@ -5,6 +5,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
 )
 
+const (
+	maxPublishCount = 5
+)
+
 type Message struct {
 	*dynamodbstreams.Record
 }
@@ -20,6 +24,12 @@ func (m *Message) toArtieMessage() (util.SchemaEventPayload, error) {
 }
 
 func (m *Message) Publish() error {
+	for i := 0; i < maxPublishCount; i++ {
+		// TODO: fill out
+		// TODO: this should also use jitter sleep
+		return nil
+	}
+
 	return nil
 }
 

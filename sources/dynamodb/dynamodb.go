@@ -18,27 +18,17 @@ import (
 )
 
 type Store struct {
-	awsRegion               string
 	streamArn               string
 	offsetFilePath          string
 	lastProcessedSeqNumbers map[string]string
+	streams                 *dynamodbstreams.DynamoDBStreams
 }
 
-const FLUSH_INTERVAL = 10 * time.Minute
+const flushOffsetInterval = 1 * time.Minute
 
 func Load(ctx context.Context, dynamoDB config.DynamoDB) *Store {
-	return &Store{
-		streamArn:               dynamoDB.StreamArn,
-		offsetFilePath:          dynamoDB.OffsetFile,
-		lastProcessedSeqNumbers: make(map[string]string),
-	}
-}
-
-func (s *Store) Run(ctx context.Context) {
-	s.loadOffsets(ctx)
-
 	sess, err := session.NewSession(&aws.Config{
-		Region: ptr.ToString(s.awsRegion),
+		Region: ptr.ToString(dynamoDB.AwsRegion),
 	})
 
 	if err != nil {
@@ -48,50 +38,70 @@ func (s *Store) Run(ctx context.Context) {
 	// Create a DynamoDBStreams client from just a session.
 	svc := dynamodbstreams.New(sess)
 
+	return &Store{
+		streamArn:               dynamoDB.StreamArn,
+		offsetFilePath:          dynamoDB.OffsetFile,
+		lastProcessedSeqNumbers: make(map[string]string),
+		streams:                 svc,
+	}
+}
+
+func (s *Store) Run(ctx context.Context) {
+	s.loadOffsets(ctx)
+
+	ticker := time.NewTicker(flushOffsetInterval)
 	go func() {
 		for {
-			time.Sleep(FLUSH_INTERVAL)
-			s.saveOffsets(ctx)
+			select {
+			case <-ticker.C:
+				s.saveOffsets(ctx)
+			}
 		}
 	}()
 
 	for {
 		// Describe stream
 		input := &dynamodbstreams.DescribeStreamInput{
-			StreamArn: aws.String(s.streamArn), // replace with your Stream ARN
+			StreamArn: aws.String(s.streamArn),
 		}
 
-		result, err := svc.DescribeStream(input)
+		result, err := s.streams.DescribeStream(input)
 		if err != nil {
 			log.Fatalf("Failed to describe stream: %v", err)
 		}
 
 		// Go through each shard
 		for _, shard := range result.StreamDescription.Shards {
-			fmt.Printf("Shard ID: %s\n", *shard.ShardId)
+			iteratorType := "TRIM_HORIZON"
+			startingSequenceNumber := ""
+
+			if seqNumber, exists := s.lastProcessedSeqNumbers[*shard.ShardId]; exists {
+				iteratorType = "AFTER_SEQUENCE_NUMBER"
+				startingSequenceNumber = seqNumber
+			}
 
 			// Get shard iterator
 			iteratorInput := &dynamodbstreams.GetShardIteratorInput{
-				StreamArn:         aws.String(s.streamArn),
+				StreamArn:         ptr.ToString(s.streamArn),
 				ShardId:           shard.ShardId,
-				ShardIteratorType: aws.String("TRIM_HORIZON"),
+				ShardIteratorType: ptr.ToString(iteratorType),
+				SequenceNumber:    ptr.ToString(startingSequenceNumber),
 			}
 
-			iteratorOutput, err := svc.GetShardIterator(iteratorInput)
+			iteratorOutput, err := s.streams.GetShardIterator(iteratorInput)
 			if err != nil {
 				log.Printf("Failed to get shard iterator for shard %s: %v", *shard.ShardId, err)
 				continue
 			}
 
 			shardIterator := iteratorOutput.ShardIterator
-
 			// Get records from shard iterator
 			for shardIterator != nil {
 				getRecordsInput := &dynamodbstreams.GetRecordsInput{
 					ShardIterator: shardIterator,
 				}
 
-				getRecordsOutput, err := svc.GetRecords(getRecordsInput)
+				getRecordsOutput, err := s.streams.GetRecords(getRecordsInput)
 				if err != nil {
 					log.Printf("Failed to get records for shard iterator: %v", err)
 					break
@@ -107,11 +117,17 @@ func (s *Store) Run(ctx context.Context) {
 					fmt.Printf("Record: %v\n", record)
 				}
 
+				if len(getRecordsOutput.Records) > 0 {
+					lastRecord := getRecordsOutput.Records[len(getRecordsOutput.Records)-1]
+					s.lastProcessedSeqNumbers[*shard.ShardId] = *lastRecord.Dynamodb.SequenceNumber
+				}
+
 				shardIterator = getRecordsOutput.NextShardIterator
 			}
 		}
 
 		// Sleep for a defined interval before checking again
+		// TODO - Clean up
 		time.Sleep(10 * time.Minute)
 	}
 }
