@@ -86,7 +86,6 @@ func (s *Store) Run(ctx context.Context) {
 				startingSequenceNumber = seqNumber
 			}
 
-			// Get shard iterator
 			iteratorInput := &dynamodbstreams.GetShardIteratorInput{
 				StreamArn:         ptr.ToString(s.streamArn),
 				ShardId:           shard.ShardId,
