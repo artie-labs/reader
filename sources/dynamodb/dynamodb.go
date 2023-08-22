@@ -2,7 +2,6 @@ package dynamodb
 
 import (
 	"context"
-	"fmt"
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/dynamo"
 	"github.com/artie-labs/reader/lib/kafkalib"
@@ -27,7 +26,7 @@ type Store struct {
 
 const (
 	flushOffsetInterval = 30 * time.Second
-	// jitterSleepBaseMs - sleep for 5s as the base.
+	// jitterSleepBaseMs - sleep for 500ms as the base.
 	jitterSleepBaseMs = 500
 )
 
@@ -66,7 +65,6 @@ func (s *Store) Run(ctx context.Context) {
 	log := logger.FromContext(ctx)
 	var attempts int
 	for {
-		fmt.Println("Starting to describe stream...")
 		input := &dynamodbstreams.DescribeStreamInput{StreamArn: aws.String(s.streamArn)}
 		result, err := s.streams.DescribeStream(input)
 		if err != nil {
@@ -76,7 +74,6 @@ func (s *Store) Run(ctx context.Context) {
 		for _, shard := range result.StreamDescription.Shards {
 			iteratorType := "TRIM_HORIZON"
 			var startingSequenceNumber string
-
 			if seqNumber, exists := s.storage.ReadOnlyLastProcessedSequenceNumbers(*shard.ShardId); exists {
 				iteratorType = "AFTER_SEQUENCE_NUMBER"
 				startingSequenceNumber = seqNumber
