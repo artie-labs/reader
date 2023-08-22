@@ -1,16 +1,17 @@
-package dynamodb
+package offsets
 
 import (
+	"github.com/artie-labs/reader/sources/dynamodb"
 	"github.com/stretchr/testify/assert"
 	"os"
 )
 
-func (d *DynamoDBTestSuite) TestOffsets_Complete() {
+func (d *dynamodb.DynamoDBTestSuite) TestOffsets_Complete() {
 	offsetsFilePath := "/tmp/offsets-test"
 	err := os.RemoveAll(offsetsFilePath)
 	assert.NoError(d.T(), err)
 
-	s := Store{
+	s := dynamodb.Store{
 		offsetFilePath: "/tmp/offsets-test",
 	}
 

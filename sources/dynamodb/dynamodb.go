@@ -6,6 +6,7 @@ import (
 	"github.com/artie-labs/reader/lib/dynamo"
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
+	"github.com/artie-labs/reader/sources/dynamodb/offsets"
 	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/aws/aws-sdk-go/aws"
@@ -16,12 +17,11 @@ import (
 )
 
 type Store struct {
-	tableName               string
-	streamArn               string
-	offsetFilePath          string
-	batchSize               int
-	lastProcessedSeqNumbers map[string]string
-	streams                 *dynamodbstreams.DynamoDBStreams
+	tableName string
+	streamArn string
+	batchSize int
+	streams   *dynamodbstreams.DynamoDBStreams
+	storage   *offsets.OffsetStorage
 }
 
 const (
@@ -41,15 +41,13 @@ func Load(ctx context.Context) *Store {
 	}
 
 	store := &Store{
-		tableName:               cfg.DynamoDB.TableName,
-		streamArn:               cfg.DynamoDB.StreamArn,
-		offsetFilePath:          cfg.DynamoDB.OffsetFile,
-		batchSize:               cfg.Kafka.PublishSize,
-		lastProcessedSeqNumbers: make(map[string]string),
-		streams:                 dynamodbstreams.New(sess),
+		tableName: cfg.DynamoDB.TableName,
+		streamArn: cfg.DynamoDB.StreamArn,
+		batchSize: cfg.Kafka.PublishSize,
+		storage:   offsets.NewStorage(ctx, cfg.DynamoDB.OffsetFile),
+		streams:   dynamodbstreams.New(sess),
 	}
 
-	store.loadOffsets(ctx)
 	return store
 }
 
@@ -59,7 +57,7 @@ func (s *Store) Run(ctx context.Context) {
 		for {
 			select {
 			case <-ticker.C:
-				s.saveOffsets(ctx)
+				s.storage.Save(ctx)
 			}
 		}
 	}()
@@ -79,7 +77,7 @@ func (s *Store) Run(ctx context.Context) {
 			iteratorType := "TRIM_HORIZON"
 			var startingSequenceNumber string
 
-			if seqNumber, exists := s.lastProcessedSeqNumbers[*shard.ShardId]; exists {
+			if seqNumber, exists := s.storage.ReadOnlyLastProcessedSequenceNumbers(*shard.ShardId); exists {
 				iteratorType = "AFTER_SEQUENCE_NUMBER"
 				startingSequenceNumber = seqNumber
 			}
@@ -149,7 +147,7 @@ func (s *Store) Run(ctx context.Context) {
 				if len(getRecordsOutput.Records) > 0 {
 					retrievedMessages = true
 					lastRecord := getRecordsOutput.Records[len(getRecordsOutput.Records)-1]
-					s.lastProcessedSeqNumbers[*shard.ShardId] = *lastRecord.Dynamodb.SequenceNumber
+					s.storage.SetLastProcessedSequenceNumber(*shard.ShardId, *lastRecord.Dynamodb.SequenceNumber)
 				} else {
 					// Don't break if it's not the last shard because then we'll skip over the iteration.
 					if shardCount == len(result.StreamDescription.Shards)-1 {
