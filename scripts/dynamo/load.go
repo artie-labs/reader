@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"os"
@@ -13,18 +14,10 @@ import (
 )
 
 const (
-	region = "us-east-1"
-	table  = "ddb-test"
+	region       = "us-east-1"
+	table        = "ddb-test"
+	maxBatchSize = 25 // DynamoDB's limit for batch write
 )
-
-func randomString(n int) string {
-	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-	s := make([]rune, n)
-	for i := range s {
-		s[i] = letters[rand.Intn(len(letters))]
-	}
-	return string(s)
-}
 
 func main() {
 	if len(os.Args) != 2 {
@@ -46,30 +39,77 @@ func main() {
 	svc := dynamodb.New(sess)
 	rand.Seed(time.Now().UnixNano())
 
-	for i := 0; i < numRows; i++ {
-		accountID := randomString(10)
-		userID := randomString(5)
+	// Splitting the items into batches
+	for i := 0; i < numRows; i += maxBatchSize {
+		var writeRequests []*dynamodb.WriteRequest
+		accountID := fmt.Sprintf("account-%d", i)
+		// For each batch, prepare the items
+		for j := 0; j < maxBatchSize && (i+j) < numRows; j++ {
+			userID := fmt.Sprintf("user_id_%v", j)
+			item := map[string]*dynamodb.AttributeValue{
+				"account_id": {
+					S: aws.String(accountID),
+				},
+				"user_id": {
+					S: aws.String(userID),
+				},
+				"random_number": {
+					N: aws.String(fmt.Sprintf("%v", rand.Int63())), // Example number
+				},
+				"flag": {
+					BOOL: aws.Bool(rand.Intn(2) == 0), // Randomly true or false
+				},
+				"is_null": {
+					NULL: aws.Bool(true), // Will always be Null
+				},
+				"string_set": {
+					SS: []*string{aws.String("value1"), aws.String("value2")},
+				},
+				"number_set": {
+					NS: []*string{aws.String("1"), aws.String("2"), aws.String("3")},
+				},
+				"sample_list": {
+					L: []*dynamodb.AttributeValue{
+						{
+							S: aws.String("item1"),
+						},
+						{
+							N: aws.String("2"),
+						},
+					},
+				},
+				"sample_map": {
+					M: map[string]*dynamodb.AttributeValue{
+						"key1": {
+							S: aws.String("value1"),
+						},
+						"key2": {
+							N: aws.String("2"),
+						},
+					},
+				},
+			}
 
-		item := map[string]*dynamodb.AttributeValue{
-			"account_id": {
-				S: aws.String(accountID),
-			},
-			"user_id": {
-				S: aws.String(userID),
+			writeRequest := &dynamodb.WriteRequest{
+				PutRequest: &dynamodb.PutRequest{
+					Item: item,
+				},
+			}
+			writeRequests = append(writeRequests, writeRequest)
+		}
+
+		input := &dynamodb.BatchWriteItemInput{
+			RequestItems: map[string][]*dynamodb.WriteRequest{
+				table: writeRequests,
 			},
 		}
 
-		input := &dynamodb.PutItemInput{
-			TableName: aws.String(table),
-			Item:      item,
-		}
-
-		_, err := svc.PutItem(input)
+		_, err := svc.BatchWriteItem(input)
 		if err != nil {
-			log.Printf("Failed to put item for accountID: %s, userID: %s. Error: %v", accountID, userID, err)
+			log.Printf("Failed to write batch starting at index %d. Error: %v", i, err)
 			continue
 		}
 
-		log.Printf("Inserted data for accountID: %s, userID: %s", accountID, userID)
+		log.Printf("Inserted batch of items starting from index %d", i)
 	}
 }
