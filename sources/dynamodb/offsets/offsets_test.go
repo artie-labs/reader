@@ -1,31 +1,34 @@
 package offsets
 
 import (
-	"github.com/artie-labs/reader/sources/dynamodb"
 	"github.com/stretchr/testify/assert"
 	"os"
 )
 
-func (d *dynamodb.DynamoDBTestSuite) TestOffsets_Complete() {
+func (o *OffsetsTestSuite) TestOffsets_Complete() {
 	offsetsFilePath := "/tmp/offsets-test"
 	err := os.RemoveAll(offsetsFilePath)
-	assert.NoError(d.T(), err)
+	assert.NoError(o.T(), err)
 
-	s := dynamodb.Store{
-		offsetFilePath: "/tmp/offsets-test",
-	}
-
+	storage := NewStorage(o.ctx, offsetsFilePath)
 	originalLastProcessedSeqNumbers := map[string]string{
 		"shard-1": "123",
 		"shard-2": "456",
 		"shard-3": "789",
 	}
 
-	s.lastProcessedSeqNumbers = originalLastProcessedSeqNumbers
-	s.saveOffsets(d.ctx)
+	// Try to save a bunch of times, file will not exist since shouldSave = false
+	_, err = os.Open(offsetsFilePath)
+	assert.Error(o.T(), err)
 
-	s.lastProcessedSeqNumbers = map[string]string{}
-	s.loadOffsets(d.ctx)
+	for shard, lastProcessedSequenceNumber := range originalLastProcessedSeqNumbers {
+		storage.SetLastProcessedSequenceNumber(shard, lastProcessedSequenceNumber)
+	}
 
-	assert.Equal(d.T(), originalLastProcessedSeqNumbers, s.lastProcessedSeqNumbers)
+	storage.Save(o.ctx)
+	storage.lastProcessedSeqNumbers = map[string]string{}
+	storage.load(o.ctx)
+
+	assert.False(o.T(), storage.shouldSave)
+	assert.Equal(o.T(), originalLastProcessedSeqNumbers, storage.lastProcessedSeqNumbers)
 }
