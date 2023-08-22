@@ -4,7 +4,7 @@ import (
 	"context"
 	"flag"
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib/kafka"
+	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/sources/dynamodb"
 	"log"
@@ -22,7 +22,7 @@ func main() {
 
 	ctx := config.InjectIntoContext(context.Background(), cfg)
 	ctx = logger.InjectLoggerIntoCtx(ctx)
-	ctx = kafka.InjectIntoContext(ctx)
+	ctx = kafkalib.InjectIntoContext(ctx)
 
 	ddb := dynamodb.Load(ctx)
 	ddb.Run(ctx)

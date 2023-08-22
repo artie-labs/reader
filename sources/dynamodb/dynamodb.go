@@ -4,22 +4,24 @@ import (
 	"context"
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/dynamo"
-	"github.com/artie-labs/reader/lib/kafka"
+	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
+	"github.com/artie-labs/reader/sources/dynamodb/offsets"
 	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
+	"github.com/segmentio/kafka-go"
 	"time"
 )
 
 type Store struct {
-	tableName               string
-	streamArn               string
-	offsetFilePath          string
-	lastProcessedSeqNumbers map[string]string
-	streams                 *dynamodbstreams.DynamoDBStreams
+	tableName string
+	streamArn string
+	batchSize int
+	streams   *dynamodbstreams.DynamoDBStreams
+	storage   *offsets.OffsetStorage
 }
 
 const (
@@ -39,14 +41,13 @@ func Load(ctx context.Context) *Store {
 	}
 
 	store := &Store{
-		tableName:               cfg.DynamoDB.TableName,
-		streamArn:               cfg.DynamoDB.StreamArn,
-		offsetFilePath:          cfg.DynamoDB.OffsetFile,
-		lastProcessedSeqNumbers: make(map[string]string),
-		streams:                 dynamodbstreams.New(sess),
+		tableName: cfg.DynamoDB.TableName,
+		streamArn: cfg.DynamoDB.StreamArn,
+		batchSize: cfg.Kafka.PublishSize,
+		storage:   offsets.NewStorage(ctx, cfg.DynamoDB.OffsetFile),
+		streams:   dynamodbstreams.New(sess),
 	}
 
-	store.loadOffsets(ctx)
 	return store
 }
 
@@ -56,7 +57,7 @@ func (s *Store) Run(ctx context.Context) {
 		for {
 			select {
 			case <-ticker.C:
-				s.saveOffsets(ctx)
+				s.storage.Save(ctx)
 			}
 		}
 	}()
@@ -66,20 +67,17 @@ func (s *Store) Run(ctx context.Context) {
 	var attempts int
 
 	for {
-		input := &dynamodbstreams.DescribeStreamInput{
-			StreamArn: aws.String(s.streamArn),
-		}
-
+		input := &dynamodbstreams.DescribeStreamInput{StreamArn: aws.String(s.streamArn)}
 		result, err := s.streams.DescribeStream(input)
 		if err != nil {
 			log.Fatalf("Failed to describe stream: %v", err)
 		}
 
-		for _, shard := range result.StreamDescription.Shards {
+		for shardCount, shard := range result.StreamDescription.Shards {
 			iteratorType := "TRIM_HORIZON"
 			var startingSequenceNumber string
 
-			if seqNumber, exists := s.lastProcessedSeqNumbers[*shard.ShardId]; exists {
+			if seqNumber, exists := s.storage.ReadOnlyLastProcessedSequenceNumbers(*shard.ShardId); exists {
 				iteratorType = "AFTER_SEQUENCE_NUMBER"
 				startingSequenceNumber = seqNumber
 			}
@@ -119,6 +117,7 @@ func (s *Store) Run(ctx context.Context) {
 					break
 				}
 
+				var messages []kafka.Message
 				for _, record := range getRecordsOutput.Records {
 					msg, err := dynamo.NewMessage(record, s.tableName)
 					if err != nil {
@@ -129,7 +128,7 @@ func (s *Store) Run(ctx context.Context) {
 						}).Fatal("failed to cast message from DynamoDB")
 					}
 
-					kafkaMsg, err := msg.KafkaMessage(ctx)
+					message, err := msg.KafkaMessage(ctx)
 					if err != nil {
 						log.WithError(err).WithFields(map[string]interface{}{
 							"streamArn": s.streamArn,
@@ -138,22 +137,22 @@ func (s *Store) Run(ctx context.Context) {
 						}).Fatal("failed to cast message from DynamoDB")
 					}
 
-					err = kafka.FromContext(ctx).WriteMessages(ctx, kafkaMsg)
-					if err != nil {
-						log.WithError(err).WithFields(map[string]interface{}{
-							"streamArn": s.streamArn,
-							"shardId":   *shard.ShardId,
-							"record":    record,
-						}).Fatal("failed to write message to Kafka")
-					}
+					messages = append(messages, message)
+				}
+
+				if err = kafkalib.NewBatch(messages, s.batchSize).Publish(ctx); err != nil {
+					log.WithError(err).Fatalf("failed to publish messages, exiting...")
 				}
 
 				if len(getRecordsOutput.Records) > 0 {
 					retrievedMessages = true
 					lastRecord := getRecordsOutput.Records[len(getRecordsOutput.Records)-1]
-					s.lastProcessedSeqNumbers[*shard.ShardId] = *lastRecord.Dynamodb.SequenceNumber
+					s.storage.SetLastProcessedSequenceNumber(*shard.ShardId, *lastRecord.Dynamodb.SequenceNumber)
 				} else {
-					break
+					// Don't break if it's not the last shard because then we'll skip over the iteration.
+					if shardCount == len(result.StreamDescription.Shards)-1 {
+						break
+					}
 				}
 
 				shardIterator = getRecordsOutput.NextShardIterator

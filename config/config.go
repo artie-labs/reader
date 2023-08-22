@@ -15,6 +15,13 @@ type Kafka struct {
 	BootstrapServers string `yaml:"bootstrapServers"`
 	TopicPrefix      string `yaml:"topicPrefix"`
 	AwsEnabled       bool   `yaml:"awsEnabled"`
+	PublishSize      int    `yaml:"publishSize"`
+}
+
+func (k *Kafka) GenerateDefault() {
+	if k.PublishSize == 0 {
+		k.PublishSize = 2500
+	}
 }
 
 func (k *Kafka) Validate() error {
@@ -104,6 +111,11 @@ func ReadConfig(fp string) (*Settings, error) {
 		log.Fatalf("failed to unmarshal config file, err: %v", err)
 	}
 
+	if err = settings.Validate(); err != nil {
+		log.Fatalf("failed to validate config file, err: %v", err)
+	}
+
+	settings.Kafka.GenerateDefault()
 	return &settings, nil
 }
 
