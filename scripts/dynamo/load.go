@@ -63,7 +63,7 @@ func main() {
 					NULL: aws.Bool(true), // Will always be Null
 				},
 				"string_set": {
-					SS: []*string{aws.String("value1"), aws.String("value2")},
+					SS: []*string{aws.String("value1"), aws.String("value2"), aws.String("value44"), aws.String("value55"), aws.String("value66")},
 				},
 				"number_set": {
 					NS: []*string{aws.String("1"), aws.String("2"), aws.String("3")},

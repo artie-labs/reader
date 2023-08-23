@@ -26,8 +26,8 @@ type Store struct {
 
 const (
 	flushOffsetInterval = 30 * time.Second
-	// jitterSleepBaseMs - sleep for 500ms as the base.
-	jitterSleepBaseMs = 500
+	// jitterSleepBaseMs - sleep for 50 ms as the base.
+	jitterSleepBaseMs = 50
 )
 
 func Load(ctx context.Context) *Store {
@@ -103,6 +103,7 @@ func (s *Store) Run(ctx context.Context) {
 			for shardIterator != nil {
 				getRecordsInput := &dynamodbstreams.GetRecordsInput{
 					ShardIterator: shardIterator,
+					Limit:         ptr.ToInt64(1000),
 				}
 
 				getRecordsOutput, err := s.streams.GetRecords(getRecordsInput)
@@ -148,12 +149,6 @@ func (s *Store) Run(ctx context.Context) {
 				} else {
 					attempts += 1
 					sleepDuration := time.Duration(jitter.JitterMs(jitterSleepBaseMs, attempts)) * time.Millisecond
-					log.WithFields(map[string]interface{}{
-						"streamArn":     s.streamArn,
-						"sleepDuration": sleepDuration,
-						"attempts":      attempts,
-					}).Info("No messages retrieved this iteration, sleeping and will retry again")
-
 					time.Sleep(sleepDuration)
 				}
 
