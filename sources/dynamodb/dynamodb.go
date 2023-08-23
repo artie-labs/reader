@@ -26,8 +26,8 @@ type Store struct {
 
 const (
 	flushOffsetInterval = 30 * time.Second
-	// jitterSleepBaseMs - sleep for 5s as the base.
-	jitterSleepBaseMs = 5000
+	// jitterSleepBaseMs - sleep for 50 ms as the base.
+	jitterSleepBaseMs = 50
 )
 
 func Load(ctx context.Context) *Store {
@@ -63,9 +63,7 @@ func (s *Store) Run(ctx context.Context) {
 	}()
 
 	log := logger.FromContext(ctx)
-	var retrievedMessages bool
 	var attempts int
-
 	for {
 		input := &dynamodbstreams.DescribeStreamInput{StreamArn: aws.String(s.streamArn)}
 		result, err := s.streams.DescribeStream(input)
@@ -73,10 +71,9 @@ func (s *Store) Run(ctx context.Context) {
 			log.Fatalf("Failed to describe stream: %v", err)
 		}
 
-		for shardCount, shard := range result.StreamDescription.Shards {
+		for _, shard := range result.StreamDescription.Shards {
 			iteratorType := "TRIM_HORIZON"
 			var startingSequenceNumber string
-
 			if seqNumber, exists := s.storage.ReadOnlyLastProcessedSequenceNumbers(*shard.ShardId); exists {
 				iteratorType = "AFTER_SEQUENCE_NUMBER"
 				startingSequenceNumber = seqNumber
@@ -106,6 +103,7 @@ func (s *Store) Run(ctx context.Context) {
 			for shardIterator != nil {
 				getRecordsInput := &dynamodbstreams.GetRecordsInput{
 					ShardIterator: shardIterator,
+					Limit:         ptr.ToInt64(1000),
 				}
 
 				getRecordsOutput, err := s.streams.GetRecords(getRecordsInput)
@@ -145,32 +143,17 @@ func (s *Store) Run(ctx context.Context) {
 				}
 
 				if len(getRecordsOutput.Records) > 0 {
-					retrievedMessages = true
+					attempts = 0
 					lastRecord := getRecordsOutput.Records[len(getRecordsOutput.Records)-1]
 					s.storage.SetLastProcessedSequenceNumber(*shard.ShardId, *lastRecord.Dynamodb.SequenceNumber)
 				} else {
-					// Don't break if it's not the last shard because then we'll skip over the iteration.
-					if shardCount == len(result.StreamDescription.Shards)-1 {
-						break
-					}
+					attempts += 1
+					sleepDuration := time.Duration(jitter.JitterMs(jitterSleepBaseMs, attempts)) * time.Millisecond
+					time.Sleep(sleepDuration)
 				}
 
 				shardIterator = getRecordsOutput.NextShardIterator
 			}
-		}
-
-		if !retrievedMessages {
-			attempts += 1
-			sleepDuration := time.Duration(jitter.JitterMs(jitterSleepBaseMs, attempts)) * time.Millisecond
-			log.WithFields(map[string]interface{}{
-				"streamArn":     s.streamArn,
-				"sleepDuration": sleepDuration,
-				"attempts":      attempts,
-			}).Info("No messages retrieved this iteration, sleeping and will retry again")
-
-			time.Sleep(sleepDuration)
-		} else {
-			attempts = 0
 		}
 	}
 }
