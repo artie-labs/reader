@@ -2,12 +2,14 @@ package ttlmap
 
 import (
 	"context"
-	"encoding/gob"
 	"fmt"
-	"github.com/artie-labs/reader/lib/logger"
+	"gopkg.in/yaml.v2"
+	"io"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/artie-labs/reader/lib/logger"
 )
 
 const (
@@ -15,16 +17,16 @@ const (
 	DefaultFlushInterval   = 30 * time.Second
 )
 
-type itemWrapper struct {
-	Value      interface{}
-	Expiration int64
+type ItemWrapper struct {
+	Value      interface{} `yaml:"value"`
+	Expiration int64       `yaml:"expiration"`
 }
 
 type TTLMap struct {
 	shouldSave    bool
 	ctx           context.Context
 	mu            sync.RWMutex
-	data          map[string]*itemWrapper
+	data          map[string]*ItemWrapper `yaml:"data"`
 	filePath      string
 	closeChan     chan struct{}
 	cleanupTicker *time.Ticker
@@ -34,7 +36,7 @@ type TTLMap struct {
 func NewMap(ctx context.Context, filePath string, cleanupInterval, flushInterval time.Duration) *TTLMap {
 	t := &TTLMap{
 		ctx:       ctx,
-		data:      make(map[string]*itemWrapper),
+		data:      make(map[string]*ItemWrapper),
 		filePath:  filePath,
 		closeChan: make(chan struct{}),
 	}
@@ -56,7 +58,7 @@ func (t *TTLMap) Set(key string, value interface{}, ttl time.Duration) {
 	defer t.mu.Unlock()
 
 	expiration := time.Now().Add(ttl).UnixNano()
-	t.data[key] = &itemWrapper{
+	t.data[key] = &ItemWrapper{
 		Value:      value,
 		Expiration: expiration,
 	}
@@ -104,25 +106,26 @@ func (t *TTLMap) cleanup() {
 	}
 }
 
-func (t *TTLMap) Close() {
-	t.cleanupTicker.Stop()
-	t.flushTicker.Stop()
-	close(t.closeChan)
-}
-
 func (t *TTLMap) flush() error {
+	if !t.shouldSave {
+		return nil
+	}
+
 	file, err := os.Create(t.filePath)
 	if err != nil {
 		return fmt.Errorf("failed to create file, err: %v", err)
 	}
 
-	defer file.Close()
-
-	encoder := gob.NewEncoder(file)
-	if err = encoder.Encode(t.data); err != nil {
-		return err
+	yamlBytes, err := yaml.Marshal(t.data)
+	if err != nil {
+		return fmt.Errorf("failed to marshal data, err: %v", err)
 	}
 
+	if _, err = file.Write(yamlBytes); err != nil {
+		return fmt.Errorf("failed to write to file, err: %v", err)
+	}
+
+	defer file.Close()
 	t.shouldSave = false
 	return nil
 }
@@ -130,14 +133,21 @@ func (t *TTLMap) flush() error {
 func (t *TTLMap) loadFromFile() error {
 	file, err := os.Open(t.filePath)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return nil
-		}
 		return err
 	}
 
 	defer file.Close()
 
-	decoder := gob.NewDecoder(file)
-	return decoder.Decode(&t.data)
+	readBytes, err := io.ReadAll(file)
+	if err != nil {
+		return fmt.Errorf("failed to read file, err: %v", err)
+	}
+
+	var data map[string]*ItemWrapper
+	if err = yaml.Unmarshal(readBytes, &data); err != nil {
+		return fmt.Errorf("failed to unmarshal data, err: %v", err)
+	}
+
+	t.data = data
+	return nil
 }
