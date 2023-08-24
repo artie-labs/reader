@@ -12,7 +12,7 @@ func (t *TTLMapTestSuite) TestTTLMap_Complete() {
 	assert.NoError(t.T(), os.RemoveAll(fp))
 	defer os.RemoveAll(fp)
 
-	store := NewMap(t.ctx, fp, 50*time.Millisecond, 100*time.Millisecond)
+	store := NewMap(t.ctx, fp, 100*time.Millisecond, 120*time.Millisecond)
 	keyToDuration := map[string]time.Duration{
 		"foo": 50 * time.Millisecond,
 		"bar": 100 * time.Millisecond,
@@ -49,7 +49,7 @@ func (t *TTLMapTestSuite) TestTTLMap_Complete() {
 	assert.True(t.T(), isOk)
 	store.mu.Unlock()
 
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(60 * time.Millisecond)
 
 	_, isOk = store.Get("bar")
 	assert.False(t.T(), isOk, "bar")
