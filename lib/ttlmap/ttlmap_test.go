@@ -39,23 +39,28 @@ func (t *TTLMapTestSuite) TestTTLMap_Complete() {
 
 	// Now wait 50 ms.
 	time.Sleep(50 * time.Millisecond)
+
 	// foo shouldn't exist from GET, but will be still stored since GC didn't run yet.
 	_, isOk := store.Get("foo")
 	assert.False(t.T(), isOk, "foo")
 
+	store.mu.Lock()
 	_, isOk = store.data["foo"]
 	assert.True(t.T(), isOk)
+	store.mu.Unlock()
 
 	time.Sleep(50 * time.Millisecond)
+
 	_, isOk = store.Get("bar")
 	assert.False(t.T(), isOk, "bar")
-
+	store.mu.Lock()
 	// Did the data get erased?
 	for _, key := range []string{"foo", "bar"} {
 		_, isOk = store.data[key]
 		assert.False(t.T(), isOk, key)
 	}
-	
+	store.mu.Unlock()
+
 	_, isOk = store.Get("xyz")
 	assert.True(t.T(), isOk, "xyz")
 }
