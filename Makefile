@@ -13,3 +13,7 @@ build:
 .PHONY: release
 release:
 	goreleaser release --clean
+
+.PHONY: clean
+clean:
+	go clean -testcache
