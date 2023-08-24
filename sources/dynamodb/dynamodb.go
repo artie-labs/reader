@@ -59,6 +59,11 @@ func (s *Store) Run(ctx context.Context) {
 		}
 
 		for _, shard := range result.StreamDescription.Shards {
+			if s.storage.GetShardProcessed(*shard.ShardId) {
+				logger.FromContext(ctx).WithField("shardId", *shard.ShardId).Info("shard has been processed, skipping...")
+				continue
+			}
+
 			iteratorType := "TRIM_HORIZON"
 			var startingSequenceNumber string
 			if seqNumber, exists := s.storage.ReadOnlyLastProcessedSequenceNumbers(*shard.ShardId); exists {
@@ -140,6 +145,11 @@ func (s *Store) Run(ctx context.Context) {
 				}
 
 				shardIterator = getRecordsOutput.NextShardIterator
+				if shardIterator == nil {
+					// This means this shard has been fully processed, let's add it to our processed list.
+					logger.FromContext(ctx).WithField("shardId", *shard.ShardId).Info("shard has been fully processed, adding it to the processed list...")
+					s.storage.SetShardProcessed(*shard.ShardId)
+				}
 			}
 		}
 	}
