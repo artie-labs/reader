@@ -41,7 +41,7 @@ func Load(ctx context.Context) *Store {
 		tableName: cfg.DynamoDB.TableName,
 		streamArn: cfg.DynamoDB.StreamArn,
 		batchSize: cfg.Kafka.PublishSize,
-		storage:   offsets.NewStorage(ctx, cfg.DynamoDB.OffsetFile),
+		storage:   offsets.NewStorage(ctx, cfg.DynamoDB.OffsetFile, nil, nil),
 		streams:   dynamodbstreams.New(sess),
 	}
 
@@ -66,7 +66,7 @@ func (s *Store) Run(ctx context.Context) {
 
 			iteratorType := "TRIM_HORIZON"
 			var startingSequenceNumber string
-			if seqNumber, exists := s.storage.ReadOnlyLastProcessedSequenceNumbers(*shard.ShardId); exists {
+			if seqNumber, exists := s.storage.LastProcessedSequenceNumber(*shard.ShardId); exists {
 				iteratorType = "AFTER_SEQUENCE_NUMBER"
 				startingSequenceNumber = seqNumber
 			}

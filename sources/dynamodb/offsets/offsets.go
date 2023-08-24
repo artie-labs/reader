@@ -34,7 +34,7 @@ func (o *OffsetStorage) SetLastProcessedSequenceNumber(shardID string, sequenceN
 	o.ttlMap.Set(shardSeqNumberKey(shardID), sequenceNumber, ShardExpirationAndBuffer)
 }
 
-func (o *OffsetStorage) ReadOnlyLastProcessedSequenceNumbers(shardID string) (string, bool) {
+func (o *OffsetStorage) LastProcessedSequenceNumber(shardID string) (string, bool) {
 	sequenceNumber, isOk := o.ttlMap.Get(shardSeqNumberKey(shardID))
 	if !isOk {
 		return "", false
@@ -43,9 +43,19 @@ func (o *OffsetStorage) ReadOnlyLastProcessedSequenceNumbers(shardID string) (st
 	return fmt.Sprint(sequenceNumber), true
 }
 
-func NewStorage(ctx context.Context, fp string) *OffsetStorage {
+func NewStorage(ctx context.Context, fp string, cleanUpIntervalOverride, flushIntervalOverride *time.Duration) *OffsetStorage {
+	cleanUpInterval := ttlmap.DefaultCleanUpInterval
+	if cleanUpIntervalOverride != nil {
+		cleanUpInterval = *cleanUpIntervalOverride
+	}
+
+	flushInterval := ttlmap.DefaultFlushInterval
+	if flushIntervalOverride != nil {
+		flushInterval = *flushIntervalOverride
+	}
+
 	offset := &OffsetStorage{
-		ttlMap: ttlmap.NewMap(ctx, fp, ttlmap.DefaultCleanUpInterval, ttlmap.DefaultFlushInterval),
+		ttlMap: ttlmap.NewMap(ctx, fp, cleanUpInterval, flushInterval),
 	}
 	return offset
 }
