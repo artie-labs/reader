@@ -24,11 +24,8 @@ type Store struct {
 	storage   *offsets.OffsetStorage
 }
 
-const (
-	flushOffsetInterval = 30 * time.Second
-	// jitterSleepBaseMs - sleep for 50 ms as the base.
-	jitterSleepBaseMs = 50
-)
+// jitterSleepBaseMs - sleep for 50 ms as the base.
+const jitterSleepBaseMs = 50
 
 func Load(ctx context.Context) *Store {
 	cfg := config.FromContext(ctx)
@@ -44,7 +41,7 @@ func Load(ctx context.Context) *Store {
 		tableName: cfg.DynamoDB.TableName,
 		streamArn: cfg.DynamoDB.StreamArn,
 		batchSize: cfg.Kafka.PublishSize,
-		storage:   offsets.NewStorage(ctx, cfg.DynamoDB.OffsetFile),
+		storage:   offsets.NewStorage(ctx, cfg.DynamoDB.OffsetFile, nil, nil),
 		streams:   dynamodbstreams.New(sess),
 	}
 
@@ -52,16 +49,6 @@ func Load(ctx context.Context) *Store {
 }
 
 func (s *Store) Run(ctx context.Context) {
-	ticker := time.NewTicker(flushOffsetInterval)
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				s.storage.Save(ctx)
-			}
-		}
-	}()
-
 	log := logger.FromContext(ctx)
 	var attempts int
 	for {
@@ -72,9 +59,14 @@ func (s *Store) Run(ctx context.Context) {
 		}
 
 		for _, shard := range result.StreamDescription.Shards {
+			if s.storage.GetShardProcessed(*shard.ShardId) {
+				logger.FromContext(ctx).WithField("shardId", *shard.ShardId).Info("shard has been processed, skipping...")
+				continue
+			}
+
 			iteratorType := "TRIM_HORIZON"
 			var startingSequenceNumber string
-			if seqNumber, exists := s.storage.ReadOnlyLastProcessedSequenceNumbers(*shard.ShardId); exists {
+			if seqNumber, exists := s.storage.LastProcessedSequenceNumber(*shard.ShardId); exists {
 				iteratorType = "AFTER_SEQUENCE_NUMBER"
 				startingSequenceNumber = seqNumber
 			}
@@ -153,6 +145,11 @@ func (s *Store) Run(ctx context.Context) {
 				}
 
 				shardIterator = getRecordsOutput.NextShardIterator
+				if shardIterator == nil {
+					// This means this shard has been fully processed, let's add it to our processed list.
+					logger.FromContext(ctx).WithField("shardId", *shard.ShardId).Info("shard has been fully processed, adding it to the processed list...")
+					s.storage.SetShardProcessed(*shard.ShardId)
+				}
 			}
 		}
 	}
