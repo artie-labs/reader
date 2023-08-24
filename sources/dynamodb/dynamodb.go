@@ -24,11 +24,8 @@ type Store struct {
 	storage   *offsets.OffsetStorage
 }
 
-const (
-	flushOffsetInterval = 30 * time.Second
-	// jitterSleepBaseMs - sleep for 50 ms as the base.
-	jitterSleepBaseMs = 50
-)
+// jitterSleepBaseMs - sleep for 50 ms as the base.
+const jitterSleepBaseMs = 50
 
 func Load(ctx context.Context) *Store {
 	cfg := config.FromContext(ctx)
@@ -52,16 +49,6 @@ func Load(ctx context.Context) *Store {
 }
 
 func (s *Store) Run(ctx context.Context) {
-	ticker := time.NewTicker(flushOffsetInterval)
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				s.storage.Save(ctx)
-			}
-		}
-	}()
-
 	log := logger.FromContext(ctx)
 	var attempts int
 	for {
