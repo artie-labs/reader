@@ -10,6 +10,7 @@ import (
 	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
 	"github.com/segmentio/kafka-go"
@@ -29,8 +30,10 @@ const jitterSleepBaseMs = 50
 
 func Load(ctx context.Context) *Store {
 	cfg := config.FromContext(ctx)
+
 	sess, err := session.NewSession(&aws.Config{
-		Region: ptr.ToString(cfg.DynamoDB.AwsRegion),
+		Region:      ptr.ToString(cfg.DynamoDB.AwsRegion),
+		Credentials: credentials.NewStaticCredentials(cfg.DynamoDB.AwsAccessKeyID, cfg.DynamoDB.AwsSecretAccessKey, ""),
 	})
 
 	if err != nil {
