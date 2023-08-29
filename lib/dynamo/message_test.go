@@ -2,9 +2,155 @@ package dynamo
 
 import (
 	"github.com/artie-labs/transfer/lib/ptr"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
 	"github.com/stretchr/testify/assert"
+	"time"
 )
+
+func (d *DynamoDBTestSuite) TestNewMessage() {
+	type _tc struct {
+		name      string
+		record    *dynamodbstreams.Record
+		tableName string
+
+		expectErr       bool
+		expectedMessage *Message
+	}
+
+	tcs := []_tc{
+		{
+			name:            "nil record",
+			record:          nil,
+			tableName:       "testTable",
+			expectErr:       true,
+			expectedMessage: nil,
+		},
+		{
+			name:            "nil dynamodb",
+			record:          &dynamodbstreams.Record{},
+			tableName:       "testTable",
+			expectErr:       true,
+			expectedMessage: nil,
+		},
+		{
+			name: "empty keys",
+			record: &dynamodbstreams.Record{
+				Dynamodb: &dynamodbstreams.StreamRecord{},
+			},
+			tableName:       "testTable",
+			expectErr:       true,
+			expectedMessage: nil,
+		},
+		{
+			name: "EventName INSERT",
+			record: &dynamodbstreams.Record{
+				Dynamodb: &dynamodbstreams.StreamRecord{
+					Keys: map[string]*dynamodb.AttributeValue{
+						"user_id": {
+							S: ptr.ToString("123"),
+						},
+					},
+					ApproximateCreationDateTime: aws.Time(time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC)),
+				},
+				EventName: ptr.ToString("INSERT"),
+			},
+			tableName: "testTable",
+			expectErr: false,
+			expectedMessage: &Message{
+				op:            "c",
+				tableName:     "testTable",
+				executionTime: time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC),
+				rowData:       map[string]interface{}{},
+				primaryKey: map[string]interface{}{
+					"user_id": "123",
+				},
+			},
+		},
+		{
+			name: "EventName MODIFY",
+			record: &dynamodbstreams.Record{
+				Dynamodb: &dynamodbstreams.StreamRecord{
+					Keys: map[string]*dynamodb.AttributeValue{
+						"user_id": {
+							S: ptr.ToString("123"),
+						},
+					},
+					ApproximateCreationDateTime: aws.Time(time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC)),
+				},
+				EventName: ptr.ToString("MODIFY"),
+			},
+			tableName: "testTable",
+			expectErr: false,
+			expectedMessage: &Message{
+				op:            "u",
+				executionTime: time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC),
+				tableName:     "testTable",
+				rowData:       map[string]interface{}{},
+				primaryKey: map[string]interface{}{
+					"user_id": "123",
+				},
+			},
+		},
+		{
+			name: "EventName REMOVE",
+			record: &dynamodbstreams.Record{
+				Dynamodb: &dynamodbstreams.StreamRecord{
+					Keys: map[string]*dynamodb.AttributeValue{
+						"user_id": {
+							S: ptr.ToString("123"),
+						},
+					},
+					ApproximateCreationDateTime: aws.Time(time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC)),
+				},
+				EventName: aws.String("REMOVE"),
+			},
+			tableName: "testTable",
+			expectErr: false,
+			expectedMessage: &Message{
+				op:            "d",
+				tableName:     "testTable",
+				executionTime: time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC),
+				rowData:       map[string]interface{}{},
+				primaryKey: map[string]interface{}{
+					"user_id": "123",
+				},
+			},
+		},
+		{
+			name: "With ApproximateCreationDateTime",
+			record: &dynamodbstreams.Record{
+				Dynamodb: &dynamodbstreams.StreamRecord{
+					Keys: map[string]*dynamodb.AttributeValue{"key": {
+						S: ptr.ToString("value"),
+					}},
+					ApproximateCreationDateTime: aws.Time(time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC)),
+				},
+				EventName: aws.String("INSERT"),
+			},
+			tableName: "testTable",
+			expectErr: false,
+			expectedMessage: &Message{
+				op:            "c",
+				tableName:     "testTable",
+				executionTime: time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC),
+				rowData:       map[string]interface{}{},
+				primaryKey:    map[string]interface{}{"key": "value"},
+			},
+		},
+	}
+
+	for _, tc := range tcs {
+		actualMessage, actualErr := NewMessage(tc.record, tc.tableName)
+		if tc.expectErr {
+			assert.Error(d.T(), actualErr, tc.name)
+		} else {
+			assert.NoError(d.T(), actualErr, tc.name)
+			assert.Equal(d.T(), tc.expectedMessage, actualMessage, tc.name)
+		}
+	}
+}
 
 func (d *DynamoDBTestSuite) TestTransformAttributeValue() {
 	type _tc struct {
