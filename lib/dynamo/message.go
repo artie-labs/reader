@@ -88,7 +88,7 @@ func transformNewImage(data map[string]*dynamodb.AttributeValue) map[string]inte
 }
 
 func NewMessage(record *dynamodbstreams.Record, tableName string) (*Message, error) {
-	if record == nil && record.Dynamodb == nil {
+	if record == nil || record.Dynamodb == nil {
 		return nil, fmt.Errorf("record is nil or dynamodb does not exist in this event payload")
 	}
 
