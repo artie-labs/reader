@@ -20,6 +20,8 @@ func (s *Store) ProcessShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 		return
 	}
 
+	log.WithField("shardId", *shard.ShardId).Info("processing shard...")
+
 	iteratorType := "TRIM_HORIZON"
 	var startingSequenceNumber string
 	if seqNumber, exists := s.storage.LastProcessedSequenceNumber(*shard.ShardId); exists {
@@ -96,9 +98,10 @@ func (s *Store) ProcessShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 			s.storage.SetLastProcessedSequenceNumber(*shard.ShardId, *lastRecord.Dynamodb.SequenceNumber)
 		} else {
 			attempts += 1
-			sleepDuration := time.Duration(jitter.JitterMs(jitterSleepBaseMs, attempts)) * time.Millisecond
-			time.Sleep(sleepDuration)
 		}
+
+		sleepDuration := time.Duration(jitter.JitterMs(jitterSleepBaseMs, attempts)) * time.Millisecond
+		time.Sleep(sleepDuration)
 
 		shardIterator = getRecordsOutput.NextShardIterator
 		if shardIterator == nil {
