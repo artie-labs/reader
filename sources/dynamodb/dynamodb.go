@@ -54,7 +54,7 @@ func (s *Store) Run(ctx context.Context) {
 	ticker := time.NewTicker(shardScannerInterval)
 
 	// Start to subscribe to the channel
-	go s.ProcessShard(ctx)
+	go s.ListenToChannel(ctx)
 
 	log := logger.FromContext(ctx)
 	select {
