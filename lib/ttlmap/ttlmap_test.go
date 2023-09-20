@@ -1,8 +1,10 @@
 package ttlmap
 
 import (
+	"context"
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v2"
 	"os"
 	"time"
 )
@@ -66,4 +68,32 @@ func (t *TTLMapTestSuite) TestTTLMap_Complete() {
 
 	_, isOk = store.Get("xyz")
 	assert.True(t.T(), isOk, "xyz")
+}
+
+func (t *TTLMapTestSuite) TestFlushing() {
+	// Step 1: Create a TTLMap instance with a temporary file for storage
+	fp := "/tmp/test2.yaml"
+	assert.NoError(t.T(), os.RemoveAll(fp))
+	defer os.RemoveAll(fp)
+
+	ctx := context.Background()
+	ttlMap := NewMap(ctx, fp, DefaultCleanUpInterval, DefaultFlushInterval)
+
+	// Step 2: Add items to the map with varying DoNotFlushToDisk values
+	ttlMap.Set(SetArgs{Key: "key1", Value: "value1", DoNotFlushToDisk: true}, 1*time.Hour)
+	ttlMap.Set(SetArgs{Key: "key2", Value: "value2"}, 1*time.Hour)
+
+	// Step 3: Call the flush method to save data to the file
+	err := ttlMap.flush()
+	assert.NoError(t.T(), err)
+
+	// Step 4: Read the file content and check if the data is saved correctly
+	content, err := os.ReadFile(fp)
+	assert.NoError(t.T(), err)
+
+	var data map[string]*ItemWrapper
+	err = yaml.Unmarshal(content, &data)
+	assert.NoError(t.T(), err)
+
+	assert.Equal(t.T(), 1, len(data))
 }
