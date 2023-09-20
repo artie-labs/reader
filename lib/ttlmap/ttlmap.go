@@ -165,6 +165,10 @@ func (t *TTLMap) loadFromFile() error {
 		return fmt.Errorf("failed to unmarshal data, err: %v", err)
 	}
 
+	if data == nil {
+		data = make(map[string]*ItemWrapper)
+	}
+
 	t.data = data
 	return nil
 }
