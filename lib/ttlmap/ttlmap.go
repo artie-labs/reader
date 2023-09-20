@@ -20,7 +20,7 @@ const (
 type ItemWrapper struct {
 	Value            interface{} `yaml:"value"`
 	Expiration       int64       `yaml:"expiration"`
-	DoNotFlushToDisk bool
+	DoNotFlushToDisk bool        `yaml:"-"`
 }
 
 type TTLMap struct {
@@ -115,6 +115,9 @@ func (t *TTLMap) cleanup() {
 }
 
 func (t *TTLMap) flush() error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
 	if !t.shouldSave {
 		return nil
 	}
@@ -169,6 +172,8 @@ func (t *TTLMap) loadFromFile() error {
 		data = make(map[string]*ItemWrapper)
 	}
 
+	t.mu.Lock()
 	t.data = data
+	t.mu.Unlock()
 	return nil
 }
