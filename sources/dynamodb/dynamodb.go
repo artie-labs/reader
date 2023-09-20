@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
-	"sync"
+	"time"
 )
 
 type Store struct {
@@ -19,10 +19,12 @@ type Store struct {
 	batchSize int
 	streams   *dynamodbstreams.DynamoDBStreams
 	storage   *offsets.OffsetStorage
+	shardChan chan *dynamodbstreams.Shard
 }
 
 // jitterSleepBaseMs - sleep for 50 ms as the base.
 const jitterSleepBaseMs = 50
+const shardScannerInterval = 5 * time.Minute
 
 func Load(ctx context.Context) *Store {
 	cfg := config.FromContext(ctx)
@@ -42,29 +44,38 @@ func Load(ctx context.Context) *Store {
 		batchSize: cfg.Kafka.PublishSize,
 		storage:   offsets.NewStorage(ctx, cfg.DynamoDB.OffsetFile, nil, nil),
 		streams:   dynamodbstreams.New(sess),
+		shardChan: make(chan *dynamodbstreams.Shard),
 	}
 
 	return store
 }
 
 func (s *Store) Run(ctx context.Context) {
+	ticker := time.NewTicker(shardScannerInterval)
+
+	// Start to subscribe to the channel
+	go s.ProcessShard(ctx)
+
 	log := logger.FromContext(ctx)
-	for {
-		input := &dynamodbstreams.DescribeStreamInput{StreamArn: aws.String(s.streamArn)}
-		result, err := s.streams.DescribeStream(input)
-		if err != nil {
-			log.Fatalf("Failed to describe stream: %v", err)
-		}
+	select {
+	case <-ctx.Done():
+		close(s.shardChan)
+		log.Info("Terminating process...")
+		return
+	case <-ticker.C:
+		log.Info("Scanning for new shards...")
+		s.scanForNewShards(ctx)
+	}
+}
 
-		var wg sync.WaitGroup
-		for _, shard := range result.StreamDescription.Shards {
-			wg.Add(1)
-			go func(shard *dynamodbstreams.Shard) {
-				defer wg.Done()
-				s.ProcessShard(ctx, shard)
-			}(shard)
-		}
+func (s *Store) scanForNewShards(ctx context.Context) {
+	input := &dynamodbstreams.DescribeStreamInput{StreamArn: aws.String(s.streamArn)}
+	result, err := s.streams.DescribeStream(input)
+	if err != nil {
+		logger.FromContext(ctx).Fatalf("Failed to describe stream: %v", err)
+	}
 
-		wg.Wait()
+	for _, shard := range result.StreamDescription.Shards {
+		s.shardChan <- shard
 	}
 }

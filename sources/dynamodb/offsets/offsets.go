@@ -13,6 +13,10 @@ type OffsetStorage struct {
 	ttlMap *ttlmap.TTLMap
 }
 
+func shardProcessingKey(shardId string) string {
+	return fmt.Sprintf("processing#shardId#%s", shardId)
+}
+
 func shardProcessKey(shardId string) string {
 	return fmt.Sprintf("processed#shardId#%s", shardId)
 }
@@ -27,6 +31,17 @@ func (o *OffsetStorage) SetShardProcessed(shardID string) {
 
 func (o *OffsetStorage) GetShardProcessed(shardID string) bool {
 	_, isOk := o.ttlMap.Get(shardProcessKey(shardID))
+	return isOk
+}
+
+// SetShardProcessing sets the shard processing flag for the given shardID
+// This is used so that we don't process the same shard twice
+func (o *OffsetStorage) SetShardProcessing(shardID string) {
+	o.ttlMap.Set(shardProcessingKey(shardID), true, ShardExpirationAndBuffer)
+}
+
+func (o *OffsetStorage) GetShardProcessing(shardID string) bool {
+	_, isOk := o.ttlMap.Get(shardProcessingKey(shardID))
 	return isOk
 }
 
