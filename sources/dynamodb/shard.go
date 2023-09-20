@@ -24,7 +24,6 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 
 	// Is there another go-routine processing this shard?
 	if s.storage.GetShardProcessing(*shard.ShardId) {
-		log.WithField("shardId", *shard.ShardId).Info("shard is already being processed, skipping...")
 		return
 	}
 
