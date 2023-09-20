@@ -92,6 +92,7 @@ func (s *Store) scanForNewShards(ctx context.Context) {
 		}
 
 		if result.StreamDescription.LastEvaluatedShardId == nil {
+			logger.FromContext(ctx).Info("Finished reading all the shards")
 			// If LastEvaluatedShardId is null, we've read all the shards.
 			break
 		}
