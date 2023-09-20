@@ -56,6 +56,9 @@ func (s *Store) Run(ctx context.Context) {
 	// Start to subscribe to the channel
 	go s.ListenToChannel(ctx)
 
+	// Scan it for the first time manually, so we don't have to wait 5 mins
+	s.scanForNewShards(ctx)
+
 	log := logger.FromContext(ctx)
 	select {
 	case <-ctx.Done():
@@ -66,6 +69,7 @@ func (s *Store) Run(ctx context.Context) {
 		log.Info("Scanning for new shards...")
 		s.scanForNewShards(ctx)
 	}
+
 }
 
 func (s *Store) scanForNewShards(ctx context.Context) {

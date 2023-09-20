@@ -19,7 +19,6 @@ func (s *Store) ListenToChannel(ctx context.Context) {
 }
 
 func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) {
-
 	var attempts int
 	log := logger.FromContext(ctx)
 

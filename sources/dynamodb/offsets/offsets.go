@@ -26,7 +26,10 @@ func shardSeqNumberKey(shardId string) string {
 }
 
 func (o *OffsetStorage) SetShardProcessed(shardID string) {
-	o.ttlMap.Set(shardProcessKey(shardID), true, ShardExpirationAndBuffer)
+	o.ttlMap.Set(ttlmap.SetArgs{
+		Key:   shardProcessKey(shardID),
+		Value: true,
+	}, ShardExpirationAndBuffer)
 }
 
 func (o *OffsetStorage) GetShardProcessed(shardID string) bool {
@@ -37,7 +40,13 @@ func (o *OffsetStorage) GetShardProcessed(shardID string) bool {
 // SetShardProcessing sets the shard processing flag for the given shardID
 // This is used so that we don't process the same shard twice
 func (o *OffsetStorage) SetShardProcessing(shardID string) {
-	o.ttlMap.Set(shardProcessingKey(shardID), true, ShardExpirationAndBuffer)
+	o.ttlMap.Set(ttlmap.SetArgs{
+		Key:   shardProcessingKey(shardID),
+		Value: true,
+		// Don't flush this to disk
+		// This is only used to alleviate shard contention and prevent memory leak by having built-in GC.
+		DoNotFlushToDisk: true,
+	}, ShardExpirationAndBuffer)
 }
 
 func (o *OffsetStorage) GetShardProcessing(shardID string) bool {
@@ -46,7 +55,10 @@ func (o *OffsetStorage) GetShardProcessing(shardID string) bool {
 }
 
 func (o *OffsetStorage) SetLastProcessedSequenceNumber(shardID string, sequenceNumber string) {
-	o.ttlMap.Set(shardSeqNumberKey(shardID), sequenceNumber, ShardExpirationAndBuffer)
+	o.ttlMap.Set(ttlmap.SetArgs{
+		Key:   shardSeqNumberKey(shardID),
+		Value: sequenceNumber,
+	}, ShardExpirationAndBuffer)
 }
 
 func (o *OffsetStorage) LastProcessedSequenceNumber(shardID string) (string, bool) {
