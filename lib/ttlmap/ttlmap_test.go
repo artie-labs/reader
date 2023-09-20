@@ -28,7 +28,10 @@ func (t *TTLMapTestSuite) TestTTLMap_Complete() {
 
 	// Now, insert all of this and then wait 100 ms.
 	for key, duration := range keyToDuration {
-		store.Set(key, key, duration)
+		store.Set(SetArgs{
+			Key:   key,
+			Value: key,
+		}, duration)
 	}
 
 	for key := range keyToDuration {
