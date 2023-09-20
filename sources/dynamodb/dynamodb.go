@@ -75,13 +75,28 @@ func (s *Store) Run(ctx context.Context) {
 }
 
 func (s *Store) scanForNewShards(ctx context.Context) {
-	input := &dynamodbstreams.DescribeStreamInput{StreamArn: aws.String(s.streamArn)}
-	result, err := s.streams.DescribeStream(input)
-	if err != nil {
-		logger.FromContext(ctx).Fatalf("Failed to describe stream: %v", err)
-	}
+	var exclusiveStartShardId *string
+	for {
+		input := &dynamodbstreams.DescribeStreamInput{
+			StreamArn:             aws.String(s.streamArn),
+			ExclusiveStartShardId: exclusiveStartShardId,
+		}
 
-	for _, shard := range result.StreamDescription.Shards {
-		s.shardChan <- shard
+		result, err := s.streams.DescribeStream(input)
+		if err != nil {
+			logger.FromContext(ctx).Fatalf("Failed to describe stream: %v", err)
+		}
+
+		for _, shard := range result.StreamDescription.Shards {
+			s.shardChan <- shard
+		}
+
+		if result.StreamDescription.LastEvaluatedShardId == nil {
+			// If LastEvaluatedShardId is null, we've read all the shards.
+			break
+		}
+
+		// Set up the next page query with the LastEvaluatedShardId
+		exclusiveStartShardId = result.StreamDescription.LastEvaluatedShardId
 	}
 }
