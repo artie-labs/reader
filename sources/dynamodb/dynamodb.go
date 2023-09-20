@@ -60,14 +60,16 @@ func (s *Store) Run(ctx context.Context) {
 	s.scanForNewShards(ctx)
 
 	log := logger.FromContext(ctx)
-	select {
-	case <-ctx.Done():
-		close(s.shardChan)
-		log.Info("Terminating process...")
-		return
-	case <-ticker.C:
-		log.Info("Scanning for new shards...")
-		s.scanForNewShards(ctx)
+	for {
+		select {
+		case <-ctx.Done():
+			close(s.shardChan)
+			log.Info("Terminating process...")
+			return
+		case <-ticker.C:
+			log.Info("Scanning for new shards...")
+			s.scanForNewShards(ctx)
+		}
 	}
 
 }
