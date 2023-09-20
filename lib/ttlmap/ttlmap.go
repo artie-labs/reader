@@ -18,8 +18,9 @@ const (
 )
 
 type ItemWrapper struct {
-	Value      interface{} `yaml:"value"`
-	Expiration int64       `yaml:"expiration"`
+	Value            interface{} `yaml:"value"`
+	Expiration       int64       `yaml:"expiration"`
+	DoNotFlushToDisk bool
 }
 
 type TTLMap struct {
@@ -53,14 +54,21 @@ func NewMap(ctx context.Context, filePath string, cleanupInterval, flushInterval
 	return t
 }
 
-func (t *TTLMap) Set(key string, value interface{}, ttl time.Duration) {
+type SetArgs struct {
+	Key              string
+	Value            interface{}
+	DoNotFlushToDisk bool
+}
+
+func (t *TTLMap) Set(setArgs SetArgs, ttl time.Duration) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
 	expiration := time.Now().Add(ttl).UnixNano()
-	t.data[key] = &ItemWrapper{
-		Value:      value,
-		Expiration: expiration,
+	t.data[setArgs.Key] = &ItemWrapper{
+		Value:            setArgs.Value,
+		Expiration:       expiration,
+		DoNotFlushToDisk: setArgs.DoNotFlushToDisk,
 	}
 
 	t.shouldSave = true
@@ -116,7 +124,16 @@ func (t *TTLMap) flush() error {
 		return fmt.Errorf("failed to create file, err: %v", err)
 	}
 
-	yamlBytes, err := yaml.Marshal(t.data)
+	dataToSave := make(map[string]*ItemWrapper)
+	for key, val := range t.data {
+		if val.DoNotFlushToDisk {
+			continue
+		}
+
+		dataToSave[key] = val
+	}
+
+	yamlBytes, err := yaml.Marshal(dataToSave)
 	if err != nil {
 		return fmt.Errorf("failed to marshal data, err: %v", err)
 	}

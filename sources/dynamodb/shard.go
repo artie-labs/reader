@@ -12,9 +12,23 @@ import (
 	"time"
 )
 
-func (s *Store) ProcessShard(ctx context.Context, shard *dynamodbstreams.Shard) {
+func (s *Store) ListenToChannel(ctx context.Context) {
+	for shard := range s.shardChan {
+		go s.processShard(ctx, shard)
+	}
+}
+
+func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) {
 	var attempts int
 	log := logger.FromContext(ctx)
+
+	// Is there another go-routine processing this shard?
+	if s.storage.GetShardProcessing(*shard.ShardId) {
+		return
+	}
+
+	// If no one is processing it, let's mark it as being processed.
+	s.storage.SetShardProcessing(*shard.ShardId)
 	if s.storage.GetShardProcessed(*shard.ShardId) {
 		log.WithField("shardId", *shard.ShardId).Info("shard has been processed, skipping...")
 		return
