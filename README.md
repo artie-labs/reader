@@ -35,4 +35,4 @@ go run main.go --config config.yaml
 ```
 
 ## What is currently supported?
-* DynamoDB (DynamoDB streams)
+* DynamoDB (via DynamoDB streams)
