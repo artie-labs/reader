@@ -3,7 +3,6 @@ package config
 import (
 	"context"
 	"fmt"
-	"github.com/artie-labs/transfer/lib/stringutil"
 	"gopkg.in/yaml.v2"
 	"log"
 	"os"
@@ -35,27 +34,6 @@ func (k *Kafka) Validate() error {
 
 	if k.TopicPrefix == "" {
 		return fmt.Errorf("topic prefix not passed in")
-	}
-
-	return nil
-}
-
-type DynamoDB struct {
-	OffsetFile         string `yaml:"offsetFile"`
-	AwsRegion          string `yaml:"awsRegion"`
-	AwsAccessKeyID     string `yaml:"awsAccessKeyId"`
-	AwsSecretAccessKey string `yaml:"awsSecretAccessKey"`
-	StreamArn          string `yaml:"streamArn"`
-	TableName          string `yaml:"tableName"`
-}
-
-func (d *DynamoDB) Validate() error {
-	if d == nil {
-		return fmt.Errorf("dynamodb config is nil")
-	}
-
-	if stringutil.Empty(d.OffsetFile, d.AwsRegion, d.AwsAccessKeyID, d.AwsSecretAccessKey, d.StreamArn, d.TableName) {
-		return fmt.Errorf("one of the dynamoDB configs is empty: offsetFile, awsRegion, awsAccessKeyID, awsSecretAccessKey, streamArn or tableName")
 	}
 
 	return nil

@@ -28,7 +28,6 @@ const shardScannerInterval = 5 * time.Minute
 
 func Load(ctx context.Context) *Store {
 	cfg := config.FromContext(ctx)
-
 	sess, err := session.NewSession(&aws.Config{
 		Region:      ptr.ToString(cfg.DynamoDB.AwsRegion),
 		Credentials: credentials.NewStaticCredentials(cfg.DynamoDB.AwsAccessKeyID, cfg.DynamoDB.AwsSecretAccessKey, ""),
