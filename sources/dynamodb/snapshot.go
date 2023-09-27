@@ -29,10 +29,10 @@ func (s *Store) scanFilesOverBucket() error {
 	return nil
 }
 
-func (s *Store) ReadAndPublish(ctx context.Context) error {
+func (s *Store) streamAndPublish(ctx context.Context) error {
 	log := logger.FromContext(ctx)
 
-	keys, err := s.RetrievePrimaryKeys()
+	keys, err := s.retrievePrimaryKeys()
 	if err != nil {
 		return fmt.Errorf("failed to retrieve primary keys, err: %v", err)
 	}

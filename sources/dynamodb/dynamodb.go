@@ -71,7 +71,7 @@ func (s *Store) Run(ctx context.Context) {
 			logger.FromContext(ctx).WithError(err).Fatalf("scanning files over bucket failed")
 		}
 
-		if err := s.ReadAndPublish(ctx); err != nil {
+		if err := s.streamAndPublish(ctx); err != nil {
 			logger.FromContext(ctx).WithError(err).Fatalf("scanning files over bucket failed")
 		}
 

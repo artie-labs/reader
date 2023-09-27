@@ -12,10 +12,13 @@ func NewMessageFromExport(item dynamodb.ItemResponse, keys []string, tableName s
 		return nil, fmt.Errorf("item is nil or keys do not exist in this item payload")
 	}
 
+	if len(keys) == 0 {
+		return nil, fmt.Errorf("keys is nil")
+	}
+
 	// Snapshot time does not exist on the row
 	// Perhaps we can have it inferred from the manifest file in the future.
 	executionTime := time.Now()
-	op := "r"
 
 	rowData := transformNewImage(item.Item)
 	primaryKeys := make(map[string]interface{})
@@ -29,7 +32,7 @@ func NewMessageFromExport(item dynamodb.ItemResponse, keys []string, tableName s
 	}
 
 	return &Message{
-		op:            op,
+		op:            "r",
 		tableName:     tableName,
 		executionTime: executionTime,
 		rowData:       rowData,

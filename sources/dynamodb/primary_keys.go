@@ -5,7 +5,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
-func (s *Store) RetrievePrimaryKeys() ([]string, error) {
+// retrievePrimaryKeys - This function is called when we process the DynamoDB table snapshot.
+// This is because the snapshot is a JSON file and it does not contain which are the partition and sort keys.
+func (s *Store) retrievePrimaryKeys() ([]string, error) {
 	output, err := s.dynamoDBClient.DescribeTable(&dynamodb.DescribeTableInput{
 		TableName: &s.tableName,
 	})
