@@ -2,7 +2,6 @@ package dynamodb
 
 import (
 	"context"
-	"fmt"
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/s3lib"
@@ -68,9 +67,6 @@ func Load(ctx context.Context) *Store {
 
 func (s *Store) Run(ctx context.Context) {
 	if s.cfg.Snapshot {
-		keys, err := s.RetrievePrimaryKeys()
-		fmt.Println("keys", keys, "err", err)
-
 		if err := s.scanFilesOverBucket(); err != nil {
 			logger.FromContext(ctx).WithError(err).Fatalf("scanning files over bucket failed")
 		}

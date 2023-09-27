@@ -3,11 +3,19 @@ package dynamodb
 import (
 	"context"
 	"fmt"
+	"github.com/artie-labs/reader/lib/dynamo"
+	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/segmentio/kafka-go"
 )
 
 func (s *Store) scanFilesOverBucket() error {
+	if len(s.cfg.SnapshotSettings.SpecifiedFiles) > 0 {
+		// Don't scan because you are already specifying files
+		return nil
+	}
+
 	files, err := s.s3Client.ListFiles(s.cfg.SnapshotSettings.Folder)
 	if err != nil {
 		return fmt.Errorf("failed to list files, err: %v", err)
@@ -24,6 +32,11 @@ func (s *Store) scanFilesOverBucket() error {
 func (s *Store) ReadAndPublish(ctx context.Context) error {
 	log := logger.FromContext(ctx)
 
+	keys, err := s.RetrievePrimaryKeys()
+	if err != nil {
+		return fmt.Errorf("failed to retrieve primary keys, err: %v", err)
+	}
+
 	for _, file := range s.cfg.SnapshotSettings.SpecifiedFiles {
 		ch := make(chan dynamodb.ItemResponse)
 		go func() {
@@ -32,17 +45,25 @@ func (s *Store) ReadAndPublish(ctx context.Context) error {
 			}
 		}()
 
-		//var kafkaMsgs []kafka.Message
+		var kafkaMsgs []kafka.Message
 		for msg := range ch {
-			fmt.Println("msg", msg)
-			//kafkaMsg, err := dynamo.NewMessage(msg, s.tableName)
-			//if err != nil {
-			//	log.WithError(err).WithFields(map[string]interface{}{
-			//		"streamArn": s.streamArn,
-			//		"shardId":   *shard.ShardId,
-			//		"record":    record,
-			//	}).Fatal("failed to cast message from DynamoDB")
-			//}
+			dynamoMsg, err := dynamo.NewMessageFromExport(msg, keys, s.tableName)
+			if err != nil {
+				log.WithError(err).WithFields(map[string]interface{}{
+					"msg": msg,
+				}).Fatal("failed to cast message from DynamoDB")
+			}
+
+			kafkaMsg, err := dynamoMsg.KafkaMessage(ctx)
+			if err != nil {
+				log.WithError(err).Fatal("failed to cast message from DynamoDB")
+			}
+
+			kafkaMsgs = append(kafkaMsgs, kafkaMsg)
+		}
+
+		if err = kafkalib.NewBatch(kafkaMsgs, s.batchSize).Publish(ctx); err != nil {
+			log.WithError(err).Fatalf("failed to publish messages, exiting...")
 		}
 	}
 

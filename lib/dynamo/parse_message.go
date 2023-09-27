@@ -7,22 +7,34 @@ import (
 	"time"
 )
 
-func NewMessageFromExport(item *dynamodb.ItemResponse, tableName string) (*Message, error) {
-	//if item == nil || len(item.Item) == 0 {
-	//	return nil, fmt.Errorf("item is nil or keys do not exist in this item payload")
-	//}
-	//
-	//executionTime := time.Now()
-	//op := "r"
-	//return &Message{
-	//	op:            op,
-	//	tableName:     tableName,
-	//	executionTime: executionTime,
-	//	rowData:       transformNewImage(item.Item), // This is an assumed transformation function
-	//	primaryKey:    transformImage(item.Keys),
-	//}, nil
+func NewMessageFromExport(item dynamodb.ItemResponse, keys []string, tableName string) (*Message, error) {
+	if len(item.Item) == 0 {
+		return nil, fmt.Errorf("item is nil or keys do not exist in this item payload")
+	}
 
-	return nil, nil
+	// Snapshot time does not exist on the row
+	// Perhaps we can have it inferred from the manifest file in the future.
+	executionTime := time.Now()
+	op := "r"
+
+	rowData := transformNewImage(item.Item)
+	primaryKeys := make(map[string]interface{})
+	for _, key := range keys {
+		val, isOk := rowData[key]
+		if !isOk {
+			return nil, fmt.Errorf("key does not exist in the item payload")
+		}
+
+		primaryKeys[key] = val
+	}
+
+	return &Message{
+		op:            op,
+		tableName:     tableName,
+		executionTime: executionTime,
+		rowData:       rowData,
+		primaryKey:    primaryKeys,
+	}, nil
 }
 
 func NewMessage(record *dynamodbstreams.Record, tableName string) (*Message, error) {
