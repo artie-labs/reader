@@ -2,7 +2,6 @@ package s3lib
 
 import (
 	"bufio"
-	"bytes"
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
@@ -71,7 +70,6 @@ func (s *S3Client) ListFiles(fp string) ([]S3File, error) {
 // Which means we can stream this file row by row to not OOM.
 func (s *S3Client) StreamJsonGzipFile(file S3File, ch chan<- dynamodb.ItemResponse) error {
 	defer close(ch)
-
 	result, err := s.client.GetObject(&s3.GetObjectInput{
 		Bucket: file.Bucket,
 		Key:    file.Key,
@@ -82,14 +80,8 @@ func (s *S3Client) StreamJsonGzipFile(file S3File, ch chan<- dynamodb.ItemRespon
 
 	defer result.Body.Close()
 
-	buf := &bytes.Buffer{}
-	_, err = buf.ReadFrom(result.Body)
-	if err != nil {
-		return fmt.Errorf("failed to read from S3 object, err: %v", err)
-	}
-
 	// Create a gzip reader
-	gz, err := gzip.NewReader(buf)
+	gz, err := gzip.NewReader(result.Body)
 	if err != nil {
 		return fmt.Errorf("failed to create a GZIP reader for object, err: %v", err)
 	}
@@ -99,7 +91,7 @@ func (s *S3Client) StreamJsonGzipFile(file S3File, ch chan<- dynamodb.ItemRespon
 	for scanner.Scan() {
 		line := scanner.Bytes()
 		var content dynamodb.ItemResponse
-		if err := json.Unmarshal(line, &content); err != nil {
+		if err = json.Unmarshal(line, &content); err != nil {
 			return fmt.Errorf("failed to unmarshal, err: %v", err)
 		}
 
