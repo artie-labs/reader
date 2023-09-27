@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/artie-labs/reader/lib/s3lib"
 	"github.com/artie-labs/transfer/lib/stringutil"
 )
 
@@ -39,7 +40,7 @@ type SnapshotSettings struct {
 	Folder string `yaml:"folder"`
 	// If the files are not specified, that's okay.
 	// We will scan the folder and then load into `specifiedFiles`
-	SpecifiedFiles []string `yaml:"specifiedFiles"`
+	SpecifiedFiles []s3lib.S3File `yaml:"specifiedFiles"`
 }
 
 func (s *SnapshotSettings) Validate() error {

@@ -2,6 +2,7 @@ package dynamodb
 
 import (
 	"context"
+	"fmt"
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/s3lib"
@@ -10,12 +11,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
 	"time"
 )
 
 type Store struct {
-	s3Client *s3lib.S3Client
+	s3Client       *s3lib.S3Client
+	dynamoDBClient *dynamodb.DynamoDB
 
 	tableName string
 	streamArn string
@@ -42,25 +45,22 @@ func Load(ctx context.Context) *Store {
 		logger.FromContext(ctx).Fatalf("Failed to create session: %v", err)
 	}
 
-	s3Client, err := s3lib.NewClient(cfg.DynamoDB.AwsRegion)
-	if err != nil {
-		logger.FromContext(ctx).Fatalf("Failed to create s3 client: %v", err)
-	}
-
 	store := &Store{
-		s3Client:  s3Client,
 		tableName: cfg.DynamoDB.TableName,
 		streamArn: cfg.DynamoDB.StreamArn,
 		batchSize: cfg.Kafka.PublishSize,
-		streams:   dynamodbstreams.New(sess),
-		shardChan: make(chan *dynamodbstreams.Shard),
 		cfg:       cfg.DynamoDB,
 	}
 
-	// Snapshot mode does not need to use storage
-	if !cfg.DynamoDB.Snapshot {
+	if cfg.DynamoDB.Snapshot {
+		// Snapshot needs the DynamoDB client to describe table and S3 library to read from the files.
+		store.dynamoDBClient = dynamodb.New(sess)
+		store.s3Client = s3lib.NewClient(sess)
+	} else {
+		// If it's not snapshotting, then we'll need to create offset storage, streams client and a channel.
 		store.storage = offsets.NewStorage(ctx, cfg.DynamoDB.OffsetFile, nil, nil)
-
+		store.streams = dynamodbstreams.New(sess)
+		store.shardChan = make(chan *dynamodbstreams.Shard)
 	}
 
 	return store
@@ -68,6 +68,9 @@ func Load(ctx context.Context) *Store {
 
 func (s *Store) Run(ctx context.Context) {
 	if s.cfg.Snapshot {
+		keys, err := s.RetrievePrimaryKeys()
+		fmt.Println("keys", keys, "err", err)
+
 		if err := s.scanFilesOverBucket(); err != nil {
 			logger.FromContext(ctx).WithError(err).Fatalf("scanning files over bucket failed")
 		}
