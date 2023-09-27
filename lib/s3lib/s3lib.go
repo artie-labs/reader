@@ -9,6 +9,23 @@ import (
 	"strings"
 )
 
+type S3Client struct {
+	client *s3.S3
+}
+
+func NewClient(region string) (*S3Client, error) {
+	sess, err := session.NewSession(&aws.Config{
+		Region: ptr.ToString(region),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	svc := s3.New(sess)
+	return &S3Client{client: svc}, nil
+}
+
 func bucketAndPrefixFromFilePath(fp string) (*string, *string, error) {
 	// Remove the s3:// prefix if it's there
 	fp = strings.TrimPrefix(fp, "s3://")
@@ -23,25 +40,14 @@ func bucketAndPrefixFromFilePath(fp string) (*string, *string, error) {
 	return &bucket, &prefix, nil
 }
 
-func ListFiles(region, fp string) ([]string, error) {
-	// Initialize a session using Amazon SDK
-	sess, err := session.NewSession(&aws.Config{
-		Region: ptr.ToString(region),
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	svc := s3.New(sess)
-
+func (s *S3Client) ListFiles(fp string) ([]string, error) {
 	bucket, prefix, err := bucketAndPrefixFromFilePath(fp)
 	if err != nil {
 		return nil, err
 	}
 
 	var objects []string
-	err = svc.ListObjectsPages(&s3.ListObjectsInput{Bucket: bucket, Prefix: prefix},
+	err = s.client.ListObjectsPages(&s3.ListObjectsInput{Bucket: bucket, Prefix: prefix},
 		func(page *s3.ListObjectsOutput, lastPage bool) bool {
 			for _, object := range page.Contents {
 				objects = append(objects, *object.Key)
@@ -55,4 +61,8 @@ func ListFiles(region, fp string) ([]string, error) {
 	}
 
 	return objects, nil
+}
+
+func StreamJsonGZFile() {
+
 }

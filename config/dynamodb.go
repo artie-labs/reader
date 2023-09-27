@@ -13,8 +13,8 @@ type DynamoDB struct {
 	StreamArn          string `yaml:"streamArn"`
 	TableName          string `yaml:"tableName"`
 
-	Snapshot         bool             `yaml:"snapshot"`
-	SnapshotSettings SnapshotSettings `yaml:"snapshotSettings"`
+	Snapshot         bool              `yaml:"snapshot"`
+	SnapshotSettings *SnapshotSettings `yaml:"snapshotSettings"`
 }
 
 func (d *DynamoDB) Validate() error {
