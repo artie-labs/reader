@@ -67,7 +67,7 @@ func Load(ctx context.Context) *Store {
 
 func (s *Store) Run(ctx context.Context) {
 	if s.cfg.Snapshot {
-		if err := s.scanFilesOverBucket(); err != nil {
+		if err := s.scanFilesOverBucket(ctx); err != nil {
 			logger.FromContext(ctx).WithError(err).Fatalf("scanning files over bucket failed")
 		}
 
