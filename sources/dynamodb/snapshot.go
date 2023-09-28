@@ -10,7 +10,7 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-func (s *Store) scanFilesOverBucket() error {
+func (s *Store) scanFilesOverBucket(ctx context.Context) error {
 	if len(s.cfg.SnapshotSettings.SpecifiedFiles) > 0 {
 		// Don't scan because you are already specifying files
 		return nil
@@ -23,6 +23,10 @@ func (s *Store) scanFilesOverBucket() error {
 
 	if len(files) == 0 {
 		return fmt.Errorf("no files found in the folder: %v", s.cfg.SnapshotSettings.Folder)
+	}
+
+	for _, file := range files {
+		logger.FromContext(ctx).WithField("fileName", *file.Key).Info("discovered file, adding to the processing queue...")
 	}
 
 	s.cfg.SnapshotSettings.SpecifiedFiles = files
@@ -38,6 +42,11 @@ func (s *Store) streamAndPublish(ctx context.Context) error {
 	}
 
 	for _, file := range s.cfg.SnapshotSettings.SpecifiedFiles {
+		logFields := map[string]interface{}{
+			"fileName": *file.Key,
+		}
+
+		log.WithFields(logFields).Info("processing file...")
 		ch := make(chan dynamodb.ItemResponse)
 		go func() {
 			if err := s.s3Client.StreamJsonGzipFile(file, ch); err != nil {
@@ -65,6 +74,8 @@ func (s *Store) streamAndPublish(ctx context.Context) error {
 		if err = kafkalib.NewBatch(kafkaMsgs, s.batchSize).Publish(ctx); err != nil {
 			log.WithError(err).Fatalf("failed to publish messages, exiting...")
 		}
+
+		log.WithFields(logFields).Info("successfully processed file...")
 	}
 
 	return nil
