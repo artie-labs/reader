@@ -30,6 +30,8 @@ func main() {
 		client, err := datadog.NewDatadogClient(ctx, map[string]interface{}{
 			datadog.Namespace: cfg.Metrics.Namespace,
 			datadog.Tags:      cfg.Metrics.Tags,
+			// Sample 50% to start, we can make this configurable later.
+			datadog.Sampling: 0.5,
 		})
 
 		if err != nil {
