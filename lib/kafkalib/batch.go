@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/transfer/lib/jitter"
+	"github.com/artie-labs/transfer/lib/telemetry/metrics"
 	"github.com/segmentio/kafka-go"
 	"time"
 )
@@ -66,12 +67,19 @@ func (b *Batch) NextChunk() []kafka.Message {
 }
 
 func (b *Batch) Publish(ctx context.Context) error {
-	kafkaWriter := FromContext(ctx)
 	for b.HasNext() {
 		var err error
+		var count int64
+		tags := map[string]string{
+			"what": "error",
+		}
+
 		for attempts := 0; attempts < MaxRetries; attempts++ {
-			err = kafkaWriter.WriteMessages(ctx, b.NextChunk()...)
+			chunk := b.NextChunk()
+			count = int64(len(chunk))
+			err = FromContext(ctx).WriteMessages(ctx, chunk...)
 			if err == nil {
+				tags["what"] = "success"
 				break
 			}
 
@@ -83,6 +91,7 @@ func (b *Batch) Publish(ctx context.Context) error {
 			time.Sleep(sleepDuration)
 		}
 
+		metrics.FromContext(ctx).Count("kafka.publish", count, tags)
 		if err != nil {
 			return err
 		}

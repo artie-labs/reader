@@ -47,9 +47,15 @@ type Sentry struct {
 	DSN string `yaml:"dsn"`
 }
 
+type Metrics struct {
+	Namespace string   `yaml:"namespace"`
+	Tags      []string `yaml:"tags"`
+}
+
 type Settings struct {
 	DynamoDB  *DynamoDB  `yaml:"dynamodb"`
 	Reporting *Reporting `yaml:"reporting"`
+	Metrics   *Metrics   `yaml:"metrics"`
 	Kafka     *Kafka     `yaml:"kafka"`
 }
 
