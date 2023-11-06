@@ -73,6 +73,7 @@ func (b *Batch) Publish(ctx context.Context) error {
 		tags := map[string]string{
 			"what": "error",
 		}
+
 		for attempts := 0; attempts < MaxRetries; attempts++ {
 			chunk := b.NextChunk()
 			count = int64(len(chunk))
