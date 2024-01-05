@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/constants"
 	"github.com/artie-labs/reader/lib/logger"
 	awsCfg "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/segmentio/kafka-go"
@@ -12,14 +13,11 @@ import (
 	"time"
 )
 
-const (
-	ctxKey            = "_kafka"
-	maxKafkaItemBytes = 4000000
-)
+const maxKafkaItemBytes = 4000000
 
 func FromContext(ctx context.Context) *kafka.Writer {
 	log := logger.FromContext(ctx)
-	kafkaVal := ctx.Value(ctxKey)
+	kafkaVal := ctx.Value(constants.KafkaKey)
 	if kafkaVal == nil {
 		log.Fatal("kafka is not set in context.Context")
 	}
@@ -64,5 +62,5 @@ func InjectIntoContext(ctx context.Context) context.Context {
 		}
 	}
 
-	return context.WithValue(ctx, ctxKey, writer)
+	return context.WithValue(ctx, constants.KafkaKey, writer)
 }

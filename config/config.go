@@ -3,12 +3,11 @@ package config
 import (
 	"context"
 	"fmt"
+	"github.com/artie-labs/reader/constants"
 	"gopkg.in/yaml.v2"
 	"log"
 	"os"
 )
-
-const ctxKey = "_cfg"
 
 type Kafka struct {
 	BootstrapServers string `yaml:"bootstrapServers"`
@@ -104,11 +103,11 @@ func ReadConfig(fp string) (*Settings, error) {
 }
 
 func InjectIntoContext(ctx context.Context, settings *Settings) context.Context {
-	return context.WithValue(ctx, ctxKey, settings)
+	return context.WithValue(ctx, constants.ConfigKey, settings)
 }
 
 func FromContext(ctx context.Context) *Settings {
-	val := ctx.Value(ctxKey)
+	val := ctx.Value(constants.ConfigKey)
 	if val == nil {
 		return nil
 	}
