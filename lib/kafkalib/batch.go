@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/artie-labs/reader/lib/logger"
+	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/transfer/lib/jitter"
-	"github.com/artie-labs/transfer/lib/telemetry/metrics"
 	"github.com/segmentio/kafka-go"
 	"time"
 )
@@ -91,7 +91,7 @@ func (b *Batch) Publish(ctx context.Context) error {
 			time.Sleep(sleepDuration)
 		}
 
-		metrics.FromContext(ctx).Count("kafka.publish", count, tags)
+		mtr.FromContext(ctx).Count("kafka.publish", count, tags)
 		if err != nil {
 			return err
 		}

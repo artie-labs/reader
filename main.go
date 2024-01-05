@@ -6,9 +6,8 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
+	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/reader/sources/dynamodb"
-	"github.com/artie-labs/transfer/lib/telemetry/metrics"
-	"github.com/artie-labs/transfer/lib/telemetry/metrics/datadog"
 	"log"
 )
 
@@ -27,18 +26,7 @@ func main() {
 	ctx = kafkalib.InjectIntoContext(ctx)
 	if cfg.Metrics != nil {
 		logger.FromContext(ctx).Info("injecting datadog")
-		client, err := datadog.NewDatadogClient(ctx, map[string]interface{}{
-			datadog.Namespace: cfg.Metrics.Namespace,
-			datadog.Tags:      cfg.Metrics.Tags,
-			// Sample 50% to start, we can make this configurable later.
-			datadog.Sampling: 0.5,
-		})
-
-		if err != nil {
-			logger.FromContext(ctx).WithError(err).Fatal("failed to create datadog client")
-		}
-
-		ctx = metrics.InjectMetricsClientIntoCtx(ctx, client)
+		ctx = mtr.InjectDatadogIntoCtx(ctx, cfg.Metrics.Namespace, cfg.Metrics.Tags, 0.5)
 	}
 
 	ddb := dynamodb.Load(ctx)
