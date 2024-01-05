@@ -3,6 +3,7 @@ module github.com/artie-labs/reader
 go 1.19
 
 require (
+	github.com/DataDog/datadog-go v4.8.3+incompatible
 	github.com/artie-labs/transfer v0.0.0-20231106205704-cf038be65858
 	github.com/aws/aws-sdk-go v1.44.327
 	github.com/aws/aws-sdk-go-v2/config v1.18.19
@@ -15,7 +16,6 @@ require (
 )
 
 require (
-	github.com/DataDog/datadog-go v4.8.3+incompatible // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.18.1 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.18 // indirect
