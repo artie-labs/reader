@@ -2,11 +2,12 @@ package logger
 
 import (
 	"context"
-	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/constants"
 	"github.com/evalphobia/logrus_sentry"
 	"github.com/sirupsen/logrus"
 	"os"
+
+	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/constants"
 )
 
 func InjectLoggerIntoCtx(ctx context.Context) context.Context {

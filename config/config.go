@@ -3,10 +3,11 @@ package config
 import (
 	"context"
 	"fmt"
-	"github.com/artie-labs/reader/constants"
 	"gopkg.in/yaml.v2"
 	"log"
 	"os"
+	
+	"github.com/artie-labs/reader/constants"
 )
 
 type Kafka struct {
