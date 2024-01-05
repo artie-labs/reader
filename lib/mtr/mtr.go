@@ -24,13 +24,12 @@ func InjectDatadogIntoCtx(ctx context.Context, namespace string, tags []string, 
 	if err != nil {
 		logger.FromContext(ctx).WithError(err).Fatal("failed to create datadog client")
 	}
-	
+
 	datadogClient.Tags = tags
 	datadogClient.Namespace = stringutil.Override(DefaultNamespace, namespace)
 	return context.WithValue(ctx, constants.MtrKey, &statsClient{
 		client: datadogClient,
-		// Don't sample yet.
-		rate: samplingRate,
+		rate:   samplingRate,
 	})
 }
 
