@@ -124,6 +124,4 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 			s.storage.SetShardProcessed(*shard.ShardId)
 		}
 	}
-
-	return
 }

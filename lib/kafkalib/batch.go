@@ -15,7 +15,7 @@ const (
 	RetryDelayMs = 250
 )
 
-var BatchEmptyErr = fmt.Errorf("batch is empty")
+var ErrEmptyBatch = fmt.Errorf("batch is empty")
 
 type Batch struct {
 	msgs        []kafka.Message
@@ -25,7 +25,7 @@ type Batch struct {
 
 func (b *Batch) IsValid() error {
 	if len(b.msgs) == 0 {
-		return BatchEmptyErr
+		return ErrEmptyBatch
 	}
 
 	if b.chunkSize < 1 {

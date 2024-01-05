@@ -1,3 +1,6 @@
+.PHONY: static
+static:
+	staticcheck ./...
 .PHONY: test
 test:
 	go test ./...
