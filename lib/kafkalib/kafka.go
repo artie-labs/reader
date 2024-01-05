@@ -13,8 +13,7 @@ import (
 )
 
 const (
-	ctxKey            = "_kafka"
-	maxKafkaItemBytes = 4000000
+	ctxKey = "_kafka"
 )
 
 func FromContext(ctx context.Context) *kafka.Writer {
@@ -44,11 +43,14 @@ func InjectIntoContext(ctx context.Context) context.Context {
 
 	writer := &kafka.Writer{
 		Addr:                   kafka.TCP(strings.Split(cfg.Kafka.BootstrapServers, ",")...),
-		BatchBytes:             maxKafkaItemBytes,
 		Compression:            kafka.Gzip,
 		Balancer:               &kafka.LeastBytes{},
 		WriteTimeout:           5 * time.Second,
 		AllowAutoTopicCreation: true,
+	}
+
+	if cfg.Kafka.MaxRequestSize > 0 {
+		writer.BatchBytes = cfg.Kafka.MaxRequestSize
 	}
 
 	if cfg.Kafka.AwsEnabled {
