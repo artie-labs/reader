@@ -3,17 +3,16 @@ package kafkalib
 import (
 	"context"
 	"crypto/tls"
-	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/constants"
-	"github.com/artie-labs/reader/lib/logger"
 	awsCfg "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl/aws_msk_iam_v2"
 	"strings"
 	"time"
-)
 
-const maxKafkaItemBytes = 4000000
+	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/constants"
+	"github.com/artie-labs/reader/lib/logger"
+)
 
 func FromContext(ctx context.Context) *kafka.Writer {
 	log := logger.FromContext(ctx)
@@ -42,11 +41,14 @@ func InjectIntoContext(ctx context.Context) context.Context {
 
 	writer := &kafka.Writer{
 		Addr:                   kafka.TCP(strings.Split(cfg.Kafka.BootstrapServers, ",")...),
-		BatchBytes:             maxKafkaItemBytes,
 		Compression:            kafka.Gzip,
 		Balancer:               &kafka.LeastBytes{},
 		WriteTimeout:           5 * time.Second,
 		AllowAutoTopicCreation: true,
+	}
+
+	if cfg.Kafka.MaxRequestSize > 0 {
+		writer.BatchBytes = cfg.Kafka.MaxRequestSize
 	}
 
 	if cfg.Kafka.AwsEnabled {
