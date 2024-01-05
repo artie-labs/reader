@@ -2,20 +2,20 @@ package logger
 
 import (
 	"context"
-	"github.com/artie-labs/reader/config"
 	"github.com/evalphobia/logrus_sentry"
 	"github.com/sirupsen/logrus"
 	"os"
+
+	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/constants"
 )
 
-const loggerKey = "_log"
-
 func InjectLoggerIntoCtx(ctx context.Context) context.Context {
-	return context.WithValue(ctx, loggerKey, initLogger(config.FromContext(ctx)))
+	return context.WithValue(ctx, constants.LoggerKey, initLogger(config.FromContext(ctx)))
 }
 
 func FromContext(ctx context.Context) *logrus.Logger {
-	logVal := ctx.Value(loggerKey)
+	logVal := ctx.Value(constants.LoggerKey)
 	if logVal == nil {
 		return FromContext(InjectLoggerIntoCtx(ctx))
 	}
