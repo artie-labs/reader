@@ -37,7 +37,6 @@ func main() {
 	}
 
 	svc := dynamodb.New(sess)
-	rand.Seed(time.Now().UnixNano())
 
 	// Splitting the items into batches
 	for i := 0; i < numRows; i += maxBatchSize {
