@@ -70,7 +70,7 @@ func (s *Store) streamAndPublish(ctx context.Context) error {
 		}
 
 		if err = kafkalib.NewBatch(kafkaMsgs, s.batchSize).Publish(ctx); err != nil {
-			logger.Fatal("failed to publish messages, exiting...")
+			logger.Fatal("failed to publish messages, exiting...", slog.Any("err", err))
 		}
 
 		slog.With(logFields...).Info("successfully processed file...")
