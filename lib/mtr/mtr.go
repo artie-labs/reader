@@ -3,9 +3,11 @@ package mtr
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
+
 	"github.com/DataDog/datadog-go/statsd"
 	"github.com/artie-labs/transfer/lib/stringutil"
-	"os"
 
 	"github.com/artie-labs/reader/constants"
 	"github.com/artie-labs/reader/lib/logger"
@@ -17,12 +19,12 @@ func InjectDatadogIntoCtx(ctx context.Context, namespace string, tags []string, 
 	address := DefaultAddr
 	if !stringutil.Empty(host, port) {
 		address = fmt.Sprintf("%s:%s", host, port)
-		logger.FromContext(ctx).WithField("address", address).Info("overriding telemetry address with env vars")
+		slog.With("address", address).Info("overriding telemetry address with env vars")
 	}
 
 	datadogClient, err := statsd.New(address)
 	if err != nil {
-		logger.FromContext(ctx).WithError(err).Fatal("failed to create datadog client")
+		logger.Fatal("failed to create datadog client", slog.Any("err", err))
 	}
 
 	datadogClient.Tags = tags
@@ -36,12 +38,12 @@ func InjectDatadogIntoCtx(ctx context.Context, namespace string, tags []string, 
 func FromContext(ctx context.Context) Client {
 	metricsClientVal := ctx.Value(constants.MtrKey)
 	if metricsClientVal == nil {
-		logger.FromContext(ctx).Fatal("metrics client is nil")
+		logger.Fatal("metrics client is nil")
 	}
 
 	metricsClient, isOk := metricsClientVal.(Client)
 	if !isOk {
-		logger.FromContext(ctx).Fatal("metrics client is not mtr.Client type")
+		logger.Fatal("metrics client is not mtr.Client type")
 	}
 
 	return metricsClient

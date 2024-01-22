@@ -2,6 +2,9 @@ package dynamodb
 
 import (
 	"context"
+	"log/slog"
+	"time"
+
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/s3lib"
@@ -12,7 +15,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
-	"time"
 )
 
 type Store struct {
@@ -41,7 +43,7 @@ func Load(ctx context.Context) *Store {
 	})
 
 	if err != nil {
-		logger.FromContext(ctx).Fatalf("Failed to create session: %v", err)
+		logger.Fatal("Failed to create session", slog.Any("err", err))
 	}
 
 	store := &Store{
@@ -68,14 +70,14 @@ func Load(ctx context.Context) *Store {
 func (s *Store) Run(ctx context.Context) {
 	if s.cfg.Snapshot {
 		if err := s.scanFilesOverBucket(ctx); err != nil {
-			logger.FromContext(ctx).WithError(err).Fatalf("scanning files over bucket failed")
+			logger.Fatal("scanning files over bucket failed", slog.Any("err", err))
 		}
 
 		if err := s.streamAndPublish(ctx); err != nil {
-			logger.FromContext(ctx).WithError(err).Fatalf("scanning files over bucket failed")
+			logger.Fatal("scanning files over bucket failed", slog.Any("err", err))
 		}
 
-		logger.FromContext(ctx).Info("Finished snapshotting all the files")
+		slog.Info("Finished snapshotting all the files")
 	} else {
 		ticker := time.NewTicker(shardScannerInterval)
 
@@ -84,15 +86,14 @@ func (s *Store) Run(ctx context.Context) {
 
 		// Scan it for the first time manually, so we don't have to wait 5 mins
 		s.scanForNewShards(ctx)
-		log := logger.FromContext(ctx)
 		for {
 			select {
 			case <-ctx.Done():
 				close(s.shardChan)
-				log.Info("Terminating process...")
+				slog.Info("Terminating process...")
 				return
 			case <-ticker.C:
-				log.Info("Scanning for new shards...")
+				slog.Info("Scanning for new shards...")
 				s.scanForNewShards(ctx)
 			}
 		}
@@ -109,7 +110,7 @@ func (s *Store) scanForNewShards(ctx context.Context) {
 
 		result, err := s.streams.DescribeStream(input)
 		if err != nil {
-			logger.FromContext(ctx).Fatalf("Failed to describe stream: %v", err)
+			logger.Fatal("Failed to describe stream", slog.Any("err", err))
 		}
 
 		for _, shard := range result.StreamDescription.Shards {
@@ -117,7 +118,7 @@ func (s *Store) scanForNewShards(ctx context.Context) {
 		}
 
 		if result.StreamDescription.LastEvaluatedShardId == nil {
-			logger.FromContext(ctx).Info("Finished reading all the shards")
+			slog.Info("Finished reading all the shards")
 			// If LastEvaluatedShardId is null, we've read all the shards.
 			break
 		}

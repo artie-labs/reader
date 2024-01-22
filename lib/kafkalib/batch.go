@@ -3,11 +3,12 @@ package kafkalib
 import (
 	"context"
 	"fmt"
-	"github.com/artie-labs/reader/lib/logger"
+	"log/slog"
+	"time"
+
 	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/segmentio/kafka-go"
-	"time"
 )
 
 const (
@@ -84,10 +85,11 @@ func (b *Batch) Publish(ctx context.Context) error {
 			}
 
 			sleepDuration := time.Duration(jitter.JitterMs(RetryDelayMs, attempts)) * time.Millisecond
-			logger.FromContext(ctx).WithError(err).WithFields(map[string]interface{}{
-				"attempts":    attempts,
-				"maxAttempts": MaxRetries,
-			}).Warn("failed to publish message, jitter sleeping before retrying...")
+			slog.With(
+				slog.Any("err", err),
+				slog.Int("attempts", attempts),
+				slog.Int("maxAttempts", MaxRetries),
+			).Warn("failed to publish message, jitter sleeping before retrying...")
 			time.Sleep(sleepDuration)
 		}
 

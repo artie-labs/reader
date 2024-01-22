@@ -3,11 +3,13 @@ package ttlmap
 import (
 	"context"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io"
+	"log/slog"
 	"os"
 	"sync"
 	"time"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/artie-labs/reader/lib/logger"
 )
@@ -43,7 +45,7 @@ func NewMap(ctx context.Context, filePath string, cleanupInterval, flushInterval
 	}
 
 	if err := t.loadFromFile(); err != nil {
-		logger.FromContext(ctx).WithError(err).Warn("failed to load ttlmap from memory, starting a new one...")
+		slog.Warn("failed to load ttlmap from memory, starting a new one...", slog.Any("err", err))
 	}
 
 	t.cleanupTicker = time.NewTicker(cleanupInterval)
@@ -93,7 +95,7 @@ func (t *TTLMap) cleanUpAndFlushRoutine() {
 			t.cleanup()
 		case <-t.flushTicker.C:
 			if err := t.flush(); err != nil {
-				logger.FromContext(t.ctx).WithError(err).Fatal("failed to flush")
+				logger.Fatal("failed to flush", slog.Any("err", err))
 			}
 		case <-t.closeChan:
 			return

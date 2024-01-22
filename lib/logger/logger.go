@@ -1,51 +1,37 @@
 package logger
 
 import (
-	"context"
-	"github.com/evalphobia/logrus_sentry"
-	"github.com/sirupsen/logrus"
+	"log/slog"
 	"os"
 
+	"github.com/getsentry/sentry-go"
+	"github.com/lmittmann/tint"
+	slogmulti "github.com/samber/slog-multi"
+	slogsentry "github.com/samber/slog-sentry"
+
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/constants"
 )
 
-func InjectLoggerIntoCtx(ctx context.Context) context.Context {
-	return context.WithValue(ctx, constants.LoggerKey, initLogger(config.FromContext(ctx)))
-}
+func NewLogger(settings *config.Settings) (*slog.Logger, bool) {
+	handler := tint.NewHandler(os.Stderr, &tint.Options{Level: slog.LevelInfo})
 
-func FromContext(ctx context.Context) *logrus.Logger {
-	logVal := ctx.Value(constants.LoggerKey)
-	if logVal == nil {
-		return FromContext(InjectLoggerIntoCtx(ctx))
-	}
-
-	log, isOk := logVal.(*logrus.Logger)
-	if !isOk {
-		return FromContext(InjectLoggerIntoCtx(ctx))
-	}
-
-	return log
-}
-
-func initLogger(settings *config.Settings) *logrus.Logger {
-	log := logrus.New()
-	log.SetOutput(os.Stdout)
-
+	var loggingToSentry bool
 	if settings != nil && settings.Reporting != nil && settings.Reporting.Sentry != nil && settings.Reporting.Sentry.DSN != "" {
-		hook, err := logrus_sentry.NewSentryHook(settings.Reporting.Sentry.DSN, []logrus.Level{
-			logrus.PanicLevel,
-			logrus.FatalLevel,
-			logrus.ErrorLevel,
-			logrus.WarnLevel,
-		})
-
-		if err != nil {
-			log.WithError(err).Warn("Failed to enable Sentry output")
+		if err := sentry.Init(sentry.ClientOptions{Dsn: settings.Reporting.Sentry.DSN}); err != nil {
+			slog.New(handler).Warn("Failed to enable Sentry output", slog.Any("err", err))
 		} else {
-			log.Hooks.Add(hook)
+			handler = slogmulti.Fanout(
+				handler,
+				slogsentry.Option{Level: slog.LevelWarn}.NewSentryHandler(),
+			)
+			loggingToSentry = true
 		}
 	}
 
-	return log
+	return slog.New(handler), loggingToSentry
+}
+
+func Fatal(msg string, args ...interface{}) {
+	slog.Error(msg, args...)
+	panic(msg)
 }
