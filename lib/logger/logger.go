@@ -22,7 +22,7 @@ func NewLogger(settings *config.Settings) (*slog.Logger, bool) {
 		} else {
 			handler = slogmulti.Fanout(
 				handler,
-				slogsentry.Option{Level: slog.LevelWarn}.NewSentryHandler(),
+				slogsentry.Option{Level: slog.LevelError}.NewSentryHandler(),
 			)
 			loggingToSentry = true
 		}
