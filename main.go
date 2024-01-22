@@ -3,12 +3,15 @@ package main
 import (
 	"context"
 	"flag"
+	"log/slog"
+	"time"
+
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/reader/sources/dynamodb"
-	"log"
+	"github.com/getsentry/sentry-go"
 )
 
 func main() {
@@ -18,14 +21,20 @@ func main() {
 
 	cfg, err := config.ReadConfig(configFilePath)
 	if err != nil {
-		log.Fatalf("failed to read config file, err: %v", err)
+		logger.Fatal("failed to read config file", slog.Any("err", err))
+	}
+
+	_logger, usingSentry := logger.NewLogger(cfg)
+	slog.SetDefault(_logger)
+	if usingSentry {
+		defer sentry.Flush(2 * time.Second)
+		slog.Info("Sentry logger enabled")
 	}
 
 	ctx := config.InjectIntoContext(context.Background(), cfg)
-	ctx = logger.InjectLoggerIntoCtx(ctx)
 	ctx = kafkalib.InjectIntoContext(ctx)
 	if cfg.Metrics != nil {
-		logger.FromContext(ctx).Info("injecting datadog")
+		slog.Info("injecting datadog")
 		ctx = mtr.InjectDatadogIntoCtx(ctx, cfg.Metrics.Namespace, cfg.Metrics.Tags, 0.5)
 	}
 

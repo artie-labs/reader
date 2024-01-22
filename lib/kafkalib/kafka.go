@@ -3,11 +3,13 @@ package kafkalib
 import (
 	"context"
 	"crypto/tls"
+	"log/slog"
+	"strings"
+	"time"
+
 	awsCfg "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl/aws_msk_iam_v2"
-	"strings"
-	"time"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/constants"
@@ -15,29 +17,27 @@ import (
 )
 
 func FromContext(ctx context.Context) *kafka.Writer {
-	log := logger.FromContext(ctx)
 	kafkaVal := ctx.Value(constants.KafkaKey)
 	if kafkaVal == nil {
-		log.Fatal("kafka is not set in context.Context")
+		logger.Fatal("kafka is not set in context.Context")
 	}
 
 	kafkaWriter, isOk := kafkaVal.(*kafka.Writer)
 	if !isOk {
-		log.Fatal("kafka writer is not type *kafka.Writer")
+		logger.Fatal("kafka writer is not type *kafka.Writer")
 	}
 
 	return kafkaWriter
 }
 
 func InjectIntoContext(ctx context.Context) context.Context {
-	log := logger.FromContext(ctx)
 	cfg := config.FromContext(ctx)
 
 	if cfg == nil || cfg.Kafka == nil {
-		log.Fatal("Kafka configuration is not set")
+		logger.Fatal("Kafka configuration is not set")
 	}
 
-	logger.FromContext(ctx).WithField("url", strings.Split(cfg.Kafka.BootstrapServers, ",")).Info("setting bootstrap url")
+	slog.With("url", strings.Split(cfg.Kafka.BootstrapServers, ",")).Info("setting bootstrap url")
 
 	writer := &kafka.Writer{
 		Addr:                   kafka.TCP(strings.Split(cfg.Kafka.BootstrapServers, ",")...),
@@ -54,7 +54,7 @@ func InjectIntoContext(ctx context.Context) context.Context {
 	if cfg.Kafka.AwsEnabled {
 		saslCfg, err := awsCfg.LoadDefaultConfig(ctx)
 		if err != nil {
-			log.Fatal("Failed to load AWS configuration")
+			logger.Fatal("Failed to load AWS configuration")
 		}
 
 		writer.Transport = &kafka.Transport{

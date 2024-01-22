@@ -4,13 +4,15 @@ go 1.21
 
 require (
 	github.com/DataDog/datadog-go v4.8.3+incompatible
-	github.com/artie-labs/transfer v0.0.0-20231106205704-cf038be65858
+	github.com/artie-labs/transfer v0.0.0-20240122182109-1ca5f4b608a0
 	github.com/aws/aws-sdk-go v1.44.327
 	github.com/aws/aws-sdk-go-v2/config v1.18.19
-	github.com/evalphobia/logrus_sentry v0.8.2
+	github.com/getsentry/sentry-go v0.26.0
+	github.com/lmittmann/tint v1.0.4
+	github.com/samber/slog-multi v1.0.2
+	github.com/samber/slog-sentry v1.2.2
 	github.com/segmentio/kafka-go v0.4.38
 	github.com/segmentio/kafka-go/sasl/aws_msk_iam_v2 v0.1.0
-	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.4
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -28,18 +30,18 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.6 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.18.7 // indirect
 	github.com/aws/smithy-go v1.13.5 // indirect
-	github.com/certifi/gocertifi v0.0.0-20210507211836-431795d63e8d // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/getsentry/raven-go v0.2.0 // indirect
 	github.com/jessevdk/go-flags v1.5.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.18 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/samber/lo v1.38.1 // indirect
+	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1 // indirect
 	golang.org/x/mod v0.12.0 // indirect
-	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.12.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
