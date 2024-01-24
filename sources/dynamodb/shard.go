@@ -67,7 +67,7 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 
 	kafkaCfg := config.FromContext(ctx).Kafka
 	if kafkaCfg == nil {
-		logger.Fatal("kafka config is nil")
+		logger.Fatal("Kafka config is nil")
 	}
 
 	shardIterator := iteratorOutput.ShardIterator
