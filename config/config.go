@@ -15,8 +15,8 @@ type Kafka struct {
 	BootstrapServers string `yaml:"bootstrapServers"`
 	TopicPrefix      string `yaml:"topicPrefix"`
 	AwsEnabled       bool   `yaml:"awsEnabled"`
-	PublishSize      int    `yaml:"publishSize,omitempty"`
-	MaxRequestSize   int64  `yaml:"maxRequestSize,omitempty"`
+	PublishSize      uint   `yaml:"publishSize,omitempty"`
+	MaxRequestSize   uint64 `yaml:"maxRequestSize,omitempty"`
 }
 
 func (k *Kafka) GenerateDefault() {
