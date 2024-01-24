@@ -98,6 +98,10 @@ func (s *Settings) Validate() error {
 		if s.PostgreSQL == nil {
 			return fmt.Errorf("postgres config is nil")
 		}
+
+		if err := s.PostgreSQL.Validate(); err != nil {
+			return fmt.Errorf("postgres validation failed: %v", err)
+		}
 	}
 
 	return nil
