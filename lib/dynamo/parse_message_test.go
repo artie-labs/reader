@@ -1,12 +1,14 @@
 package dynamo
 
 import (
+	"testing"
+
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/stretchr/testify/assert"
 )
 
-func (d *DynamoDBTestSuite) Test_NewMessageFromExport() {
+func Test_NewMessageFromExport(t *testing.T) {
 	type _tc struct {
 		name          string
 		item          dynamodb.ItemResponse
@@ -55,11 +57,11 @@ func (d *DynamoDBTestSuite) Test_NewMessageFromExport() {
 	for _, tc := range tcs {
 		msg, err := NewMessageFromExport(tc.item, tc.keys, tc.tableName)
 		if tc.expectedError != "" {
-			assert.Equal(d.T(), tc.expectedError, err.Error(), tc.name)
+			assert.Equal(t, tc.expectedError, err.Error(), tc.name)
 		} else {
-			assert.NoError(d.T(), err, tc.name)
-			assert.Equal(d.T(), tc.tableName, msg.tableName, tc.name)
-			assert.Equal(d.T(), "r", msg.op, tc.name)
+			assert.NoError(t, err, tc.name)
+			assert.Equal(t, tc.tableName, msg.tableName, tc.name)
+			assert.Equal(t, "r", msg.op, tc.name)
 		}
 	}
 }
