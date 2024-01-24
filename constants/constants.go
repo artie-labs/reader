@@ -10,5 +10,5 @@ const (
 
 const (
 	DefaultLimit       = 5_000
-	DefaultPublishSize = 5_000
+	DefaultPublishSize = 2_500
 )
