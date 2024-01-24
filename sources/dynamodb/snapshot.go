@@ -44,7 +44,7 @@ func (s *Store) streamAndPublish(ctx context.Context) error {
 
 	kafkaCfg := config.FromContext(ctx).Kafka
 	if kafkaCfg == nil {
-		return fmt.Errorf("kafka configuration is not set")
+		return fmt.Errorf("kafka config is nil")
 	}
 
 	for _, file := range s.cfg.SnapshotSettings.SpecifiedFiles {
