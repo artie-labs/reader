@@ -21,7 +21,7 @@ func main() {
 
 	cfg, err := config.ReadConfig(configFilePath)
 	if err != nil {
-		logger.Fatal("failed to read config file", slog.Any("err", err))
+		logger.Fatal("Failed to read config file", slog.Any("err", err))
 	}
 
 	_logger, usingSentry := logger.NewLogger(cfg)
@@ -34,7 +34,7 @@ func main() {
 	ctx := config.InjectIntoContext(context.Background(), cfg)
 	ctx = kafkalib.InjectIntoContext(ctx)
 	if cfg.Metrics != nil {
-		slog.Info("injecting datadog")
+		slog.Info("Injecting datadog")
 		ctx = mtr.InjectDatadogIntoCtx(ctx, cfg.Metrics.Namespace, cfg.Metrics.Tags, 0.5)
 	}
 

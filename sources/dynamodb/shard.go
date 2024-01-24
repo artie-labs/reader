@@ -31,11 +31,11 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 	// If no one is processing it, let's mark it as being processed.
 	s.storage.SetShardProcessing(*shard.ShardId)
 	if s.storage.GetShardProcessed(*shard.ShardId) {
-		slog.With("shardId", *shard.ShardId).Info("shard has been processed, skipping...")
+		slog.Info("Shard has been processed, skipping...", slog.String("shardId", *shard.ShardId))
 		return
 	}
 
-	slog.With("shardId", *shard.ShardId).Info("processing shard...")
+	slog.Info("Processing shard...", slog.String("shardId", *shard.ShardId))
 
 	iteratorType := "TRIM_HORIZON"
 	var startingSequenceNumber string
@@ -56,11 +56,11 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 
 	iteratorOutput, err := s.streams.GetShardIterator(iteratorInput)
 	if err != nil {
-		slog.With(
+		slog.Warn("Failed to get shard iterator...",
 			slog.Any("err", err),
 			slog.String("streamArn", s.streamArn),
 			slog.String("shardId", *shard.ShardId),
-		).Warn("failed to get shard iterator...")
+		)
 		return
 	}
 
@@ -74,11 +74,11 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 
 		getRecordsOutput, err := s.streams.GetRecords(getRecordsInput)
 		if err != nil {
-			slog.With(
+			slog.Warn("Failed to get records from shard iterator...",
 				slog.Any("err", err),
 				slog.String("streamArn", s.streamArn),
 				slog.String("shardId", *shard.ShardId),
-			).Warn("failed to get records from shard iterator...")
+			)
 			break
 		}
 
@@ -86,7 +86,7 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 		for _, record := range getRecordsOutput.Records {
 			msg, err := dynamo.NewMessage(record, s.tableName)
 			if err != nil {
-				logger.Fatal("failed to cast message from DynamoDB",
+				logger.Fatal("Failed to cast message from DynamoDB",
 					slog.Any("err", err),
 					slog.String("streamArn", s.streamArn),
 					slog.String("shardId", *shard.ShardId),
@@ -96,7 +96,7 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 
 			message, err := msg.KafkaMessage(ctx)
 			if err != nil {
-				logger.Fatal("failed to cast message from DynamoDB",
+				logger.Fatal("Failed to cast message from DynamoDB",
 					slog.Any("err", err),
 					slog.String("streamArn", s.streamArn),
 					slog.String("shardId", *shard.ShardId),
@@ -108,7 +108,7 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 		}
 
 		if err = kafkalib.NewBatch(messages, s.batchSize).Publish(ctx); err != nil {
-			logger.Fatal("failed to publish messages, exiting...", slog.Any("err", err))
+			logger.Fatal("Failed to publish messages, exiting...", slog.Any("err", err))
 		}
 
 		if len(getRecordsOutput.Records) > 0 {
@@ -125,7 +125,7 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 		shardIterator = getRecordsOutput.NextShardIterator
 		if shardIterator == nil {
 			// This means this shard has been fully processed, let's add it to our processed list.
-			slog.With("shardId", *shard.ShardId).Info("shard has been fully processed, adding it to the processed list...")
+			slog.Info("Shard has been fully processed, adding it to the processed list...", slog.String("shardId", *shard.ShardId))
 			s.storage.SetShardProcessed(*shard.ShardId)
 		}
 	}

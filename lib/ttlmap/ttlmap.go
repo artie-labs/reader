@@ -45,7 +45,7 @@ func NewMap(ctx context.Context, filePath string, cleanupInterval, flushInterval
 	}
 
 	if err := t.loadFromFile(); err != nil {
-		slog.Warn("failed to load ttlmap from memory, starting a new one...", slog.Any("err", err))
+		slog.Warn("Failed to load ttlmap from memory, starting a new one...", slog.Any("err", err))
 	}
 
 	t.cleanupTicker = time.NewTicker(cleanupInterval)
@@ -95,7 +95,7 @@ func (t *TTLMap) cleanUpAndFlushRoutine() {
 			t.cleanup()
 		case <-t.flushTicker.C:
 			if err := t.flush(); err != nil {
-				logger.Fatal("failed to flush", slog.Any("err", err))
+				logger.Fatal("Failed to flush", slog.Any("err", err))
 			}
 		case <-t.closeChan:
 			return
