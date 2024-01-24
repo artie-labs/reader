@@ -33,10 +33,6 @@ func (b *Batch) IsValid() error {
 		return fmt.Errorf("chunk size is too small")
 	}
 
-	if b.iteratorIdx < 0 {
-		return fmt.Errorf("iterator cannot be less than 0")
-	}
-
 	return nil
 }
 

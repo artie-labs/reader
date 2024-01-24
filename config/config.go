@@ -85,6 +85,7 @@ func (s *Settings) Validate() error {
 	}
 
 	switch s.Source {
+	// By default, if you don't pass in a source -- it will be dynamodb for backwards compatibility
 	case SourceDynamo, "":
 		if s.DynamoDB == nil {
 			return fmt.Errorf("dynamodb config is nil")
