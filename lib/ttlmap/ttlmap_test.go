@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
 )
 
-func (t *TTLMapTestSuite) TestTTLMap_Complete() {
-	fp := filepath.Join(t.T().TempDir(), "test.yaml")
+func TestTTLMap_Complete(t *testing.T) {
+	fp := filepath.Join(t.TempDir(), "test.yaml")
 
 	store := NewMap(fp, 100*time.Millisecond, 120*time.Millisecond)
 	keyToDuration := map[string]time.Duration{
@@ -24,7 +25,7 @@ func (t *TTLMapTestSuite) TestTTLMap_Complete() {
 
 	for key := range keyToDuration {
 		_, isOk := store.Get(key)
-		assert.False(t.T(), isOk, fmt.Sprintf("key %s should not exist", key))
+		assert.False(t, isOk, fmt.Sprintf("key %s should not exist", key))
 	}
 
 	// Now, insert all of this and then wait 100 ms.
@@ -37,8 +38,8 @@ func (t *TTLMapTestSuite) TestTTLMap_Complete() {
 
 	for key := range keyToDuration {
 		val, isOk := store.Get(key)
-		assert.True(t.T(), isOk, fmt.Sprintf("key %s should exist", key))
-		assert.Equal(t.T(), val, key)
+		assert.True(t, isOk, fmt.Sprintf("key %s should exist", key))
+		assert.Equal(t, val, key)
 	}
 
 	// Now wait 50 ms.
@@ -46,34 +47,34 @@ func (t *TTLMapTestSuite) TestTTLMap_Complete() {
 
 	// foo shouldn't exist from GET, but will be still stored since GC didn't run yet.
 	_, isOk := store.Get("foo")
-	assert.False(t.T(), isOk, "foo")
+	assert.False(t, isOk, "foo")
 
 	store.mu.Lock()
 	_, isOk = store.data["foo"]
-	assert.True(t.T(), isOk)
+	assert.True(t, isOk)
 	store.mu.Unlock()
 
 	time.Sleep(60 * time.Millisecond)
 
 	_, isOk = store.Get("bar")
-	assert.False(t.T(), isOk, "bar")
+	assert.False(t, isOk, "bar")
 	store.mu.Lock()
 	// Did the data get erased?
 	for _, key := range []string{"foo", "bar"} {
 		_, isOk = store.data[key]
-		assert.False(t.T(), isOk, key)
+		assert.False(t, isOk, key)
 	}
 	store.mu.Unlock()
 
 	_, isOk = store.Get("xyz")
-	assert.True(t.T(), isOk, "xyz")
+	assert.True(t, isOk, "xyz")
 
 	store.closeChan <- struct{}{}
 }
 
-func (t *TTLMapTestSuite) TestFlushing() {
+func TestFlushing(t *testing.T) {
 	// Step 1: Create a TTLMap instance with a temporary file for storage
-	fp := filepath.Join(t.T().TempDir(), "test.yaml")
+	fp := filepath.Join(t.TempDir(), "test.yaml")
 
 	ttlMap := NewMap(fp, DefaultCleanUpInterval, DefaultFlushInterval)
 
@@ -83,17 +84,17 @@ func (t *TTLMapTestSuite) TestFlushing() {
 
 	// Step 3: Call the flush method to save data to the file
 	err := ttlMap.flush()
-	assert.NoError(t.T(), err)
+	assert.NoError(t, err)
 
 	// Step 4: Read the file content and check if the data is saved correctly
 	content, err := os.ReadFile(fp)
-	assert.NoError(t.T(), err)
+	assert.NoError(t, err)
 
 	var data map[string]*ItemWrapper
 	err = yaml.Unmarshal(content, &data)
-	assert.NoError(t.T(), err)
+	assert.NoError(t, err)
 
-	assert.Equal(t.T(), 1, len(data))
+	assert.Equal(t, 1, len(data))
 
 	ttlMap.closeChan <- struct{}{}
 }

@@ -1,15 +1,17 @@
 package dynamo
 
 import (
+	"testing"
+	"time"
+
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
 	"github.com/stretchr/testify/assert"
-	"time"
 )
 
-func (d *DynamoDBTestSuite) TestNewMessage() {
+func TestNewMessage(t *testing.T) {
 	type _tc struct {
 		name      string
 		record    *dynamodbstreams.Record
@@ -144,15 +146,15 @@ func (d *DynamoDBTestSuite) TestNewMessage() {
 	for _, tc := range tcs {
 		actualMessage, actualErr := NewMessage(tc.record, tc.tableName)
 		if tc.expectErr {
-			assert.Error(d.T(), actualErr, tc.name)
+			assert.Error(t, actualErr, tc.name)
 		} else {
-			assert.NoError(d.T(), actualErr, tc.name)
-			assert.Equal(d.T(), tc.expectedMessage, actualMessage, tc.name)
+			assert.NoError(t, actualErr, tc.name)
+			assert.Equal(t, tc.expectedMessage, actualMessage, tc.name)
 		}
 	}
 }
 
-func (d *DynamoDBTestSuite) TestTransformAttributeValue() {
+func TestTransformAttributeValue(t *testing.T) {
 	type _tc struct {
 		name          string
 		attr          *dynamodb.AttributeValue
@@ -265,6 +267,6 @@ func (d *DynamoDBTestSuite) TestTransformAttributeValue() {
 
 	for _, tc := range tcs {
 		actualValue := transformAttributeValue(tc.attr)
-		assert.Equal(d.T(), tc.expectedValue, actualValue, tc.name)
+		assert.Equal(t, tc.expectedValue, actualValue, tc.name)
 	}
 }
