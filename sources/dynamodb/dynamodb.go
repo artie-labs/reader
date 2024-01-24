@@ -35,8 +35,7 @@ type Store struct {
 const jitterSleepBaseMs = 50
 const shardScannerInterval = 5 * time.Minute
 
-func Load(ctx context.Context) *Store {
-	cfg := config.FromContext(ctx)
+func Load(cfg config.Settings) *Store {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      ptr.ToString(cfg.DynamoDB.AwsRegion),
 		Credentials: credentials.NewStaticCredentials(cfg.DynamoDB.AwsAccessKeyID, cfg.DynamoDB.AwsSecretAccessKey, ""),
@@ -59,7 +58,7 @@ func Load(ctx context.Context) *Store {
 		store.s3Client = s3lib.NewClient(sess)
 	} else {
 		// If it's not snapshotting, then we'll need to create offset storage, streams client and a channel.
-		store.storage = offsets.NewStorage(ctx, cfg.DynamoDB.OffsetFile, nil, nil)
+		store.storage = offsets.NewStorage(cfg.DynamoDB.OffsetFile, nil, nil)
 		store.streams = dynamodbstreams.New(sess)
 		store.shardChan = make(chan *dynamodbstreams.Shard)
 	}

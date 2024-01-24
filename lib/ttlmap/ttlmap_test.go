@@ -1,12 +1,12 @@
 package ttlmap
 
 import (
-	"context"
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v2"
 	"os"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v2"
 )
 
 func (t *TTLMapTestSuite) TestTTLMap_Complete() {
@@ -14,7 +14,7 @@ func (t *TTLMapTestSuite) TestTTLMap_Complete() {
 	assert.NoError(t.T(), os.RemoveAll(fp))
 	defer os.RemoveAll(fp)
 
-	store := NewMap(t.ctx, fp, 100*time.Millisecond, 120*time.Millisecond)
+	store := NewMap(fp, 100*time.Millisecond, 120*time.Millisecond)
 	keyToDuration := map[string]time.Duration{
 		"foo": 50 * time.Millisecond,
 		"bar": 100 * time.Millisecond,
@@ -76,8 +76,7 @@ func (t *TTLMapTestSuite) TestFlushing() {
 	assert.NoError(t.T(), os.RemoveAll(fp))
 	defer os.RemoveAll(fp)
 
-	ctx := context.Background()
-	ttlMap := NewMap(ctx, fp, DefaultCleanUpInterval, DefaultFlushInterval)
+	ttlMap := NewMap(fp, DefaultCleanUpInterval, DefaultFlushInterval)
 
 	// Step 2: Add items to the map with varying DoNotFlushToDisk values
 	ttlMap.Set(SetArgs{Key: "key1", Value: "value1", DoNotFlushToDisk: true}, 1*time.Hour)

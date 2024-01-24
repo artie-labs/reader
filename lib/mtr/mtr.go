@@ -22,13 +22,14 @@ func InjectDatadogIntoCtx(ctx context.Context, namespace string, tags []string, 
 		slog.Info("Overriding telemetry address with env vars", slog.String("address", address))
 	}
 
-	datadogClient, err := statsd.New(address)
+	datadogClient, err := statsd.New(address,
+		statsd.WithNamespace(stringutil.Override(DefaultNamespace, namespace)),
+		statsd.WithTags(tags),
+	)
 	if err != nil {
 		logger.Fatal("Failed to create datadog client", slog.Any("err", err))
 	}
 
-	datadogClient.Tags = tags
-	datadogClient.Namespace = stringutil.Override(DefaultNamespace, namespace)
 	return context.WithValue(ctx, constants.MtrKey, &statsClient{
 		client: datadogClient,
 		rate:   samplingRate,

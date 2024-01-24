@@ -2,9 +2,10 @@ package offsets
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func ptrDuration(d time.Duration) *time.Duration {
@@ -17,7 +18,7 @@ func (o *OffsetsTestSuite) TestOffsets_Complete() {
 
 	defer assert.NoError(o.T(), os.RemoveAll(offsetsFilePath)) // Delete the file we do create during the test.
 
-	storage := NewStorage(o.ctx, offsetsFilePath, ptrDuration(50*time.Millisecond), ptrDuration(50*time.Millisecond))
+	storage := NewStorage(offsetsFilePath, ptrDuration(50*time.Millisecond), ptrDuration(50*time.Millisecond))
 	processedShards := []string{"foo", "bar", "xyz"}
 
 	// It should all return `False` because the file doesn't exist and we didn't load anything yet.
@@ -41,7 +42,7 @@ func (o *OffsetsTestSuite) TestOffsets_Complete() {
 
 	// Sleep, wait for the file to be committed to disk and then reload the storage.
 	time.Sleep(75 * time.Millisecond) // Wait for the file to be written.
-	storage = NewStorage(o.ctx, offsetsFilePath, ptrDuration(50*time.Millisecond), ptrDuration(50*time.Millisecond))
+	storage = NewStorage(offsetsFilePath, ptrDuration(50*time.Millisecond), ptrDuration(50*time.Millisecond))
 	for _, processedShard := range processedShards {
 		assert.True(o.T(), storage.GetShardProcessed(processedShard),
 			fmt.Sprintf("shard: %s, value: %v", processedShard, storage.GetShardProcessed(processedShard)))

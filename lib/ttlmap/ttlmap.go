@@ -1,7 +1,6 @@
 package ttlmap
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"log/slog"
@@ -27,7 +26,6 @@ type ItemWrapper struct {
 
 type TTLMap struct {
 	shouldSave    bool
-	ctx           context.Context
 	mu            sync.RWMutex
 	data          map[string]*ItemWrapper `yaml:"data"`
 	filePath      string
@@ -36,9 +34,8 @@ type TTLMap struct {
 	flushTicker   *time.Ticker
 }
 
-func NewMap(ctx context.Context, filePath string, cleanupInterval, flushInterval time.Duration) *TTLMap {
+func NewMap(filePath string, cleanupInterval, flushInterval time.Duration) *TTLMap {
 	t := &TTLMap{
-		ctx:       ctx,
 		data:      make(map[string]*ItemWrapper),
 		filePath:  filePath,
 		closeChan: make(chan struct{}),
