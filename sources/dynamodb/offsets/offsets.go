@@ -1,10 +1,10 @@
 package offsets
 
 import (
-	"context"
 	"fmt"
-	"github.com/artie-labs/reader/lib/ttlmap"
 	"time"
+
+	"github.com/artie-labs/reader/lib/ttlmap"
 )
 
 const ShardExpirationAndBuffer = 26 * time.Hour
@@ -70,7 +70,7 @@ func (o *OffsetStorage) LastProcessedSequenceNumber(shardID string) (string, boo
 	return fmt.Sprint(sequenceNumber), true
 }
 
-func NewStorage(ctx context.Context, fp string, cleanUpIntervalOverride, flushIntervalOverride *time.Duration) *OffsetStorage {
+func NewStorage(fp string, cleanUpIntervalOverride, flushIntervalOverride *time.Duration) *OffsetStorage {
 	cleanUpInterval := ttlmap.DefaultCleanUpInterval
 	if cleanUpIntervalOverride != nil {
 		cleanUpInterval = *cleanUpIntervalOverride
@@ -82,7 +82,7 @@ func NewStorage(ctx context.Context, fp string, cleanUpIntervalOverride, flushIn
 	}
 
 	offset := &OffsetStorage{
-		ttlMap: ttlmap.NewMap(ctx, fp, cleanUpInterval, flushInterval),
+		ttlMap: ttlmap.NewMap(fp, cleanUpInterval, flushInterval),
 	}
 	return offset
 }

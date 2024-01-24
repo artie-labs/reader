@@ -38,6 +38,6 @@ func main() {
 		ctx = mtr.InjectDatadogIntoCtx(ctx, cfg.Metrics.Namespace, cfg.Metrics.Tags, 0.5)
 	}
 
-	ddb := dynamodb.Load(ctx)
+	ddb := dynamodb.Load(*cfg)
 	ddb.Run(ctx)
 }
