@@ -19,10 +19,12 @@ type Kafka struct {
 	MaxRequestSize   uint64 `yaml:"maxRequestSize,omitempty"`
 }
 
-func (k *Kafka) GenerateDefault() {
+func (k *Kafka) GetPublishSize() uint {
 	if k.PublishSize == 0 {
-		k.PublishSize = 2500
+		return constants.DefaultPublishSize
 	}
+
+	return k.PublishSize
 }
 
 func (k *Kafka) Validate() error {
@@ -123,7 +125,6 @@ func ReadConfig(fp string) (*Settings, error) {
 		log.Fatalf("Failed to validate config file, err: %v", err)
 	}
 
-	settings.Kafka.GenerateDefault()
 	return &settings, nil
 }
 
