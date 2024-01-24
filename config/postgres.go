@@ -7,12 +7,13 @@ import (
 )
 
 type PostgreSQL struct {
-	Host     string             `yaml:"host"`
-	Port     string             `yaml:"port"`
-	Username string             `yaml:"userName"`
-	Password string             `yaml:"password"`
-	Database string             `yaml:"database"`
-	Tables   []*PostgreSQLTable `yaml:"tables"`
+	Host       string             `yaml:"host"`
+	Port       string             `yaml:"port"`
+	Username   string             `yaml:"userName"`
+	Password   string             `yaml:"password"`
+	Database   string             `yaml:"database"`
+	Tables     []*PostgreSQLTable `yaml:"tables"`
+	DisableSSL bool               `yaml:"disableSSL"`
 }
 
 type PostgreSQLTable struct {
