@@ -67,11 +67,13 @@ func (t *TTLMapTestSuite) TestTTLMap_Complete() {
 
 	_, isOk = store.Get("xyz")
 	assert.True(t.T(), isOk, "xyz")
+
+	store.closeChan <- struct{}{}
 }
 
 func (t *TTLMapTestSuite) TestFlushing() {
 	// Step 1: Create a TTLMap instance with a temporary file for storage
-	fp := filepath.Join(t.T().TempDir(), "test2.yaml")
+	fp := filepath.Join(t.T().TempDir(), "test.yaml")
 
 	ttlMap := NewMap(fp, DefaultCleanUpInterval, DefaultFlushInterval)
 
@@ -92,4 +94,6 @@ func (t *TTLMapTestSuite) TestFlushing() {
 	assert.NoError(t.T(), err)
 
 	assert.Equal(t.T(), 1, len(data))
+
+	ttlMap.closeChan <- struct{}{}
 }

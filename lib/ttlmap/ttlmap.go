@@ -85,6 +85,10 @@ func (t *TTLMap) Get(key string) (interface{}, bool) {
 	return item.Value, true
 }
 
+func (t *TTLMap) Close() {
+	close(t.closeChan)
+}
+
 func (t *TTLMap) cleanUpAndFlushRoutine() {
 	for {
 		select {
