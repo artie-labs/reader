@@ -5,6 +5,7 @@ type contextKey string
 const (
 	ConfigKey contextKey = "__cfg"
 	KafkaKey  contextKey = "__kafka"
-	LoggerKey contextKey = "__logger"
 	MtrKey    contextKey = "__mtr"
 )
+
+const DefaultLimit = 5_000

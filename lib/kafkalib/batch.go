@@ -20,8 +20,8 @@ var ErrEmptyBatch = fmt.Errorf("batch is empty")
 
 type Batch struct {
 	msgs        []kafka.Message
-	chunkSize   int
-	iteratorIdx int
+	chunkSize   uint
+	iteratorIdx uint
 }
 
 func (b *Batch) IsValid() error {
@@ -40,7 +40,7 @@ func (b *Batch) IsValid() error {
 	return nil
 }
 
-func NewBatch(messages []kafka.Message, chunkSize int) *Batch {
+func NewBatch(messages []kafka.Message, chunkSize uint) *Batch {
 	return &Batch{
 		msgs:      messages,
 		chunkSize: chunkSize,
@@ -48,7 +48,7 @@ func NewBatch(messages []kafka.Message, chunkSize int) *Batch {
 }
 
 func (b *Batch) HasNext() bool {
-	return len(b.msgs) > b.iteratorIdx
+	return uint(len(b.msgs)) > b.iteratorIdx
 }
 
 func (b *Batch) NextChunk() []kafka.Message {
@@ -56,8 +56,8 @@ func (b *Batch) NextChunk() []kafka.Message {
 	b.iteratorIdx += b.chunkSize
 	end := b.iteratorIdx
 
-	if end > len(b.msgs) {
-		end = len(b.msgs)
+	if end > uint(len(b.msgs)) {
+		end = uint(len(b.msgs))
 	}
 
 	if start > end {

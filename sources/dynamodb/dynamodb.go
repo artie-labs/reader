@@ -23,7 +23,7 @@ type Store struct {
 
 	tableName string
 	streamArn string
-	batchSize int
+	batchSize uint
 	streams   *dynamodbstreams.DynamoDBStreams
 	storage   *offsets.OffsetStorage
 	shardChan chan *dynamodbstreams.Shard

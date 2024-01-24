@@ -48,7 +48,7 @@ func InjectIntoContext(ctx context.Context) context.Context {
 	}
 
 	if cfg.Kafka.MaxRequestSize > 0 {
-		writer.BatchBytes = cfg.Kafka.MaxRequestSize
+		writer.BatchBytes = int64(cfg.Kafka.MaxRequestSize)
 	}
 
 	if cfg.Kafka.AwsEnabled {

@@ -54,8 +54,18 @@ type Metrics struct {
 	Tags      []string `yaml:"tags"`
 }
 
+type Source string
+
+const (
+	SourceDynamo     Source = "dynamodb"
+	SourcePostgreSQL Source = "postgresql"
+)
+
 type Settings struct {
-	DynamoDB  *DynamoDB  `yaml:"dynamodb"`
+	Source     Source      `yaml:"source"`
+	PostgreSQL *PostgreSQL `yaml:"postgresql"`
+	DynamoDB   *DynamoDB   `yaml:"dynamodb"`
+
 	Reporting *Reporting `yaml:"reporting"`
 	Metrics   *Metrics   `yaml:"metrics"`
 	Kafka     *Kafka     `yaml:"kafka"`
@@ -74,12 +84,19 @@ func (s *Settings) Validate() error {
 		return fmt.Errorf("kafka validation failed: %v", err)
 	}
 
-	if s.DynamoDB == nil {
-		return fmt.Errorf("dynamodb config is nil")
-	}
+	switch s.Source {
+	case SourceDynamo, "":
+		if s.DynamoDB == nil {
+			return fmt.Errorf("dynamodb config is nil")
+		}
 
-	if err := s.DynamoDB.Validate(); err != nil {
-		return fmt.Errorf("dynamodb validation failed: %v", err)
+		if err := s.DynamoDB.Validate(); err != nil {
+			return fmt.Errorf("dynamodb validation failed: %v", err)
+		}
+	case SourcePostgreSQL:
+		if s.PostgreSQL == nil {
+			return fmt.Errorf("postgres config is nil")
+		}
 	}
 
 	return nil

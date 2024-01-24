@@ -10,7 +10,7 @@ func TestBatch_IsValid(t *testing.T) {
 	type _testCase struct {
 		name        string
 		msgs        []kafka.Message
-		chunkSize   int
+		chunkSize   uint
 		expectError bool
 	}
 
@@ -29,15 +29,6 @@ func TestBatch_IsValid(t *testing.T) {
 				{Value: []byte("message1")},
 				{Value: []byte("message2")},
 			},
-			expectError: true,
-		},
-		{
-			name: "happy path (chunkSize = -5)",
-			msgs: []kafka.Message{
-				{Value: []byte("message1")},
-				{Value: []byte("message2")},
-			},
-			chunkSize:   -5,
 			expectError: true,
 		},
 		{
