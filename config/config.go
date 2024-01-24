@@ -15,14 +15,16 @@ type Kafka struct {
 	BootstrapServers string `yaml:"bootstrapServers"`
 	TopicPrefix      string `yaml:"topicPrefix"`
 	AwsEnabled       bool   `yaml:"awsEnabled"`
-	PublishSize      int    `yaml:"publishSize,omitempty"`
-	MaxRequestSize   int64  `yaml:"maxRequestSize,omitempty"`
+	PublishSize      uint   `yaml:"publishSize,omitempty"`
+	MaxRequestSize   uint64 `yaml:"maxRequestSize,omitempty"`
 }
 
-func (k *Kafka) GenerateDefault() {
+func (k *Kafka) GetPublishSize() uint {
 	if k.PublishSize == 0 {
-		k.PublishSize = 2500
+		return constants.DefaultPublishSize
 	}
+
+	return k.PublishSize
 }
 
 func (k *Kafka) Validate() error {
@@ -54,8 +56,18 @@ type Metrics struct {
 	Tags      []string `yaml:"tags"`
 }
 
+type Source string
+
+const (
+	SourceDynamo     Source = "dynamodb"
+	SourcePostgreSQL Source = "postgresql"
+)
+
 type Settings struct {
-	DynamoDB  *DynamoDB  `yaml:"dynamodb"`
+	Source     Source      `yaml:"source"`
+	PostgreSQL *PostgreSQL `yaml:"postgresql"`
+	DynamoDB   *DynamoDB   `yaml:"dynamodb"`
+
 	Reporting *Reporting `yaml:"reporting"`
 	Metrics   *Metrics   `yaml:"metrics"`
 	Kafka     *Kafka     `yaml:"kafka"`
@@ -74,12 +86,24 @@ func (s *Settings) Validate() error {
 		return fmt.Errorf("kafka validation failed: %v", err)
 	}
 
-	if s.DynamoDB == nil {
-		return fmt.Errorf("dynamodb config is nil")
-	}
+	switch s.Source {
+	// By default, if you don't pass in a source -- it will be dynamodb for backwards compatibility
+	case SourceDynamo, "":
+		if s.DynamoDB == nil {
+			return fmt.Errorf("dynamodb config is nil")
+		}
 
-	if err := s.DynamoDB.Validate(); err != nil {
-		return fmt.Errorf("dynamodb validation failed: %v", err)
+		if err := s.DynamoDB.Validate(); err != nil {
+			return fmt.Errorf("dynamodb validation failed: %v", err)
+		}
+	case SourcePostgreSQL:
+		if s.PostgreSQL == nil {
+			return fmt.Errorf("postgres config is nil")
+		}
+
+		if err := s.PostgreSQL.Validate(); err != nil {
+			return fmt.Errorf("postgres validation failed: %v", err)
+		}
 	}
 
 	return nil
@@ -101,7 +125,6 @@ func ReadConfig(fp string) (*Settings, error) {
 		log.Fatalf("Failed to validate config file, err: %v", err)
 	}
 
-	settings.Kafka.GenerateDefault()
 	return &settings, nil
 }
 

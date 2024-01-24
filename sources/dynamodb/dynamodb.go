@@ -23,7 +23,7 @@ type Store struct {
 
 	tableName string
 	streamArn string
-	batchSize int
+	batchSize uint
 	streams   *dynamodbstreams.DynamoDBStreams
 	storage   *offsets.OffsetStorage
 	shardChan chan *dynamodbstreams.Shard
@@ -49,7 +49,7 @@ func Load(ctx context.Context) *Store {
 	store := &Store{
 		tableName: cfg.DynamoDB.TableName,
 		streamArn: cfg.DynamoDB.StreamArn,
-		batchSize: cfg.Kafka.PublishSize,
+		batchSize: cfg.Kafka.GetPublishSize(),
 		cfg:       cfg.DynamoDB,
 	}
 
