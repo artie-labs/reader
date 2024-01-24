@@ -15,6 +15,8 @@
 Generate a `config.yaml` file with the following contents:
 
 ```yaml
+source: dynamodb
+
 dynamodb:
   tableName: tableName
   offsetFile: /tmp/offsets.txt
