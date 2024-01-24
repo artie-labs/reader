@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/dynamo"
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
@@ -41,6 +42,11 @@ func (s *Store) streamAndPublish(ctx context.Context) error {
 		return fmt.Errorf("failed to retrieve primary keys, err: %v", err)
 	}
 
+	kafkaCfg := config.FromContext(ctx).Kafka
+	if kafkaCfg == nil {
+		return fmt.Errorf("kafka config is nil")
+	}
+
 	for _, file := range s.cfg.SnapshotSettings.SpecifiedFiles {
 		logFields := []any{
 			slog.String("fileName", *file.Key),
@@ -61,7 +67,7 @@ func (s *Store) streamAndPublish(ctx context.Context) error {
 				logger.Fatal("Failed to cast message from DynamoDB", slog.Any("err", err), slog.Any("msg", msg))
 			}
 
-			kafkaMsg, err := dynamoMsg.KafkaMessage(ctx)
+			kafkaMsg, err := dynamoMsg.KafkaMessage(*kafkaCfg)
 			if err != nil {
 				logger.Fatal("Failed to cast message from DynamoDB", slog.Any("err", err))
 			}

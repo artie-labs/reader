@@ -5,16 +5,17 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib/logger"
-	"github.com/artie-labs/reader/lib/s3lib"
-	"github.com/artie-labs/reader/sources/dynamodb/offsets"
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
+
+	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/logger"
+	"github.com/artie-labs/reader/lib/s3lib"
+	"github.com/artie-labs/reader/sources/dynamodb/offsets"
 )
 
 type Store struct {
@@ -84,7 +85,7 @@ func (s *Store) Run(ctx context.Context) {
 		go s.ListenToChannel(ctx)
 
 		// Scan it for the first time manually, so we don't have to wait 5 mins
-		s.scanForNewShards(ctx)
+		s.scanForNewShards()
 		for {
 			select {
 			case <-ctx.Done():
@@ -93,13 +94,13 @@ func (s *Store) Run(ctx context.Context) {
 				return
 			case <-ticker.C:
 				slog.Info("Scanning for new shards...")
-				s.scanForNewShards(ctx)
+				s.scanForNewShards()
 			}
 		}
 	}
 }
 
-func (s *Store) scanForNewShards(ctx context.Context) {
+func (s *Store) scanForNewShards() {
 	var exclusiveStartShardId *string
 	for {
 		input := &dynamodbstreams.DescribeStreamInput{

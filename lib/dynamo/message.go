@@ -1,15 +1,16 @@
 package dynamo
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/artie-labs/reader/config"
+	"strconv"
+	"time"
+
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/segmentio/kafka-go"
-	"strconv"
-	"time"
+
+	"github.com/artie-labs/reader/config"
 )
 
 type Message struct {
@@ -99,16 +100,11 @@ func (m *Message) artieMessage() (util.SchemaEventPayload, error) {
 	}, nil
 }
 
-func (m *Message) TopicName(ctx context.Context) (string, error) {
-	cfg := config.FromContext(ctx)
-	if cfg.Kafka == nil {
-		return "", fmt.Errorf("kafka config is nil")
-	}
-
-	return fmt.Sprintf("%s.%s", cfg.Kafka.TopicPrefix, m.tableName), nil
+func (m *Message) TopicName(kafkaCfg config.Kafka) string {
+	return fmt.Sprintf("%s.%s", kafkaCfg.TopicPrefix, m.tableName)
 }
 
-func (m *Message) KafkaMessage(ctx context.Context) (kafka.Message, error) {
+func (m *Message) KafkaMessage(kafkaCfg config.Kafka) (kafka.Message, error) {
 	msg, err := m.artieMessage()
 	if err != nil {
 		return kafka.Message{}, fmt.Errorf("failed to generate artie message, err: %v", err)
@@ -124,10 +120,7 @@ func (m *Message) KafkaMessage(ctx context.Context) (kafka.Message, error) {
 		return kafka.Message{}, err
 	}
 
-	topic, err := m.TopicName(ctx)
-	if err != nil {
-		return kafka.Message{}, err
-	}
+	topic := m.TopicName(kafkaCfg)
 
 	return kafka.Message{
 		Topic: topic,
