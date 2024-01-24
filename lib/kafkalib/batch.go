@@ -85,11 +85,11 @@ func (b *Batch) Publish(ctx context.Context) error {
 			}
 
 			sleepDuration := time.Duration(jitter.JitterMs(RetryDelayMs, attempts)) * time.Millisecond
-			slog.With(
+			slog.Warn("Failed to publish message, jitter sleeping before retrying...",
 				slog.Any("err", err),
 				slog.Int("attempts", attempts),
 				slog.Int("maxAttempts", MaxRetries),
-			).Warn("failed to publish message, jitter sleeping before retrying...")
+			)
 			time.Sleep(sleepDuration)
 		}
 

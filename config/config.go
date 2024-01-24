@@ -3,10 +3,11 @@ package config
 import (
 	"context"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"log"
 	"os"
-	
+
+	"gopkg.in/yaml.v2"
+
 	"github.com/artie-labs/reader/constants"
 )
 
@@ -87,17 +88,17 @@ func (s *Settings) Validate() error {
 func ReadConfig(fp string) (*Settings, error) {
 	bytes, err := os.ReadFile(fp)
 	if err != nil {
-		log.Fatalf("failed to read config file, err: %v", err)
+		log.Fatalf("Failed to read config file, err: %v", err)
 	}
 
 	var settings Settings
 	err = yaml.Unmarshal(bytes, &settings)
 	if err != nil {
-		log.Fatalf("failed to unmarshal config file, err: %v", err)
+		log.Fatalf("Failed to unmarshal config file, err: %v", err)
 	}
 
 	if err = settings.Validate(); err != nil {
-		log.Fatalf("failed to validate config file, err: %v", err)
+		log.Fatalf("Failed to validate config file, err: %v", err)
 	}
 
 	settings.Kafka.GenerateDefault()

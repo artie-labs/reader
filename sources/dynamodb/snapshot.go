@@ -28,7 +28,7 @@ func (s *Store) scanFilesOverBucket() error {
 	}
 
 	for _, file := range files {
-		slog.With("fileName", *file.Key).Info("discovered file, adding to the processing queue...")
+		slog.Info("Discovered file, adding to the processing queue...", slog.String("fileName", *file.Key))
 	}
 
 	s.cfg.SnapshotSettings.SpecifiedFiles = files
@@ -46,7 +46,7 @@ func (s *Store) streamAndPublish(ctx context.Context) error {
 			slog.String("fileName", *file.Key),
 		}
 
-		slog.With(logFields...).Info("processing file...")
+		slog.Info("Processing file...", logFields...)
 		ch := make(chan dynamodb.ItemResponse)
 		go func() {
 			if err := s.s3Client.StreamJsonGzipFile(file, ch); err != nil {
@@ -58,22 +58,22 @@ func (s *Store) streamAndPublish(ctx context.Context) error {
 		for msg := range ch {
 			dynamoMsg, err := dynamo.NewMessageFromExport(msg, keys, s.tableName)
 			if err != nil {
-				logger.Fatal("failed to cast message from DynamoDB", slog.Any("err", err), slog.Any("msg", msg))
+				logger.Fatal("Failed to cast message from DynamoDB", slog.Any("err", err), slog.Any("msg", msg))
 			}
 
 			kafkaMsg, err := dynamoMsg.KafkaMessage(ctx)
 			if err != nil {
-				logger.Fatal("failed to cast message from DynamoDB", slog.Any("err", err))
+				logger.Fatal("Failed to cast message from DynamoDB", slog.Any("err", err))
 			}
 
 			kafkaMsgs = append(kafkaMsgs, kafkaMsg)
 		}
 
 		if err = kafkalib.NewBatch(kafkaMsgs, s.batchSize).Publish(ctx); err != nil {
-			logger.Fatal("failed to publish messages, exiting...", slog.Any("err", err))
+			logger.Fatal("Failed to publish messages, exiting...", slog.Any("err", err))
 		}
 
-		slog.With(logFields...).Info("successfully processed file...")
+		slog.Info("Successfully processed file...", logFields...)
 	}
 
 	return nil

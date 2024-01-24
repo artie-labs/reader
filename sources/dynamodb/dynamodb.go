@@ -70,11 +70,11 @@ func Load(ctx context.Context) *Store {
 func (s *Store) Run(ctx context.Context) {
 	if s.cfg.Snapshot {
 		if err := s.scanFilesOverBucket(); err != nil {
-			logger.Fatal("scanning files over bucket failed", slog.Any("err", err))
+			logger.Fatal("Scanning files over bucket failed", slog.Any("err", err))
 		}
 
 		if err := s.streamAndPublish(ctx); err != nil {
-			logger.Fatal("stream and publish failed", slog.Any("err", err))
+			logger.Fatal("Stream and publish failed", slog.Any("err", err))
 		}
 
 		slog.Info("Finished snapshotting all the files")

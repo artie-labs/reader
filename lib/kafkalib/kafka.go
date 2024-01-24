@@ -19,12 +19,12 @@ import (
 func FromContext(ctx context.Context) *kafka.Writer {
 	kafkaVal := ctx.Value(constants.KafkaKey)
 	if kafkaVal == nil {
-		logger.Fatal("kafka is not set in context.Context")
+		logger.Fatal("Kafka is not set in context.Context")
 	}
 
 	kafkaWriter, isOk := kafkaVal.(*kafka.Writer)
 	if !isOk {
-		logger.Fatal("kafka writer is not type *kafka.Writer")
+		logger.Fatal("Kafka writer is not type *kafka.Writer")
 	}
 
 	return kafkaWriter
@@ -37,7 +37,7 @@ func InjectIntoContext(ctx context.Context) context.Context {
 		logger.Fatal("Kafka configuration is not set")
 	}
 
-	slog.With("url", strings.Split(cfg.Kafka.BootstrapServers, ",")).Info("setting bootstrap url")
+	slog.Info("Setting bootstrap url", slog.Any("url", strings.Split(cfg.Kafka.BootstrapServers, ",")))
 
 	writer := &kafka.Writer{
 		Addr:                   kafka.TCP(strings.Split(cfg.Kafka.BootstrapServers, ",")...),
