@@ -3,6 +3,7 @@ package ttlmap
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -10,9 +11,7 @@ import (
 )
 
 func (t *TTLMapTestSuite) TestTTLMap_Complete() {
-	fp := "/tmp/test.yaml"
-	assert.NoError(t.T(), os.RemoveAll(fp))
-	defer os.RemoveAll(fp)
+	fp := filepath.Join(t.T().TempDir(), "test.yaml")
 
 	store := NewMap(fp, 100*time.Millisecond, 120*time.Millisecond)
 	keyToDuration := map[string]time.Duration{
@@ -72,9 +71,7 @@ func (t *TTLMapTestSuite) TestTTLMap_Complete() {
 
 func (t *TTLMapTestSuite) TestFlushing() {
 	// Step 1: Create a TTLMap instance with a temporary file for storage
-	fp := "/tmp/test2.yaml"
-	assert.NoError(t.T(), os.RemoveAll(fp))
-	defer os.RemoveAll(fp)
+	fp := filepath.Join(t.T().TempDir(), "test2.yaml")
 
 	ttlMap := NewMap(fp, DefaultCleanUpInterval, DefaultFlushInterval)
 

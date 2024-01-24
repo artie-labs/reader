@@ -2,7 +2,7 @@ package offsets
 
 import (
 	"fmt"
-	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -13,10 +13,7 @@ func ptrDuration(d time.Duration) *time.Duration {
 }
 
 func (o *OffsetsTestSuite) TestOffsets_Complete() {
-	offsetsFilePath := "/tmp/offsets-test"
-	assert.NoError(o.T(), os.RemoveAll(offsetsFilePath)) // Delete if prev run wasn't clean.
-
-	defer assert.NoError(o.T(), os.RemoveAll(offsetsFilePath)) // Delete the file we do create during the test.
+	offsetsFilePath := filepath.Join(o.T().TempDir(), "offsets-test")
 
 	storage := NewStorage(offsetsFilePath, ptrDuration(50*time.Millisecond), ptrDuration(50*time.Millisecond))
 	processedShards := []string{"foo", "bar", "xyz"}
