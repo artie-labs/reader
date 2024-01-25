@@ -32,6 +32,7 @@ func FromContext(ctx context.Context) *kafka.Writer {
 
 func InjectIntoContext(ctx context.Context) context.Context {
 	cfg := config.FromContext(ctx)
+
 	if cfg == nil || cfg.Kafka == nil {
 		logger.Fatal("Kafka configuration is not set")
 	}
