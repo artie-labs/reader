@@ -75,7 +75,6 @@ func (b *Batch) Publish(ctx context.Context) error {
 		count = int64(len(chunk))
 
 		for attempts := 0; attempts < MaxRetries; attempts++ {
-
 			err = FromContext(ctx).WriteMessages(ctx, chunk...)
 			if err == nil {
 				tags["what"] = "success"
