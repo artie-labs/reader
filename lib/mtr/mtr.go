@@ -13,7 +13,7 @@ import (
 	"github.com/artie-labs/reader/lib/logger"
 )
 
-func New(namespace string, tags []string, samplingRate float64) Client {
+func New(namespace string, tags []string, samplingRate float64) (Client, error) {
 	host := os.Getenv("TELEMETRY_HOST")
 	port := os.Getenv("TELEMETRY_PORT")
 	address := DefaultAddr
@@ -27,16 +27,19 @@ func New(namespace string, tags []string, samplingRate float64) Client {
 		statsd.WithTags(tags),
 	)
 	if err != nil {
-		logger.Fatal("Failed to create datadog client", slog.Any("err", err))
+		return nil, err
 	}
 	return &statsClient{
 		client: datadogClient,
 		rate:   samplingRate,
-	}
+	}, nil
 }
 
 func InjectDatadogIntoCtx(ctx context.Context, namespace string, tags []string, samplingRate float64) context.Context {
-	metricsClient := New(namespace, tags, samplingRate)
+	metricsClient, err := New(namespace, tags, samplingRate)
+	if err != nil {
+		logger.Fatal("Failed to create datadog client", slog.Any("err", err))
+	}
 	return context.WithValue(ctx, constants.MtrKey, metricsClient)
 }
 
