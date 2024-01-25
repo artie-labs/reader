@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 
@@ -17,6 +18,10 @@ type Kafka struct {
 	AwsEnabled       bool   `yaml:"awsEnabled"`
 	PublishSize      uint   `yaml:"publishSize,omitempty"`
 	MaxRequestSize   uint64 `yaml:"maxRequestSize,omitempty"`
+}
+
+func (k *Kafka) BootstrapAddresses() []string {
+	return strings.Split(k.BootstrapServers, ",")
 }
 
 func (k *Kafka) GetPublishSize() uint {

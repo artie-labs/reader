@@ -3,8 +3,8 @@ package kafkalib
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"log/slog"
-	"strings"
 	"time"
 
 	awsCfg "github.com/aws/aws-sdk-go-v2/config"
@@ -32,29 +32,34 @@ func FromContext(ctx context.Context) *kafka.Writer {
 
 func InjectIntoContext(ctx context.Context) context.Context {
 	cfg := config.FromContext(ctx)
-
 	if cfg == nil || cfg.Kafka == nil {
 		logger.Fatal("Kafka configuration is not set")
 	}
+	writer, err := NewWriter(ctx, *cfg.Kafka)
+	if err != nil {
+		logger.Fatal("Failed to create kafka writer", slog.Any("err", err))
+	}
+	return context.WithValue(ctx, constants.KafkaKey, writer)
+}
 
-	slog.Info("Setting bootstrap url", slog.Any("url", strings.Split(cfg.Kafka.BootstrapServers, ",")))
-
+func NewWriter(ctx context.Context, cfg config.Kafka) (*kafka.Writer, error) {
+	slog.Info("Setting kafka bootstrap URLs", slog.Any("urls", cfg.BootstrapAddresses()))
 	writer := &kafka.Writer{
-		Addr:                   kafka.TCP(strings.Split(cfg.Kafka.BootstrapServers, ",")...),
+		Addr:                   kafka.TCP(cfg.BootstrapAddresses()...),
 		Compression:            kafka.Gzip,
 		Balancer:               &kafka.LeastBytes{},
 		WriteTimeout:           5 * time.Second,
 		AllowAutoTopicCreation: true,
 	}
 
-	if cfg.Kafka.MaxRequestSize > 0 {
-		writer.BatchBytes = int64(cfg.Kafka.MaxRequestSize)
+	if cfg.MaxRequestSize > 0 {
+		writer.BatchBytes = int64(cfg.MaxRequestSize)
 	}
 
-	if cfg.Kafka.AwsEnabled {
+	if cfg.AwsEnabled {
 		saslCfg, err := awsCfg.LoadDefaultConfig(ctx)
 		if err != nil {
-			logger.Fatal("Failed to load AWS configuration")
+			return nil, fmt.Errorf("failed to load AWS configuration: %w", err)
 		}
 
 		writer.Transport = &kafka.Transport{
@@ -64,5 +69,25 @@ func InjectIntoContext(ctx context.Context) context.Context {
 		}
 	}
 
-	return context.WithValue(ctx, constants.KafkaKey, writer)
+	return writer, nil
+}
+
+type ReloadableWriter struct {
+	*kafka.Writer
+
+	cfg config.Kafka
+}
+
+func (w *ReloadableWriter) Reload(ctx context.Context) error {
+	if err := w.Writer.Close(); err != nil {
+		return err
+	}
+
+	writer, err := NewWriter(ctx, w.cfg)
+	if err != nil {
+		return err
+	}
+
+	w.Writer = writer
+	return nil
 }
