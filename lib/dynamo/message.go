@@ -1,7 +1,6 @@
 package dynamo
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -11,6 +10,7 @@ import (
 	"github.com/segmentio/kafka-go"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/kafkalib"
 )
 
 type Message struct {
@@ -109,22 +109,5 @@ func (m *Message) KafkaMessage(kafkaCfg config.Kafka) (kafka.Message, error) {
 	if err != nil {
 		return kafka.Message{}, fmt.Errorf("failed to generate artie message, err: %v", err)
 	}
-
-	jsonBytes, err := json.Marshal(msg)
-	if err != nil {
-		return kafka.Message{}, err
-	}
-
-	keyBytes, err := json.Marshal(m.primaryKey)
-	if err != nil {
-		return kafka.Message{}, err
-	}
-
-	topic := m.TopicName(kafkaCfg)
-
-	return kafka.Message{
-		Topic: topic,
-		Key:   keyBytes,
-		Value: jsonBytes,
-	}, nil
+	return kafkalib.NewMessage(m.TopicName(kafkaCfg), m.primaryKey, msg)
 }
