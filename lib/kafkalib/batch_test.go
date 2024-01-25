@@ -1,10 +1,9 @@
 package kafkalib
 
 import (
-	"testing"
-
 	"github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestBatch_IsValid(t *testing.T) {
