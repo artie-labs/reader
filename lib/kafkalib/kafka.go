@@ -72,23 +72,3 @@ func NewWriter(ctx context.Context, cfg config.Kafka) (*kafka.Writer, error) {
 
 	return writer, nil
 }
-
-type ReloadableWriter struct {
-	*kafka.Writer
-
-	cfg config.Kafka
-}
-
-func (w *ReloadableWriter) Reload(ctx context.Context) error {
-	if err := w.Writer.Close(); err != nil {
-		return err
-	}
-
-	writer, err := NewWriter(ctx, w.cfg)
-	if err != nil {
-		return err
-	}
-
-	w.Writer = writer
-	return nil
-}
