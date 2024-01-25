@@ -66,14 +66,14 @@ func (b *Batch) NextChunk() []kafka.Message {
 func (b *Batch) Publish(ctx context.Context) error {
 	for b.HasNext() {
 		var err error
-		var count int64
 		tags := map[string]string{
 			"what": "error",
 		}
 
+		chunk := b.NextChunk()
+		count := int64(len(chunk))
+
 		for attempts := 0; attempts < MaxRetries; attempts++ {
-			chunk := b.NextChunk()
-			count = int64(len(chunk))
 			err = FromContext(ctx).WriteMessages(ctx, chunk...)
 			if err == nil {
 				tags["what"] = "success"
