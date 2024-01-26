@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/artie-labs/transfer/lib/size"
 	"github.com/segmentio/kafka-go"
 
@@ -44,13 +43,7 @@ func (w *BatchWriter) reload() error {
 	return nil
 }
 
-type RawMessage struct {
-	TopicSuffix  string
-	PartitionKey map[string]interface{}
-	Payload      util.SchemaEventPayload
-}
-
-func buildKafkaMessages(cfg *config.Kafka, msgs []RawMessage) ([]kafka.Message, error) {
+func buildKafkaMessages(cfg *config.Kafka, msgs []lib.RawMessage) ([]kafka.Message, error) {
 	result := make([]kafka.Message, len(msgs))
 	for i, msg := range msgs {
 		topic := fmt.Sprintf("%s.%s", cfg.TopicPrefix, msg.TopicSuffix)
@@ -63,7 +56,7 @@ func buildKafkaMessages(cfg *config.Kafka, msgs []RawMessage) ([]kafka.Message, 
 	return result, nil
 }
 
-func (w *BatchWriter) Write(rawMsgs []RawMessage) error {
+func (w *BatchWriter) Write(rawMsgs []lib.RawMessage) error {
 	msgs, err := buildKafkaMessages(&w.cfg, rawMsgs)
 	if err != nil {
 		return fmt.Errorf("failed to build to kafka messages: %w", err)
