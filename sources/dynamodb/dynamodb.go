@@ -26,12 +26,13 @@ type Store struct {
 	statsD         *mtr.Client
 	writer         *kafka.Writer
 
-	tableName string
-	streamArn string
-	batchSize uint
-	streams   *dynamodbstreams.DynamoDBStreams
-	storage   *offsets.OffsetStorage
-	shardChan chan *dynamodbstreams.Shard
+	tableName   string
+	streamArn   string
+	batchSize   uint
+	topicPrefix string
+	streams     *dynamodbstreams.DynamoDBStreams
+	storage     *offsets.OffsetStorage
+	shardChan   chan *dynamodbstreams.Shard
 
 	cfg *config.DynamoDB
 }
@@ -51,12 +52,13 @@ func Load(cfg config.Settings, statsD *mtr.Client, writer *kafka.Writer) *Store 
 	}
 
 	store := &Store{
-		tableName: cfg.DynamoDB.TableName,
-		streamArn: cfg.DynamoDB.StreamArn,
-		batchSize: cfg.Kafka.GetPublishSize(),
-		cfg:       cfg.DynamoDB,
-		statsD:    statsD,
-		writer:    writer,
+		tableName:   cfg.DynamoDB.TableName,
+		streamArn:   cfg.DynamoDB.StreamArn,
+		batchSize:   cfg.Kafka.GetPublishSize(),
+		topicPrefix: cfg.Kafka.TopicPrefix,
+		cfg:         cfg.DynamoDB,
+		statsD:      statsD,
+		writer:      writer,
 	}
 
 	if cfg.DynamoDB.Snapshot {

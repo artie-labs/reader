@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/segmentio/kafka-go"
 
-	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/kafkalib"
 )
 
@@ -100,14 +99,14 @@ func (m *Message) artieMessage() (util.SchemaEventPayload, error) {
 	}, nil
 }
 
-func (m *Message) TopicName(kafkaCfg config.Kafka) string {
-	return fmt.Sprintf("%s.%s", kafkaCfg.TopicPrefix, m.tableName)
+func (m *Message) TopicName(topicPrefix string) string {
+	return fmt.Sprintf("%s.%s", topicPrefix, m.tableName)
 }
 
-func (m *Message) KafkaMessage(kafkaCfg config.Kafka) (kafka.Message, error) {
+func (m *Message) KafkaMessage(topicPrefix string) (kafka.Message, error) {
 	msg, err := m.artieMessage()
 	if err != nil {
 		return kafka.Message{}, fmt.Errorf("failed to generate artie message, err: %v", err)
 	}
-	return kafkalib.NewMessage(m.TopicName(kafkaCfg), m.primaryKey, msg)
+	return kafkalib.NewMessage(m.TopicName(topicPrefix), m.primaryKey, msg)
 }

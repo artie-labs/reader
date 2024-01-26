@@ -60,7 +60,7 @@ func main() {
 		slog.Info("Sentry logger enabled")
 	}
 
-	ctx := config.InjectIntoContext(context.Background(), cfg)
+	ctx := context.Background()
 
 	statsD, err := setUpMetrics(cfg.Metrics)
 	if err != nil {
