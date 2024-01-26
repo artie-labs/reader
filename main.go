@@ -33,19 +33,22 @@ func main() {
 	}
 
 	ctx := config.InjectIntoContext(context.Background(), cfg)
+
 	var statsD *mtr.Client
 	if cfg.Metrics != nil {
 		slog.Info("Injecting datadog")
-		ctx = mtr.InjectDatadogIntoCtx(ctx, cfg.Metrics.Namespace, cfg.Metrics.Tags, 0.5)
-		client := mtr.FromContext(ctx)
-		statsD = &client
+		_statsD, err := mtr.New(cfg.Metrics.Namespace, cfg.Metrics.Tags, 0.5)
+		if err != nil {
+			logger.Fatal("Failed to create datadog client", slog.Any("err", err))
+		}
+		statsD = &_statsD
 	}
 
 	switch cfg.Source {
 	case "", config.SourceDynamo:
 		// TODO: pull kafkalib out of context
 		ctx = kafkalib.InjectIntoContext(ctx)
-		ddb := dynamodb.Load(*cfg)
+		ddb := dynamodb.Load(*cfg, statsD)
 		ddb.Run(ctx)
 	case config.SourcePostgreSQL:
 		postgres.Run(ctx, *cfg, statsD)

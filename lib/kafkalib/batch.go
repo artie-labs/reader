@@ -63,7 +63,7 @@ func (b *Batch) NextChunk() []kafka.Message {
 	return b.msgs[start:end]
 }
 
-func (b *Batch) Publish(ctx context.Context) error {
+func (b *Batch) Publish(ctx context.Context, statsD *mtr.Client) error {
 	for b.HasNext() {
 		var err error
 		tags := map[string]string{
@@ -89,7 +89,10 @@ func (b *Batch) Publish(ctx context.Context) error {
 			time.Sleep(sleepDuration)
 		}
 
-		mtr.FromContext(ctx).Count("kafka.publish", count, tags)
+		if statsD != nil {
+			(*statsD).Count("kafka.publish", count, tags)
+		}
+
 		if err != nil {
 			return err
 		}

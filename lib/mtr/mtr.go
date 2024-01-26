@@ -1,16 +1,12 @@
 package mtr
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"os"
 
 	"github.com/DataDog/datadog-go/statsd"
 	"github.com/artie-labs/transfer/lib/stringutil"
-
-	"github.com/artie-labs/reader/constants"
-	"github.com/artie-labs/reader/lib/logger"
 )
 
 func New(namespace string, tags []string, samplingRate float64) (Client, error) {
@@ -33,26 +29,4 @@ func New(namespace string, tags []string, samplingRate float64) (Client, error) 
 		client: datadogClient,
 		rate:   samplingRate,
 	}, nil
-}
-
-func InjectDatadogIntoCtx(ctx context.Context, namespace string, tags []string, samplingRate float64) context.Context {
-	metricsClient, err := New(namespace, tags, samplingRate)
-	if err != nil {
-		logger.Fatal("Failed to create datadog client", slog.Any("err", err))
-	}
-	return context.WithValue(ctx, constants.MtrKey, metricsClient)
-}
-
-func FromContext(ctx context.Context) Client {
-	metricsClientVal := ctx.Value(constants.MtrKey)
-	if metricsClientVal == nil {
-		logger.Fatal("Metrics client is nil")
-	}
-
-	metricsClient, isOk := metricsClientVal.(Client)
-	if !isOk {
-		logger.Fatal("Metrics client is not mtr.Client type")
-	}
-
-	return metricsClient
 }
