@@ -32,7 +32,7 @@ func setUpMetrics(cfg *config.Metrics) (*mtr.Client, error) {
 
 func setUpKafka(ctx context.Context, cfg *config.Kafka) (*kafka.Writer, error) {
 	if cfg == nil {
-		return nil, fmt.Errorf("Kafka configuration is not set")
+		return nil, fmt.Errorf("kafka configuration is not set")
 	}
 	slog.Info("Kafka config",
 		slog.Bool("aws", cfg.AwsEnabled),
