@@ -89,7 +89,7 @@ func (b *Batch) Publish(ctx context.Context, statsD *mtr.Client) error {
 			time.Sleep(sleepDuration)
 		}
 
-		if statsD == nil {
+		if statsD != nil {
 			(*statsD).Count("kafka.publish", count, tags)
 		}
 
