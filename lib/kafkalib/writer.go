@@ -34,10 +34,6 @@ func NewBatchWriter(ctx context.Context, cfg config.Kafka) (BatchWriter, error) 
 	return BatchWriter{w, ctx, cfg}, nil
 }
 
-func (w *BatchWriter) MaxMessageSize() uint64 {
-	return w.cfg.MaxRequestSize
-}
-
 func (w *BatchWriter) reload() error {
 	if err := w.Writer.Close(); err != nil {
 		return err
