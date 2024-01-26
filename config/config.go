@@ -1,7 +1,6 @@
 package config
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
@@ -131,22 +130,4 @@ func ReadConfig(fp string) (*Settings, error) {
 	}
 
 	return &settings, nil
-}
-
-func InjectIntoContext(ctx context.Context, settings *Settings) context.Context {
-	return context.WithValue(ctx, constants.ConfigKey, settings)
-}
-
-func FromContext(ctx context.Context) *Settings {
-	val := ctx.Value(constants.ConfigKey)
-	if val == nil {
-		return nil
-	}
-
-	settings, isOk := val.(*Settings)
-	if !isOk {
-		return nil
-	}
-
-	return settings
 }
