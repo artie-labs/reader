@@ -19,7 +19,7 @@ const DefaultErrorRetries = 10
 type TableIterator struct {
 	db            *sql.DB
 	limit         uint
-	statsD        mtr.Client
+	statsD        *mtr.Client
 	maxRowSize    uint64
 	postgresTable *Table
 	firstRow      bool
@@ -27,7 +27,7 @@ type TableIterator struct {
 	done          bool
 }
 
-func LoadTable(db *sql.DB, table *config.PostgreSQLTable, statsD mtr.Client, maxRowSize uint64) (TableIterator, error) {
+func LoadTable(db *sql.DB, table *config.PostgreSQLTable, statsD *mtr.Client, maxRowSize uint64) (TableIterator, error) {
 	slog.Info("Loading configuration for table", slog.String("table", table.Name), slog.Any("limitSize", table.GetLimit()))
 
 	postgresTable := NewTable(table)
@@ -109,7 +109,9 @@ func (i *TableIterator) Next() ([]kafkalib.RawMessage, error) {
 			PartitionKey: partitionKeyMap,
 			Payload:      payload,
 		})
-		i.statsD.Timing("scanned_and_parsed", time.Since(start), i.statsDTags())
+		if i.statsD != nil {
+			(*i.statsD).Timing("scanned_and_parsed", time.Since(start), i.statsDTags())
+		}
 	}
 
 	// TODO: This should really be re-written and tested thoroughly
