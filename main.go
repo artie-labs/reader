@@ -43,6 +43,7 @@ func main() {
 
 	switch cfg.Source {
 	case "", config.SourceDynamo:
+		// TODO: pull kafkalib out of context
 		ctx = kafkalib.InjectIntoContext(ctx)
 		ddb := dynamodb.Load(*cfg)
 		ddb.Run(ctx)
