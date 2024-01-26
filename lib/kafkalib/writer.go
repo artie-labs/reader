@@ -26,12 +26,8 @@ type BatchWriter struct {
 	cfg config.Kafka
 }
 
-func NewBatchWriter(ctx context.Context, cfg config.Kafka) (BatchWriter, error) {
-	w, err := NewWriter(ctx, cfg)
-	if err != nil {
-		return BatchWriter{}, err
-	}
-	return BatchWriter{w, ctx, cfg}, nil
+func NewBatchWriter(ctx context.Context, cfg config.Kafka, writer *kafka.Writer) BatchWriter {
+	return BatchWriter{writer, ctx, cfg}
 }
 
 func (w *BatchWriter) reload() error {

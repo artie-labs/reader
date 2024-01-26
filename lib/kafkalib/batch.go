@@ -63,7 +63,7 @@ func (b *Batch) NextChunk() []kafka.Message {
 	return b.msgs[start:end]
 }
 
-func (b *Batch) Publish(ctx context.Context, statsD *mtr.Client) error {
+func (b *Batch) Publish(ctx context.Context, statsD *mtr.Client, writer *kafka.Writer) error {
 	for b.HasNext() {
 		var err error
 		tags := map[string]string{
@@ -74,7 +74,7 @@ func (b *Batch) Publish(ctx context.Context, statsD *mtr.Client) error {
 		count := int64(len(chunk))
 
 		for attempts := 0; attempts < MaxRetries; attempts++ {
-			err = FromContext(ctx).WriteMessages(ctx, chunk...)
+			err = writer.WriteMessages(ctx, chunk...)
 			if err == nil {
 				tags["what"] = "success"
 				break

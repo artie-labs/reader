@@ -113,7 +113,7 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 			messages = append(messages, message)
 		}
 
-		if err = kafkalib.NewBatch(messages, s.batchSize).Publish(ctx, s.statsD); err != nil {
+		if err = kafkalib.NewBatch(messages, s.batchSize).Publish(ctx, s.statsD, s.writer); err != nil {
 			logger.Fatal("Failed to publish messages, exiting...", slog.Any("err", err))
 		}
 

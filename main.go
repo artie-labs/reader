@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -13,7 +14,34 @@ import (
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/sources/dynamodb"
 	"github.com/getsentry/sentry-go"
+	"github.com/segmentio/kafka-go"
 )
+
+func setUpMetrics(cfg *config.Metrics) (*mtr.Client, error) {
+	if cfg == nil {
+		return nil, nil
+	}
+
+	slog.Info("Creating metrics client")
+	client, err := mtr.New(cfg.Namespace, cfg.Tags, 0.5)
+	if err != nil {
+		return nil, err
+	}
+	return &client, nil
+}
+
+func setUpKafka(ctx context.Context, cfg *config.Kafka) (*kafka.Writer, error) {
+	if cfg == nil {
+		return nil, fmt.Errorf("Kafka configuration is not set")
+	}
+	slog.Info("Kafka config",
+		slog.Bool("aws", cfg.AwsEnabled),
+		slog.String("kafkaBootstrapServer", cfg.BootstrapServers),
+		slog.Any("publishSize", cfg.GetPublishSize()),
+		slog.Uint64("maxRequestSize", cfg.MaxRequestSize),
+	)
+	return kafkalib.NewWriter(ctx, *cfg)
+}
 
 func main() {
 	var configFilePath string
@@ -34,23 +62,21 @@ func main() {
 
 	ctx := config.InjectIntoContext(context.Background(), cfg)
 
-	var statsD *mtr.Client
-	if cfg.Metrics != nil {
-		slog.Info("Injecting datadog")
-		_statsD, err := mtr.New(cfg.Metrics.Namespace, cfg.Metrics.Tags, 0.5)
-		if err != nil {
-			logger.Fatal("Failed to create datadog client", slog.Any("err", err))
-		}
-		statsD = &_statsD
+	statsD, err := setUpMetrics(cfg.Metrics)
+	if err != nil {
+		logger.Fatal("Failed to set up metrics", slog.Any("err", err))
+	}
+
+	kafka, err := setUpKafka(ctx, cfg.Kafka)
+	if err != nil {
+		logger.Fatal("Failed to set up kafka", slog.Any("err", err))
 	}
 
 	switch cfg.Source {
 	case "", config.SourceDynamo:
-		// TODO: pull kafkalib out of context
-		ctx = kafkalib.InjectIntoContext(ctx)
-		ddb := dynamodb.Load(*cfg, statsD)
+		ddb := dynamodb.Load(*cfg, statsD, kafka)
 		ddb.Run(ctx)
 	case config.SourcePostgreSQL:
-		postgres.Run(ctx, *cfg, statsD)
+		postgres.Run(ctx, *cfg, statsD, kafka)
 	}
 }
