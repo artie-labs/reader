@@ -50,7 +50,6 @@ kafka:
   topicPrefix: topicPrefix
 ```
 
-
 Then run the following command:
 
 ```bash
