@@ -2,6 +2,7 @@ package dynamodb
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -73,6 +74,16 @@ func Load(cfg config.Settings, statsD *mtr.Client, writer *kafka.Writer) *Store 
 	}
 
 	return store
+}
+
+func (s *Store) Validate() error {
+	if s.topicPrefix == "" {
+		return fmt.Errorf("topic prefix cannot be empty")
+	}
+	if s.writer == nil {
+		return fmt.Errorf("kafka writer cannot be nil")
+	}
+	return nil
 }
 
 func (s *Store) Run(ctx context.Context) {
