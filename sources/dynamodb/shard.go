@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/dynamo"
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
@@ -65,11 +64,6 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 		return
 	}
 
-	kafkaCfg := config.FromContext(ctx).Kafka
-	if kafkaCfg == nil {
-		logger.Fatal("Kafka config is nil")
-	}
-
 	shardIterator := iteratorOutput.ShardIterator
 	// Get records from shard iterator
 	for shardIterator != nil {
@@ -100,7 +94,7 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 				)
 			}
 
-			message, err := msg.KafkaMessage(*kafkaCfg)
+			message, err := msg.KafkaMessage(s.topicPrefix)
 			if err != nil {
 				logger.Fatal("Failed to cast message from DynamoDB",
 					slog.Any("err", err),
@@ -113,7 +107,7 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 			messages = append(messages, message)
 		}
 
-		if err = kafkalib.NewBatch(messages, s.batchSize).Publish(ctx, s.statsD); err != nil {
+		if err = kafkalib.NewBatch(messages, s.batchSize).Publish(ctx, s.statsD, s.writer); err != nil {
 			logger.Fatal("Failed to publish messages, exiting...", slog.Any("err", err))
 		}
 
