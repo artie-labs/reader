@@ -44,7 +44,6 @@ postgresql:
   tables:    
        - name: table
          schema: public
-         limit: 10
 
 kafka:
   bootstrapServers: localhost:29092
