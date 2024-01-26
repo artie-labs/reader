@@ -63,13 +63,13 @@ func buildKafkaMessages(cfg *config.Kafka, msgs []RawMessage) ([]kafka.Message, 
 	return result, nil
 }
 
-func (k *BatchWriter) Write(rawMsgs []RawMessage) error {
-	msgs, err := buildKafkaMessages(&k.cfg, rawMsgs)
+func (w *BatchWriter) Write(rawMsgs []RawMessage) error {
+	msgs, err := buildKafkaMessages(&w.cfg, rawMsgs)
 	if err != nil {
 		return fmt.Errorf("failed to build to kafka messages: %w", err)
 	}
 
-	chunkSize := k.cfg.GetPublishSize()
+	chunkSize := w.cfg.GetPublishSize()
 
 	b := NewBatch(msgs, chunkSize)
 	if batchErr := b.IsValid(); batchErr != nil {
@@ -84,7 +84,7 @@ func (k *BatchWriter) Write(rawMsgs []RawMessage) error {
 		var kafkaErr error
 		chunk := b.NextChunk()
 		for attempts := 0; attempts < 10; attempts++ {
-			kafkaErr = k.WriteMessages(k.ctx, chunk...)
+			kafkaErr = w.WriteMessages(w.ctx, chunk...)
 			if kafkaErr == nil {
 				break
 			}
@@ -96,7 +96,7 @@ func (k *BatchWriter) Write(rawMsgs []RawMessage) error {
 			}
 
 			if RetryableError(kafkaErr) {
-				if reloadErr := k.reload(); reloadErr != nil {
+				if reloadErr := w.reload(); reloadErr != nil {
 					slog.Warn("Failed to reload kafka writer", slog.Any("err", reloadErr))
 				}
 			} else {
