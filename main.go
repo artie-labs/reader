@@ -67,16 +67,16 @@ func main() {
 		logger.Fatal("Failed to set up metrics", slog.Any("err", err))
 	}
 
-	kafka, err := setUpKafka(ctx, cfg.Kafka)
+	_kafka, err := setUpKafka(ctx, cfg.Kafka)
 	if err != nil {
 		logger.Fatal("Failed to set up kafka", slog.Any("err", err))
 	}
 
 	switch cfg.Source {
 	case "", config.SourceDynamo:
-		ddb := dynamodb.Load(*cfg, statsD, kafka)
+		ddb := dynamodb.Load(*cfg, statsD, _kafka)
 		ddb.Run(ctx)
 	case config.SourcePostgreSQL:
-		postgres.Run(ctx, *cfg, statsD, kafka)
+		postgres.Run(ctx, *cfg, statsD, _kafka)
 	}
 }
