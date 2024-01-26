@@ -1,0 +1,126 @@
+package postgres
+
+import (
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+)
+
+func TestParse(t *testing.T) {
+	type _testCase struct {
+		colName       string
+		colKind       string
+		parseTime     bool
+		value         ValueWrapper
+		expectErr     bool
+		expectedValue interface{}
+	}
+
+	tcs := []_testCase{
+		{
+			colName: "bit_test (true)",
+			colKind: "bit",
+			value: ValueWrapper{
+				Value: []byte("1"),
+			},
+			expectedValue: true,
+		},
+		{
+			colName: "bit_test (false)",
+			colKind: "bit",
+			value: ValueWrapper{
+				Value: []byte("0"),
+			},
+			expectedValue: false,
+		},
+		{
+			colName: "numeric_test",
+			colKind: "numeric",
+			value: ValueWrapper{
+				Value: []byte{49, 48, 48, 48, 49, 49},
+			},
+			expectedValue: "100011",
+		},
+		{
+			colName: "foo",
+			colKind: "ARRAY",
+			value: ValueWrapper{
+				Value: `["foo", "bar", "abc"]`,
+			},
+			expectedValue: []interface{}{"foo", "bar", "abc"},
+		},
+		{
+			colName: "group",
+			colKind: "character varying",
+			value: ValueWrapper{
+				Value: "hello",
+			},
+			expectedValue: "hello",
+		},
+		{
+			colName: "uuid (errors out when it's not already parsed)",
+			colKind: "uuid",
+			value: ValueWrapper{
+				Value: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+			},
+			expectErr: true,
+		},
+		{
+			colName: "uuid (already parsed, so skip parsing)",
+			colKind: "uuid",
+			value: ValueWrapper{
+				Value:  "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+				parsed: true,
+			},
+			expectedValue: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+		},
+		{
+			colName: "parse time",
+			colKind: "timestamp without time zone",
+			value: ValueWrapper{
+				Value: time.Date(1993, 1, 1, 0, 0, 0, 0, time.UTC),
+			},
+			parseTime:     true,
+			expectedValue: "1993-01-01T00:00:00Z",
+		},
+		{
+			colName: "json",
+			colKind: "json",
+			value: ValueWrapper{
+				Value: []byte(`{"foo":"bar"}`),
+			},
+			expectedValue: `{"foo":"bar"}`,
+		},
+	}
+
+	for _, tc := range tcs {
+		cfg := NewPostgresConfig()
+		cfg.UpdateCols(tc.colName, tc.colKind, nil, nil, nil)
+
+		value, err := cfg.ParseValue(ParseValueArgs{
+			ColName:      tc.colName,
+			ValueWrapper: tc.value,
+			ParseTime:    tc.parseTime,
+		})
+
+		if tc.expectErr {
+			assert.Error(t, err, tc.colName)
+		} else {
+			assert.NoError(t, err, tc.colName)
+			assert.Equal(t, tc.expectedValue, value.Value, tc.colName)
+
+			// if there are no errors, let's iterate over this a few times to make sure it's deterministic.
+			for i := 0; i < 5; i++ {
+				value, err = cfg.ParseValue(ParseValueArgs{
+					ColName:      tc.colName,
+					ValueWrapper: value,
+					ParseTime:    tc.parseTime,
+				})
+
+				assert.NoError(t, err, tc.colName)
+				assert.Equal(t, tc.expectedValue, value.Value, tc.colName)
+			}
+		}
+	}
+}
