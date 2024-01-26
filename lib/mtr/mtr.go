@@ -35,14 +35,6 @@ func New(namespace string, tags []string, samplingRate float64) (Client, error) 
 	}, nil
 }
 
-func InjectDatadogIntoCtx(ctx context.Context, namespace string, tags []string, samplingRate float64) context.Context {
-	metricsClient, err := New(namespace, tags, samplingRate)
-	if err != nil {
-		logger.Fatal("Failed to create datadog client", slog.Any("err", err))
-	}
-	return context.WithValue(ctx, constants.MtrKey, metricsClient)
-}
-
 func FromContext(ctx context.Context) Client {
 	metricsClientVal := ctx.Value(constants.MtrKey)
 	if metricsClientVal == nil {

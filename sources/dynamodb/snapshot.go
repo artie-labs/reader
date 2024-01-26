@@ -75,7 +75,7 @@ func (s *Store) streamAndPublish(ctx context.Context) error {
 			kafkaMsgs = append(kafkaMsgs, kafkaMsg)
 		}
 
-		if err = kafkalib.NewBatch(kafkaMsgs, s.batchSize).Publish(ctx); err != nil {
+		if err = kafkalib.NewBatch(kafkaMsgs, s.batchSize).Publish(ctx, s.statsD); err != nil {
 			logger.Fatal("Failed to publish messages, exiting...", slog.Any("err", err))
 		}
 

@@ -14,6 +14,7 @@ import (
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/logger"
+	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/reader/lib/s3lib"
 	"github.com/artie-labs/reader/sources/dynamodb/offsets"
 )
@@ -21,6 +22,7 @@ import (
 type Store struct {
 	s3Client       *s3lib.S3Client
 	dynamoDBClient *dynamodb.DynamoDB
+	statsD         *mtr.Client
 
 	tableName string
 	streamArn string
@@ -36,7 +38,7 @@ type Store struct {
 const jitterSleepBaseMs = 50
 const shardScannerInterval = 5 * time.Minute
 
-func Load(cfg config.Settings) *Store {
+func Load(cfg config.Settings, statsD *mtr.Client) *Store {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      ptr.ToString(cfg.DynamoDB.AwsRegion),
 		Credentials: credentials.NewStaticCredentials(cfg.DynamoDB.AwsAccessKeyID, cfg.DynamoDB.AwsSecretAccessKey, ""),
@@ -51,6 +53,7 @@ func Load(cfg config.Settings) *Store {
 		streamArn: cfg.DynamoDB.StreamArn,
 		batchSize: cfg.Kafka.GetPublishSize(),
 		cfg:       cfg.DynamoDB,
+		statsD:    statsD,
 	}
 
 	if cfg.DynamoDB.Snapshot {
