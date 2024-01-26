@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib/kafkalib"
+	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/transfer/lib/size"
@@ -69,7 +69,7 @@ func (i *TableIterator) statsDTags() map[string]string {
 	}
 }
 
-func (i *TableIterator) Next() ([]kafkalib.RawMessage, error) {
+func (i *TableIterator) Next() ([]lib.RawMessage, error) {
 	var rows []map[string]interface{}
 	rows, err := i.postgresTable.StartScanning(i.db,
 		NewScanningArgs(i.postgresTable.PrimaryKeys, i.limit, DefaultErrorRetries, i.firstRow, i.lastRow))
@@ -78,7 +78,7 @@ func (i *TableIterator) Next() ([]kafkalib.RawMessage, error) {
 	}
 
 	i.firstRow = false
-	var msgs []kafkalib.RawMessage
+	var msgs []lib.RawMessage
 	for _, row := range rows {
 		start := time.Now()
 		partitionKeyMap := make(map[string]interface{})
@@ -104,7 +104,7 @@ func (i *TableIterator) Next() ([]kafkalib.RawMessage, error) {
 			return nil, fmt.Errorf("failed to generate payload: %w", err)
 		}
 
-		msgs = append(msgs, kafkalib.RawMessage{
+		msgs = append(msgs, lib.RawMessage{
 			TopicSuffix:  i.postgresTable.TopicSuffix(),
 			PartitionKey: partitionKeyMap,
 			Payload:      payload,
