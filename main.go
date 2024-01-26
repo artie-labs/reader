@@ -10,6 +10,7 @@ import (
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/mtr"
+	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/sources/dynamodb"
 	"github.com/getsentry/sentry-go"
 )
@@ -32,12 +33,21 @@ func main() {
 	}
 
 	ctx := config.InjectIntoContext(context.Background(), cfg)
-	ctx = kafkalib.InjectIntoContext(ctx)
+	var statsD *mtr.Client
 	if cfg.Metrics != nil {
 		slog.Info("Injecting datadog")
 		ctx = mtr.InjectDatadogIntoCtx(ctx, cfg.Metrics.Namespace, cfg.Metrics.Tags, 0.5)
+		client := mtr.FromContext(ctx)
+		statsD = &client
 	}
 
-	ddb := dynamodb.Load(*cfg)
-	ddb.Run(ctx)
+	switch cfg.Source {
+	case "", config.SourceDynamo:
+		// TODO: pull kafkalib out of context
+		ctx = kafkalib.InjectIntoContext(ctx)
+		ddb := dynamodb.Load(*cfg)
+		ddb.Run(ctx)
+	case config.SourcePostgreSQL:
+		postgres.Run(ctx, *cfg, statsD)
+	}
 }
