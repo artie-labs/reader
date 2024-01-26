@@ -6,17 +6,20 @@ import (
 	"log/slog"
 	"time"
 
+	_ "github.com/lib/pq"
+	"github.com/segmentio/kafka-go"
+
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/mtr"
-	"github.com/segmentio/kafka-go"
+	"github.com/artie-labs/reader/lib/postgres"
 )
 
 func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, kafkaWriter *kafka.Writer) {
 	batchWriter := kafkalib.NewBatchWriter(ctx, *cfg.Kafka, kafkaWriter)
 
-	db, err := sql.Open("postgres", NewConnection(cfg.PostgreSQL).String())
+	db, err := sql.Open("postgres", postgres.NewConnection(cfg.PostgreSQL).String())
 	if err != nil {
 		logger.Fatal("Failed to connect to postgres", slog.Any("err", err))
 	}
@@ -24,7 +27,7 @@ func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, kafkaWrit
 
 	for _, table := range cfg.PostgreSQL.Tables {
 		snapshotStartTime := time.Now()
-		iter, err := LoadTable(db, table, statsD, cfg.Kafka.MaxRequestSize)
+		iter, err := postgres.LoadTable(db, table, statsD, cfg.Kafka.MaxRequestSize)
 		if err != nil {
 			logger.Fatal("Failed to create table iterator", slog.Any("err", err), slog.String("table", table.Name))
 		}
