@@ -12,13 +12,7 @@ import (
 	"github.com/artie-labs/reader/lib/mtr"
 )
 
-func Run(ctx context.Context, cfg config.Settings) {
-	var statsD *mtr.Client
-	if cfg.Metrics != nil {
-		client := mtr.FromContext(ctx)
-		statsD = &client
-	}
-
+func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client) {
 	slog.Info("Kafka config",
 		slog.Bool("aws", cfg.Kafka.AwsEnabled),
 		slog.String("kafkaBootstrapServer", cfg.Kafka.BootstrapServers),

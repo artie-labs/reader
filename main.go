@@ -33,9 +33,12 @@ func main() {
 	}
 
 	ctx := config.InjectIntoContext(context.Background(), cfg)
+	var statsD *mtr.Client
 	if cfg.Metrics != nil {
 		slog.Info("Injecting datadog")
 		ctx = mtr.InjectDatadogIntoCtx(ctx, cfg.Metrics.Namespace, cfg.Metrics.Tags, 0.5)
+		client := mtr.FromContext(ctx)
+		statsD = &client
 	}
 
 	switch cfg.Source {
@@ -44,6 +47,6 @@ func main() {
 		ddb := dynamodb.Load(*cfg)
 		ddb.Run(ctx)
 	case config.SourcePostgreSQL:
-		postgres.Run(ctx, *cfg)
+		postgres.Run(ctx, *cfg, statsD)
 	}
 }
