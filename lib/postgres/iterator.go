@@ -14,7 +14,7 @@ import (
 	"github.com/artie-labs/transfer/lib/size"
 )
 
-const DefaultErrorRetries = 10
+const defaultErrorRetries = 10
 
 type TableIterator struct {
 	statsD        *mtr.Client
@@ -48,7 +48,7 @@ func LoadTable(db *sql.DB, table *config.PostgreSQLTable, statsD *mtr.Client, ma
 		statsD:        statsD,
 		maxRowSize:    maxRowSize,
 		postgresTable: postgresTable,
-		scanner:       NewScanner(db, postgresTable, table.GetLimit(), DefaultErrorRetries),
+		scanner:       NewScanner(db, postgresTable, table.GetLimit(), defaultErrorRetries),
 	}, nil
 }
 
