@@ -27,16 +27,16 @@ type TableIterator struct {
 	done          bool
 }
 
-func LoadTable(db *sql.DB, table *config.PostgreSQLTable, statsD *mtr.Client, maxRowSize uint64) (TableIterator, error) {
+func LoadTable(db *sql.DB, table *config.PostgreSQLTable, statsD *mtr.Client, maxRowSize uint64) (*TableIterator, error) {
 	slog.Info("Loading configuration for table", slog.String("table", table.Name))
 
 	postgresTable := NewTable(table)
 	if err := postgresTable.RetrieveColumns(db); err != nil {
 		if NoRowsError(err) {
 			slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name))
-			return TableIterator{done: true}, nil
+			return nil, nil
 		} else {
-			return TableIterator{done: true}, fmt.Errorf("failed to validate postgres: %w", err)
+			return nil, fmt.Errorf("failed to validate postgres: %w", err)
 		}
 	}
 
@@ -48,7 +48,7 @@ func LoadTable(db *sql.DB, table *config.PostgreSQLTable, statsD *mtr.Client, ma
 		slog.Any("batchSize", table.GetLimit()),
 	)
 
-	return TableIterator{
+	return &TableIterator{
 		db:            db,
 		batchSize:     table.GetLimit(),
 		statsD:        statsD,
@@ -59,7 +59,7 @@ func LoadTable(db *sql.DB, table *config.PostgreSQLTable, statsD *mtr.Client, ma
 }
 
 func (i *TableIterator) HasNext() bool {
-	return !i.done
+	return i != nil && !i.done
 }
 
 func (i *TableIterator) recordMetrics(start time.Time) {
@@ -72,8 +72,8 @@ func (i *TableIterator) recordMetrics(start time.Time) {
 }
 
 func (i *TableIterator) Next() ([]lib.RawMessage, error) {
-	if i.done {
-		return nil, fmt.Errorf("cannot call Next() on a closed iterator")
+	if !i.HasNext() {
+		return nil, nil
 	}
 
 	rows, err := i.postgresTable.StartScanning(i.db,
@@ -87,8 +87,7 @@ func (i *TableIterator) Next() ([]lib.RawMessage, error) {
 	}
 
 	i.firstRow = false
-	// If the number of rows returned is less than the batch size, we've reached the end of the table
-	// TODO: Can we just exit in this case?
+	// The reason why lastRow exists is because in the past, we had queries only return partial results but it wasn't fully done
 	i.lastRow = i.batchSize > uint(len(rows))
 
 	var result []lib.RawMessage
