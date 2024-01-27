@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/artie-labs/reader/lib/logger"
 	"github.com/lib/pq"
 )
 
@@ -76,7 +77,7 @@ func (c Comparison) SQLString() string {
 	if (c == GreaterThan) || (c == GreaterThanEqualTo) {
 		return string(c)
 	}
-	panic(fmt.Sprintf("invalid comparison: '%v'", c))
+	logger.Panic(fmt.Sprintf("invalid comparison: '%v'", c))
 }
 
 type ScanTableQueryArgs struct {
