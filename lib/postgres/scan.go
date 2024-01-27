@@ -159,24 +159,25 @@ func (t *Table) startScanning(db *sql.DB, scanningArgs ScanningArgs) ([]map[stri
 
 func (t *Table) NewScanner(db *sql.DB, batchSize uint, errorRetries int) scanner {
 	return scanner{
-		db:            db,
-		postgresTable: t,
-		batchSize:     batchSize,
-		errorRetries:  errorRetries,
-		firstRow:      true,
-		lastRow:       false,
-		done:          false,
+		db:           db,
+		table:        t,
+		batchSize:    batchSize,
+		errorRetries: errorRetries,
+		firstRow:     true,
+		lastRow:      false,
+		done:         false,
 	}
 }
 
 type scanner struct {
-	db            *sql.DB
-	postgresTable *Table
-	batchSize     uint
-	firstRow      bool
-	lastRow       bool
-	done          bool
-	errorRetries  int
+	db           *sql.DB
+	table        *Table
+	batchSize    uint
+	errorRetries int
+
+	firstRow bool
+	lastRow  bool
+	done     bool
 }
 
 func (s *scanner) HasNext() bool {
@@ -187,13 +188,13 @@ func (s *scanner) Next() ([]map[string]interface{}, error) {
 	if !s.HasNext() {
 		return nil, fmt.Errorf("no more rows to scan")
 	}
-	rows, err := s.postgresTable.startScanning(s.db,
-		NewScanningArgs(s.postgresTable.PrimaryKeys, s.batchSize, s.errorRetries, s.firstRow, s.lastRow),
+	rows, err := s.table.startScanning(s.db,
+		NewScanningArgs(s.table.PrimaryKeys, s.batchSize, s.errorRetries, s.firstRow, s.lastRow),
 	)
 	if err != nil {
 		return nil, err
 	} else if len(rows) == 0 {
-		slog.Info("Finished scanning", slog.String("table", s.postgresTable.Name))
+		slog.Info("Finished scanning", slog.String("table", s.table.Name))
 		s.done = true
 		return nil, nil
 	}
