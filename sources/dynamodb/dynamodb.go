@@ -15,7 +15,6 @@ import (
 	"github.com/segmentio/kafka-go"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/reader/lib/s3lib"
 	"github.com/artie-labs/reader/sources/dynamodb/offsets"
@@ -103,7 +102,9 @@ func (s *Store) Run(ctx context.Context) error {
 		go s.ListenToChannel(ctx)
 
 		// Scan it for the first time manually, so we don't have to wait 5 mins
-		s.scanForNewShards()
+		if err := s.scanForNewShards(); err != nil {
+			return fmt.Errorf("failed to scan for new shards, err: %w", err)
+		}
 		for {
 			select {
 			case <-ctx.Done():
@@ -112,14 +113,16 @@ func (s *Store) Run(ctx context.Context) error {
 				return nil
 			case <-ticker.C:
 				slog.Info("Scanning for new shards...")
-				s.scanForNewShards()
+				if err := s.scanForNewShards(); err != nil {
+					return fmt.Errorf("failed to scan for new shards, err: %w", err)
+				}
 			}
 		}
 	}
 	return nil
 }
 
-func (s *Store) scanForNewShards() {
+func (s *Store) scanForNewShards() error {
 	var exclusiveStartShardId *string
 	for {
 		input := &dynamodbstreams.DescribeStreamInput{
@@ -129,7 +132,7 @@ func (s *Store) scanForNewShards() {
 
 		result, err := s.streams.DescribeStream(input)
 		if err != nil {
-			logger.Fatal("Failed to describe stream", slog.Any("err", err))
+			return fmt.Errorf("failed to describe stream, err: %w", err)
 		}
 
 		for _, shard := range result.StreamDescription.Shards {
@@ -145,4 +148,5 @@ func (s *Store) scanForNewShards() {
 		// Set up the next page query with the LastEvaluatedShardId
 		exclusiveStartShardId = result.StreamDescription.LastEvaluatedShardId
 	}
+	return nil
 }
