@@ -75,7 +75,10 @@ func main() {
 
 	switch cfg.Source {
 	case "", config.SourceDynamo:
-		ddb := dynamodb.Load(*cfg, statsD, _kafka)
+		ddb, err := dynamodb.Load(*cfg, statsD, _kafka)
+		if err != nil {
+			logger.Fatal("Failed to load dynamodb", slog.Any("err", err))
+		}
 		if err = ddb.Validate(); err != nil {
 			logger.Fatal("Failed to validate dynamodb", slog.Any("err", err))
 		}
