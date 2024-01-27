@@ -73,7 +73,7 @@ func (i *TableIterator) recordMetrics(start time.Time) {
 
 func (i *TableIterator) Next() ([]lib.RawMessage, error) {
 	if !i.HasNext() {
-		return nil, nil
+		return make([]lib.RawMessage, 0), nil
 	}
 
 	rows, err := i.postgresTable.StartScanning(i.db,
