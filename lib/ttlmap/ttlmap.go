@@ -92,7 +92,7 @@ func (t *TTLMap) cleanUpAndFlushRoutine() {
 			t.cleanup()
 		case <-t.flushTicker.C:
 			if err := t.flush(); err != nil {
-				logger.Fatal("Failed to flush", slog.Any("err", err))
+				logger.Panic("Failed to flush", slog.Any("err", err))
 			}
 		case <-t.closeChan:
 			return

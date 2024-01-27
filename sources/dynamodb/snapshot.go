@@ -51,7 +51,7 @@ func (s *Store) streamAndPublish(ctx context.Context) error {
 		ch := make(chan dynamodb.ItemResponse)
 		go func() {
 			if err := s.s3Client.StreamJsonGzipFile(file, ch); err != nil {
-				logger.Fatal("Failed to read file", slog.Any("err", err))
+				logger.Panic("Failed to read file", slog.Any("err", err))
 			}
 		}()
 

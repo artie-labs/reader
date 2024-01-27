@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"math/rand"
 	"os"
 	"strconv"
@@ -10,6 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+
+	"github.com/artie-labs/reader/lib/logger"
 )
 
 const (
@@ -20,19 +22,19 @@ const (
 
 func main() {
 	if len(os.Args) != 2 {
-		log.Fatalf("Usage: %s <number_of_rows>", os.Args[0])
+		logger.Fatal(fmt.Sprintf("Usage: %s <number_of_rows>", os.Args[0]))
 	}
 
 	numRows, err := strconv.Atoi(os.Args[1])
 	if err != nil || numRows < 1 {
-		log.Fatalf("Please provide a valid number for rows")
+		logger.Fatal("Please provide a valid number for rows")
 	}
 
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(region),
 	})
 	if err != nil {
-		log.Fatalf("Failed to create session: %v", err)
+		logger.Fatal("Failed to create session", slog.Any("err", err))
 	}
 
 	svc := dynamodb.New(sess)
@@ -104,10 +106,10 @@ func main() {
 
 		_, err := svc.BatchWriteItem(input)
 		if err != nil {
-			log.Printf("Failed to write batch starting at index %d. Error: %v", i, err)
+			slog.Error(fmt.Sprintf("Failed to write batch starting at index %d", i), slog.Any("err", err))
 			continue
 		}
 
-		log.Printf("Inserted batch of items starting from index %d", i)
+		slog.Info(fmt.Sprintf("Inserted batch of items starting from index %d", i))
 	}
 }

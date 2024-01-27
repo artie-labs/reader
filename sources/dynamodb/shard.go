@@ -87,7 +87,7 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 		for _, record := range getRecordsOutput.Records {
 			msg, err := dynamo.NewMessage(record, s.tableName)
 			if err != nil {
-				logger.Fatal("Failed to cast message from DynamoDB",
+				logger.Panic("Failed to cast message from DynamoDB",
 					slog.Any("err", err),
 					slog.String("streamArn", s.streamArn),
 					slog.String("shardId", *shard.ShardId),
@@ -97,7 +97,7 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 
 			message, err := msg.KafkaMessage(s.topicPrefix)
 			if err != nil {
-				logger.Fatal("Failed to cast message from DynamoDB",
+				logger.Panic("Failed to cast message from DynamoDB",
 					slog.Any("err", err),
 					slog.String("streamArn", s.streamArn),
 					slog.String("shardId", *shard.ShardId),
@@ -109,7 +109,7 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 		}
 
 		if err = kafkalib.NewBatch(messages, s.batchSize).Publish(ctx, s.statsD, s.writer); err != nil {
-			logger.Fatal("Failed to publish messages, exiting...", slog.Any("err", err))
+			logger.Panic("Failed to publish messages, exiting...", slog.Any("err", err))
 		}
 
 		if len(getRecordsOutput.Records) > 0 {
