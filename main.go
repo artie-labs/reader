@@ -79,8 +79,14 @@ func main() {
 		if err = ddb.Validate(); err != nil {
 			logger.Fatal("Failed to validate dynamodb", slog.Any("err", err))
 		}
-		ddb.Run(ctx)
+		err := ddb.Run(ctx)
+		if err != nil {
+			logger.Fatal("Failed to run dynamodb snapshot", slog.Any("err", err))
+		}
 	case config.SourcePostgreSQL:
-		postgres.Run(ctx, *cfg, statsD, _kafka)
+		err = postgres.Run(ctx, *cfg, statsD, _kafka)
+		if err != nil {
+			logger.Fatal("Failed to run postgres snapshot", slog.Any("err", err))
+		}
 	}
 }

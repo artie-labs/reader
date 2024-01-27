@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -11,17 +12,16 @@ import (
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/kafkalib"
-	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/reader/lib/postgres"
 )
 
-func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, kafkaWriter *kafka.Writer) {
+func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, kafkaWriter *kafka.Writer) error {
 	batchWriter := kafkalib.NewBatchWriter(ctx, *cfg.Kafka, kafkaWriter)
 
 	db, err := sql.Open("postgres", postgres.NewConnection(cfg.PostgreSQL).String())
 	if err != nil {
-		logger.Fatal("Failed to connect to postgres", slog.Any("err", err))
+		return fmt.Errorf("failed to connect to postgres, err: %v", err)
 	}
 	defer db.Close()
 
@@ -29,17 +29,18 @@ func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, kafkaWrit
 		snapshotStartTime := time.Now()
 		iter, err := postgres.LoadTable(db, table, statsD, cfg.Kafka.MaxRequestSize)
 		if err != nil {
-			logger.Fatal("Failed to create table iterator", slog.Any("err", err), slog.String("table", table.Name))
+			return fmt.Errorf("failed to create table iterator, table: %s, err: %v", table.Name, err)
 		}
 
 		var count int
 		for iter.HasNext() {
 			msgs, err := iter.Next()
 			if err != nil {
-				logger.Fatal("Failed to iterate over table", slog.Any("err", err), slog.String("table", table.Name))
+				return fmt.Errorf("failed to iterate over table, table: %s, err: %v", table.Name, err)
+
 			} else if len(msgs) > 0 {
 				if err = batchWriter.Write(msgs); err != nil {
-					logger.Fatal("Failed to write messages to kafka", slog.Any("err", err), slog.String("table", table.Name))
+					return fmt.Errorf("failed to write messages to kafka, table: %s, err: %v", table.Name, err)
 				}
 				count += len(msgs)
 				slog.Info("Scanning progress", slog.Duration("timing", time.Since(snapshotStartTime)), slog.Int("count", count))
@@ -51,4 +52,6 @@ func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, kafkaWrit
 			slog.Duration("totalDuration", time.Since(snapshotStartTime)),
 		)
 	}
+
+	return nil
 }
