@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/artie-labs/reader/lib/logger"
 	"github.com/lib/pq"
+
+	"github.com/artie-labs/reader/lib/logger"
 )
 
 type DescribeTableArgs struct {
