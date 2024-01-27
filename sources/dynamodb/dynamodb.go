@@ -47,7 +47,6 @@ func Load(cfg config.Settings, statsD *mtr.Client, writer *kafka.Writer) (*Store
 		Region:      ptr.ToString(cfg.DynamoDB.AwsRegion),
 		Credentials: credentials.NewStaticCredentials(cfg.DynamoDB.AwsAccessKeyID, cfg.DynamoDB.AwsSecretAccessKey, ""),
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to create session, err: %w", err)
 	}
