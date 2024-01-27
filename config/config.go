@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -116,17 +115,17 @@ func (s *Settings) Validate() error {
 func ReadConfig(fp string) (*Settings, error) {
 	bytes, err := os.ReadFile(fp)
 	if err != nil {
-		log.Fatalf("Failed to read config file, err: %v", err)
+		return nil, fmt.Errorf("failed to read config file, err: %w", err)
 	}
 
 	var settings Settings
 	err = yaml.Unmarshal(bytes, &settings)
 	if err != nil {
-		log.Fatalf("Failed to unmarshal config file, err: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal config file, err: %w", err)
 	}
 
 	if err = settings.Validate(); err != nil {
-		log.Fatalf("Failed to validate config file, err: %v", err)
+		return nil, fmt.Errorf("failed to validate config file, err: %v", err)
 	}
 
 	return &settings, nil
