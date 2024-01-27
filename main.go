@@ -75,6 +75,9 @@ func main() {
 	switch cfg.Source {
 	case "", config.SourceDynamo:
 		ddb := dynamodb.Load(*cfg, statsD, _kafka)
+		if err = ddb.Validate(); err != nil {
+			logger.Fatal("Failed to validate dynamodb", slog.Any("err", err))
+		}
 		ddb.Run(ctx)
 	case config.SourcePostgreSQL:
 		postgres.Run(ctx, *cfg, statsD, _kafka)
