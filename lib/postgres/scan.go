@@ -157,6 +157,18 @@ func (t *Table) startScanning(db *sql.DB, scanningArgs ScanningArgs) ([]map[stri
 	return parsedRows, nil
 }
 
+func (t *Table) NewScanner(db *sql.DB, batchSize uint, errorRetries int) scanner {
+	return scanner{
+		db:            db,
+		postgresTable: t,
+		batchSize:     batchSize,
+		errorRetries:  errorRetries,
+		firstRow:      true,
+		lastRow:       false,
+		done:          false,
+	}
+}
+
 type scanner struct {
 	db            *sql.DB
 	postgresTable *Table
@@ -167,17 +179,6 @@ type scanner struct {
 	errorRetries  int
 }
 
-func NewScanner(db *sql.DB, postgresTable *Table, batchSize uint, errorRetries int) scanner {
-	return scanner{
-		db:            db,
-		postgresTable: postgresTable,
-		batchSize:     batchSize,
-		errorRetries:  errorRetries,
-		firstRow:      true,
-		lastRow:       false,
-		done:          false,
-	}
-}
 func (s *scanner) HasNext() bool {
 	return !s.done
 }

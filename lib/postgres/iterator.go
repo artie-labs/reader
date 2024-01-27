@@ -48,7 +48,7 @@ func LoadTable(db *sql.DB, table *config.PostgreSQLTable, statsD *mtr.Client, ma
 		statsD:        statsD,
 		maxRowSize:    maxRowSize,
 		postgresTable: postgresTable,
-		scanner:       NewScanner(db, postgresTable, table.GetLimit(), defaultErrorRetries),
+		scanner:       postgresTable.NewScanner(db, table.GetLimit(), defaultErrorRetries),
 	}, nil
 }
 
