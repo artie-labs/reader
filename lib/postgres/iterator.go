@@ -17,14 +17,10 @@ import (
 const DefaultErrorRetries = 10
 
 type TableIterator struct {
-	db            *sql.DB
-	batchSize     uint
 	statsD        *mtr.Client
 	maxRowSize    uint64
 	postgresTable *Table
-	firstRow      bool
-	lastRow       bool
-	done          bool
+	scanner       scanner
 }
 
 func LoadTable(db *sql.DB, table *config.PostgreSQLTable, statsD *mtr.Client, maxRowSize uint64) (*TableIterator, error) {
@@ -49,17 +45,15 @@ func LoadTable(db *sql.DB, table *config.PostgreSQLTable, statsD *mtr.Client, ma
 	)
 
 	return &TableIterator{
-		db:            db,
-		batchSize:     table.GetLimit(),
 		statsD:        statsD,
 		maxRowSize:    maxRowSize,
 		postgresTable: postgresTable,
-		firstRow:      true,
+		scanner:       NewScanner(db, postgresTable, table.GetLimit(), DefaultErrorRetries),
 	}, nil
 }
 
 func (i *TableIterator) HasNext() bool {
-	return i != nil && !i.done
+	return i != nil && i.scanner.HasNext()
 }
 
 func (i *TableIterator) recordMetrics(start time.Time) {
@@ -76,19 +70,10 @@ func (i *TableIterator) Next() ([]lib.RawMessage, error) {
 		return make([]lib.RawMessage, 0), nil
 	}
 
-	rows, err := i.postgresTable.StartScanning(i.db,
-		NewScanningArgs(i.postgresTable.PrimaryKeys, i.batchSize, DefaultErrorRetries, i.firstRow, i.lastRow))
+	rows, err := i.scanner.Next()
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan postgres: %w", err)
-	} else if len(rows) == 0 {
-		slog.Info("Finished scanning", slog.String("table", i.postgresTable.Name))
-		i.done = true
-		return make([]lib.RawMessage, 0), nil
 	}
-
-	i.firstRow = false
-	// The reason why lastRow exists is because in the past, we had queries only return partial results but it wasn't fully done
-	i.lastRow = i.batchSize > uint(len(rows))
 
 	var result []lib.RawMessage
 	for _, row := range rows {
