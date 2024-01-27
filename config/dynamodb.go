@@ -2,8 +2,10 @@ package config
 
 import (
 	"fmt"
-	"github.com/artie-labs/reader/lib/s3lib"
+
 	"github.com/artie-labs/transfer/lib/stringutil"
+
+	"github.com/artie-labs/reader/lib/s3lib"
 )
 
 type DynamoDB struct {

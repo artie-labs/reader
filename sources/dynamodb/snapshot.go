@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/segmentio/kafka-go"
+
 	"github.com/artie-labs/reader/lib/dynamo"
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/segmentio/kafka-go"
 )
 
 func (s *Store) scanFilesOverBucket() error {

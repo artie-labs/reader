@@ -2,10 +2,11 @@ package debezium
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/artie-labs/transfer/lib/cdc"
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/artie-labs/transfer/lib/debezium"
-	"time"
 )
 
 type NewArgs struct {

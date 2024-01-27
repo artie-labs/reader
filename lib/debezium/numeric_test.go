@@ -1,9 +1,10 @@
 package debezium
 
 import (
+	"testing"
+
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestGetScale(t *testing.T) {

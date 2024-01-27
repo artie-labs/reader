@@ -5,9 +5,10 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/lib/pq"
+
+	"github.com/artie-labs/reader/lib/postgres/debezium"
 )
 
 type NumericDetails struct {

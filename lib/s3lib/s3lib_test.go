@@ -1,9 +1,10 @@
 package s3lib
 
 import (
+	"testing"
+
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestBucketAndPrefixFromFilePath(t *testing.T) {

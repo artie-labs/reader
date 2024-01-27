@@ -2,10 +2,11 @@ package debezium
 
 import (
 	"fmt"
-	"github.com/artie-labs/transfer/lib/ptr"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/artie-labs/transfer/lib/ptr"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParseValue(t *testing.T) {

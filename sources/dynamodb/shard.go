@@ -5,13 +5,14 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/artie-labs/reader/lib/dynamo"
-	"github.com/artie-labs/reader/lib/kafkalib"
-	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
 	"github.com/segmentio/kafka-go"
+
+	"github.com/artie-labs/reader/lib/dynamo"
+	"github.com/artie-labs/reader/lib/kafkalib"
+	"github.com/artie-labs/reader/lib/logger"
 )
 
 func (s *Store) ListenToChannel(ctx context.Context) {

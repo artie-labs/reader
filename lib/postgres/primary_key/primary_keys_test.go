@@ -1,8 +1,9 @@
 package primary_key
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPrimaryKeys_Length(t *testing.T) {

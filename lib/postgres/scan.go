@@ -8,7 +8,7 @@ import (
 
 	"github.com/artie-labs/transfer/lib/ptr"
 
-	readerLib "github.com/artie-labs/reader/lib"
+	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/postgres/primary_key"
 	"github.com/artie-labs/reader/lib/postgres/queries"
 )
@@ -78,7 +78,7 @@ func (t *Table) StartScanning(db *sql.DB, scanningArgs ScanningArgs) ([]map[stri
 	rows, err := db.Query(query)
 	if err != nil {
 		if attempts := scanningArgs.RetryAttempts(); attempts > 0 {
-			sleepMs := readerLib.JitterMs(jitterBaseMs, jitterMaxMs, scanningArgs.errorAttempts)
+			sleepMs := lib.JitterMs(jitterBaseMs, jitterMaxMs, scanningArgs.errorAttempts)
 			slog.Info(fmt.Sprintf("We still have %v attempts", attempts), slog.Int("sleepMs", sleepMs), slog.Any("err", err))
 			scanningArgs.errorAttempts += 1
 			time.Sleep(time.Duration(sleepMs) * time.Millisecond)

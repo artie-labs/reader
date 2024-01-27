@@ -5,9 +5,9 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/s3"
 )

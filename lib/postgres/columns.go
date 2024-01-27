@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/artie-labs/reader/lib/postgres/queries"
 	"github.com/lib/pq"
+
+	"github.com/artie-labs/reader/lib/postgres/queries"
 )
 
 func (t *Table) RetrieveColumns(db *sql.DB) error {

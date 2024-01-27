@@ -2,6 +2,7 @@ package dynamodb
 
 import (
 	"fmt"
+
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
