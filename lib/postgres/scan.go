@@ -192,6 +192,7 @@ func (s *scanner) Next() ([]map[string]interface{}, error) {
 		NewScanningArgs(s.table.PrimaryKeys, s.batchSize, s.errorRetries, s.firstRow, s.lastRow),
 	)
 	if err != nil {
+		s.done = true
 		return nil, err
 	} else if len(rows) == 0 {
 		slog.Info("Finished scanning", slog.String("table", s.table.Name))
