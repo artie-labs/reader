@@ -21,7 +21,7 @@ func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, kafkaWrit
 
 	db, err := sql.Open("postgres", postgres.NewConnection(cfg.PostgreSQL).String())
 	if err != nil {
-		return fmt.Errorf("failed to connect to postgres, err: %v", err)
+		return fmt.Errorf("failed to connect to postgres, err: %w", err)
 	}
 	defer db.Close()
 
@@ -29,18 +29,18 @@ func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, kafkaWrit
 		snapshotStartTime := time.Now()
 		iter, err := postgres.LoadTable(db, table, statsD, cfg.Kafka.MaxRequestSize)
 		if err != nil {
-			return fmt.Errorf("failed to create table iterator, table: %s, err: %v", table.Name, err)
+			return fmt.Errorf("failed to create table iterator, table: %s, err: %w", table.Name, err)
 		}
 
 		var count int
 		for iter.HasNext() {
 			msgs, err := iter.Next()
 			if err != nil {
-				return fmt.Errorf("failed to iterate over table, table: %s, err: %v", table.Name, err)
+				return fmt.Errorf("failed to iterate over table, table: %s, err: %w", table.Name, err)
 
 			} else if len(msgs) > 0 {
 				if err = batchWriter.Write(msgs); err != nil {
-					return fmt.Errorf("failed to write messages to kafka, table: %s, err: %v", table.Name, err)
+					return fmt.Errorf("failed to write messages to kafka, table: %s, err: %w", table.Name, err)
 				}
 				count += len(msgs)
 				slog.Info("Scanning progress", slog.Duration("timing", time.Since(snapshotStartTime)), slog.Int("count", count))
