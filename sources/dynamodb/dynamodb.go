@@ -42,14 +42,14 @@ type Store struct {
 const jitterSleepBaseMs = 50
 const shardScannerInterval = 5 * time.Minute
 
-func Load(cfg config.Settings, statsD *mtr.Client, writer *kafka.Writer) *Store {
+func Load(cfg config.Settings, statsD *mtr.Client, writer *kafka.Writer) (*Store, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      ptr.ToString(cfg.DynamoDB.AwsRegion),
 		Credentials: credentials.NewStaticCredentials(cfg.DynamoDB.AwsAccessKeyID, cfg.DynamoDB.AwsSecretAccessKey, ""),
 	})
 
 	if err != nil {
-		logger.Fatal("Failed to create session", slog.Any("err", err))
+		return nil, fmt.Errorf("failed to create session, err: %w", err)
 	}
 
 	store := &Store{
@@ -73,7 +73,7 @@ func Load(cfg config.Settings, statsD *mtr.Client, writer *kafka.Writer) *Store 
 		store.shardChan = make(chan *dynamodbstreams.Shard)
 	}
 
-	return store
+	return store, nil
 }
 
 func (s *Store) Validate() error {
