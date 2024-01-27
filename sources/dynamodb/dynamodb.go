@@ -86,14 +86,14 @@ func (s *Store) Validate() error {
 	return nil
 }
 
-func (s *Store) Run(ctx context.Context) {
+func (s *Store) Run(ctx context.Context) error {
 	if s.cfg.Snapshot {
 		if err := s.scanFilesOverBucket(); err != nil {
-			logger.Fatal("Scanning files over bucket failed", slog.Any("err", err))
+			return fmt.Errorf("scanning files over bucket failed, err: %w", err)
 		}
 
 		if err := s.streamAndPublish(ctx); err != nil {
-			logger.Fatal("Stream and publish failed", slog.Any("err", err))
+			return fmt.Errorf("stream and publish failed, err: %w", err)
 		}
 
 		slog.Info("Finished snapshotting all the files")
@@ -110,13 +110,14 @@ func (s *Store) Run(ctx context.Context) {
 			case <-ctx.Done():
 				close(s.shardChan)
 				slog.Info("Terminating process...")
-				return
+				return nil
 			case <-ticker.C:
 				slog.Info("Scanning for new shards...")
 				s.scanForNewShards()
 			}
 		}
 	}
+	return nil
 }
 
 func (s *Store) scanForNewShards() {
