@@ -86,7 +86,7 @@ func transformNewImage(data map[string]*dynamodb.AttributeValue) map[string]inte
 	return transformed
 }
 
-func (m *Message) artieMessage() (util.SchemaEventPayload, error) {
+func (m *Message) artieMessage() util.SchemaEventPayload {
 	return util.SchemaEventPayload{
 		Payload: util.Payload{
 			After: m.rowData,
@@ -96,7 +96,7 @@ func (m *Message) artieMessage() (util.SchemaEventPayload, error) {
 			},
 			Operation: m.op,
 		},
-	}, nil
+	}
 }
 
 func (m *Message) TopicName(topicPrefix string) string {
@@ -104,9 +104,5 @@ func (m *Message) TopicName(topicPrefix string) string {
 }
 
 func (m *Message) KafkaMessage(topicPrefix string) (kafka.Message, error) {
-	msg, err := m.artieMessage()
-	if err != nil {
-		return kafka.Message{}, fmt.Errorf("failed to generate artie message, err: %v", err)
-	}
-	return kafkalib.NewMessage(m.TopicName(topicPrefix), m.primaryKey, msg)
+	return kafkalib.NewMessage(m.TopicName(topicPrefix), m.primaryKey, m.artieMessage())
 }

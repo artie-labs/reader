@@ -59,19 +59,19 @@ func (s *Store) streamAndPublish(ctx context.Context) error {
 		for msg := range ch {
 			dynamoMsg, err := dynamo.NewMessageFromExport(msg, keys, s.tableName)
 			if err != nil {
-				logger.Fatal("Failed to cast message from DynamoDB", slog.Any("err", err), slog.Any("msg", msg))
+				return fmt.Errorf("failed to cast message from DynamoDB, msg: %v, err: %w", msg, err)
 			}
 
 			kafkaMsg, err := dynamoMsg.KafkaMessage(s.topicPrefix)
 			if err != nil {
-				logger.Fatal("Failed to cast message from DynamoDB", slog.Any("err", err))
+				return fmt.Errorf("failed to cast message from DynamoDB, err: %w", err)
 			}
 
 			kafkaMsgs = append(kafkaMsgs, kafkaMsg)
 		}
 
 		if err = kafkalib.NewBatch(kafkaMsgs, s.batchSize).Publish(ctx, s.statsD, s.writer); err != nil {
-			logger.Fatal("Failed to publish messages, exiting...", slog.Any("err", err))
+			return fmt.Errorf("failed to publish messages, err: %w", err)
 		}
 
 		slog.Info("Successfully processed file...", logFields...)
