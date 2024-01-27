@@ -88,6 +88,7 @@ func (i *TableIterator) Next() ([]lib.RawMessage, error) {
 
 	i.firstRow = false
 	// If the number of rows returned is less than the batch size, we've reached the end of the table
+	// TODO: Can we just exit in this case?
 	i.lastRow = i.batchSize > uint(len(rows))
 
 	var result []lib.RawMessage
