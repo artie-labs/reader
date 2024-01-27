@@ -2,8 +2,10 @@ package config
 
 import (
 	"fmt"
-	"github.com/artie-labs/reader/constants"
+
 	"github.com/artie-labs/transfer/lib/stringutil"
+
+	"github.com/artie-labs/reader/constants"
 )
 
 type PostgreSQL struct {

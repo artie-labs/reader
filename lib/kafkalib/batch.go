@@ -6,9 +6,10 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/segmentio/kafka-go"
+
+	"github.com/artie-labs/reader/lib/mtr"
 )
 
 const (

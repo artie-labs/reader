@@ -1,8 +1,9 @@
 package debezium
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewArgs_Validate(t *testing.T) {

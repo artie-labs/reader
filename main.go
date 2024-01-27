@@ -7,14 +7,15 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/getsentry/sentry-go"
+	"github.com/segmentio/kafka-go"
+
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/reader/sources/dynamodb"
 	"github.com/artie-labs/reader/sources/postgres"
-	"github.com/getsentry/sentry-go"
-	"github.com/segmentio/kafka-go"
 )
 
 func setUpMetrics(cfg *config.Metrics) (*mtr.Client, error) {
