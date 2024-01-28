@@ -51,9 +51,9 @@ func (s *scanner) startScanning(errorAttempts int) ([]map[string]interface{}, er
 	slog.Info(fmt.Sprintf("Query looks like: %v", query))
 	rows, err := s.db.Query(query)
 	if err != nil {
-		if attemptLeft := (s.errorRetries - errorAttempts); attemptLeft > 0 {
+		if attempts := (s.errorRetries - errorAttempts); attempts > 0 {
 			sleepMs := lib.JitterMs(jitterBaseMs, jitterMaxMs, errorAttempts)
-			slog.Info(fmt.Sprintf("We still have %v attempts", attemptLeft), slog.Int("sleepMs", sleepMs), slog.Any("err", err))
+			slog.Info(fmt.Sprintf("We still have %v attempts", attempts), slog.Int("sleepMs", sleepMs), slog.Any("err", err))
 			time.Sleep(time.Duration(sleepMs) * time.Millisecond)
 			return s.startScanning(errorAttempts + 1)
 		}
