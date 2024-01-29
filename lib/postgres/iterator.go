@@ -16,16 +16,16 @@ import (
 
 const defaultErrorRetries = 10
 
-type batchRowIterator interface {
-	HasNext() bool
-	Next() ([]map[string]interface{}, error)
-}
-
 type MessageBuilder struct {
 	table      *Table
 	iter       batchRowIterator
 	statsD     *mtr.Client
 	maxRowSize uint64
+}
+
+type batchRowIterator interface {
+	HasNext() bool
+	Next() ([]map[string]interface{}, error)
 }
 
 func LoadTable(db *sql.DB, tableCfg *config.PostgreSQLTable, statsD *mtr.Client, maxRowSize uint64) (*MessageBuilder, error) {
