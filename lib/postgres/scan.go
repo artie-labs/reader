@@ -18,14 +18,41 @@ const (
 	jitterMaxMs  = 5000
 )
 
-func (s *scanner) startScanning(errorAttempts int) ([]map[string]interface{}, error) {
+type scanner struct {
+	// immutable
+	db           *sql.DB
+	table        *Table
+	batchSize    uint
+	errorRetries int
+
+	// mutable
+	primaryKeys *primary_key.Keys
+	isFirstRow  bool
+	isLastRow   bool
+	done        bool
+}
+
+func (t *Table) NewScanner(db *sql.DB, batchSize uint, errorRetries int) scanner {
+	return scanner{
+		db:           db,
+		table:        t,
+		batchSize:    batchSize,
+		errorRetries: errorRetries,
+		primaryKeys:  t.PrimaryKeys, // TODO: We should be passing in a copy of the primary keys
+		isFirstRow:   true,
+		isLastRow:    false,
+		done:         false,
+	}
+}
+
+func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
 	firstWhereClause := queries.GreaterThan
-	if s.firstRow {
+	if s.isFirstRow {
 		firstWhereClause = queries.GreaterThanEqualTo
 	}
 
 	secondWhereClause := queries.GreaterThan
-	if s.lastRow {
+	if s.isLastRow {
 		secondWhereClause = queries.GreaterThanEqualTo
 	}
 
@@ -51,11 +78,11 @@ func (s *scanner) startScanning(errorAttempts int) ([]map[string]interface{}, er
 	slog.Info(fmt.Sprintf("Query looks like: %v", query))
 	rows, err := s.db.Query(query)
 	if err != nil {
-		if attempts := (s.errorRetries - errorAttempts); attempts > 0 {
+		if attemptsLeft := (s.errorRetries - errorAttempts); attemptsLeft > 0 {
 			sleepMs := lib.JitterMs(jitterBaseMs, jitterMaxMs, errorAttempts)
-			slog.Info(fmt.Sprintf("We still have %v attempts", attempts), slog.Int("sleepMs", sleepMs), slog.Any("err", err))
+			slog.Info(fmt.Sprintf("We still have %v attempts", attemptsLeft), slog.Int("sleepMs", sleepMs), slog.Any("err", err))
 			time.Sleep(time.Duration(sleepMs) * time.Millisecond)
-			return s.startScanning(errorAttempts + 1)
+			return s.scan(errorAttempts + 1)
 		}
 
 		return nil, err
@@ -130,33 +157,6 @@ func (s *scanner) startScanning(errorAttempts int) ([]map[string]interface{}, er
 	return parsedRows, nil
 }
 
-func (t *Table) NewScanner(db *sql.DB, batchSize uint, errorRetries int) scanner {
-	return scanner{
-		db:           db,
-		table:        t,
-		batchSize:    batchSize,
-		errorRetries: errorRetries,
-		primaryKeys:  t.PrimaryKeys, // TODO: We should be passing in a copy of the primary keys
-		firstRow:     true,
-		lastRow:      false,
-		done:         false,
-	}
-}
-
-type scanner struct {
-	// immutable
-	db           *sql.DB
-	table        *Table
-	batchSize    uint
-	errorRetries int
-
-	// mutable
-	primaryKeys *primary_key.Keys
-	firstRow    bool
-	lastRow     bool
-	done        bool
-}
-
 func (s *scanner) HasNext() bool {
 	return !s.done
 }
@@ -165,7 +165,7 @@ func (s *scanner) Next() ([]map[string]interface{}, error) {
 	if !s.HasNext() {
 		return nil, fmt.Errorf("no more rows to scan")
 	}
-	rows, err := s.startScanning(0)
+	rows, err := s.scan(0)
 	if err != nil {
 		s.done = true
 		return nil, err
@@ -174,8 +174,8 @@ func (s *scanner) Next() ([]map[string]interface{}, error) {
 		s.done = true
 		return nil, nil
 	}
-	s.firstRow = false
+	s.isFirstRow = false
 	// The reason why lastRow exists is because in the past, we had queries only return partial results but it wasn't fully done
-	s.lastRow = s.batchSize > uint(len(rows))
+	s.isLastRow = s.batchSize > uint(len(rows))
 	return rows, nil
 }
