@@ -16,18 +16,32 @@ import (
 
 const defaultErrorRetries = 10
 
-type TableIterator struct {
-	statsD        *mtr.Client
-	maxRowSize    uint64
-	postgresTable *Table
-	scanner       scanner
+type MessageBuilder struct {
+	statsD     *mtr.Client
+	maxRowSize uint64
+	table      *Table
+	iter       batchRowIterator
 }
 
-func LoadTable(db *sql.DB, table *config.PostgreSQLTable, statsD *mtr.Client, maxRowSize uint64) (*TableIterator, error) {
-	slog.Info("Loading configuration for table", slog.String("table", table.Name))
+func NewMessageBuilder(table *Table, iter batchRowIterator, statsD *mtr.Client, maxRowSize uint64) *MessageBuilder {
+	return &MessageBuilder{
+		table:      table,
+		iter:       iter,
+		statsD:     statsD,
+		maxRowSize: maxRowSize,
+	}
+}
 
-	postgresTable := NewTable(table)
-	if err := postgresTable.RetrieveColumns(db); err != nil {
+type batchRowIterator interface {
+	HasNext() bool
+	Next() ([]map[string]interface{}, error)
+}
+
+func LoadTable(db *sql.DB, tableCfg *config.PostgreSQLTable, statsD *mtr.Client, maxRowSize uint64) (*MessageBuilder, error) {
+	slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name))
+
+	table := NewTable(tableCfg)
+	if err := table.RetrieveColumns(db); err != nil {
 		if NoRowsError(err) {
 			slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name))
 			return nil, nil
@@ -37,40 +51,41 @@ func LoadTable(db *sql.DB, table *config.PostgreSQLTable, statsD *mtr.Client, ma
 	}
 
 	slog.Info("Scanning table",
-		slog.String("tableName", postgresTable.Name),
-		slog.String("schemaName", postgresTable.Schema),
-		slog.String("topicSuffix", postgresTable.TopicSuffix()),
-		slog.Any("primaryKeyColumns", postgresTable.PrimaryKeys.Keys()),
-		slog.Any("batchSize", table.GetLimit()),
+		slog.String("tableName", table.Name),
+		slog.String("schemaName", table.Schema),
+		slog.String("topicSuffix", table.TopicSuffix()),
+		slog.Any("primaryKeyColumns", table.PrimaryKeys.Keys()),
+		slog.Any("batchSize", tableCfg.GetLimit()),
 	)
 
-	return &TableIterator{
-		statsD:        statsD,
-		maxRowSize:    maxRowSize,
-		postgresTable: postgresTable,
-		scanner:       postgresTable.NewScanner(db, table.GetLimit(), defaultErrorRetries),
-	}, nil
+	scanner := table.NewScanner(db, tableCfg.GetLimit(), defaultErrorRetries)
+	return NewMessageBuilder(
+		table,
+		&scanner,
+		statsD,
+		maxRowSize,
+	), nil
 }
 
-func (i *TableIterator) HasNext() bool {
-	return i != nil && i.scanner.HasNext()
+func (m *MessageBuilder) HasNext() bool {
+	return m != nil && m.iter.HasNext()
 }
 
-func (i *TableIterator) recordMetrics(start time.Time) {
-	if i.statsD != nil {
-		(*i.statsD).Timing("scanned_and_parsed", time.Since(start), map[string]string{
-			"table":  strings.ReplaceAll(i.postgresTable.Name, `"`, ``),
-			"schema": i.postgresTable.Schema,
+func (m *MessageBuilder) recordMetrics(start time.Time) {
+	if m.statsD != nil {
+		(*m.statsD).Timing("scanned_and_parsed", time.Since(start), map[string]string{
+			"table":  strings.ReplaceAll(m.table.Name, `"`, ``),
+			"schema": m.table.Schema,
 		})
 	}
 }
 
-func (i *TableIterator) Next() ([]lib.RawMessage, error) {
-	if !i.HasNext() {
+func (m *MessageBuilder) Next() ([]lib.RawMessage, error) {
+	if !m.HasNext() {
 		return make([]lib.RawMessage, 0), nil
 	}
 
-	rows, err := i.scanner.Next()
+	rows, err := m.iter.Next()
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan postgres: %w", err)
 	}
@@ -79,33 +94,33 @@ func (i *TableIterator) Next() ([]lib.RawMessage, error) {
 	for _, row := range rows {
 		start := time.Now()
 		partitionKeyMap := make(map[string]interface{})
-		for _, key := range i.postgresTable.PrimaryKeys.Keys() {
+		for _, key := range m.table.PrimaryKeys.Keys() {
 			partitionKeyMap[key] = row[key]
 		}
 
-		if i.maxRowSize > 0 {
-			if uint64(size.GetApproxSize(row)) > i.maxRowSize {
-				slog.Info(fmt.Sprintf("Row greater than %v mb, skipping...", i.maxRowSize/1024/1024), slog.Any("key", partitionKeyMap))
+		if m.maxRowSize > 0 {
+			if uint64(size.GetApproxSize(row)) > m.maxRowSize {
+				slog.Info(fmt.Sprintf("Row greater than %v mb, skipping...", m.maxRowSize/1024/1024), slog.Any("key", partitionKeyMap))
 				continue
 			}
 		}
 
 		payload, err := debezium.NewPayload(&debezium.NewArgs{
-			TableName: i.postgresTable.Name,
-			Columns:   i.postgresTable.OriginalColumns,
-			Fields:    i.postgresTable.Config.Fields,
+			TableName: m.table.Name,
+			Columns:   m.table.OriginalColumns,
+			Fields:    m.table.Config.Fields,
 			RowData:   row,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("failed to generate payload: %w", err)
+			return nil, fmt.Errorf("failed to create debezium payload: %w", err)
 		}
 
 		result = append(result, lib.RawMessage{
-			TopicSuffix:  i.postgresTable.TopicSuffix(),
+			TopicSuffix:  m.table.TopicSuffix(),
 			PartitionKey: partitionKeyMap,
 			Payload:      payload,
 		})
-		i.recordMetrics(start)
+		m.recordMetrics(start)
 	}
 	return result, nil
 }
