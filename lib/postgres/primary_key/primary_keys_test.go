@@ -228,7 +228,7 @@ func TestKeys_Copy(t *testing.T) {
 		keys2 := keys.Copy()
 		assert.Equal(t, keys.keys, keys2.keys)
 		assert.Equal(t, keys.keyMap, keys2.keyMap)
-		assert.Equal(t, []Key{{"foo", a, b}}, keys2.keys)
+		assert.Equal(t, []Key{{"foo", "a", "b"}}, keys2.keys)
 		assert.Equal(t, map[string]bool{"foo": true}, keys2.keyMap)
 	}
 }
