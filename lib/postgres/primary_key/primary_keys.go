@@ -55,7 +55,7 @@ func (k *Keys) Length() int {
 	return len(k.keys)
 }
 
-func (k *Keys) Copy() *Keys {
+func (k *Keys) Clone() *Keys {
 	newKeys := NewKeys()
 	for _, key := range k.keys {
 		newKeys.keys = append(newKeys.keys, Key{key.Name, key.StartingValue, key.EndingValue})

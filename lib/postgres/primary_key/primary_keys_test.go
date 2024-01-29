@@ -211,11 +211,11 @@ func TestKeys_Upsert(t *testing.T) {
 	}
 }
 
-func TestKeys_Copy(t *testing.T) {
+func TestKeys_Clone(t *testing.T) {
 	// empty keys
 	{
 		keys := NewKeys()
-		keys2 := keys.Copy()
+		keys2 := keys.Clone()
 		assert.Equal(t, keys.keys, keys2.keys)
 		assert.Equal(t, keys.keyMap, keys2.keyMap)
 	}
@@ -225,7 +225,7 @@ func TestKeys_Copy(t *testing.T) {
 		a := "a"
 		b := "b"
 		keys.Upsert("foo", &a, &b)
-		keys2 := keys.Copy()
+		keys2 := keys.Clone()
 		assert.Equal(t, keys.keys, keys2.keys)
 		assert.Equal(t, keys.keyMap, keys2.keyMap)
 		assert.Equal(t, []Key{{"foo", "a", "b"}}, keys2.keys)
