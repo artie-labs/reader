@@ -64,19 +64,9 @@ func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, kafkaWrit
 			return fmt.Errorf("failed to create table iterator, table: %s, err: %w", table.Name, err)
 		}
 
-		var count int
-		for iter.HasNext() {
-			msgs, err := iter.Next()
-			if err != nil {
-				return fmt.Errorf("failed to iterate over table, table: %s, err: %w", table.Name, err)
-
-			} else if len(msgs) > 0 {
-				if err = batchWriter.Write(msgs); err != nil {
-					return fmt.Errorf("failed to write messages to kafka, table: %s, err: %w", table.Name, err)
-				}
-				count += len(msgs)
-				slog.Info("Scanning progress", slog.Duration("timing", time.Since(snapshotStartTime)), slog.Int("count", count))
-			}
+		count, err := batchWriter.WriteIterable(iter)
+		if err != nil {
+			return fmt.Errorf("failed to write messages to kafka, table: %s, err: %w", table.Name, err)
 		}
 
 		slog.Info("Finished snapshotting",

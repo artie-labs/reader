@@ -109,3 +109,27 @@ func (w *BatchWriter) Write(rawMsgs []lib.RawMessage) error {
 	}
 	return nil
 }
+
+type messageIterator interface {
+	HasNext() bool
+	Next() ([]lib.RawMessage, error)
+}
+
+func (w *BatchWriter) WriteIterable(iter messageIterator) (int, error) {
+	start := time.Now()
+	var count int
+	for iter.HasNext() {
+		msgs, err := iter.Next()
+		if err != nil {
+			return 0, fmt.Errorf("failed to iterate over messages, err: %w", err)
+
+		} else if len(msgs) > 0 {
+			if err = w.Write(msgs); err != nil {
+				return 0, fmt.Errorf("failed to write messages to kafka, err: %w", err)
+			}
+			count += len(msgs)
+			slog.Info("Scanning progress", slog.Duration("timing", time.Since(start)), slog.Int("count", count))
+		}
+	}
+	return count, nil
+}
