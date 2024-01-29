@@ -43,7 +43,7 @@ func LoadTable(db *sql.DB, tableCfg *config.PostgreSQLTable, statsD *mtr.Client,
 	table := NewTable(tableCfg)
 	if err := table.RetrieveColumns(db); err != nil {
 		if NoRowsError(err) {
-			slog.Info("Table does not contain any rows, skipping...", slog.String("table", tableCfg.Name))
+			slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name))
 			return nil, nil
 		} else {
 			return nil, fmt.Errorf("failed to validate postgres: %w", err)
