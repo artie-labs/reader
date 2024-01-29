@@ -66,7 +66,7 @@ func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, kafkaWrit
 
 		count, err := batchWriter.WriteIterable(iter)
 		if err != nil {
-			return fmt.Errorf("failed to write messages to kafka, table: %s, err: %w", table.Name, err)
+			return fmt.Errorf("failed to snapshot, table: %s, err: %w", table.Name, err)
 		}
 
 		slog.Info("Finished snapshotting",
