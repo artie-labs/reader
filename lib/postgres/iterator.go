@@ -17,10 +17,10 @@ import (
 const defaultErrorRetries = 10
 
 type MessageBuilder struct {
-	table      *Table
-	iter       batchRowIterator
 	statsD     *mtr.Client
 	maxRowSize uint64
+	table      *Table
+	iter       batchRowIterator
 }
 
 type batchRowIterator interface {
