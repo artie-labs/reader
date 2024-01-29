@@ -38,7 +38,7 @@ func (t *Table) NewScanner(db *sql.DB, batchSize uint, errorRetries int) scanner
 		table:        t,
 		batchSize:    batchSize,
 		errorRetries: errorRetries,
-		primaryKeys:  t.PrimaryKeys, // TODO: We should be passing in a copy of the primary keys
+		primaryKeys:  t.PrimaryKeys.Copy(),
 		isFirstRow:   true,
 		isLastRow:    false,
 		done:         false,
