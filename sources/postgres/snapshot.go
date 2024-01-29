@@ -45,7 +45,7 @@ func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, kafkaWrit
 		slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name))
 		table, err := loadTable(db, tableCfg)
 		if err != nil {
-			return fmt.Errorf("failed to load table: %s, err: %w", table.Name, err)
+			return fmt.Errorf("failed to load table configuration, table: %s, err: %w", table.Name, err)
 		} else if table == nil {
 			slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name))
 			continue
