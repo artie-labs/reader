@@ -115,7 +115,7 @@ type messageIterator interface {
 	Next() ([]lib.RawMessage, error)
 }
 
-func (w *BatchWriter) WriteIterable(iter messageIterator) (int, error) {
+func (w *BatchWriter) WriteIterator(iter messageIterator) (int, error) {
 	start := time.Now()
 	var count int
 	for iter.HasNext() {

@@ -64,7 +64,7 @@ func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, kafkaWrit
 			return fmt.Errorf("failed to create table iterator, table: %s, err: %w", table.Name, err)
 		}
 
-		count, err := batchWriter.WriteIterable(iter)
+		count, err := batchWriter.WriteIterator(iter)
 		if err != nil {
 			return fmt.Errorf("failed to snapshot, table: %s, err: %w", table.Name, err)
 		}
