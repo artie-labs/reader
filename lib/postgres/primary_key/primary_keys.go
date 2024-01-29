@@ -55,6 +55,17 @@ func (k *Keys) Length() int {
 	return len(k.keys)
 }
 
+func (k *Keys) Clone() *Keys {
+	newKeys := NewKeys()
+	for _, key := range k.keys {
+		newKeys.keys = append(newKeys.keys, Key{key.Name, key.StartingValue, key.EndingValue})
+	}
+	for key, value := range k.keyMap {
+		newKeys.keyMap[key] = value
+	}
+	return newKeys
+}
+
 func (k *Keys) Upsert(keyName string, startingVal *string, endingVal *string) {
 	_, isOk := k.keyMap[keyName]
 	if isOk {

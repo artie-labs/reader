@@ -210,3 +210,25 @@ func TestKeys_Upsert(t *testing.T) {
 		assert.Equal(t, tc.expectedKeys, tc.keys.keys, tc.name)
 	}
 }
+
+func TestKeys_Clone(t *testing.T) {
+	// empty keys
+	{
+		keys := NewKeys()
+		keys2 := keys.Clone()
+		assert.Equal(t, keys.keys, keys2.keys)
+		assert.Equal(t, keys.keyMap, keys2.keyMap)
+	}
+	// non-empty keys
+	{
+		keys := NewKeys()
+		a := "a"
+		b := "b"
+		keys.Upsert("foo", &a, &b)
+		keys2 := keys.Clone()
+		assert.Equal(t, keys.keys, keys2.keys)
+		assert.Equal(t, keys.keyMap, keys2.keyMap)
+		assert.Equal(t, []Key{{"foo", "a", "b"}}, keys2.keys)
+		assert.Equal(t, map[string]bool{"foo": true}, keys2.keyMap)
+	}
+}
