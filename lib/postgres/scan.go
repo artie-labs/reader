@@ -18,51 +18,25 @@ const (
 	jitterMaxMs  = 5000
 )
 
-type ScanningArgs struct {
-	PrimaryKeys *primary_key.Keys
-
-	Limit      uint
-	IsFirstRow bool
-	IsLastRow  bool
-
-	errorAttempts        int // Which attempt are you on?
-	NumberOfErrorRetries int // How many retries do you have?
-}
-
-func (s *ScanningArgs) RetryAttempts() int {
-	return s.NumberOfErrorRetries - s.errorAttempts
-}
-
-func NewScanningArgs(primaryKeys *primary_key.Keys, limit uint, errorRetries int, isFirstRow, isLastRow bool) ScanningArgs {
-	return ScanningArgs{
-		PrimaryKeys:          primaryKeys,
-		Limit:                limit,
-		IsFirstRow:           isFirstRow,
-		IsLastRow:            isLastRow,
-		errorAttempts:        0,
-		NumberOfErrorRetries: errorRetries,
-	}
-}
-
-func (t *Table) startScanning(db *sql.DB, scanningArgs ScanningArgs) ([]map[string]interface{}, error) {
+func (s *scanner) startScanning(errorAttempts int) ([]map[string]interface{}, error) {
 	firstWhereClause := queries.GreaterThan
-	if scanningArgs.IsFirstRow {
+	if s.firstRow {
 		firstWhereClause = queries.GreaterThanEqualTo
 	}
 
 	secondWhereClause := queries.GreaterThan
-	if scanningArgs.IsLastRow {
+	if s.lastRow {
 		secondWhereClause = queries.GreaterThanEqualTo
 	}
 
-	startKeys := scanningArgs.PrimaryKeys.KeysToValueList(t.Config.Fields.GetOptionalSchema(), false)
-	endKeys := scanningArgs.PrimaryKeys.KeysToValueList(t.Config.Fields.GetOptionalSchema(), true)
+	startKeys := s.primaryKeys.KeysToValueList(s.table.Config.Fields.GetOptionalSchema(), false)
+	endKeys := s.primaryKeys.KeysToValueList(s.table.Config.Fields.GetOptionalSchema(), true)
 
 	query := queries.ScanTableQuery(queries.ScanTableQueryArgs{
-		Schema:        t.Schema,
-		TableName:     t.Name,
-		PrimaryKeys:   t.PrimaryKeys.Keys(),
-		ColumnsToScan: t.ColumnsCastedForScanning,
+		Schema:        s.table.Schema,
+		TableName:     s.table.Name,
+		PrimaryKeys:   s.table.PrimaryKeys.Keys(),
+		ColumnsToScan: s.table.ColumnsCastedForScanning,
 
 		FirstWhere:   firstWhereClause,
 		StartingKeys: startKeys,
@@ -70,19 +44,18 @@ func (t *Table) startScanning(db *sql.DB, scanningArgs ScanningArgs) ([]map[stri
 		SecondWhere: secondWhereClause,
 		EndingKeys:  endKeys,
 
-		OrderBy: t.PrimaryKeys.Keys(),
-		Limit:   scanningArgs.Limit,
+		OrderBy: s.table.PrimaryKeys.Keys(),
+		Limit:   s.batchSize,
 	})
 
 	slog.Info(fmt.Sprintf("Query looks like: %v", query))
-	rows, err := db.Query(query)
+	rows, err := s.db.Query(query)
 	if err != nil {
-		if attempts := scanningArgs.RetryAttempts(); attempts > 0 {
-			sleepMs := lib.JitterMs(jitterBaseMs, jitterMaxMs, scanningArgs.errorAttempts)
+		if attempts := (s.errorRetries - errorAttempts); attempts > 0 {
+			sleepMs := lib.JitterMs(jitterBaseMs, jitterMaxMs, errorAttempts)
 			slog.Info(fmt.Sprintf("We still have %v attempts", attempts), slog.Int("sleepMs", sleepMs), slog.Any("err", err))
-			scanningArgs.errorAttempts += 1
 			time.Sleep(time.Duration(sleepMs) * time.Millisecond)
-			return t.startScanning(db, scanningArgs)
+			return s.startScanning(errorAttempts + 1)
 		}
 
 		return nil, err
@@ -111,7 +84,7 @@ func (t *Table) startScanning(db *sql.DB, scanningArgs ScanningArgs) ([]map[stri
 		row := make(map[string]ValueWrapper)
 		for k, v := range values {
 			colName := columns[k]
-			value, err := t.Config.ParseValue(ParseValueArgs{
+			value, err := s.table.Config.ParseValue(ParseValueArgs{
 				ColName: colName,
 				ValueWrapper: ValueWrapper{
 					Value: v,
@@ -130,8 +103,8 @@ func (t *Table) startScanning(db *sql.DB, scanningArgs ScanningArgs) ([]map[stri
 	}
 
 	// Update the starting key so that the next scan will pick off where we last left off.
-	for _, pk := range scanningArgs.PrimaryKeys.Keys() {
-		val, err := t.Config.ParseValue(ParseValueArgs{
+	for _, pk := range s.primaryKeys.Keys() {
+		val, err := s.table.Config.ParseValue(ParseValueArgs{
 			ColName:      pk,
 			ValueWrapper: lastRow[pk],
 			ParseTime:    true,
@@ -141,7 +114,7 @@ func (t *Table) startScanning(db *sql.DB, scanningArgs ScanningArgs) ([]map[stri
 			return nil, err
 		}
 
-		scanningArgs.PrimaryKeys.Upsert(pk, ptr.ToString(val.String()), nil)
+		s.primaryKeys.Upsert(pk, ptr.ToString(val.String()), nil)
 	}
 
 	var parsedRows []map[string]interface{}
@@ -163,6 +136,7 @@ func (t *Table) NewScanner(db *sql.DB, batchSize uint, errorRetries int) scanner
 		table:        t,
 		batchSize:    batchSize,
 		errorRetries: errorRetries,
+		primaryKeys:  t.PrimaryKeys, // TODO: We should be passing in a copy of the primary keys
 		firstRow:     true,
 		lastRow:      false,
 		done:         false,
@@ -170,14 +144,17 @@ func (t *Table) NewScanner(db *sql.DB, batchSize uint, errorRetries int) scanner
 }
 
 type scanner struct {
+	// immutable
 	db           *sql.DB
 	table        *Table
 	batchSize    uint
 	errorRetries int
 
-	firstRow bool
-	lastRow  bool
-	done     bool
+	// mutable
+	primaryKeys *primary_key.Keys
+	firstRow    bool
+	lastRow     bool
+	done        bool
 }
 
 func (s *scanner) HasNext() bool {
@@ -188,9 +165,7 @@ func (s *scanner) Next() ([]map[string]interface{}, error) {
 	if !s.HasNext() {
 		return nil, fmt.Errorf("no more rows to scan")
 	}
-	rows, err := s.table.startScanning(s.db,
-		NewScanningArgs(s.table.PrimaryKeys, s.batchSize, s.errorRetries, s.firstRow, s.lastRow),
-	)
+	rows, err := s.startScanning(0)
 	if err != nil {
 		s.done = true
 		return nil, err
