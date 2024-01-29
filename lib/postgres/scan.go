@@ -44,7 +44,7 @@ func NewScanningArgs(primaryKeys *primary_key.Keys, limit uint, errorRetries int
 	}
 }
 
-func (t *Table) StartScanning(db *sql.DB, scanningArgs ScanningArgs) ([]map[string]interface{}, error) {
+func (t *Table) startScanning(db *sql.DB, scanningArgs ScanningArgs) ([]map[string]interface{}, error) {
 	firstWhereClause := queries.GreaterThan
 	if scanningArgs.IsFirstRow {
 		firstWhereClause = queries.GreaterThanEqualTo
@@ -82,7 +82,7 @@ func (t *Table) StartScanning(db *sql.DB, scanningArgs ScanningArgs) ([]map[stri
 			slog.Info(fmt.Sprintf("We still have %v attempts", attempts), slog.Int("sleepMs", sleepMs), slog.Any("err", err))
 			scanningArgs.errorAttempts += 1
 			time.Sleep(time.Duration(sleepMs) * time.Millisecond)
-			return t.StartScanning(db, scanningArgs)
+			return t.startScanning(db, scanningArgs)
 		}
 
 		return nil, err
@@ -155,4 +155,52 @@ func (t *Table) StartScanning(db *sql.DB, scanningArgs ScanningArgs) ([]map[stri
 	}
 
 	return parsedRows, nil
+}
+
+func (t *Table) NewScanner(db *sql.DB, batchSize uint, errorRetries int) scanner {
+	return scanner{
+		db:           db,
+		table:        t,
+		batchSize:    batchSize,
+		errorRetries: errorRetries,
+		firstRow:     true,
+		lastRow:      false,
+		done:         false,
+	}
+}
+
+type scanner struct {
+	db           *sql.DB
+	table        *Table
+	batchSize    uint
+	errorRetries int
+
+	firstRow bool
+	lastRow  bool
+	done     bool
+}
+
+func (s *scanner) HasNext() bool {
+	return !s.done
+}
+
+func (s *scanner) Next() ([]map[string]interface{}, error) {
+	if !s.HasNext() {
+		return nil, fmt.Errorf("no more rows to scan")
+	}
+	rows, err := s.table.startScanning(s.db,
+		NewScanningArgs(s.table.PrimaryKeys, s.batchSize, s.errorRetries, s.firstRow, s.lastRow),
+	)
+	if err != nil {
+		s.done = true
+		return nil, err
+	} else if len(rows) == 0 {
+		slog.Info("Finished scanning", slog.String("table", s.table.Name))
+		s.done = true
+		return nil, nil
+	}
+	s.firstRow = false
+	// The reason why lastRow exists is because in the past, we had queries only return partial results but it wasn't fully done
+	s.lastRow = s.batchSize > uint(len(rows))
+	return rows, nil
 }
