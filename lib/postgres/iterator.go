@@ -23,6 +23,15 @@ type MessageBuilder struct {
 	iter       batchRowIterator
 }
 
+func NewMessageBuilder(table *Table, iter batchRowIterator, statsD *mtr.Client, maxRowSize uint64) *MessageBuilder {
+	return &MessageBuilder{
+		table:      table,
+		iter:       iter,
+		statsD:     statsD,
+		maxRowSize: maxRowSize,
+	}
+}
+
 type batchRowIterator interface {
 	HasNext() bool
 	Next() ([]map[string]interface{}, error)
@@ -56,15 +65,6 @@ func LoadTable(db *sql.DB, tableCfg *config.PostgreSQLTable, statsD *mtr.Client,
 		statsD,
 		maxRowSize,
 	), nil
-}
-
-func NewMessageBuilder(table *Table, iter batchRowIterator, statsD *mtr.Client, maxRowSize uint64) *MessageBuilder {
-	return &MessageBuilder{
-		table:      table,
-		iter:       iter,
-		statsD:     statsD,
-		maxRowSize: maxRowSize,
-	}
 }
 
 func (m *MessageBuilder) HasNext() bool {
