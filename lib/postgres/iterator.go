@@ -16,9 +16,14 @@ import (
 
 const defaultErrorRetries = 10
 
+type rowIterator interface {
+	HasNext() bool
+	Next() ([]map[string]interface{}, error)
+}
+
 type MessageBuilder struct {
 	table      *Table
-	scanner    scanner
+	iter       rowIterator
 	statsD     *mtr.Client
 	maxRowSize uint64
 }
@@ -53,17 +58,17 @@ func LoadTable(db *sql.DB, tableCfg *config.PostgreSQLTable, statsD *mtr.Client,
 	), nil
 }
 
-func NewMessageBuilder(table *Table, _scanner *scanner, statsD *mtr.Client, maxRowSize uint64) *MessageBuilder {
+func NewMessageBuilder(table *Table, iter rowIterator, statsD *mtr.Client, maxRowSize uint64) *MessageBuilder {
 	return &MessageBuilder{
 		table:      table,
-		scanner:    *_scanner,
+		iter:       iter,
 		statsD:     statsD,
 		maxRowSize: maxRowSize,
 	}
 }
 
 func (m *MessageBuilder) HasNext() bool {
-	return m != nil && m.scanner.HasNext()
+	return m != nil && m.iter.HasNext()
 }
 
 func (m *MessageBuilder) recordMetrics(start time.Time) {
@@ -80,7 +85,7 @@ func (m *MessageBuilder) Next() ([]lib.RawMessage, error) {
 		return make([]lib.RawMessage, 0), nil
 	}
 
-	rows, err := m.scanner.Next()
+	rows, err := m.iter.Next()
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan postgres: %w", err)
 	}
@@ -107,7 +112,7 @@ func (m *MessageBuilder) Next() ([]lib.RawMessage, error) {
 			RowData:   row,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("failed to generate payload: %w", err)
+			return nil, fmt.Errorf("failed to create debezium payload: %w", err)
 		}
 
 		result = append(result, lib.RawMessage{
