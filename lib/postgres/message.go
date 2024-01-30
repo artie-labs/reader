@@ -59,16 +59,9 @@ func (m *MessageBuilder) Next() ([]lib.RawMessage, error) {
 	var result []lib.RawMessage
 	for _, row := range rows {
 		start := time.Now()
-		partitionKeyMap := make(map[string]interface{})
-		for _, key := range m.table.PrimaryKeys.Keys() {
-			partitionKeyMap[key] = row[key]
-		}
-
-		if m.maxRowSize > 0 {
-			if uint64(size.GetApproxSize(row)) > m.maxRowSize {
-				slog.Info(fmt.Sprintf("Row greater than %v mb, skipping...", m.maxRowSize/1024/1024), slog.Any("key", partitionKeyMap))
-				continue
-			}
+		if m.maxRowSize > 0 && uint64(size.GetApproxSize(row)) > m.maxRowSize {
+			slog.Info(fmt.Sprintf("Row greater than %v mb, skipping...", m.maxRowSize/1024/1024), slog.Any("key", m.table.PartitionKey(row)))
+			continue
 		}
 
 		payload, err := debezium.NewPayload(&debezium.NewArgs{
@@ -83,7 +76,7 @@ func (m *MessageBuilder) Next() ([]lib.RawMessage, error) {
 
 		result = append(result, lib.RawMessage{
 			TopicSuffix:  m.table.TopicSuffix(),
-			PartitionKey: partitionKeyMap,
+			PartitionKey: m.table.PartitionKey(row),
 			Payload:      payload,
 		})
 		m.recordMetrics(start)
