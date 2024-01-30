@@ -18,18 +18,6 @@ import (
 
 const defaultErrorRetries = 10
 
-func loadTable(db *sql.DB, tableCfg *config.PostgreSQLTable) (*postgres.Table, error) {
-	table := postgres.NewTable(tableCfg)
-	if err := table.RetrieveColumns(db); err != nil {
-		if postgres.NoRowsError(err) {
-			return nil, nil
-		} else {
-			return nil, fmt.Errorf("failed to validate postgres: %w", err)
-		}
-	}
-	return table, nil
-}
-
 func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, kafkaWriter *kafka.Writer) error {
 	batchWriter := kafkalib.NewBatchWriter(ctx, *cfg.Kafka, kafkaWriter)
 
@@ -43,12 +31,14 @@ func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, kafkaWrit
 		snapshotStartTime := time.Now()
 
 		slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name))
-		table, err := loadTable(db, tableCfg)
-		if err != nil {
-			return fmt.Errorf("failed to load table configuration, table: %s, err: %w", table.Name, err)
-		} else if table == nil {
-			slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name))
-			continue
+		table := postgres.NewTable(tableCfg)
+		if err := table.RetrieveColumns(db); err != nil {
+			if postgres.NoRowsError(err) {
+				slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name))
+				continue
+			} else {
+				return fmt.Errorf("failed to load table configuration, table: %s, err: %w", table.Name, err)
+			}
 		}
 
 		slog.Info("Scanning table",
