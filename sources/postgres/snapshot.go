@@ -18,36 +18,6 @@ import (
 
 const defaultErrorRetries = 10
 
-func loadTable(db *sql.DB, tableCfg *config.PostgreSQLTable, statsD *mtr.Client, maxRowSize uint64) (*postgres.MessageBuilder, error) {
-	slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name))
-
-	table := postgres.NewTable(tableCfg)
-	if err := table.RetrieveColumns(db); err != nil {
-		if postgres.NoRowsError(err) {
-			slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name))
-			return nil, nil
-		} else {
-			return nil, fmt.Errorf("failed to validate postgres: %w", err)
-		}
-	}
-
-	slog.Info("Scanning table",
-		slog.String("tableName", table.Name),
-		slog.String("schemaName", table.Schema),
-		slog.String("topicSuffix", table.TopicSuffix()),
-		slog.Any("primaryKeyColumns", table.PrimaryKeys.Keys()),
-		slog.Any("batchSize", tableCfg.GetLimit()),
-	)
-
-	scanner := table.NewScanner(db, tableCfg.GetLimit(), defaultErrorRetries)
-	return postgres.NewMessageBuilder(
-		table,
-		&scanner,
-		statsD,
-		maxRowSize,
-	), nil
-}
-
 func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, kafkaWriter *kafka.Writer) error {
 	batchWriter := kafkalib.NewBatchWriter(ctx, *cfg.Kafka, kafkaWriter)
 
@@ -57,14 +27,31 @@ func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, kafkaWrit
 	}
 	defer db.Close()
 
-	for _, table := range cfg.PostgreSQL.Tables {
+	for _, tableCfg := range cfg.PostgreSQL.Tables {
 		snapshotStartTime := time.Now()
-		iter, err := loadTable(db, table, statsD, cfg.Kafka.MaxRequestSize)
-		if err != nil {
-			return fmt.Errorf("failed to create table iterator, table: %s, err: %w", table.Name, err)
+
+		slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name))
+		table := postgres.NewTable(tableCfg)
+		if err := table.RetrieveColumns(db); err != nil {
+			if postgres.NoRowsError(err) {
+				slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name))
+				continue
+			} else {
+				return fmt.Errorf("failed to load table configuration, table: %s, err: %w", table.Name, err)
+			}
 		}
 
-		count, err := batchWriter.WriteIterator(iter)
+		slog.Info("Scanning table",
+			slog.String("tableName", table.Name),
+			slog.String("schemaName", table.Schema),
+			slog.String("topicSuffix", table.TopicSuffix()),
+			slog.Any("primaryKeyColumns", table.PrimaryKeys.Keys()),
+			slog.Any("batchSize", tableCfg.GetLimit()),
+		)
+
+		scanner := table.NewScanner(db, tableCfg.GetLimit(), defaultErrorRetries)
+		messageBuilder := postgres.NewMessageBuilder(table, &scanner, statsD, cfg.Kafka.MaxRequestSize)
+		count, err := batchWriter.WriteIterator(messageBuilder)
 		if err != nil {
 			return fmt.Errorf("failed to snapshot, table: %s, err: %w", table.Name, err)
 		}
