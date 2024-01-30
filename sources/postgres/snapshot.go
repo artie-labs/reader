@@ -49,8 +49,8 @@ func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, kafkaWrit
 			slog.Any("batchSize", tableCfg.GetBatchSize()),
 		)
 
-		reader := table.NewScanner(db, tableCfg.GetBatchSize(), defaultErrorRetries)
-		messageBuilder := postgres.NewMessageBuilder(table, &reader, statsD, cfg.Kafka.MaxRequestSize)
+		scanner := table.NewScanner(db, tableCfg.GetBatchSize(), defaultErrorRetries)
+		messageBuilder := postgres.NewMessageBuilder(table, &scanner, statsD, cfg.Kafka.MaxRequestSize)
 		count, err := writer.WriteIterator(messageBuilder)
 		if err != nil {
 			return fmt.Errorf("failed to snapshot, table: %s, err: %w", table.Name, err)
