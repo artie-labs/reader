@@ -26,7 +26,7 @@ type PostgreSQLTable struct {
 	OptionalPrimaryKeyValEnd   string `yaml:"optionalPrimaryKeyValEnd"`
 }
 
-func (p *PostgreSQLTable) GetBatchSize() uint {
+func (p *PostgreSQLTable) GetLimit() uint {
 	if p.Limit == 0 {
 		return constants.DefaultLimit
 	}

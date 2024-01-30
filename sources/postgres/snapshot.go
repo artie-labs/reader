@@ -46,10 +46,10 @@ func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, kafkaWrit
 			slog.String("schemaName", table.Schema),
 			slog.String("topicSuffix", table.TopicSuffix()),
 			slog.Any("primaryKeyColumns", table.PrimaryKeys.Keys()),
-			slog.Any("batchSize", tableCfg.GetBatchSize()),
+			slog.Any("batchSize", tableCfg.GetLimit()),
 		)
 
-		scanner := table.NewScanner(db, tableCfg.GetBatchSize(), defaultErrorRetries)
+		scanner := table.NewScanner(db, tableCfg.GetLimit(), defaultErrorRetries)
 		messageBuilder := postgres.NewMessageBuilder(table, &scanner, statsD, cfg.Kafka.MaxRequestSize)
 		count, err := batchWriter.WriteIterator(messageBuilder)
 		if err != nil {
