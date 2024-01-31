@@ -12,7 +12,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/lmittmann/tint v1.0.4
 	github.com/samber/slog-multi v1.0.2
-	github.com/samber/slog-sentry v1.2.2
+	github.com/samber/slog-sentry/v2 v2.4.0
 	github.com/segmentio/kafka-go v0.4.39
 	github.com/segmentio/kafka-go/sasl/aws_msk_iam_v2 v0.1.0
 	github.com/stretchr/testify v1.8.4
@@ -39,6 +39,7 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.18 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/samber/lo v1.38.1 // indirect
+	github.com/samber/slog-common v0.15.0 // indirect
 	github.com/twpayne/go-geom v1.5.3 // indirect
 	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1 // indirect
 	golang.org/x/mod v0.12.0 // indirect
