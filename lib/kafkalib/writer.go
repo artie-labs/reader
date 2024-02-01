@@ -100,18 +100,18 @@ func (w *BatchWriter) WriteMessages(ctx context.Context, msgs []kafka.Message) e
 				break
 			}
 
+			sleepMs := lib.JitterMs(baseJitterMs, maxJitterMs, attempts)
+			slog.Info("Failed to publish to kafka",
+				slog.Any("err", kafkaErr),
+				slog.Int("attempts", attempts),
+				slog.Int("sleepMs", sleepMs),
+			)
+			time.Sleep(time.Duration(sleepMs) * time.Millisecond)
+
 			if RetryableError(kafkaErr) {
 				if reloadErr := w.reload(ctx); reloadErr != nil {
 					slog.Warn("Failed to reload kafka writer", slog.Any("err", reloadErr))
 				}
-			} else {
-				sleepMs := lib.JitterMs(baseJitterMs, maxJitterMs, attempts)
-				slog.Info("Failed to publish to kafka",
-					slog.Any("err", kafkaErr),
-					slog.Int("attempts", attempts),
-					slog.Int("sleepMs", sleepMs),
-				)
-				time.Sleep(time.Duration(sleepMs) * time.Millisecond)
 			}
 		}
 
