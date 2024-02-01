@@ -54,16 +54,16 @@ func (s *Store) streamAndPublish(ctx context.Context) error {
 			}
 		}()
 
-		var kafkaMsgs []lib.RawMessage
+		var messages []lib.RawMessage
 		for msg := range ch {
 			dynamoMsg, err := dynamo.NewMessageFromExport(msg, keys, s.tableName)
 			if err != nil {
 				return fmt.Errorf("failed to cast message from DynamoDB, msg: %v, err: %w", msg, err)
 			}
-			kafkaMsgs = append(kafkaMsgs, dynamoMsg.RawMessage())
+			messages = append(messages, dynamoMsg.RawMessage())
 		}
 
-		if err = s.writer.WriteRawMessages(ctx, kafkaMsgs); err != nil {
+		if err = s.writer.WriteRawMessages(ctx, messages); err != nil {
 			return fmt.Errorf("failed to publish messages, err: %w", err)
 		}
 
