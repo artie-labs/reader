@@ -6,11 +6,11 @@ type batchIterator[T any] struct {
 	step  int
 }
 
-func NewBatchIterator[T any](items []T, n int) *batchIterator[T] {
+func NewBatchIterator[T any](items []T, step int) *batchIterator[T] {
 	return &batchIterator[T]{
 		items: items,
 		index: 0,
-		step:  max(n, 1),
+		step:  max(step, 1),
 	}
 }
 
