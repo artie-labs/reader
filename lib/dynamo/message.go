@@ -1,15 +1,13 @@
 package dynamo
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/segmentio/kafka-go"
 
-	"github.com/artie-labs/reader/lib/kafkalib"
+	"github.com/artie-labs/reader/lib"
 )
 
 type Message struct {
@@ -99,10 +97,6 @@ func (m *Message) artieMessage() util.SchemaEventPayload {
 	}
 }
 
-func (m *Message) TopicName(topicPrefix string) string {
-	return fmt.Sprintf("%s.%s", topicPrefix, m.tableName)
-}
-
-func (m *Message) KafkaMessage(topicPrefix string) (kafka.Message, error) {
-	return kafkalib.NewMessage(m.TopicName(topicPrefix), m.primaryKey, m.artieMessage())
+func (m *Message) RawMessage() lib.RawMessage {
+	return lib.RawMessage{TopicSuffix: m.tableName, PartitionKey: m.primaryKey, Payload: m.artieMessage()}
 }

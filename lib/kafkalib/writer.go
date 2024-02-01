@@ -27,6 +27,10 @@ type BatchWriter struct {
 }
 
 func NewBatchWriter(ctx context.Context, cfg config.Kafka, statsD *mtr.Client) (*BatchWriter, error) {
+	if cfg.TopicPrefix == "" {
+		return nil, fmt.Errorf("kafka topic prefix cannot be empty")
+	}
+
 	writer, err := NewWriter(ctx, cfg)
 	if err != nil {
 		return nil, err

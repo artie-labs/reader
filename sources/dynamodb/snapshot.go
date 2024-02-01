@@ -6,8 +6,8 @@ import (
 	"log/slog"
 
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/segmentio/kafka-go"
 
+	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/dynamo"
 	"github.com/artie-labs/reader/lib/logger"
 )
@@ -54,22 +54,16 @@ func (s *Store) streamAndPublish(ctx context.Context) error {
 			}
 		}()
 
-		var kafkaMsgs []kafka.Message
+		var messages []lib.RawMessage
 		for msg := range ch {
 			dynamoMsg, err := dynamo.NewMessageFromExport(msg, keys, s.tableName)
 			if err != nil {
 				return fmt.Errorf("failed to cast message from DynamoDB, msg: %v, err: %w", msg, err)
 			}
-
-			kafkaMsg, err := dynamoMsg.KafkaMessage(s.topicPrefix)
-			if err != nil {
-				return fmt.Errorf("failed to cast message from DynamoDB, err: %w", err)
-			}
-
-			kafkaMsgs = append(kafkaMsgs, kafkaMsg)
+			messages = append(messages, dynamoMsg.RawMessage())
 		}
 
-		if err = s.writer.WriteMessages(ctx, kafkaMsgs); err != nil {
+		if err = s.writer.WriteRawMessages(ctx, messages); err != nil {
 			return fmt.Errorf("failed to publish messages, err: %w", err)
 		}
 
