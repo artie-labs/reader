@@ -11,7 +11,6 @@ import (
 	"github.com/segmentio/kafka-go"
 
 	"github.com/artie-labs/reader/lib/dynamo"
-	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 )
 
@@ -108,7 +107,7 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 			messages = append(messages, message)
 		}
 
-		if err = kafkalib.NewBatch(messages, s.batchSize).Publish(ctx, s.statsD, s.writer); err != nil {
+		if err = s.writer.WriteMessages(ctx, messages); err != nil {
 			logger.Panic("Failed to publish messages, exiting...", slog.Any("err", err))
 		}
 
