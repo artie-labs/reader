@@ -86,7 +86,8 @@ func main() {
 			logger.Fatal("Failed to run dynamodb snapshot", slog.Any("err", err))
 		}
 	case config.SourcePostgreSQL:
-		if err = postgres.Run(ctx, *cfg, statsD, _kafka); err != nil {
+		writer := kafkalib.NewBatchWriter(ctx, *cfg.Kafka, _kafka)
+		if err = postgres.Run(ctx, *cfg, statsD, writer); err != nil {
 			logger.Fatal("Failed to run postgres snapshot", slog.Any("err", err))
 		}
 	}

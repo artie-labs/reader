@@ -11,6 +11,7 @@ import (
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
+	"github.com/artie-labs/reader/lib/iterator"
 )
 
 const (
@@ -19,27 +20,25 @@ const (
 )
 
 type BatchWriter struct {
-	*kafka.Writer
-
-	ctx context.Context
-	cfg config.Kafka
+	writer *kafka.Writer
+	cfg    config.Kafka
 }
 
 func NewBatchWriter(ctx context.Context, cfg config.Kafka, writer *kafka.Writer) BatchWriter {
-	return BatchWriter{writer, ctx, cfg}
+	return BatchWriter{writer, cfg}
 }
 
-func (w *BatchWriter) reload() error {
-	if err := w.Writer.Close(); err != nil {
+func (w *BatchWriter) reload(ctx context.Context) error {
+	if err := w.writer.Close(); err != nil {
 		return err
 	}
 
-	writer, err := NewWriter(w.ctx, w.cfg)
+	writer, err := NewWriter(ctx, w.cfg)
 	if err != nil {
 		return err
 	}
 
-	w.Writer = writer
+	w.writer = writer
 	return nil
 }
 
@@ -56,28 +55,30 @@ func buildKafkaMessages(cfg *config.Kafka, msgs []lib.RawMessage) ([]kafka.Messa
 	return result, nil
 }
 
-func (w *BatchWriter) Write(rawMsgs []lib.RawMessage) error {
+func (w *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMessage) error {
 	msgs, err := buildKafkaMessages(&w.cfg, rawMsgs)
 	if err != nil {
 		return fmt.Errorf("failed to build to kafka messages: %w", err)
 	}
+	return w.WriteMessages(ctx, msgs)
+}
 
+func (w *BatchWriter) WriteMessages(ctx context.Context, msgs []kafka.Message) error {
 	chunkSize := w.cfg.GetPublishSize()
-
-	b := NewBatch(msgs, chunkSize)
-	if batchErr := b.IsValid(); batchErr != nil {
-		if IsBatchEmptyErr(batchErr) {
-			return nil
-		}
-
-		return fmt.Errorf("batch is not valid: %w", batchErr)
+	if chunkSize < 1 {
+		return fmt.Errorf("chunk size is too small")
 	}
 
-	for b.HasNext() {
+	if len(msgs) == 0 {
+		return nil
+	}
+
+	iter := iterator.NewBatchIterator(msgs, int(chunkSize))
+	for iter.HasNext() {
 		var kafkaErr error
-		chunk := b.NextChunk()
+		chunk := iter.Next()
 		for attempts := 0; attempts < 10; attempts++ {
-			kafkaErr = w.WriteMessages(w.ctx, chunk...)
+			kafkaErr = w.writer.WriteMessages(ctx, chunk...)
 			if kafkaErr == nil {
 				break
 			}
@@ -89,7 +90,7 @@ func (w *BatchWriter) Write(rawMsgs []lib.RawMessage) error {
 			}
 
 			if RetryableError(kafkaErr) {
-				if reloadErr := w.reload(); reloadErr != nil {
+				if reloadErr := w.reload(ctx); reloadErr != nil {
 					slog.Warn("Failed to reload kafka writer", slog.Any("err", reloadErr))
 				}
 			} else {
@@ -115,7 +116,7 @@ type messageIterator interface {
 	Next() ([]lib.RawMessage, error)
 }
 
-func (w *BatchWriter) WriteIterator(iter messageIterator) (int, error) {
+func (w *BatchWriter) WriteIterator(ctx context.Context, iter messageIterator) (int, error) {
 	start := time.Now()
 	var count int
 	for iter.HasNext() {
@@ -124,7 +125,7 @@ func (w *BatchWriter) WriteIterator(iter messageIterator) (int, error) {
 			return 0, fmt.Errorf("failed to iterate over messages, err: %w", err)
 
 		} else if len(msgs) > 0 {
-			if err = w.Write(msgs); err != nil {
+			if err = w.WriteRawMessages(ctx, msgs); err != nil {
 				return 0, fmt.Errorf("failed to write messages to kafka, err: %w", err)
 			}
 			count += len(msgs)
