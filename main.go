@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/getsentry/sentry-go"
-	"github.com/segmentio/kafka-go"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/kafkalib"
@@ -31,7 +30,7 @@ func setUpMetrics(cfg *config.Metrics) (*mtr.Client, error) {
 	return &client, nil
 }
 
-func setUpKafka(ctx context.Context, cfg *config.Kafka) (*kafka.Writer, error) {
+func setUpKafka(ctx context.Context, cfg *config.Kafka, statsD *mtr.Client) (*kafkalib.BatchWriter, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("kafka configuration is not set")
 	}
@@ -41,7 +40,7 @@ func setUpKafka(ctx context.Context, cfg *config.Kafka) (*kafka.Writer, error) {
 		slog.Any("publishSize", cfg.GetPublishSize()),
 		slog.Uint64("maxRequestSize", cfg.MaxRequestSize),
 	)
-	return kafkalib.NewWriter(ctx, *cfg)
+	return kafkalib.NewBatchWriter(ctx, *cfg, statsD)
 }
 
 func main() {
@@ -68,14 +67,14 @@ func main() {
 		logger.Fatal("Failed to set up metrics", slog.Any("err", err))
 	}
 
-	_kafka, err := setUpKafka(ctx, cfg.Kafka)
+	writer, err := setUpKafka(ctx, cfg.Kafka, statsD)
 	if err != nil {
 		logger.Fatal("Failed to set up kafka", slog.Any("err", err))
 	}
 
 	switch cfg.Source {
 	case "", config.SourceDynamo:
-		ddb, err := dynamodb.Load(*cfg, statsD, _kafka)
+		ddb, err := dynamodb.Load(*cfg, *writer)
 		if err != nil {
 			logger.Fatal("Failed to load dynamodb", slog.Any("err", err))
 		}
@@ -86,8 +85,7 @@ func main() {
 			logger.Fatal("Failed to run dynamodb snapshot", slog.Any("err", err))
 		}
 	case config.SourcePostgreSQL:
-		writer := kafkalib.NewBatchWriter(ctx, *cfg.Kafka, _kafka)
-		if err = postgres.Run(ctx, *cfg, statsD, writer); err != nil {
+		if err = postgres.Run(ctx, *cfg, statsD, *writer); err != nil {
 			logger.Fatal("Failed to run postgres snapshot", slog.Any("err", err))
 		}
 	}

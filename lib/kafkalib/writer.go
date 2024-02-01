@@ -12,6 +12,7 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/iterator"
+	"github.com/artie-labs/reader/lib/mtr"
 )
 
 const (
@@ -22,10 +23,15 @@ const (
 type BatchWriter struct {
 	writer *kafka.Writer
 	cfg    config.Kafka
+	statsD *mtr.Client
 }
 
-func NewBatchWriter(ctx context.Context, cfg config.Kafka, writer *kafka.Writer) BatchWriter {
-	return BatchWriter{writer, cfg}
+func NewBatchWriter(ctx context.Context, cfg config.Kafka, statsD *mtr.Client) (*BatchWriter, error) {
+	writer, err := NewWriter(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+	return &BatchWriter{writer, cfg, statsD}, nil
 }
 
 func (w *BatchWriter) reload(ctx context.Context) error {
@@ -75,11 +81,16 @@ func (w *BatchWriter) WriteMessages(ctx context.Context, msgs []kafka.Message) e
 
 	iter := iterator.NewBatchIterator(msgs, int(chunkSize))
 	for iter.HasNext() {
+		tags := map[string]string{
+			"what": "error",
+		}
+
 		var kafkaErr error
 		chunk := iter.Next()
 		for attempts := 0; attempts < 10; attempts++ {
 			kafkaErr = w.writer.WriteMessages(ctx, chunk...)
 			if kafkaErr == nil {
+				tags["what"] = "success"
 				break
 			}
 
@@ -89,19 +100,23 @@ func (w *BatchWriter) WriteMessages(ctx context.Context, msgs []kafka.Message) e
 				break
 			}
 
+			sleepMs := lib.JitterMs(baseJitterMs, maxJitterMs, attempts)
+			slog.Info("Failed to publish to kafka",
+				slog.Any("err", kafkaErr),
+				slog.Int("attempts", attempts),
+				slog.Int("sleepMs", sleepMs),
+			)
+			time.Sleep(time.Duration(sleepMs) * time.Millisecond)
+
 			if RetryableError(kafkaErr) {
 				if reloadErr := w.reload(ctx); reloadErr != nil {
 					slog.Warn("Failed to reload kafka writer", slog.Any("err", reloadErr))
 				}
-			} else {
-				sleepMs := lib.JitterMs(baseJitterMs, maxJitterMs, attempts)
-				slog.Info("Failed to publish to kafka",
-					slog.Any("err", kafkaErr),
-					slog.Int("attempts", attempts),
-					slog.Int("sleepMs", sleepMs),
-				)
-				time.Sleep(time.Duration(sleepMs) * time.Millisecond)
 			}
+		}
+
+		if w.statsD != nil {
+			(*w.statsD).Count("kafka.publish", int64(len(chunk)), tags)
 		}
 
 		if kafkaErr != nil {

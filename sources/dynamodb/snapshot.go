@@ -9,7 +9,6 @@ import (
 	"github.com/segmentio/kafka-go"
 
 	"github.com/artie-labs/reader/lib/dynamo"
-	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 )
 
@@ -70,7 +69,7 @@ func (s *Store) streamAndPublish(ctx context.Context) error {
 			kafkaMsgs = append(kafkaMsgs, kafkaMsg)
 		}
 
-		if err = kafkalib.NewBatch(kafkaMsgs, s.batchSize).Publish(ctx, s.statsD, s.writer); err != nil {
+		if err = s.writer.WriteMessages(ctx, kafkaMsgs); err != nil {
 			return fmt.Errorf("failed to publish messages, err: %w", err)
 		}
 

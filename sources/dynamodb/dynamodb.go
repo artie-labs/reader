@@ -12,10 +12,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
-	"github.com/segmentio/kafka-go"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib/mtr"
+	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/s3lib"
 	"github.com/artie-labs/reader/sources/dynamodb/offsets"
 )
@@ -23,12 +22,10 @@ import (
 type Store struct {
 	s3Client       *s3lib.S3Client
 	dynamoDBClient *dynamodb.DynamoDB
-	statsD         *mtr.Client
-	writer         *kafka.Writer
+	writer         kafkalib.BatchWriter
 
 	tableName   string
 	streamArn   string
-	batchSize   uint
 	topicPrefix string
 	streams     *dynamodbstreams.DynamoDBStreams
 	storage     *offsets.OffsetStorage
@@ -41,7 +38,7 @@ type Store struct {
 const jitterSleepBaseMs = 50
 const shardScannerInterval = 5 * time.Minute
 
-func Load(cfg config.Settings, statsD *mtr.Client, writer *kafka.Writer) (*Store, error) {
+func Load(cfg config.Settings, writer kafkalib.BatchWriter) (*Store, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      ptr.ToString(cfg.DynamoDB.AwsRegion),
 		Credentials: credentials.NewStaticCredentials(cfg.DynamoDB.AwsAccessKeyID, cfg.DynamoDB.AwsSecretAccessKey, ""),
@@ -53,10 +50,8 @@ func Load(cfg config.Settings, statsD *mtr.Client, writer *kafka.Writer) (*Store
 	store := &Store{
 		tableName:   cfg.DynamoDB.TableName,
 		streamArn:   cfg.DynamoDB.StreamArn,
-		batchSize:   cfg.Kafka.GetPublishSize(),
 		topicPrefix: cfg.Kafka.TopicPrefix,
 		cfg:         cfg.DynamoDB,
-		statsD:      statsD,
 		writer:      writer,
 	}
 
@@ -77,9 +72,6 @@ func Load(cfg config.Settings, statsD *mtr.Client, writer *kafka.Writer) (*Store
 func (s *Store) Validate() error {
 	if s.topicPrefix == "" {
 		return fmt.Errorf("topic prefix cannot be empty")
-	}
-	if s.writer == nil {
-		return fmt.Errorf("kafka writer cannot be nil")
 	}
 	return nil
 }
