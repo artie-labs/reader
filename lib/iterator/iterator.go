@@ -10,7 +10,7 @@ func NewBatchIterator[T any](items []T, n int) *batchIterator[T] {
 	return &batchIterator[T]{
 		items: items,
 		index: 0,
-		n:     n,
+		n:     max(n, 1),
 	}
 }
 
@@ -22,7 +22,8 @@ func (i *batchIterator[T]) Next() []T {
 	if !i.HasNext() {
 		return make([]T, 0)
 	}
-	result := i.items[i.index:min(i.index+i.n, len(i.items))]
-	i.index += i.n
+	end := min(i.index+i.n, len(i.items))
+	result := i.items[i.index:end]
+	i.index = end
 	return result
 }
