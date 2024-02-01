@@ -37,29 +37,29 @@ type Store struct {
 const jitterSleepBaseMs = 50
 const shardScannerInterval = 5 * time.Minute
 
-func Load(cfg config.Settings, writer kafkalib.BatchWriter) (*Store, error) {
+func Load(cfg config.DynamoDB, writer kafkalib.BatchWriter) (*Store, error) {
 	sess, err := session.NewSession(&aws.Config{
-		Region:      ptr.ToString(cfg.DynamoDB.AwsRegion),
-		Credentials: credentials.NewStaticCredentials(cfg.DynamoDB.AwsAccessKeyID, cfg.DynamoDB.AwsSecretAccessKey, ""),
+		Region:      ptr.ToString(cfg.AwsRegion),
+		Credentials: credentials.NewStaticCredentials(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, ""),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create session, err: %w", err)
 	}
 
 	store := &Store{
-		tableName: cfg.DynamoDB.TableName,
-		streamArn: cfg.DynamoDB.StreamArn,
-		cfg:       cfg.DynamoDB,
+		tableName: cfg.TableName,
+		streamArn: cfg.StreamArn,
+		cfg:       &cfg,
 		writer:    writer,
 	}
 
-	if cfg.DynamoDB.Snapshot {
+	if cfg.Snapshot {
 		// Snapshot needs the DynamoDB client to describe table and S3 library to read from the files.
 		store.dynamoDBClient = dynamodb.New(sess)
 		store.s3Client = s3lib.NewClient(sess)
 	} else {
 		// If it's not snapshotting, then we'll need to create offset storage, streams client and a channel.
-		store.storage = offsets.NewStorage(cfg.DynamoDB.OffsetFile, nil, nil)
+		store.storage = offsets.NewStorage(cfg.OffsetFile, nil, nil)
 		store.streams = dynamodbstreams.New(sess)
 		store.shardChan = make(chan *dynamodbstreams.Shard)
 	}

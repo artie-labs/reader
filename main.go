@@ -74,7 +74,7 @@ func main() {
 
 	switch cfg.Source {
 	case "", config.SourceDynamo:
-		ddb, err := dynamodb.Load(*cfg, *writer)
+		ddb, err := dynamodb.Load(*cfg.DynamoDB, *writer)
 		if err != nil {
 			logger.Fatal("Failed to load dynamodb", slog.Any("err", err))
 		}
