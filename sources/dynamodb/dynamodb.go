@@ -24,12 +24,11 @@ type Store struct {
 	dynamoDBClient *dynamodb.DynamoDB
 	writer         kafkalib.BatchWriter
 
-	tableName   string
-	streamArn   string
-	topicPrefix string
-	streams     *dynamodbstreams.DynamoDBStreams
-	storage     *offsets.OffsetStorage
-	shardChan   chan *dynamodbstreams.Shard
+	tableName string
+	streamArn string
+	streams   *dynamodbstreams.DynamoDBStreams
+	storage   *offsets.OffsetStorage
+	shardChan chan *dynamodbstreams.Shard
 
 	cfg *config.DynamoDB
 }
@@ -48,11 +47,10 @@ func Load(cfg config.Settings, writer kafkalib.BatchWriter) (*Store, error) {
 	}
 
 	store := &Store{
-		tableName:   cfg.DynamoDB.TableName,
-		streamArn:   cfg.DynamoDB.StreamArn,
-		topicPrefix: cfg.Kafka.TopicPrefix,
-		cfg:         cfg.DynamoDB,
-		writer:      writer,
+		tableName: cfg.DynamoDB.TableName,
+		streamArn: cfg.DynamoDB.StreamArn,
+		cfg:       cfg.DynamoDB,
+		writer:    writer,
 	}
 
 	if cfg.DynamoDB.Snapshot {
@@ -67,13 +65,6 @@ func Load(cfg config.Settings, writer kafkalib.BatchWriter) (*Store, error) {
 	}
 
 	return store, nil
-}
-
-func (s *Store) Validate() error {
-	if s.topicPrefix == "" {
-		return fmt.Errorf("topic prefix cannot be empty")
-	}
-	return nil
 }
 
 func (s *Store) Run(ctx context.Context) error {

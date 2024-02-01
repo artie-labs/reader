@@ -8,8 +8,8 @@ import (
 	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
-	"github.com/segmentio/kafka-go"
 
+	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/dynamo"
 	"github.com/artie-labs/reader/lib/logger"
 )
@@ -82,7 +82,7 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 			break
 		}
 
-		var messages []kafka.Message
+		var messages []lib.RawMessage
 		for _, record := range getRecordsOutput.Records {
 			msg, err := dynamo.NewMessage(record, s.tableName)
 			if err != nil {
@@ -93,21 +93,10 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 					slog.Any("record", record),
 				)
 			}
-
-			message, err := msg.KafkaMessage(s.topicPrefix)
-			if err != nil {
-				logger.Panic("Failed to cast message from DynamoDB",
-					slog.Any("err", err),
-					slog.String("streamArn", s.streamArn),
-					slog.String("shardId", *shard.ShardId),
-					slog.Any("record", record),
-				)
-			}
-
-			messages = append(messages, message)
+			messages = append(messages, msg.RawMessage())
 		}
 
-		if err = s.writer.WriteMessages(ctx, messages); err != nil {
+		if err = s.writer.WriteRawMessages(ctx, messages); err != nil {
 			logger.Panic("Failed to publish messages, exiting...", slog.Any("err", err))
 		}
 

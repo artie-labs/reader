@@ -78,9 +78,6 @@ func main() {
 		if err != nil {
 			logger.Fatal("Failed to load dynamodb", slog.Any("err", err))
 		}
-		if err = ddb.Validate(); err != nil {
-			logger.Fatal("Failed to validate dynamodb", slog.Any("err", err))
-		}
 		if err = ddb.Run(ctx); err != nil {
 			logger.Fatal("Failed to run dynamodb snapshot", slog.Any("err", err))
 		}
