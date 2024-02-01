@@ -1,18 +1,5 @@
 package iterator
 
-type ArrayIterator[T any] interface {
-	HasNext() bool
-	Next() []T
-}
-
-func Collect[T any](iter ArrayIterator[T]) []T {
-	result := make([]T, 0)
-	for iter.HasNext() {
-		result = append(result, iter.Next()...)
-	}
-	return result
-}
-
 type batchIterator[T any] struct {
 	items []T
 	index int
