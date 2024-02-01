@@ -69,7 +69,7 @@ func buildKafkaMessages(cfg *config.Kafka, msgs []lib.RawMessage) ([]kafka.Messa
 func (w *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMessage) error {
 	msgs, err := buildKafkaMessages(&w.cfg, rawMsgs)
 	if err != nil {
-		return fmt.Errorf("failed to build to kafka messages: %w", err)
+		return fmt.Errorf("failed to encode kafka messages: %w", err)
 	}
 	return w.WriteMessages(ctx, msgs)
 }
@@ -97,7 +97,7 @@ func (w *BatchWriter) WriteMessages(ctx context.Context, msgs []kafka.Message) e
 				sleepMs := lib.JitterMs(baseJitterMs, maxJitterMs, attempts-1)
 				slog.Info("Failed to publish to kafka",
 					slog.Any("err", kafkaErr),
-					slog.Int("attempts", attempts-1),
+					slog.Int("attempts", attempts),
 					slog.Int("sleepMs", sleepMs),
 				)
 				time.Sleep(time.Duration(sleepMs) * time.Millisecond)
