@@ -8,7 +8,6 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
-	"github.com/segmentio/kafka-go"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/kafkalib"
@@ -18,9 +17,7 @@ import (
 
 const defaultErrorRetries = 10
 
-func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, kafkaWriter *kafka.Writer) error {
-	writer := kafkalib.NewBatchWriter(ctx, *cfg.Kafka, kafkaWriter)
-
+func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, writer kafkalib.BatchWriter) error {
 	db, err := sql.Open("postgres", postgres.NewConnection(cfg.PostgreSQL).String())
 	if err != nil {
 		return fmt.Errorf("failed to connect to postgres, err: %w", err)
@@ -51,7 +48,7 @@ func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, kafkaWrit
 
 		scanner := table.NewScanner(db, tableCfg.GetBatchSize(), defaultErrorRetries)
 		messageBuilder := postgres.NewMessageBuilder(table, &scanner, statsD, cfg.Kafka.MaxRequestSize)
-		count, err := writer.WriteIterator(messageBuilder)
+		count, err := writer.WriteIterator(ctx, messageBuilder)
 		if err != nil {
 			return fmt.Errorf("failed to snapshot, table: %s, err: %w", table.Name, err)
 		}
