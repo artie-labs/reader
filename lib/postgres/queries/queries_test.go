@@ -48,7 +48,7 @@ func TestSelectTableQuery(t *testing.T) {
 			OrderBy:    []string{"e", "f", "g"},
 			Descending: true,
 		})
-		assert.Equal(t, `SELECT a,b,c FROM "schema"."table" ORDER BY "e","f","g" DESC LIMIT 1`, query)
+		assert.Equal(t, `SELECT a,b,c FROM "schema"."table" ORDER BY "e" DESC,"f" DESC,"g" DESC LIMIT 1`, query)
 	}
 }
 

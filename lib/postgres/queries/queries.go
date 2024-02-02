@@ -38,10 +38,19 @@ type SelectTableQueryArgs struct {
 }
 
 func SelectTableQuery(args SelectTableQueryArgs) string {
-	orderByFragment := strings.Join(quotedIdentifiers(args.OrderBy), ",")
-	if args.Descending {
-		orderByFragment += " DESC"
+	var orderByFragment string
+	for _, orderBy := range args.OrderBy {
+		orderByFragment += pgx.Identifier{orderBy}.Sanitize()
+		if args.Descending {
+			orderByFragment += " DESC"
+		}
+
+		orderByFragment += ","
 	}
+
+	fmt.Println("orderByFragment", orderByFragment)
+
+	orderByFragment = strings.TrimSuffix(orderByFragment, ",")
 
 	// TODO: Make sure keys are being escaped properly
 	return fmt.Sprintf(`SELECT %s FROM %s ORDER BY %s LIMIT 1`,
