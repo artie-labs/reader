@@ -38,23 +38,17 @@ type SelectTableQueryArgs struct {
 }
 
 func SelectTableQuery(args SelectTableQueryArgs) string {
-	var orderByFragment string
+	var fragments []string
 	for _, orderBy := range args.OrderBy {
-		orderByFragment += pgx.Identifier{orderBy}.Sanitize()
+		fragment := pgx.Identifier{orderBy}.Sanitize()
 		if args.Descending {
-			orderByFragment += " DESC"
+			fragment += " DESC"
 		}
 
-		orderByFragment += ","
+		fragments = append(fragments, fragment)
 	}
-
-	fmt.Println("orderByFragment", orderByFragment)
-
-	orderByFragment = strings.TrimSuffix(orderByFragment, ",")
-
-	// TODO: Make sure keys are being escaped properly
-	return fmt.Sprintf(`SELECT %s FROM %s ORDER BY %s LIMIT 1`,
-		strings.Join(args.Keys, ","), pgx.Identifier{args.Schema, args.TableName}.Sanitize(), orderByFragment)
+	return fmt.Sprintf(`SELECT %s FROM %s ORDER BY %s LIMIT 1`, strings.Join(args.Keys, ","),
+		pgx.Identifier{args.Schema, args.TableName}.Sanitize(), strings.Join(fragments, ","))
 }
 
 type RetrievePrimaryKeysArgs struct {
