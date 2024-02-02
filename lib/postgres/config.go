@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/artie-labs/transfer/lib/ptr"
-	pgx "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/artie-labs/reader/lib/postgres/debezium"
 )

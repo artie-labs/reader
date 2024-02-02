@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	pgx "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/artie-labs/reader/lib/postgres/queries"
 )
