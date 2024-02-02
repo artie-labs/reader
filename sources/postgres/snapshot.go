@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"time"
 
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/kafkalib"
@@ -18,7 +18,7 @@ import (
 const defaultErrorRetries = 10
 
 func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, writer kafkalib.BatchWriter) error {
-	db, err := sql.Open("postgres", postgres.NewConnection(cfg.PostgreSQL).String())
+	db, err := sql.Open("pgx", postgres.NewConnection(cfg.PostgreSQL).String())
 	if err != nil {
 		return fmt.Errorf("failed to connect to postgres, err: %w", err)
 	}
