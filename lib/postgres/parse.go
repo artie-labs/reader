@@ -87,7 +87,15 @@ func (c *Config) ParseValue(args ParseValueArgs) (ValueWrapper, error) {
 		}
 
 		return NewValueWrapper(string(byteSlice)), nil
-	case debezium.VariableNumeric, debezium.Numeric:
+	case debezium.Numeric:
+		fmt.Println("args.Value()", args.Value())
+		stringVal, isStringVal := args.Value().(string)
+		if isStringVal {
+			return NewValueWrapper(stringVal), nil
+		}
+
+		return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type for Numeric", args.Value())
+	case debezium.VariableNumeric:
 		byteSlice, isByteSlice := args.ValueWrapper.Value.([]byte)
 		if isByteSlice {
 			return NewValueWrapper(string(byteSlice)), nil

@@ -93,6 +93,11 @@ func TestEncodeDecimalToBase64(t *testing.T) {
 			value: "-81.76254098",
 			scale: 8,
 		},
+		{
+			name:  "amount",
+			value: "6408.355",
+			scale: 3,
+		},
 	}
 
 	for _, tc := range tcs {
