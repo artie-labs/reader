@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/artie-labs/reader/lib/postgres/queries"
 )
@@ -34,7 +34,7 @@ func (t *Table) RetrieveColumns(db *sql.DB) error {
 		t.Config.UpdateCols(colName, colKind, numericPrecision, numericScale, udtName)
 	}
 
-	query := fmt.Sprintf("SELECT * from %s.%s LIMIT 1", pq.QuoteIdentifier(t.Schema), pq.QuoteIdentifier(t.Name))
+	query := fmt.Sprintf("SELECT * from %s LIMIT 1", pgx.Identifier{t.Schema, t.Name}.Sanitize())
 	rows, err = db.Query(query)
 	if err != nil {
 		return fmt.Errorf("failed to query, query: %v, err: %v", query, err)

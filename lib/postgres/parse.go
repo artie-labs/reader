@@ -6,7 +6,7 @@ import (
 	"reflect"
 
 	"github.com/google/uuid"
-	"github.com/lib/pq/hstore"
+	"github.com/jackc/pgtype"
 
 	"github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/reader/lib/postgres/parse"
@@ -119,7 +119,7 @@ func (c *Config) ParseValue(args ParseValueArgs) (ValueWrapper, error) {
 
 		return NewValueWrapper(_uuid.String()), nil
 	case debezium.HStore:
-		var val hstore.Hstore
+		var val pgtype.Hstore
 		err := val.Scan(args.Value())
 		if err != nil {
 			return NewValueWrapper(nil), fmt.Errorf("failed to unmarshal hstore, err: %v", err)
@@ -127,7 +127,7 @@ func (c *Config) ParseValue(args ParseValueArgs) (ValueWrapper, error) {
 
 		jsonMap := make(map[string]interface{})
 		for key, value := range val.Map {
-			if value.Valid {
+			if value.Status == pgtype.Present {
 				jsonMap[key] = value.String
 			}
 		}

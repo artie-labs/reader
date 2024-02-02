@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/artie-labs/transfer/lib/ptr"
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/artie-labs/reader/lib/postgres/debezium"
 )
@@ -107,7 +107,7 @@ func (c *Config) UpdateCols(colName, colKind string, precision, scale *string, u
 // GetColEscaped will take a colName and return the escaped version of what we should be using to call Postgres.
 // If it doesn't exist, we'll return an empty string.
 func (c *Config) GetColEscaped(rawColName string) string {
-	colName := pq.QuoteIdentifier(rawColName)
+	colName := pgx.Identifier{rawColName}.Sanitize()
 
 	colKind := c.Fields.GetDataType(rawColName)
 	switch colKind {

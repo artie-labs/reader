@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/v5"
 )
 
 type DescribeTableArgs struct {
@@ -24,7 +24,7 @@ func DescribeTableQuery(args DescribeTableArgs) (string, []any) {
 func quotedIdentifiers(ids []string) []string {
 	quoted := make([]string, len(ids))
 	for idx := range ids {
-		quoted[idx] = pq.QuoteIdentifier(ids[idx])
+		quoted[idx] = pgx.Identifier{ids[idx]}.Sanitize()
 	}
 	return quoted
 }
@@ -44,8 +44,8 @@ func SelectTableQuery(args SelectTableQueryArgs) string {
 	}
 
 	// TODO: Make sure keys are being escaped properly
-	return fmt.Sprintf(`SELECT %s FROM %s.%s ORDER BY %s LIMIT 1`,
-		strings.Join(args.Keys, ","), pq.QuoteIdentifier(args.Schema), pq.QuoteIdentifier(args.TableName), orderByFragment)
+	return fmt.Sprintf(`SELECT %s FROM %s ORDER BY %s LIMIT 1`,
+		strings.Join(args.Keys, ","), pgx.Identifier{args.Schema, args.TableName}.Sanitize(), orderByFragment)
 }
 
 type RetrievePrimaryKeysArgs struct {
@@ -62,7 +62,7 @@ AND    i.indisprimary;`
 
 func RetrievePrimaryKeys(args RetrievePrimaryKeysArgs) (string, []any) {
 	// This is a fork of: https://wiki.postgresql.org/wiki/Retrieve_primary_key_columns
-	return strings.TrimSpace(primaryKeysQuery), []any{fmt.Sprintf("%s.%s", pq.QuoteIdentifier(args.Schema), pq.QuoteIdentifier(args.TableName))}
+	return strings.TrimSpace(primaryKeysQuery), []any{pgx.Identifier{args.Schema, args.TableName}.Sanitize()}
 }
 
 type Comparison string
@@ -97,9 +97,9 @@ type ScanTableQueryArgs struct {
 }
 
 func ScanTableQuery(args ScanTableQueryArgs) string {
-	return fmt.Sprintf(`SELECT %s FROM %s.%s WHERE row(%s) %s row(%s) AND NOT row(%s) %s row(%s) ORDER BY %s LIMIT %d`,
+	return fmt.Sprintf(`SELECT %s FROM %s WHERE row(%s) %s row(%s) AND NOT row(%s) %s row(%s) ORDER BY %s LIMIT %d`,
 		strings.Join(args.ColumnsToScan, ","),
-		pq.QuoteIdentifier(args.Schema), pq.QuoteIdentifier(args.TableName),
+		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
 		// WHERE row(pk) > row(123)
 		strings.Join(quotedIdentifiers(args.PrimaryKeys), ","), args.FirstWhere.SQLString(), strings.Join(args.StartingKeys, ","),
 		// AND NOT row(pk) < row(123)
