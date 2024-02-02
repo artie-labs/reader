@@ -127,9 +127,9 @@ func (c *Config) ParseValue(args ParseValueArgs) (ValueWrapper, error) {
 
 		jsonMap := make(map[string]interface{})
 		for key, value := range val.Map {
-			//if value.Valid {
-			jsonMap[key] = value.String
-			//}
+			if value.Status == pgtype.Present {
+				jsonMap[key] = value.String
+			}
 		}
 
 		return NewValueWrapper(jsonMap), nil
