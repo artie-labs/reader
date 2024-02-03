@@ -74,11 +74,11 @@ func (c *Config) ParseValue(args ParseValueArgs) (ValueWrapper, error) {
 
 	case debezium.Bit:
 		// This will be 0 (false) or 1 (true)
-		valBytes, isOk := args.Value().([]byte)
+		valString, isOk := args.Value().(string)
 		if isOk {
-			return NewValueWrapper(string(valBytes) == "1"), nil
+			return NewValueWrapper(valString == "1"), nil
 		}
-		return NewValueWrapper(nil), fmt.Errorf("value: %v not of []byte type for bit", args.Value())
+		return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type for bit", args.Value())
 	case debezium.JSON:
 		// Debezium sends JSON as a JSON string
 		byteSlice, isByteSlice := args.Value().([]byte)
@@ -93,7 +93,7 @@ func (c *Config) ParseValue(args ParseValueArgs) (ValueWrapper, error) {
 			return NewValueWrapper(stringVal), nil
 		}
 
-		return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type for Numeric / VariableNumeric", args.Value())
+		return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type for Numeric or VariableNumeric", args.Value())
 	case debezium.Array:
 		var arr []interface{}
 		if reflect.TypeOf(args.Value()).Kind() == reflect.Slice {
