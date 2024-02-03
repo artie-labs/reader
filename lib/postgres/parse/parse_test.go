@@ -9,7 +9,7 @@ import (
 func TestToPoint(t *testing.T) {
 	type _tc struct {
 		name        string
-		input       []byte
+		input       string
 		output      *Point
 		expectError bool
 	}
@@ -17,27 +17,27 @@ func TestToPoint(t *testing.T) {
 	tcs := []_tc{
 		{
 			name:   "Valid point",
-			input:  []byte("(2.2945,48.8584)"),
+			input:  "(2.2945,48.8584)",
 			output: &Point{X: 2.2945, Y: 48.8584},
 		},
 		{
 			name:        "Invalid format",
-			input:       []byte("2.2945,48.8584"),
+			input:       "2.2945,48.8584",
 			expectError: true,
 		},
 		{
 			name:        "Invalid X coordinate",
-			input:       []byte("(abc,48.8584)"),
+			input:       "(abc,48.8584)",
 			expectError: true,
 		},
 		{
 			name:        "Invalid Y coordinate",
-			input:       []byte("(2.2945,xyz)"),
+			input:       "(2.2945,xyz)",
 			expectError: true,
 		},
 		{
 			name:        "Empty input",
-			input:       []byte(""),
+			input:       "",
 			expectError: true,
 		},
 	}

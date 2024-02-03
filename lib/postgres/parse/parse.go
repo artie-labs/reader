@@ -19,15 +19,13 @@ func (p *Point) ToMap() map[string]interface{} {
 	}
 }
 
-func ToPoint(data []byte) (*Point, error) {
-	dataString := string(data)
-
-	if !(strings.HasPrefix(dataString, "(") && strings.HasSuffix(dataString, ")")) {
+func ToPoint(data string) (*Point, error) {
+	if !(strings.HasPrefix(data, "(") && strings.HasSuffix(data, ")")) {
 		return nil, fmt.Errorf("invalid point format")
 	}
 
 	// Trim `(` and `)`
-	trimmed := strings.Trim(dataString, "()")
+	trimmed := strings.Trim(data, "()")
 
 	// Split the string by the comma
 	parts := strings.Split(trimmed, ",")

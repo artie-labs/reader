@@ -48,24 +48,24 @@ func (c *Config) ParseValue(args ParseValueArgs) (ValueWrapper, error) {
 	colKind := c.Fields.GetDataType(args.ColName)
 	switch colKind {
 	case debezium.Geometry:
-		valBytes, isOk := args.Value().([]byte)
+		valString, isOk := args.Value().(string)
 		if !isOk {
-			return NewValueWrapper(nil), fmt.Errorf("value: %v not of []byte type for geometry", args.Value())
+			return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type for geometry", args.Value())
 		}
 
-		geometry, err := parse.ToGeography(valBytes)
+		geometry, err := parse.ToGeography([]byte(valString))
 		if err != nil {
 			return NewValueWrapper(nil), fmt.Errorf("failed to parse geometry, err: %v", err)
 		}
 
 		return NewValueWrapper(geometry), nil
 	case debezium.Point:
-		valBytes, isOk := args.Value().([]byte)
+		valString, isOk := args.Value().(string)
 		if !isOk {
-			return NewValueWrapper(nil), fmt.Errorf("value: %v not of []byte type for POINT", args.Value())
+			return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type for POINT", args.Value())
 		}
 
-		point, err := parse.ToPoint(valBytes)
+		point, err := parse.ToPoint(valString)
 		if err != nil {
 			return NewValueWrapper(nil), fmt.Errorf("failed to parse POINT, err: %v", err)
 		}
@@ -74,11 +74,11 @@ func (c *Config) ParseValue(args ParseValueArgs) (ValueWrapper, error) {
 
 	case debezium.Bit:
 		// This will be 0 (false) or 1 (true)
-		valBytes, isOk := args.Value().([]byte)
+		valString, isOk := args.Value().(string)
 		if isOk {
-			return NewValueWrapper(string(valBytes) == "1"), nil
+			return NewValueWrapper(valString == "1"), nil
 		}
-		return NewValueWrapper(nil), fmt.Errorf("value: %v not of []byte type for bit", args.Value())
+		return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type for bit", args.Value())
 	case debezium.JSON:
 		// Debezium sends JSON as a JSON string
 		byteSlice, isByteSlice := args.Value().([]byte)
@@ -87,13 +87,13 @@ func (c *Config) ParseValue(args ParseValueArgs) (ValueWrapper, error) {
 		}
 
 		return NewValueWrapper(string(byteSlice)), nil
-	case debezium.VariableNumeric, debezium.Numeric:
-		byteSlice, isByteSlice := args.ValueWrapper.Value.([]byte)
-		if isByteSlice {
-			return NewValueWrapper(string(byteSlice)), nil
+	case debezium.Numeric, debezium.VariableNumeric:
+		stringVal, isStringVal := args.Value().(string)
+		if isStringVal {
+			return NewValueWrapper(stringVal), nil
 		}
 
-		return NewValueWrapper(nil), fmt.Errorf("value: %v not of []byte type for VariableNumeric", args.Value())
+		return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type for Numeric or VariableNumeric", args.Value())
 	case debezium.Array:
 		var arr []interface{}
 		if reflect.TypeOf(args.Value()).Kind() == reflect.Slice {
@@ -107,12 +107,12 @@ func (c *Config) ParseValue(args ParseValueArgs) (ValueWrapper, error) {
 		}
 		return NewValueWrapper(arr), nil
 	case debezium.UUID:
-		byteSlice, isOk := args.Value().([]byte)
+		stringVal, isOk := args.Value().(string)
 		if !isOk {
-			return NewValueWrapper(nil), fmt.Errorf("value: %v not of []byte() type", args.Value())
+			return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type", args.Value())
 		}
 
-		_uuid, err := uuid.ParseBytes(byteSlice)
+		_uuid, err := uuid.Parse(stringVal)
 		if err != nil {
 			return NewValueWrapper(nil), fmt.Errorf("failed to cast uuid into *uuid.UUID, err: %v", err)
 		}
@@ -134,12 +134,12 @@ func (c *Config) ParseValue(args ParseValueArgs) (ValueWrapper, error) {
 
 		return NewValueWrapper(jsonMap), nil
 	case debezium.UserDefinedText:
-		byteSlice, isOk := args.Value().([]byte)
+		stringSlice, isOk := args.Value().(string)
 		if !isOk {
-			return NewValueWrapper(nil), fmt.Errorf("value: %v not of []byte() type", args.Value())
+			return NewValueWrapper(nil), fmt.Errorf("value: %v not of slice type", args.Value())
 		}
 
-		return NewValueWrapper(string(byteSlice)), nil
+		return NewValueWrapper(stringSlice), nil
 	default:
 		// This is needed because we need to cast the time.Time object into a string for pagination.
 		if args.ParseTime {

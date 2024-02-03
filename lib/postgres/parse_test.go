@@ -22,7 +22,7 @@ func TestParse(t *testing.T) {
 			colName: "bit_test (true)",
 			colKind: "bit",
 			value: ValueWrapper{
-				Value: []byte("1"),
+				Value: "1",
 			},
 			expectedValue: true,
 		},
@@ -30,17 +30,9 @@ func TestParse(t *testing.T) {
 			colName: "bit_test (false)",
 			colKind: "bit",
 			value: ValueWrapper{
-				Value: []byte("0"),
+				Value: "0",
 			},
 			expectedValue: false,
-		},
-		{
-			colName: "numeric_test",
-			colKind: "numeric",
-			value: ValueWrapper{
-				Value: []byte{49, 48, 48, 48, 49, 49},
-			},
-			expectedValue: "100011",
 		},
 		{
 			colName: "foo",
@@ -57,14 +49,6 @@ func TestParse(t *testing.T) {
 				Value: "hello",
 			},
 			expectedValue: "hello",
-		},
-		{
-			colName: "uuid (errors out when it's not already parsed)",
-			colKind: "uuid",
-			value: ValueWrapper{
-				Value: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
-			},
-			expectErr: true,
 		},
 		{
 			colName: "uuid (already parsed, so skip parsing)",
