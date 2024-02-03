@@ -60,12 +60,12 @@ func (c *Config) ParseValue(args ParseValueArgs) (ValueWrapper, error) {
 
 		return NewValueWrapper(geometry), nil
 	case debezium.Point:
-		valBytes, isOk := args.Value().([]byte)
+		valString, isOk := args.Value().(string)
 		if !isOk {
-			return NewValueWrapper(nil), fmt.Errorf("value: %v not of []byte type for POINT", args.Value())
+			return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type for POINT", args.Value())
 		}
 
-		point, err := parse.ToPoint(valBytes)
+		point, err := parse.ToPoint(valString)
 		if err != nil {
 			return NewValueWrapper(nil), fmt.Errorf("failed to parse POINT, err: %v", err)
 		}
