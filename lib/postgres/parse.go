@@ -134,12 +134,12 @@ func (c *Config) ParseValue(args ParseValueArgs) (ValueWrapper, error) {
 
 		return NewValueWrapper(jsonMap), nil
 	case debezium.UserDefinedText:
-		byteSlice, isOk := args.Value().([]byte)
+		stringSlice, isOk := args.Value().(string)
 		if !isOk {
-			return NewValueWrapper(nil), fmt.Errorf("value: %v not of []byte() type", args.Value())
+			return NewValueWrapper(nil), fmt.Errorf("value: %v not of slice type", args.Value())
 		}
 
-		return NewValueWrapper(string(byteSlice)), nil
+		return NewValueWrapper(stringSlice), nil
 	default:
 		// This is needed because we need to cast the time.Time object into a string for pagination.
 		if args.ParseTime {
