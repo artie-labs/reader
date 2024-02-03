@@ -107,12 +107,12 @@ func (c *Config) ParseValue(args ParseValueArgs) (ValueWrapper, error) {
 		}
 		return NewValueWrapper(arr), nil
 	case debezium.UUID:
-		byteSlice, isOk := args.Value().([]byte)
+		stringVal, isOk := args.Value().(string)
 		if !isOk {
-			return NewValueWrapper(nil), fmt.Errorf("value: %v not of []byte() type", args.Value())
+			return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type", args.Value())
 		}
 
-		_uuid, err := uuid.ParseBytes(byteSlice)
+		_uuid, err := uuid.Parse(stringVal)
 		if err != nil {
 			return NewValueWrapper(nil), fmt.Errorf("failed to cast uuid into *uuid.UUID, err: %v", err)
 		}
