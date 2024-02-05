@@ -1,0 +1,16 @@
+source: postgresql
+
+postgresql:
+  host: localhost
+  port: 5432
+  userName: postgres
+  password: postgres
+  database: postgres
+  tables:
+    - name: customers
+      schema: inventory
+  disableSSL: true
+
+kafka:
+  bootstrapServers: localhost:29092
+  topicPrefix: dbserver1

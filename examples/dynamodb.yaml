@@ -1,0 +1,13 @@
+source: dynamodb
+
+dynamodb:
+  tableName: table
+  offsetFile: /tmp/offsets.txt
+  awsRegion: us-east-1
+  awsAccessKeyId: foo
+  awsSecretAccessKey: bar
+  streamArn: streamArn
+
+kafka:
+  bootstrapServers: localhost:29092
+  topicPrefix: dbserver1
