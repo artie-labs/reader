@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/size"
 	"github.com/segmentio/kafka-go"
 
@@ -94,13 +95,13 @@ func (w *BatchWriter) WriteMessages(ctx context.Context, msgs []kafka.Message) e
 		chunk := iter.Next()
 		for attempts := 0; attempts < 10; attempts++ {
 			if attempts > 0 {
-				sleepMs := lib.JitterMs(baseJitterMs, maxJitterMs, attempts-1)
+				sleepDuration := jitter.Jitter(baseJitterMs, maxJitterMs, attempts-1)
 				slog.Info("Failed to publish to kafka",
 					slog.Any("err", kafkaErr),
 					slog.Int("attempts", attempts),
-					slog.Int("sleepMs", sleepMs),
+					slog.Duration("sleep", sleepDuration),
 				)
-				time.Sleep(time.Duration(sleepMs) * time.Millisecond)
+				time.Sleep(sleepDuration)
 
 				if RetryableError(kafkaErr) {
 					if reloadErr := w.reload(ctx); reloadErr != nil {

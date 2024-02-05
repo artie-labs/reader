@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/ptr"
 
-	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/postgres/primary_key"
 	"github.com/artie-labs/reader/lib/postgres/queries"
 )
@@ -79,9 +79,9 @@ func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
 	rows, err := s.db.Query(query)
 	if err != nil {
 		if attemptsLeft := s.errorRetries - errorAttempts; attemptsLeft > 0 {
-			sleepMs := lib.JitterMs(jitterBaseMs, jitterMaxMs, errorAttempts)
-			slog.Info(fmt.Sprintf("We still have %v attempts", attemptsLeft), slog.Int("sleepMs", sleepMs), slog.Any("err", err))
-			time.Sleep(time.Duration(sleepMs) * time.Millisecond)
+			sleepDuration := jitter.Jitter(jitterBaseMs, jitterMaxMs, errorAttempts)
+			slog.Info(fmt.Sprintf("We still have %v attempts", attemptsLeft), slog.Duration("sleep", sleepDuration), slog.Any("err", err))
+			time.Sleep(sleepDuration)
 			return s.scan(errorAttempts + 1)
 		}
 
