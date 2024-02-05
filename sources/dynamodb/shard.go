@@ -108,8 +108,7 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 			attempts += 1
 		}
 
-		sleepDuration := time.Duration(jitter.JitterMs(jitterSleepBaseMs, attempts)) * time.Millisecond
-		time.Sleep(sleepDuration)
+		time.Sleep(jitter.Jitter(jitterSleepBaseMs, jitter.DefaultMaxMs, attempts))
 
 		shardIterator = getRecordsOutput.NextShardIterator
 		if shardIterator == nil {
