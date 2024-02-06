@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/artie-labs/reader/sources/mongo"
 	"log/slog"
 	"time"
 
@@ -84,6 +85,10 @@ func main() {
 	case config.SourcePostgreSQL:
 		if err = postgres.Run(ctx, *cfg, statsD, *writer); err != nil {
 			logger.Fatal("Failed to run postgres snapshot", slog.Any("err", err))
+		}
+	case config.SourceMongoDB:
+		if err = mongo.Run(ctx, *cfg, statsD, *writer); err != nil {
+			logger.Fatal("Failed to run mongo snapshot", slog.Any("err", err))
 		}
 	}
 }
