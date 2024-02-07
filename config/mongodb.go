@@ -8,7 +8,6 @@ import (
 
 type MongoDB struct {
 	Host     string `yaml:"host"`
-	Port     string `yaml:"port"`
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 	Database string `yaml:"database"`
@@ -31,7 +30,7 @@ func (c Collection) GetBatchSize() uint {
 }
 
 func (m MongoDB) Validate() error {
-	if stringutil.Empty(m.Host, m.Port, m.Database, m.Username, m.Password) {
+	if stringutil.Empty(m.Host, m.Database, m.Username, m.Password) {
 		return fmt.Errorf("one of the mongodb settings is empty: host, port, username, password, database")
 	}
 
