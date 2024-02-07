@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"log/slog"
+	"time"
 )
 
 func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, writer kafkalib.BatchWriter) error {
@@ -31,15 +32,21 @@ func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, writer ka
 
 	db := client.Database(cfg.MongoDB.Database)
 	for _, collection := range cfg.MongoDB.Collections {
+		snapshotStartTime := time.Now()
+
 		slog.Info("Scanning collection",
 			slog.String("collectionName", collection.Name),
 			slog.String("topicSuffix", collection.TopicSuffix()),
 			slog.Any("batchSize", collection.GetBatchSize()),
 		)
 
-		if err = snapshotCollection(ctx, db, collection, statsD); err != nil {
-			return fmt.Errorf("failed to snapshot collection %s, err: %w", collection.Name, err)
+		iterator := newIterator(db, collection)
+		count, err := writer.WriteIterator(ctx, iterator)
+		if err != nil {
+			return fmt.Errorf("failed to snapshot, table: %s, err: %w", collection.Name, err)
 		}
+
+		slog.Info("Finished snapshotting", slog.Int("scannedTotal", count), slog.Duration("totalDuration", time.Since(snapshotStartTime)))
 	}
 
 	return nil

@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"fmt"
+	"github.com/artie-labs/reader/sources"
 	"log/slog"
 	"strings"
 	"time"
@@ -16,21 +17,16 @@ type MessageBuilder struct {
 	statsD     *mtr.Client
 	maxRowSize uint64
 	table      *Table
-	iter       batchRowIterator
+	iter       sources.BatchRowIterator
 }
 
-func NewMessageBuilder(table *Table, iter batchRowIterator, statsD *mtr.Client, maxRowSize uint64) *MessageBuilder {
+func NewMessageBuilder(table *Table, iter sources.BatchRowIterator, statsD *mtr.Client, maxRowSize uint64) *MessageBuilder {
 	return &MessageBuilder{
 		table:      table,
 		iter:       iter,
 		statsD:     statsD,
 		maxRowSize: maxRowSize,
 	}
-}
-
-type batchRowIterator interface {
-	HasNext() bool
-	Next() ([]map[string]interface{}, error)
 }
 
 func (m *MessageBuilder) HasNext() bool {

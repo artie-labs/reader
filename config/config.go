@@ -69,9 +69,9 @@ const (
 
 type Settings struct {
 	Source     Source      `yaml:"source"`
-	PostgreSQL *PostgreSQL `yaml:"postgresql"`
-	DynamoDB   *DynamoDB   `yaml:"dynamodb"`
-	MongoDB    *MongoDB    `yaml:"mongodb"`
+	PostgreSQL *PostgreSQL `yaml:"postgresql,omitempty"`
+	DynamoDB   *DynamoDB   `yaml:"dynamodb,omitempty"`
+	MongoDB    *MongoDB    `yaml:"mongodb,omitempty"`
 
 	Reporting *Reporting `yaml:"reporting"`
 	Metrics   *Metrics   `yaml:"metrics"`
