@@ -31,7 +31,7 @@ func (d *DynamoDB) Validate() error {
 
 	if d.Snapshot {
 		if err := d.SnapshotSettings.Validate(); err != nil {
-			return fmt.Errorf("snapshot validation failed - err: %v", err)
+			return fmt.Errorf("snapshot validation failed - err: %w", err)
 		}
 	}
 

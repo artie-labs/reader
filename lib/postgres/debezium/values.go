@@ -32,7 +32,7 @@ func ParseValue(key string, value interface{}, fields *Fields) (interface{}, err
 	case Date:
 		value, err = debezium.ToDebeziumDate(value)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse date, key: %v, error: %v", key, err)
+			return nil, fmt.Errorf("failed to parse date, key: %v, err: %w", key, err)
 		}
 
 	case Numeric, Money:
@@ -47,17 +47,17 @@ func ParseValue(key string, value interface{}, fields *Fields) (interface{}, err
 
 		scale, err := strconv.Atoi(fmt.Sprint(field.Parameters["scale"]))
 		if err != nil {
-			return nil, fmt.Errorf("unable to find scale, key: %v, error: %v", key, err)
+			return nil, fmt.Errorf("unable to find scale, key: %v, err: %w", key, err)
 		}
 
 		value, err = debezium.EncodeDecimalToBase64(fmt.Sprint(value), scale)
 		if err != nil {
-			return nil, fmt.Errorf("failed to encode decimal to b64, key: %v, error: %v", key, err)
+			return nil, fmt.Errorf("failed to encode decimal to b64, key: %v, err: %w", key, err)
 		}
 	case VariableNumeric:
 		encodedValue, err := debezium.EncodeDecimalToBase64(fmt.Sprint(value), debezium.GetScale(fmt.Sprint(value)))
 		if err != nil {
-			return util.SchemaEventPayload{}, fmt.Errorf("failed to encode decimal to b64, key: %v, error: %v", key, err)
+			return util.SchemaEventPayload{}, fmt.Errorf("failed to encode decimal to b64, key: %v, err: %w", key, err)
 		}
 
 		value = map[string]string{

@@ -37,7 +37,7 @@ func (t *Table) RetrieveColumns(db *sql.DB) error {
 	query := fmt.Sprintf("SELECT * from %s LIMIT 1", pgx.Identifier{t.Schema, t.Name}.Sanitize())
 	rows, err = db.Query(query)
 	if err != nil {
-		return fmt.Errorf("failed to query, query: %v, err: %v", query, err)
+		return fmt.Errorf("failed to query, query: %v, err: %w", query, err)
 	}
 
 	columns, err := rows.Columns()
