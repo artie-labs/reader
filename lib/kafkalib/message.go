@@ -3,11 +3,10 @@ package kafkalib
 import (
 	"encoding/json"
 
-	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/segmentio/kafka-go"
 )
 
-func NewMessage(topic string, partitionKey map[string]interface{}, value util.SchemaEventPayload) (kafka.Message, error) {
+func NewMessage(topic string, partitionKey map[string]interface{}, value interface{}) (kafka.Message, error) {
 	valueBytes, err := json.Marshal(value)
 	if err != nil {
 		return kafka.Message{}, err
