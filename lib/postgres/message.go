@@ -19,11 +19,6 @@ type MessageBuilder struct {
 	iter       batchRowIterator
 }
 
-type batchRowIterator interface {
-	HasNext() bool
-	Next() ([]map[string]interface{}, error)
-}
-
 func NewMessageBuilder(table *Table, iter batchRowIterator, statsD *mtr.Client, maxRowSize uint64) *MessageBuilder {
 	return &MessageBuilder{
 		table:      table,
@@ -31,6 +26,11 @@ func NewMessageBuilder(table *Table, iter batchRowIterator, statsD *mtr.Client, 
 		statsD:     statsD,
 		maxRowSize: maxRowSize,
 	}
+}
+
+type batchRowIterator interface {
+	HasNext() bool
+	Next() ([]map[string]interface{}, error)
 }
 
 func (m *MessageBuilder) HasNext() bool {
