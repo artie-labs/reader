@@ -14,7 +14,7 @@ type RawMessage struct {
 	mongo bool
 }
 
-func NewMessage(topicSuffix string, partitionKey map[string]interface{}, payload util.SchemaEventPayload) RawMessage {
+func NewRawMessage(topicSuffix string, partitionKey map[string]interface{}, payload util.SchemaEventPayload) RawMessage {
 	return RawMessage{
 		TopicSuffix:  topicSuffix,
 		PartitionKey: partitionKey,

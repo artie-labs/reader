@@ -70,7 +70,7 @@ func (m *MessageBuilder) Next() ([]lib.RawMessage, error) {
 			return nil, fmt.Errorf("failed to create debezium payload: %w", err)
 		}
 
-		result = append(result, lib.NewMessage(m.table.TopicSuffix(), m.table.PartitionKey(row), payload))
+		result = append(result, lib.NewRawMessage(m.table.TopicSuffix(), m.table.PartitionKey(row), payload))
 		m.recordMetrics(start)
 	}
 	return result, nil
