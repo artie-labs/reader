@@ -98,5 +98,5 @@ func (m *Message) artieMessage() util.SchemaEventPayload {
 }
 
 func (m *Message) RawMessage() lib.RawMessage {
-	return lib.RawMessage{TopicSuffix: m.tableName, PartitionKey: m.primaryKey, Payload: m.artieMessage()}
+	return lib.NewRawMessage(m.tableName, m.primaryKey, m.artieMessage())
 }
