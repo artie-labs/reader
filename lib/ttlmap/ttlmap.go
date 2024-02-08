@@ -123,7 +123,7 @@ func (t *TTLMap) flush() error {
 
 	file, err := os.Create(t.filePath)
 	if err != nil {
-		return fmt.Errorf("failed to create file, err: %v", err)
+		return fmt.Errorf("failed to create file, err: %w", err)
 	}
 
 	dataToSave := make(map[string]*ItemWrapper)
@@ -137,11 +137,11 @@ func (t *TTLMap) flush() error {
 
 	yamlBytes, err := yaml.Marshal(dataToSave)
 	if err != nil {
-		return fmt.Errorf("failed to marshal data, err: %v", err)
+		return fmt.Errorf("failed to marshal data, err: %w", err)
 	}
 
 	if _, err = file.Write(yamlBytes); err != nil {
-		return fmt.Errorf("failed to write to file, err: %v", err)
+		return fmt.Errorf("failed to write to file, err: %w", err)
 	}
 
 	defer file.Close()
@@ -159,12 +159,12 @@ func (t *TTLMap) loadFromFile() error {
 
 	readBytes, err := io.ReadAll(file)
 	if err != nil {
-		return fmt.Errorf("failed to read file, err: %v", err)
+		return fmt.Errorf("failed to read file, err: %w", err)
 	}
 
 	var data map[string]*ItemWrapper
 	if err = yaml.Unmarshal(readBytes, &data); err != nil {
-		return fmt.Errorf("failed to unmarshal data, err: %v", err)
+		return fmt.Errorf("failed to unmarshal data, err: %w", err)
 	}
 
 	if data == nil {

@@ -125,7 +125,7 @@ func ReadConfig(fp string) (*Settings, error) {
 	}
 
 	if err = settings.Validate(); err != nil {
-		return nil, fmt.Errorf("failed to validate config file, err: %v", err)
+		return nil, fmt.Errorf("failed to validate config file, err: %w", err)
 	}
 
 	return &settings, nil

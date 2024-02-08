@@ -42,7 +42,7 @@ func (n *NewArgs) Validate() error {
 
 func NewPayload(newArgs *NewArgs) (util.SchemaEventPayload, error) {
 	if err := newArgs.Validate(); err != nil {
-		return util.SchemaEventPayload{}, fmt.Errorf("failed to validate, err: %v", err)
+		return util.SchemaEventPayload{}, fmt.Errorf("failed to validate, err: %w", err)
 	}
 
 	schema := debezium.Schema{
@@ -57,7 +57,7 @@ func NewPayload(newArgs *NewArgs) (util.SchemaEventPayload, error) {
 	for key, value := range newArgs.RowData {
 		val, err := ParseValue(key, value, newArgs.Fields)
 		if err != nil {
-			return util.SchemaEventPayload{}, fmt.Errorf("failed to parseValue, err: %v", err)
+			return util.SchemaEventPayload{}, fmt.Errorf("failed to parseValue, err: %w", err)
 		}
 
 		parsedRowData[key] = val
