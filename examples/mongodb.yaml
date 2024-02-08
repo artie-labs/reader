@@ -1,0 +1,13 @@
+source: mongodb
+mongodb:
+  host: mongodb://localhost:27017
+  userName: foo
+  password: bar
+  database: myFirstDatabase
+  collections:
+    - name: customers
+      limit: 1
+kafka:
+  bootstrapServers: localhost:29092
+  topicPrefix: dbserver1
+  maxRequestSize: 4194304
