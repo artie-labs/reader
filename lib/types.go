@@ -1,9 +1,40 @@
 package lib
 
-import "github.com/artie-labs/transfer/lib/cdc/util"
+import (
+	"github.com/artie-labs/transfer/lib/cdc/mongo"
+	"github.com/artie-labs/transfer/lib/cdc/util"
+)
 
 type RawMessage struct {
 	TopicSuffix  string
 	PartitionKey map[string]interface{}
-	Payload      util.SchemaEventPayload
+	payload      util.SchemaEventPayload
+	mongoPayload mongo.SchemaEventPayload
+
+	mongo bool
+}
+
+func NewMessage(topicSuffix string, partitionKey map[string]interface{}, payload util.SchemaEventPayload) RawMessage {
+	return RawMessage{
+		TopicSuffix:  topicSuffix,
+		PartitionKey: partitionKey,
+		payload:      payload,
+	}
+}
+
+func NewMongoMessage(topicSuffix string, partitionKey map[string]interface{}, payload mongo.SchemaEventPayload) RawMessage {
+	return RawMessage{
+		TopicSuffix:  topicSuffix,
+		PartitionKey: partitionKey,
+		mongoPayload: payload,
+		mongo:        true,
+	}
+}
+
+func (r RawMessage) GetPayload() interface{} {
+	if r.mongo {
+		return r.mongoPayload
+	}
+
+	return r.payload
 }

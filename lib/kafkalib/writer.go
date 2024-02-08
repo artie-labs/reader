@@ -58,7 +58,7 @@ func buildKafkaMessages(cfg *config.Kafka, msgs []lib.RawMessage) ([]kafka.Messa
 	result := make([]kafka.Message, len(msgs))
 	for i, msg := range msgs {
 		topic := fmt.Sprintf("%s.%s", cfg.TopicPrefix, msg.TopicSuffix)
-		kMsg, err := NewMessage(topic, msg.PartitionKey, msg.Payload)
+		kMsg, err := NewMessage(topic, msg.PartitionKey, msg.GetPayload())
 		if err != nil {
 			return nil, err
 		}

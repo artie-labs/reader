@@ -13,6 +13,7 @@ import (
 
 type collectionScanner struct {
 	db         *mongo.Database
+	mongoCfg   config.MongoDB
 	collection config.Collection
 
 	// mutable
@@ -29,6 +30,18 @@ func newIterator(db *mongo.Database, collection config.Collection) *collectionSc
 
 func (c *collectionScanner) HasNext() bool {
 	return !c.done
+}
+
+type mgoMessage struct {
+	jsonExtendedBytes []byte
+	pk                interface{}
+}
+
+func newMgoMessage(jsonExtendedBytes []byte, pk interface{}) mgoMessage {
+	return mgoMessage{
+		jsonExtendedBytes: jsonExtendedBytes,
+		pk:                pk,
+	}
 }
 
 func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
@@ -49,8 +62,8 @@ func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
 		c.cursor = cursor
 	}
 
-	var messages []map[string]interface{}
-	for c.collection.GetBatchSize() > uint(len(messages)) && c.cursor.Next(ctx) {
+	var mgoMsgs []mgoMessage
+	for c.collection.GetBatchSize() > uint(len(mgoMsgs)) && c.cursor.Next(ctx) {
 		var result bson.M
 		if err := c.cursor.Decode(&result); err != nil {
 			return nil, fmt.Errorf("failed to decode document, err: %w", err)
@@ -66,7 +79,12 @@ func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
 			return nil, fmt.Errorf("failed to unmarshal JSON extended to map, err: %w", err)
 		}
 
-		messages = append(messages, jsonExtendedMap)
+		pk, isOk := jsonExtendedMap["_id"]
+		if !isOk {
+			return nil, fmt.Errorf("failed to get partition key, row: %v", jsonExtendedMap)
+		}
+
+		mgoMsgs = append(mgoMsgs, newMgoMessage(jsonExtendedBytes, pk))
 	}
 
 	if err := c.cursor.Err(); err != nil {
@@ -74,13 +92,13 @@ func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
 	}
 
 	// If the number of fetched documents is less than the batch size, we are done
-	if c.collection.GetBatchSize() > uint(len(messages)) {
+	if c.collection.GetBatchSize() > uint(len(mgoMsgs)) {
 		c.done = true
 	}
 
 	var rawMessages []lib.RawMessage
-	for _, message := range messages {
-		rawMessage, err := newRawMessage(message, c.collection)
+	for _, mgoMsg := range mgoMsgs {
+		rawMessage, err := newRawMessage(mgoMsg, c.collection, c.mongoCfg.Database)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create raw message, err: %w", err)
 		}
