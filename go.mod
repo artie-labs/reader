@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/DataDog/datadog-go v4.8.3+incompatible
-	github.com/artie-labs/transfer v0.0.0-20240205183658-ac74f47576ac
+	github.com/artie-labs/transfer v0.0.0-20240208000914-6c8f7e418eda
 	github.com/aws/aws-sdk-go v1.44.327
 	github.com/aws/aws-sdk-go-v2/config v1.18.19
 	github.com/getsentry/sentry-go v0.26.0
@@ -46,11 +46,11 @@ require (
 	github.com/samber/lo v1.38.1 // indirect
 	github.com/samber/slog-common v0.15.0 // indirect
 	github.com/twpayne/go-geom v1.5.3 // indirect
-	golang.org/x/crypto v0.17.0 // indirect
+	golang.org/x/crypto v0.18.0 // indirect
 	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1 // indirect
-	golang.org/x/mod v0.12.0 // indirect
-	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/mod v0.14.0 // indirect
+	golang.org/x/sync v0.6.0 // indirect
+	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	golang.org/x/tools v0.12.0 // indirect
+	golang.org/x/tools v0.17.0 // indirect
 )
