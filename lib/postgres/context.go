@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/transfer/lib/stringutil"
 )
 
 type Connection struct {
@@ -20,7 +19,7 @@ func NewConnection(cfg *config.PostgreSQL) *Connection {
 	return &Connection{
 		Host:       cfg.Host,
 		Port:       cfg.Port,
-		Username:   stringutil.Override(cfg.Username, cfg.LegacyUsername),
+		Username:   cfg.GetUsername(),
 		Password:   cfg.Password,
 		Database:   cfg.Database,
 		DisableSSL: cfg.DisableSSL,
