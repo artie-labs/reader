@@ -6,22 +6,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPostgresValidate(t *testing.T) {
+func TestPostgreSQL_Validate(t *testing.T) {
 	{
 		// Config is empty
 		var p *PostgreSQL
-		assert.ErrorContains(t, p.Validate(), "postgres config is nil")
+		assert.ErrorContains(t, p.Validate(), "the PostgreSQL config is nil")
 	}
 	{
 		// Host, port, username, password, database are empty
 		p := &PostgreSQL{}
-		assert.ErrorContains(t, p.Validate(), "one of the postgresql settings is empty: host, port, username, password, database")
+		assert.ErrorContains(t, p.Validate(), "one of the PostgreSQL settings is empty: host, port, username, password, database")
 	}
 	{
 		// Tables are empty
 		p := &PostgreSQL{
 			Host:     "host",
-			Port:     "port",
+			Port:     1,
 			Username: "username",
 			Password: "password",
 			Database: "database",
@@ -33,7 +33,7 @@ func TestPostgresValidate(t *testing.T) {
 		// No table name
 		p := &PostgreSQL{
 			Host:     "host",
-			Port:     "port",
+			Port:     1,
 			Username: "username",
 			Password: "password",
 			Database: "database",
@@ -50,7 +50,7 @@ func TestPostgresValidate(t *testing.T) {
 		// No schema name
 		p := &PostgreSQL{
 			Host:     "host",
-			Port:     "port",
+			Port:     1,
 			Username: "username",
 			Password: "password",
 			Database: "database",
@@ -67,7 +67,7 @@ func TestPostgresValidate(t *testing.T) {
 		// Valid
 		p := &PostgreSQL{
 			Host:     "host",
-			Port:     "port",
+			Port:     1,
 			Username: "username",
 			Password: "password",
 			Database: "database",
@@ -79,5 +79,60 @@ func TestPostgresValidate(t *testing.T) {
 			},
 		}
 		assert.NoError(t, p.Validate())
+	}
+}
+
+func TestPostgreSQL_GetUsername(t *testing.T) {
+	{
+		// Username is set, legacy username is not set
+		p := &PostgreSQL{
+			Username: "username",
+		}
+		assert.Equal(t, "username", p.GetUsername())
+	}
+	{
+		// Legacy username is set, username is not set
+		p := &PostgreSQL{
+			LegacyUsername: "legacyUsername",
+		}
+		assert.Equal(t, "legacyUsername", p.GetUsername())
+	}
+	{
+		// Legacy username is set and username is set
+		p := &PostgreSQL{
+			Username:       "username",
+			LegacyUsername: "legacyUsername",
+		}
+		assert.Equal(t, "username", p.GetUsername())
+	}
+}
+
+func TestPostgreSQLTable_GetBatchSize(t *testing.T) {
+	{
+		// Neihter batch size nor limit are set
+		p := &PostgreSQLTable{}
+		assert.Equal(t, uint(5_000), p.GetBatchSize())
+	}
+	{
+		// Batch size is set
+		p := &PostgreSQLTable{
+			BatchSize: 1,
+		}
+		assert.Equal(t, uint(1), p.GetBatchSize())
+	}
+	{
+		// Limit is set
+		p := &PostgreSQLTable{
+			Limit: 1,
+		}
+		assert.Equal(t, uint(1), p.GetBatchSize())
+	}
+	{
+		// Batch size and limit are set
+		p := &PostgreSQLTable{
+			BatchSize: 1,
+			Limit:     2,
+		}
+		assert.Equal(t, uint(1), p.GetBatchSize())
 	}
 }
