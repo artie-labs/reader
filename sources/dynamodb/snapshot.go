@@ -20,7 +20,7 @@ func (s *Store) scanFilesOverBucket() error {
 
 	files, err := s.s3Client.ListFiles(s.cfg.SnapshotSettings.Folder)
 	if err != nil {
-		return fmt.Errorf("failed to list files %w", err)
+		return fmt.Errorf("failed to list files: %w", err)
 	}
 
 	if len(files) == 0 {
