@@ -20,7 +20,7 @@ const defaultErrorRetries = 10
 func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, writer kafkalib.BatchWriter) error {
 	db, err := sql.Open("pgx", postgres.NewConnection(cfg.PostgreSQL).String())
 	if err != nil {
-		return fmt.Errorf("failed to connect to postgres, err: %w", err)
+		return fmt.Errorf("failed to connect to postgres: %w", err)
 	}
 	defer db.Close()
 
@@ -34,7 +34,7 @@ func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, writer ka
 				slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name))
 				continue
 			} else {
-				return fmt.Errorf("failed to load table configuration, table: %s, err: %w", table.Name, err)
+				return fmt.Errorf("failed to load configuration for table %s: %w", table.Name, err)
 			}
 		}
 
@@ -50,7 +50,7 @@ func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, writer ka
 		messageBuilder := postgres.NewMessageBuilder(table, &scanner, statsD, cfg.Kafka.MaxRequestSize)
 		count, err := writer.WriteIterator(ctx, messageBuilder)
 		if err != nil {
-			return fmt.Errorf("failed to snapshot, table: %s, err: %w", table.Name, err)
+			return fmt.Errorf("failed to snapshot for table %s: %w", table.Name, err)
 		}
 
 		slog.Info("Finished snapshotting",

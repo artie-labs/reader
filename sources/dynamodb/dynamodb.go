@@ -43,7 +43,7 @@ func Load(cfg config.DynamoDB, writer kafkalib.BatchWriter) (*Store, error) {
 		Credentials: credentials.NewStaticCredentials(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, ""),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create session, err: %w", err)
+		return nil, fmt.Errorf("failed to create session: %w", err)
 	}
 
 	store := &Store{
@@ -70,11 +70,11 @@ func Load(cfg config.DynamoDB, writer kafkalib.BatchWriter) (*Store, error) {
 func (s *Store) Run(ctx context.Context) error {
 	if s.cfg.Snapshot {
 		if err := s.scanFilesOverBucket(); err != nil {
-			return fmt.Errorf("scanning files over bucket failed, err: %w", err)
+			return fmt.Errorf("scanning files over bucket failed: %w", err)
 		}
 
 		if err := s.streamAndPublish(ctx); err != nil {
-			return fmt.Errorf("stream and publish failed, err: %w", err)
+			return fmt.Errorf("stream and publish failed: %w", err)
 		}
 
 		slog.Info("Finished snapshotting all the files")
@@ -86,7 +86,7 @@ func (s *Store) Run(ctx context.Context) error {
 
 		// Scan it for the first time manually, so we don't have to wait 5 mins
 		if err := s.scanForNewShards(); err != nil {
-			return fmt.Errorf("failed to scan for new shards, err: %w", err)
+			return fmt.Errorf("failed to scan for new shards: %w", err)
 		}
 		for {
 			select {
@@ -97,7 +97,7 @@ func (s *Store) Run(ctx context.Context) error {
 			case <-ticker.C:
 				slog.Info("Scanning for new shards...")
 				if err := s.scanForNewShards(); err != nil {
-					return fmt.Errorf("failed to scan for new shards, err: %w", err)
+					return fmt.Errorf("failed to scan for new shards: %w", err)
 				}
 			}
 		}
@@ -115,7 +115,7 @@ func (s *Store) scanForNewShards() error {
 
 		result, err := s.streams.DescribeStream(input)
 		if err != nil {
-			return fmt.Errorf("failed to describe stream, err: %w", err)
+			return fmt.Errorf("failed to describe stream: %w", err)
 		}
 
 		for _, shard := range result.StreamDescription.Shards {

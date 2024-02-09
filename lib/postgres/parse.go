@@ -55,7 +55,7 @@ func (c *Config) ParseValue(args ParseValueArgs) (ValueWrapper, error) {
 
 		geometry, err := parse.ToGeography([]byte(valString))
 		if err != nil {
-			return NewValueWrapper(nil), fmt.Errorf("failed to parse geometry, err: %w", err)
+			return NewValueWrapper(nil), fmt.Errorf("failed to parse geometry: %w", err)
 		}
 
 		return NewValueWrapper(geometry), nil
@@ -67,7 +67,7 @@ func (c *Config) ParseValue(args ParseValueArgs) (ValueWrapper, error) {
 
 		point, err := parse.ToPoint(valString)
 		if err != nil {
-			return NewValueWrapper(nil), fmt.Errorf("failed to parse POINT, err: %w", err)
+			return NewValueWrapper(nil), fmt.Errorf("failed to parse POINT: %w", err)
 		}
 
 		return NewValueWrapper(point.ToMap()), nil
@@ -114,7 +114,7 @@ func (c *Config) ParseValue(args ParseValueArgs) (ValueWrapper, error) {
 
 		_uuid, err := uuid.Parse(stringVal)
 		if err != nil {
-			return NewValueWrapper(nil), fmt.Errorf("failed to cast uuid into *uuid.UUID, err: %w", err)
+			return NewValueWrapper(nil), fmt.Errorf("failed to cast uuid into *uuid.UUID: %w", err)
 		}
 
 		return NewValueWrapper(_uuid.String()), nil
@@ -122,7 +122,7 @@ func (c *Config) ParseValue(args ParseValueArgs) (ValueWrapper, error) {
 		var val pgtype.Hstore
 		err := val.Scan(args.Value())
 		if err != nil {
-			return NewValueWrapper(nil), fmt.Errorf("failed to unmarshal hstore, err: %w", err)
+			return NewValueWrapper(nil), fmt.Errorf("failed to unmarshal hstore: %w", err)
 		}
 
 		jsonMap := make(map[string]interface{})
