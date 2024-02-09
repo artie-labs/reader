@@ -50,7 +50,7 @@ func (p *PostgreSQL) Validate() error {
 	}
 
 	if stringutil.Empty(p.Host, p.GetUsername(), p.Password, p.Database) {
-		return fmt.Errorf("one of the PostgreSQL settings is empty: host, port, username, password, database")
+		return fmt.Errorf("one of the PostgreSQL settings is empty: host, username, password, database")
 	}
 
 	if p.Port == 0 {
