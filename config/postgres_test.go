@@ -15,7 +15,7 @@ func TestPostgreSQL_Validate(t *testing.T) {
 	{
 		// Host, port, username, password, database are empty
 		p := &PostgreSQL{}
-		assert.ErrorContains(t, p.Validate(), "one of the PostgreSQL settings is empty: host, port, username, password, database")
+		assert.ErrorContains(t, p.Validate(), "one of the PostgreSQL settings is empty: host, username, password, database")
 	}
 	{
 		// Tables are empty
