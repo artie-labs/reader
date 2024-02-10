@@ -15,7 +15,7 @@ type Connection struct {
 	DisableSSL bool
 }
 
-func NewConnection(cfg *config.PostgreSQL) *Connection {
+func NewConnection(cfg config.PostgreSQL) *Connection {
 	return &Connection{
 		Host:       cfg.Host,
 		Port:       cfg.Port,

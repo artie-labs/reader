@@ -11,16 +11,17 @@ import (
 
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/dynamo"
+	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 )
 
-func (s *Store) ListenToChannel(ctx context.Context) {
+func (s *Store) ListenToChannel(ctx context.Context, writer kafkalib.BatchWriter) {
 	for shard := range s.shardChan {
-		go s.processShard(ctx, shard)
+		go s.processShard(ctx, shard, writer)
 	}
 }
 
-func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) {
+func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard, writer kafkalib.BatchWriter) {
 	var attempts int
 
 	// Is there another go-routine processing this shard?
@@ -96,7 +97,7 @@ func (s *Store) processShard(ctx context.Context, shard *dynamodbstreams.Shard) 
 			messages = append(messages, msg.RawMessage())
 		}
 
-		if err = s.writer.WriteRawMessages(ctx, messages); err != nil {
+		if err = writer.WriteRawMessages(ctx, messages); err != nil {
 			logger.Panic("Failed to publish messages, exiting...", slog.Any("err", err))
 		}
 

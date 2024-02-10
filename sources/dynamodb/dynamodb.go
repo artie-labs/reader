@@ -15,6 +15,7 @@ import (
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/kafkalib"
+	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/reader/lib/s3lib"
 	"github.com/artie-labs/reader/sources/dynamodb/offsets"
 )
@@ -22,7 +23,6 @@ import (
 type Store struct {
 	s3Client       *s3lib.S3Client
 	dynamoDBClient *dynamodb.DynamoDB
-	writer         kafkalib.BatchWriter
 
 	tableName string
 	streamArn string
@@ -37,7 +37,7 @@ type Store struct {
 const jitterSleepBaseMs = 50
 const shardScannerInterval = 5 * time.Minute
 
-func Load(cfg config.DynamoDB, writer kafkalib.BatchWriter) (*Store, error) {
+func Load(cfg config.DynamoDB) (*Store, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      ptr.ToString(cfg.AwsRegion),
 		Credentials: credentials.NewStaticCredentials(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, ""),
@@ -50,7 +50,6 @@ func Load(cfg config.DynamoDB, writer kafkalib.BatchWriter) (*Store, error) {
 		tableName: cfg.TableName,
 		streamArn: cfg.StreamArn,
 		cfg:       &cfg,
-		writer:    writer,
 	}
 
 	if cfg.Snapshot {
@@ -67,13 +66,17 @@ func Load(cfg config.DynamoDB, writer kafkalib.BatchWriter) (*Store, error) {
 	return store, nil
 }
 
-func (s *Store) Run(ctx context.Context) error {
+func (s *Store) Close() error {
+	return nil
+}
+
+func (s *Store) Run(ctx context.Context, writer kafkalib.BatchWriter, _ *mtr.Client) error {
 	if s.cfg.Snapshot {
 		if err := s.scanFilesOverBucket(); err != nil {
 			return fmt.Errorf("scanning files over bucket failed, err: %w", err)
 		}
 
-		if err := s.streamAndPublish(ctx); err != nil {
+		if err := s.streamAndPublish(ctx, writer); err != nil {
 			return fmt.Errorf("stream and publish failed, err: %w", err)
 		}
 
@@ -82,7 +85,7 @@ func (s *Store) Run(ctx context.Context) error {
 		ticker := time.NewTicker(shardScannerInterval)
 
 		// Start to subscribe to the channel
-		go s.ListenToChannel(ctx)
+		go s.ListenToChannel(ctx, writer)
 
 		// Scan it for the first time manually, so we don't have to wait 5 mins
 		if err := s.scanForNewShards(); err != nil {
