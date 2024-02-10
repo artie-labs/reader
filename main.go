@@ -82,7 +82,12 @@ func main() {
 			logger.Fatal("Failed to run dynamodb snapshot", slog.Any("err", err))
 		}
 	case config.SourcePostgreSQL:
-		if err = postgres.Run(ctx, *cfg, statsD, *writer); err != nil {
+		pg, err := postgres.Load(*cfg.PostgreSQL, cfg.Kafka.MaxRequestSize)
+		if err != nil {
+			logger.Fatal("Failed to load postgres", slog.Any("err", err))
+		}
+		defer pg.Close()
+		if err = pg.Run(ctx, *writer, statsD); err != nil {
 			logger.Fatal("Failed to run postgres snapshot", slog.Any("err", err))
 		}
 	}
