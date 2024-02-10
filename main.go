@@ -74,11 +74,11 @@ func main() {
 
 	switch cfg.Source {
 	case "", config.SourceDynamo:
-		ddb, err := dynamodb.Load(*cfg.DynamoDB, *writer)
+		ddb, err := dynamodb.Load(*cfg.DynamoDB)
 		if err != nil {
 			logger.Fatal("Failed to load dynamodb", slog.Any("err", err))
 		}
-		if err = ddb.Run(ctx); err != nil {
+		if err = ddb.Run(ctx, *writer); err != nil {
 			logger.Fatal("Failed to run dynamodb snapshot", slog.Any("err", err))
 		}
 	case config.SourcePostgreSQL:
