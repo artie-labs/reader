@@ -88,7 +88,7 @@ func main() {
 		}
 		defer pg.Close()
 		if err = pg.Run(ctx, *writer, statsD); err != nil {
-			logger.Fatal("Failed to run PostgreSQL snapshot", slog.Any("err", err))
+			logger.Fatal("Failed to run postgres snapshot", slog.Any("err", err))
 		}
 	}
 }
