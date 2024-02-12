@@ -17,19 +17,35 @@ import (
 
 const defaultErrorRetries = 10
 
-func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, writer kafkalib.BatchWriter) error {
-	db, err := sql.Open("pgx", postgres.NewConnection(cfg.PostgreSQL).String())
-	if err != nil {
-		return fmt.Errorf("failed to connect to postgres: %w", err)
-	}
-	defer db.Close()
+type postgresSource struct {
+	cfg        config.PostgreSQL
+	maxRowSize uint64
+	db         *sql.DB
+}
 
-	for _, tableCfg := range cfg.PostgreSQL.Tables {
+func Load(cfg config.PostgreSQL, maxRowSize uint64) (*postgresSource, error) {
+	db, err := sql.Open("pgx", postgres.NewConnection(cfg).String())
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to PostgreSQL: %w", err)
+	}
+	return &postgresSource{
+		cfg:        cfg,
+		maxRowSize: maxRowSize,
+		db:         db,
+	}, nil
+}
+
+func (p postgresSource) Close() error {
+	return p.db.Close()
+}
+
+func (p postgresSource) Run(ctx context.Context, writer kafkalib.BatchWriter, statsD *mtr.Client) error {
+	for _, tableCfg := range p.cfg.Tables {
 		snapshotStartTime := time.Now()
 
 		slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name))
 		table := postgres.NewTable(tableCfg)
-		if err := table.RetrieveColumns(db); err != nil {
+		if err := table.RetrieveColumns(p.db); err != nil {
 			if postgres.NoRowsError(err) {
 				slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name))
 				continue
@@ -46,8 +62,8 @@ func Run(ctx context.Context, cfg config.Settings, statsD *mtr.Client, writer ka
 			slog.Any("batchSize", tableCfg.GetBatchSize()),
 		)
 
-		scanner := table.NewScanner(db, tableCfg.GetBatchSize(), defaultErrorRetries)
-		messageBuilder := postgres.NewMessageBuilder(table, &scanner, statsD, cfg.Kafka.MaxRequestSize)
+		scanner := table.NewScanner(p.db, tableCfg.GetBatchSize(), defaultErrorRetries)
+		messageBuilder := postgres.NewMessageBuilder(table, &scanner, statsD, p.maxRowSize)
 		count, err := writer.WriteIterator(ctx, messageBuilder)
 		if err != nil {
 			return fmt.Errorf("failed to snapshot for table %s: %w", table.Name, err)
