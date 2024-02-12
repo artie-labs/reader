@@ -9,6 +9,7 @@ import (
 
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/dynamo"
+	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 )
 
@@ -35,7 +36,7 @@ func (s *Store) scanFilesOverBucket() error {
 	return nil
 }
 
-func (s *Store) streamAndPublish(ctx context.Context) error {
+func (s *Store) streamAndPublish(ctx context.Context, writer kafkalib.BatchWriter) error {
 	keys, err := s.retrievePrimaryKeys()
 	if err != nil {
 		return fmt.Errorf("failed to retrieve primary keys: %w", err)
@@ -63,7 +64,7 @@ func (s *Store) streamAndPublish(ctx context.Context) error {
 			messages = append(messages, dynamoMsg.RawMessage())
 		}
 
-		if err = s.writer.WriteRawMessages(ctx, messages); err != nil {
+		if err = writer.WriteRawMessages(ctx, messages); err != nil {
 			return fmt.Errorf("failed to publish messages: %w", err)
 		}
 
