@@ -50,7 +50,7 @@ func (p postgresSource) Run(ctx context.Context, writer kafkalib.BatchWriter, st
 				slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name))
 				continue
 			} else {
-				return fmt.Errorf("failed to load table configuration, table: %s, err: %w", table.Name, err)
+				return fmt.Errorf("failed to load configuration for table %s: %w", table.Name, err)
 			}
 		}
 
@@ -66,7 +66,7 @@ func (p postgresSource) Run(ctx context.Context, writer kafkalib.BatchWriter, st
 		messageBuilder := postgres.NewMessageBuilder(table, &scanner, statsD, p.maxRowSize)
 		count, err := writer.WriteIterator(ctx, messageBuilder)
 		if err != nil {
-			return fmt.Errorf("failed to snapshot, table: %s, err: %w", table.Name, err)
+			return fmt.Errorf("failed to snapshot for table %s: %w", table.Name, err)
 		}
 
 		slog.Info("Finished snapshotting",

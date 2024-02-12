@@ -68,8 +68,8 @@ const (
 
 type Settings struct {
 	Source     Source      `yaml:"source"`
-	PostgreSQL *PostgreSQL `yaml:"postgresql,omitempty"`
 	DynamoDB   *DynamoDB   `yaml:"dynamodb,omitempty"`
+	PostgreSQL *PostgreSQL `yaml:"postgresql,omitempty"`
 
 	Reporting *Reporting `yaml:"reporting"`
 	Metrics   *Metrics   `yaml:"metrics"`
