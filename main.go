@@ -84,7 +84,7 @@ func main() {
 	case config.SourcePostgreSQL:
 		pg, err := postgres.Load(*cfg.PostgreSQL, cfg.Kafka.MaxRequestSize)
 		if err != nil {
-			logger.Fatal("Failed to load PostgreSQL", slog.Any("err", err))
+			logger.Fatal("Failed to load postgres", slog.Any("err", err))
 		}
 		defer pg.Close()
 		if err = pg.Run(ctx, *writer, statsD); err != nil {
