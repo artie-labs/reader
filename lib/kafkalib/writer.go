@@ -145,11 +145,11 @@ func (w *BatchWriter) WriteIterator(ctx context.Context, iter messageIterator) (
 	for iter.HasNext() {
 		msgs, err := iter.Next()
 		if err != nil {
-			return 0, fmt.Errorf("failed to iterate over messages, err: %w", err)
+			return 0, fmt.Errorf("failed to iterate over messages: %w", err)
 
 		} else if len(msgs) > 0 {
 			if err = w.WriteRawMessages(ctx, msgs); err != nil {
-				return 0, fmt.Errorf("failed to write messages to kafka, err: %w", err)
+				return 0, fmt.Errorf("failed to write messages to kafka: %w", err)
 			}
 			count += len(msgs)
 			slog.Info("Scanning progress", slog.Duration("timing", time.Since(start)), slog.Int("count", count))

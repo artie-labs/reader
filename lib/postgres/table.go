@@ -73,7 +73,7 @@ func (t *Table) findPrimaryKeys(db *sql.DB) error {
 
 func (t *Table) FindStartAndEndPrimaryKeys(db *sql.DB) error {
 	if err := t.findPrimaryKeys(db); err != nil {
-		return fmt.Errorf("failed looking up primary keys, err: %w", err)
+		return fmt.Errorf("failed looking up primary keys: %w", err)
 	}
 
 	keys := t.PrimaryKeys.Keys()
