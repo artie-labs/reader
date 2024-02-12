@@ -13,7 +13,6 @@ import (
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/reader/lib/postgres"
-	"github.com/artie-labs/reader/sources"
 )
 
 const defaultErrorRetries = 10
@@ -24,7 +23,7 @@ type postgresSource struct {
 	db         *sql.DB
 }
 
-func Load(cfg config.PostgreSQL, maxRowSize uint64) (sources.Source, error) {
+func Load(cfg config.PostgreSQL, maxRowSize uint64) (*postgresSource, error) {
 	db, err := sql.Open("pgx", postgres.NewConnection(cfg).String())
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to PostgreSQL: %w", err)
