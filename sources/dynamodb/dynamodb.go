@@ -15,6 +15,7 @@ import (
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/kafkalib"
+	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/reader/lib/s3lib"
 	"github.com/artie-labs/reader/sources/dynamodb/offsets"
 )
@@ -65,7 +66,11 @@ func Load(cfg config.DynamoDB) (*Store, error) {
 	return store, nil
 }
 
-func (s *Store) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
+func (s *Store) Close() error {
+	return nil
+}
+
+func (s *Store) Run(ctx context.Context, writer kafkalib.BatchWriter, _ *mtr.Client) error {
 	if s.cfg.Snapshot {
 		if err := s.scanFilesOverBucket(); err != nil {
 			return fmt.Errorf("scanning files over bucket failed: %w", err)
