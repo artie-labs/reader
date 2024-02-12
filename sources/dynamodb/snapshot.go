@@ -21,7 +21,7 @@ func (s *Store) scanFilesOverBucket() error {
 
 	files, err := s.s3Client.ListFiles(s.cfg.SnapshotSettings.Folder)
 	if err != nil {
-		return fmt.Errorf("failed to list files, err: %w", err)
+		return fmt.Errorf("failed to list files: %w", err)
 	}
 
 	if len(files) == 0 {
@@ -39,7 +39,7 @@ func (s *Store) scanFilesOverBucket() error {
 func (s *Store) streamAndPublish(ctx context.Context, writer kafkalib.BatchWriter) error {
 	keys, err := s.retrievePrimaryKeys()
 	if err != nil {
-		return fmt.Errorf("failed to retrieve primary keys, err: %w", err)
+		return fmt.Errorf("failed to retrieve primary keys: %w", err)
 	}
 
 	for _, file := range s.cfg.SnapshotSettings.SpecifiedFiles {
@@ -65,7 +65,7 @@ func (s *Store) streamAndPublish(ctx context.Context, writer kafkalib.BatchWrite
 		}
 
 		if err = writer.WriteRawMessages(ctx, messages); err != nil {
-			return fmt.Errorf("failed to publish messages, err: %w", err)
+			return fmt.Errorf("failed to publish messages: %w", err)
 		}
 
 		slog.Info("Successfully processed file...", logFields...)
