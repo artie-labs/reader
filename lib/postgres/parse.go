@@ -47,15 +47,15 @@ func (c *Config) ParseValue(args ParseValueArgs) (ValueWrapper, error) {
 
 	colKind := c.Fields.GetDataType(args.ColName)
 	switch colKind {
-	case debezium.Geometry:
+	case debezium.Geometry, debezium.Geography:
 		valString, isOk := args.Value().(string)
 		if !isOk {
-			return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type for geometry", args.Value())
+			return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type for geometry / geography", args.Value())
 		}
 
 		geometry, err := parse.ToGeography([]byte(valString))
 		if err != nil {
-			return NewValueWrapper(nil), fmt.Errorf("failed to parse geometry: %w", err)
+			return NewValueWrapper(nil), fmt.Errorf("failed to parse geometry / geography: %w", err)
 		}
 
 		return NewValueWrapper(geometry), nil

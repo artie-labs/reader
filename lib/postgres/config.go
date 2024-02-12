@@ -53,6 +53,8 @@ func (c *Config) UpdateCols(colName, colKind string, precision, scale *string, u
 			c.Fields.AddField(colName, debezium.HStore, nil)
 		} else if udtName != nil && *udtName == "geometry" {
 			c.Fields.AddField(colName, debezium.Geometry, nil)
+		} else if udtName != nil && *udtName == "geography" {
+			c.Fields.AddField(colName, debezium.Geography, nil)
 		} else {
 			c.Fields.AddField(colName, debezium.UserDefinedText, nil)
 		}
