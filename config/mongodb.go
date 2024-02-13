@@ -21,8 +21,8 @@ type Collection struct {
 	// TODO: In the future, we should be able to support customers passing Start/End PK values.
 }
 
-func (c Collection) TopicSuffix() string {
-	return c.Name
+func (c Collection) TopicSuffix(db string) string {
+	return fmt.Sprintf("%s.%s", db, c.Name)
 }
 
 func (c Collection) GetBatchSize() uint {

@@ -13,7 +13,7 @@ import (
 
 type collectionScanner struct {
 	db         *mongo.Database
-	mongoCfg   config.MongoDB
+	cfg        config.MongoDB
 	collection config.Collection
 
 	// mutable
@@ -21,9 +21,10 @@ type collectionScanner struct {
 	done   bool
 }
 
-func newIterator(db *mongo.Database, collection config.Collection) *collectionScanner {
+func newIterator(db *mongo.Database, collection config.Collection, cfg config.MongoDB) *collectionScanner {
 	return &collectionScanner{
 		db:         db,
+		cfg:        cfg,
 		collection: collection,
 	}
 }
@@ -98,7 +99,7 @@ func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
 
 	var rawMessages []lib.RawMessage
 	for _, mgoMsg := range mgoMsgs {
-		rawMessage, err := newRawMessage(mgoMsg, c.collection, c.mongoCfg.Database)
+		rawMessage, err := newRawMessage(mgoMsg, c.collection, c.cfg.Database)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create raw message, err: %w", err)
 		}

@@ -53,11 +53,11 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, statsD *m
 
 		slog.Info("Scanning collection",
 			slog.String("collectionName", collection.Name),
-			slog.String("topicSuffix", collection.TopicSuffix()),
+			slog.String("topicSuffix", collection.TopicSuffix(s.db.Name())),
 			slog.Any("batchSize", collection.GetBatchSize()),
 		)
 
-		iterator := newIterator(s.db, collection)
+		iterator := newIterator(s.db, collection, s.cfg)
 		count, err := writer.WriteIterator(ctx, iterator)
 		if err != nil {
 			return fmt.Errorf("failed to snapshot, table: %s, err: %w", collection.Name, err)

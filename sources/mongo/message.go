@@ -24,7 +24,7 @@ func newRawMessage(msg mgoMessage, collection config.Collection, database string
 	}
 
 	return lib.NewMongoMessage(
-		collection.TopicSuffix(),
+		collection.TopicSuffix(database),
 		map[string]interface{}{"id": map[string]interface{}{"_id": msg.pk}}, evt,
 	), nil
 }
