@@ -96,8 +96,7 @@ func colKindToDebezium(colKind string, precision, scale *string, udtName *string
 	return debezium.InvalidDataType, nil
 }
 
-// UpdateCols will inspect the colKind, if it's a special data type - it'll add it to `colsToType` with the right data type
-func (c *Config) UpdateCols(colName, colKind string, precision, scale *string, udtName *string) {
+func (c *Config) AddColumn(colName, colKind string, precision, scale *string, udtName *string) {
 	dataType, opts := colKindToDebezium(colKind, precision, scale, udtName)
 	if dataType == debezium.InvalidDataType {
 		slog.Warn("Column type did not get mapped in our message schema, so it will not be automatically created by transfer",

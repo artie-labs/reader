@@ -1,9 +1,10 @@
 package postgres
 
 import (
-	"github.com/artie-labs/transfer/lib/ptr"
 	"testing"
 	"time"
+
+	"github.com/artie-labs/transfer/lib/ptr"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -94,7 +95,7 @@ func TestParse(t *testing.T) {
 
 	for _, tc := range tcs {
 		cfg := NewPostgresConfig()
-		cfg.UpdateCols(tc.colName, tc.colKind, nil, nil, tc.udtName)
+		cfg.AddColumn(tc.colName, tc.colKind, nil, nil, tc.udtName)
 
 		value, err := cfg.ParseValue(ParseValueArgs{
 			ColName:      tc.colName,

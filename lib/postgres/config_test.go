@@ -149,7 +149,7 @@ func TestPostgresConfig_Complete(t *testing.T) {
 	for _, testCase := range testCases {
 		cfg := NewPostgresConfig()
 		// TODO: Add test for hstore
-		cfg.UpdateCols(testCase.colName, testCase.colKind, nil, nil, nil)
+		cfg.AddColumn(testCase.colName, testCase.colKind, nil, nil, nil)
 
 		actualEscCol := cfg.GetColEscaped(testCase.colName)
 		assert.Equal(t, testCase.expectedEscColString, actualEscCol, testCase.name)
