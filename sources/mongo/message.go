@@ -1,6 +1,7 @@
 package mongo
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
@@ -11,16 +12,15 @@ import (
 )
 
 type mgoMessage struct {
-	jsonExtendedBytes []byte
-	pk                interface{}
+	jsonExtendedString string
+	pkMap              map[string]interface{}
 }
 
 func (m *mgoMessage) toRawMessage(collection config.Collection, database string) (lib.RawMessage, error) {
-	jsonExtendedString := string(m.jsonExtendedBytes)
 	evt := mongo.SchemaEventPayload{
 		Schema: debezium.Schema{},
 		Payload: mongo.Payload{
-			After: &jsonExtendedString,
+			After: &m.jsonExtendedString,
 			Source: mongo.Source{
 				Database:   database,
 				Collection: collection.Name,
@@ -30,10 +30,11 @@ func (m *mgoMessage) toRawMessage(collection config.Collection, database string)
 		},
 	}
 
-	return lib.NewMongoMessage(
-		collection.TopicSuffix(database),
-		map[string]interface{}{"id": map[string]interface{}{"_id": m.pk}}, evt,
-	), nil
+	pkMap := map[string]interface{}{
+		"payload": m.pkMap,
+	}
+
+	return lib.NewMongoMessage(collection.TopicSuffix(database), pkMap, evt), nil
 }
 
 func parseMessage(result bson.M) (*mgoMessage, error) {
@@ -43,7 +44,7 @@ func parseMessage(result bson.M) (*mgoMessage, error) {
 	}
 
 	var jsonExtendedMap map[string]interface{}
-	if err = bson.UnmarshalExtJSON(jsonExtendedBytes, false, &jsonExtendedMap); err != nil {
+	if err = json.Unmarshal(jsonExtendedBytes, &jsonExtendedMap); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal JSON extended to map: %w", err)
 	}
 
@@ -52,8 +53,14 @@ func parseMessage(result bson.M) (*mgoMessage, error) {
 		return nil, fmt.Errorf("failed to get partition key, row: %v", jsonExtendedMap)
 	}
 
+	pkBytes, err := json.Marshal(pk)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal ext json: %w", err)
+	}
 	return &mgoMessage{
-		jsonExtendedBytes: jsonExtendedBytes,
-		pk:                pk,
+		jsonExtendedString: string(jsonExtendedBytes),
+		pkMap: map[string]interface{}{
+			"id": string(pkBytes),
+		},
 	}, nil
 }
