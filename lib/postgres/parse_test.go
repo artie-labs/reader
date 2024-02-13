@@ -95,7 +95,8 @@ func TestParse(t *testing.T) {
 
 	for _, tc := range tcs {
 		cfg := NewPostgresConfig()
-		cfg.AddColumn(tc.colName, tc.colKind, nil, nil, tc.udtName)
+		dataType, opts := ColKindToDataType(tc.colKind, nil, nil, tc.udtName)
+		cfg.AddColumn(tc.colName, dataType, opts)
 
 		value, err := cfg.ParseValue(ParseValueArgs{
 			ColName:      tc.colName,
