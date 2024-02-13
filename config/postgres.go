@@ -10,7 +10,7 @@ import (
 
 type PostgreSQL struct {
 	Host       string             `yaml:"host"`
-	Port       uint16             `yaml:"port"`
+	Port       int                `yaml:"port"`
 	Username   string             `yaml:"username"`
 	Password   string             `yaml:"password"`
 	Database   string             `yaml:"database"`
@@ -30,15 +30,11 @@ type PostgreSQLTable struct {
 	BatchSize                  uint   `yaml:"batchSize"`
 	OptionalPrimaryKeyValStart string `yaml:"optionalPrimaryKeyValStart"`
 	OptionalPrimaryKeyValEnd   string `yaml:"optionalPrimaryKeyValEnd"`
-	// Deprecated
-	Limit uint `yaml:"limit"`
 }
 
 func (p *PostgreSQLTable) GetBatchSize() uint {
 	if p.BatchSize > 0 {
 		return p.BatchSize
-	} else if p.Limit > 0 {
-		return p.Limit
 	} else {
 		return constants.DefaultBatchSize
 	}

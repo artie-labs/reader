@@ -120,19 +120,4 @@ func TestPostgreSQLTable_GetBatchSize(t *testing.T) {
 		}
 		assert.Equal(t, uint(1), p.GetBatchSize())
 	}
-	{
-		// Limit is set
-		p := &PostgreSQLTable{
-			Limit: 1,
-		}
-		assert.Equal(t, uint(1), p.GetBatchSize())
-	}
-	{
-		// Batch size and limit are set
-		p := &PostgreSQLTable{
-			BatchSize: 1,
-			Limit:     2,
-		}
-		assert.Equal(t, uint(1), p.GetBatchSize())
-	}
 }

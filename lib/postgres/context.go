@@ -18,7 +18,7 @@ type Connection struct {
 func NewConnection(cfg config.PostgreSQL) *Connection {
 	return &Connection{
 		Host:       cfg.Host,
-		Port:       cfg.Port,
+		Port:       uint16(cfg.Port),
 		Username:   cfg.GetUsername(),
 		Password:   cfg.Password,
 		Database:   cfg.Database,
