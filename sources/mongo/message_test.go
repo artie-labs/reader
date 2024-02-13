@@ -2,22 +2,23 @@ package mongo
 
 import (
 	"encoding/json"
-	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/transfer/lib/typing"
+	"testing"
+	"time"
+
 	transferMongo "github.com/artie-labs/transfer/lib/cdc/mongo"
 	"github.com/artie-labs/transfer/lib/kafkalib"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"testing"
+
+	"github.com/artie-labs/reader/config"
 )
 
 func TestParseMessagePartitionKey(t *testing.T) {
 	objId, err := primitive.ObjectIDFromHex("507f1f77bcf86cd799439011")
 	assert.NoError(t, err)
-	msg, err := parseMessage(bson.M{
-		"key": "value",
-		"_id": objId,
-	})
+	msg, err := parseMessage(bson.M{"_id": objId})
 	assert.NoError(t, err)
 	assert.Equal(t, `{"$oid":"507f1f77bcf86cd799439011"}`, msg.pkMap["id"])
 
@@ -31,4 +32,72 @@ func TestParseMessagePartitionKey(t *testing.T) {
 	pkMap, err := dbz.GetPrimaryKey(rawMsgBytes, &kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt})
 	assert.NoError(t, err)
 	assert.Equal(t, "507f1f77bcf86cd799439011", pkMap["_id"])
+}
+
+func TestParseMessage(t *testing.T) {
+	objId, err := primitive.ObjectIDFromHex("507f1f77bcf86cd799439011")
+	assert.NoError(t, err)
+
+	decimal, err := primitive.ParseDecimal128("1234.5")
+	assert.NoError(t, err)
+
+	msg, err := parseMessage(
+		bson.M{
+			"_id":     objId,
+			"string":  "Hello, world!",
+			"int32":   int32(42),
+			"int64":   int64(1234567890),
+			"double":  3.14159,
+			"decimal": decimal,
+			"subDocument": bson.M{
+				"nestedString": "Nested value",
+			},
+			"array": []interface{}{"apple", "banana", "cherry"},
+			"timestamp": primitive.Timestamp{
+				T: uint32(1707856668), // Seconds since Unix epoch
+				I: 123,                // Increment value
+			},
+			"datetime":   primitive.NewDateTimeFromTime(time.Date(2024, 2, 13, 20, 37, 48, 0, time.UTC)),
+			"trueValue":  true,
+			"falseValue": false,
+			"nullValue":  nil,
+		})
+	assert.NoError(t, err)
+
+	rawMsg, err := msg.toRawMessage(config.Collection{}, "database")
+	assert.NoError(t, err)
+
+	rawPkBytes, err := json.Marshal(rawMsg.PartitionKey)
+	assert.NoError(t, err)
+
+	var dbz transferMongo.Debezium
+	pkMap, err := dbz.GetPrimaryKey(rawPkBytes, &kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt})
+	assert.NoError(t, err)
+
+	rawMsgBytes, err := json.Marshal(rawMsg.GetPayload())
+	assert.NoError(t, err)
+	kvMap, err := dbz.GetEventFromBytes(typing.Settings{}, rawMsgBytes)
+	assert.NoError(t, err)
+
+	expectedMap := map[string]interface{}{
+		"_id":         "507f1f77bcf86cd799439011",
+		"string":      "Hello, world!",
+		"int32":       float64(42),
+		"int64":       float64(1234567890), // JSON doesn't know ints vs floats.
+		"double":      3.14159,
+		"decimal":     1234.5,
+		"subDocument": `{"nestedString":"Nested value"}`,
+		"array":       []interface{}{"apple", "banana", "cherry"},
+		"datetime":    "2024-02-13T20:37:48+00:00",
+		"trueValue":   true,
+		"falseValue":  false,
+		"nullValue":   nil,
+	}
+
+	actualKVMap := kvMap.GetData(pkMap, &kafkalib.TopicConfig{})
+	for expectedKey, expectedVal := range expectedMap {
+		actualVal, isOk := actualKVMap[expectedKey]
+		assert.True(t, isOk, expectedKey)
+		assert.Equal(t, expectedVal, actualVal, expectedKey)
+	}
 }
