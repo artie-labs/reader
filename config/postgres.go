@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/artie-labs/transfer/lib/stringutil"
 
@@ -49,8 +50,10 @@ func (p *PostgreSQL) Validate() error {
 		return fmt.Errorf("one of the PostgreSQL settings is empty: host, username, password, database")
 	}
 
-	if p.Port == 0 {
-		return fmt.Errorf("port is not set or 0")
+	if p.Port <= 0 {
+		return fmt.Errorf("port is not set or <= 0")
+	} else if p.Port > math.MaxUint16 {
+		return fmt.Errorf("port is > than %d", math.MaxUint16)
 	}
 
 	if len(p.Tables) == 0 {

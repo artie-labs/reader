@@ -13,9 +13,63 @@ func TestPostgreSQL_Validate(t *testing.T) {
 		assert.ErrorContains(t, p.Validate(), "the PostgreSQL config is nil")
 	}
 	{
-		// Host, port, username, password, database are empty
+		// Host, username, password, database are empty
 		p := &PostgreSQL{}
 		assert.ErrorContains(t, p.Validate(), "one of the PostgreSQL settings is empty: host, username, password, database")
+	}
+	{
+		// Port is -1
+		p := &PostgreSQL{
+			Host:     "host",
+			Port:     -1,
+			Username: "username",
+			Password: "password",
+			Database: "database",
+			Tables: []*PostgreSQLTable{
+				{
+					Name:   "name",
+					Schema: "schema",
+				},
+			},
+		}
+
+		assert.ErrorContains(t, p.Validate(), "port is not set or <= 0")
+	}
+	{
+		// Port is 0
+		p := &PostgreSQL{
+			Host:     "host",
+			Port:     -1,
+			Username: "username",
+			Password: "password",
+			Database: "database",
+			Tables: []*PostgreSQLTable{
+				{
+					Name:   "name",
+					Schema: "schema",
+				},
+			},
+		}
+
+		assert.ErrorContains(t, p.Validate(), "port is not set or <= 0")
+	}
+	{
+		// Port is too big
+		p := &PostgreSQL{
+			Host:     "host",
+			Port:     1_000_000,
+			Username: "username",
+			Password: "password",
+			Database: "database",
+			Tables: []*PostgreSQLTable{
+				{
+					Name:   "name",
+					Schema: "schema",
+				},
+			},
+		}
+
+		assert.ErrorContains(t, p.Validate(), "port is > than 65535")
 	}
 	{
 		// Tables are empty

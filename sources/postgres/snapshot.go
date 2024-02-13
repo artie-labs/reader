@@ -24,11 +24,7 @@ type postgresSource struct {
 }
 
 func Load(cfg config.PostgreSQL, maxRowSize uint64) (*postgresSource, error) {
-	conn, err := postgres.NewConnection(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create connection: %w", err)
-	}
-	db, err := sql.Open("pgx", conn.String())
+	db, err := sql.Open("pgx", postgres.NewConnection(cfg).String())
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to PostgreSQL: %w", err)
 	}
