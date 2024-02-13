@@ -24,85 +24,87 @@ func NewPostgresConfig() *Config {
 	return &Config{Fields: debezium.NewFields()}
 }
 
-// UpdateCols will inspect the colKind, if it's a special data type - it'll add it to `colsToType` with the right data type
-func (c *Config) UpdateCols(colName, colKind string, precision, scale *string, udtName *string) {
+func colKindToDebezium(colKind string, precision, scale *string, udtName *string) (debezium.DataType, *debezium.Opts) {
 	colKind = strings.ToLower(colKind)
 	switch colKind {
 	case "point":
-		c.Fields.AddField(colName, debezium.Point, nil)
+		return debezium.Point, nil
 	case "real", "double precision":
-		c.Fields.AddField(colName, debezium.Float, nil)
+		return debezium.Float, nil
 	case "smallint":
-		c.Fields.AddField(colName, debezium.Int16, nil)
+		return debezium.Int16, nil
 	case "integer":
-		c.Fields.AddField(colName, debezium.Int32, nil)
+		return debezium.Int32, nil
 	case "bigint", "oid":
-		c.Fields.AddField(colName, debezium.Int64, nil)
+		return debezium.Int64, nil
 	case "array":
-		c.Fields.AddField(colName, debezium.Array, nil)
+		return debezium.Array, nil
 	case "bit":
-		c.Fields.AddField(colName, debezium.Bit, nil)
+		return debezium.Bit, nil
 	case "boolean":
-		c.Fields.AddField(colName, debezium.Boolean, nil)
+		return debezium.Boolean, nil
 	case "date":
-		c.Fields.AddField(colName, debezium.Date, nil)
+		return debezium.Date, nil
 	case "uuid":
-		c.Fields.AddField(colName, debezium.UUID, nil)
+		return debezium.UUID, nil
 	case "user-defined":
 		if udtName != nil && *udtName == "hstore" {
-			c.Fields.AddField(colName, debezium.HStore, nil)
+			return debezium.HStore, nil
 		} else if udtName != nil && *udtName == "geometry" {
-			c.Fields.AddField(colName, debezium.Geometry, nil)
+			return debezium.Geometry, nil
 		} else if udtName != nil && *udtName == "geography" {
-			c.Fields.AddField(colName, debezium.Geography, nil)
+			return debezium.Geography, nil
 		} else {
-			c.Fields.AddField(colName, debezium.UserDefinedText, nil)
+			return debezium.UserDefinedText, nil
 		}
 	case "interval":
-		c.Fields.AddField(colName, debezium.Interval, nil)
+		return debezium.Interval, nil
 	case "time with time zone", "time without time zone":
-		c.Fields.AddField(colName, debezium.Time, nil)
+		return debezium.Time, nil
 	case "money":
-		c.Fields.AddField(colName, debezium.Money, &debezium.Opts{
+		return debezium.Money, &debezium.Opts{
 			Scale: ptr.ToString("2"),
-		})
+		}
 	case "character varying", "text":
-		c.Fields.AddField(colName, debezium.Text, nil)
+		return debezium.Text, nil
 	case "character":
-		c.Fields.AddField(colName, debezium.TextThatRequiresEscaping, nil)
+		return debezium.TextThatRequiresEscaping, nil
 	case "json", "jsonb":
-		c.Fields.AddField(colName, debezium.JSON, nil)
+		return debezium.JSON, nil
 	case "timestamp without time zone", "timestamp with time zone":
-		c.Fields.AddField(colName, debezium.Timestamp, nil)
+		return debezium.Timestamp, nil
 	default:
-		var found bool
 		if strings.Contains(colKind, "numeric") {
-			found = true
 			if precision == nil && scale == nil {
-				c.Fields.AddField(colName, debezium.VariableNumeric, nil)
+				return debezium.VariableNumeric, nil
 			} else {
-				c.Fields.AddField(colName, debezium.Numeric, &debezium.Opts{
+				return debezium.Numeric, &debezium.Opts{
 					Scale:     scale,
 					Precision: precision,
-				})
+				}
 			}
 		}
 
 		for _, textBasedCol := range debezium.TextBasedColumns {
 			// char (m) or character
 			if strings.Contains(colKind, textBasedCol) {
-				c.Fields.AddField(colName, debezium.TextThatRequiresEscaping, nil)
-				found = true
-				break
+				return debezium.TextThatRequiresEscaping, nil
 			}
 		}
+	}
 
-		if !found {
-			slog.Warn("Column type did not get mapped in our message schema, so it will not be automatically created by transfer",
-				slog.String("colName", colName),
-				slog.String("colKind", colKind),
-			)
-		}
+	return debezium.InvalidDataType, nil
+}
+
+func (c *Config) AddColumn(colName, colKind string, precision, scale *string, udtName *string) {
+	dataType, opts := colKindToDebezium(colKind, precision, scale, udtName)
+	if dataType == debezium.InvalidDataType {
+		slog.Warn("Column type did not get mapped in our message schema, so it will not be automatically created by transfer",
+			slog.String("colName", colName),
+			slog.String("colKind", colKind),
+		)
+	} else {
+		c.Fields.AddField(colName, dataType, opts)
 	}
 }
 

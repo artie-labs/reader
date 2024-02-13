@@ -31,7 +31,7 @@ func (t *Table) RetrieveColumns(db *sql.DB) error {
 			return err
 		}
 
-		t.Config.UpdateCols(colName, colKind, numericPrecision, numericScale, udtName)
+		t.Config.AddColumn(colName, colKind, numericPrecision, numericScale, udtName)
 	}
 
 	query := fmt.Sprintf("SELECT * FROM %s LIMIT 1", pgx.Identifier{t.Schema, t.Name}.Sanitize())
