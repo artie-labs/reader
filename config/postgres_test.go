@@ -109,7 +109,7 @@ func TestPostgreSQL_GetUsername(t *testing.T) {
 
 func TestPostgreSQLTable_GetBatchSize(t *testing.T) {
 	{
-		// Neither batch size nor limit are set
+		// Batch size is not set
 		p := &PostgreSQLTable{}
 		assert.Equal(t, uint(5_000), p.GetBatchSize())
 	}
