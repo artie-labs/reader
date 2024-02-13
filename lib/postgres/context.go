@@ -27,7 +27,7 @@ func NewConnection(cfg config.PostgreSQL) (*Connection, error) {
 		Password:   cfg.Password,
 		Database:   cfg.Database,
 		DisableSSL: cfg.DisableSSL,
-	}
+	}, nil
 }
 
 func (c *Connection) String() string {
