@@ -140,7 +140,6 @@ func colKindToDataType(colKind string, precision, scale *string, udtName *string
 }
 
 // castColumn will take a colName and return the escaped version of what we should be using to call Postgres.
-// If it doesn't exist, we'll return an empty string.
 func castColumn(rawColName string, colKind debezium.DataType) string {
 	colName := pgx.Identifier{rawColName}.Sanitize()
 	switch colKind {
