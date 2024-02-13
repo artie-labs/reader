@@ -69,7 +69,7 @@ func TestPostgreSQL_Validate(t *testing.T) {
 			},
 		}
 
-		assert.ErrorContains(t, p.Validate(), "port is > than 65535")
+		assert.ErrorContains(t, p.Validate(), "port is > 65535")
 	}
 	{
 		// Tables are empty

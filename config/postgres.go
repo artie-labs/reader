@@ -53,7 +53,7 @@ func (p *PostgreSQL) Validate() error {
 	if p.Port <= 0 {
 		return fmt.Errorf("port is not set or <= 0")
 	} else if p.Port > math.MaxUint16 {
-		return fmt.Errorf("port is > than %d", math.MaxUint16)
+		return fmt.Errorf("port is > %d", math.MaxUint16)
 	}
 
 	if len(p.Tables) == 0 {
