@@ -62,6 +62,7 @@ type Metrics struct {
 type Source string
 
 const (
+	SourceInvalid    Source = "invalid"
 	SourceDynamo     Source = "dynamodb"
 	SourcePostgreSQL Source = "postgresql"
 	SourceMongoDB    Source = "mongodb"
