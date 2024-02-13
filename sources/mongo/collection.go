@@ -49,8 +49,8 @@ func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
 		c.cursor = cursor
 	}
 
-	var mgoMsgs []mgoMessage
-	for c.collection.GetBatchSize() > int32(len(mgoMsgs)) && c.cursor.Next(ctx) {
+	var rawMsgs []lib.RawMessage
+	for c.collection.GetBatchSize() > int32(len(rawMsgs)) && c.cursor.Next(ctx) {
 		var result bson.M
 		if err := c.cursor.Decode(&result); err != nil {
 			return nil, fmt.Errorf("failed to decode document: %w", err)
@@ -61,7 +61,12 @@ func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
 			return nil, fmt.Errorf("failed to parse message: %w", err)
 		}
 
-		mgoMsgs = append(mgoMsgs, *mgoMsg)
+		rawMsg, err := mgoMsg.toRawMessage(c.collection, c.cfg.Database)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create raw message: %w", err)
+		}
+
+		rawMsgs = append(rawMsgs, rawMsg)
 	}
 
 	if err := c.cursor.Err(); err != nil {
@@ -69,19 +74,9 @@ func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
 	}
 
 	// If the number of fetched documents is less than the batch size, we are done
-	if c.collection.GetBatchSize() > int32(len(mgoMsgs)) {
+	if c.collection.GetBatchSize() > int32(len(rawMsgs)) {
 		c.done = true
 	}
 
-	var rawMessages []lib.RawMessage
-	for _, mgoMsg := range mgoMsgs {
-		rawMessage, err := mgoMsg.toRawMessage(c.collection, c.cfg.Database)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create raw message: %w", err)
-		}
-
-		rawMessages = append(rawMessages, rawMessage)
-	}
-
-	return rawMessages, nil
+	return rawMsgs, nil
 }

@@ -4,14 +4,16 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib/kafkalib"
-	"github.com/artie-labs/reader/lib/mtr"
+	"log/slog"
+	"time"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"log/slog"
-	"time"
+
+	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/kafkalib"
+	"github.com/artie-labs/reader/lib/mtr"
 )
 
 type Source struct {
@@ -26,13 +28,14 @@ func Load(cfg config.MongoDB) (*Source, error) {
 	}
 
 	opts := options.Client().ApplyURI(cfg.Host).SetAuth(creds).SetTLSConfig(&tls.Config{})
-	client, err := mongo.Connect(context.Background(), opts)
+	ctx := context.Background()
+	client, err := mongo.Connect(ctx, opts)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to mongodb, err: %w", err)
+		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
 	}
 
-	if err = client.Ping(context.TODO(), readpref.Primary()); err != nil {
-		return nil, fmt.Errorf("failed to ping MongoDB, err: %w", err)
+	if err = client.Ping(ctx, readpref.Primary()); err != nil {
+		return nil, fmt.Errorf("failed to ping MongoDB: %w", err)
 	}
 
 	db := client.Database(cfg.Database)
@@ -47,7 +50,7 @@ func (s *Source) Close() error {
 	return nil
 }
 
-func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, statsD *mtr.Client) error {
+func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, _ *mtr.Client) error {
 	for _, collection := range s.cfg.Collections {
 		snapshotStartTime := time.Now()
 
@@ -60,7 +63,7 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, statsD *m
 		iterator := newIterator(s.db, collection, s.cfg)
 		count, err := writer.WriteIterator(ctx, iterator)
 		if err != nil {
-			return fmt.Errorf("failed to snapshot, table: %s, err: %w", collection.Name, err)
+			return fmt.Errorf("failed to snapshot for collection %s: %w", collection.Name, err)
 		}
 
 		slog.Info("Finished snapshotting", slog.Int("scannedTotal", count), slog.Duration("totalDuration", time.Since(snapshotStartTime)))
