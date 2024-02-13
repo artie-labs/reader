@@ -2,7 +2,6 @@ package mongo
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
@@ -38,13 +37,6 @@ type mgoMessage struct {
 	pk                interface{}
 }
 
-func newMgoMessage(jsonExtendedBytes []byte, pk interface{}) mgoMessage {
-	return mgoMessage{
-		jsonExtendedBytes: jsonExtendedBytes,
-		pk:                pk,
-	}
-}
-
 func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
 	if !c.HasNext() {
 		return nil, fmt.Errorf("no more rows to scan")
@@ -57,7 +49,7 @@ func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
 
 		cursor, err := c.db.Collection(c.collection.Name).Find(ctx, bson.D{}, findOptions)
 		if err != nil {
-			return nil, fmt.Errorf("failed to find documents, err: %w", err)
+			return nil, fmt.Errorf("failed to find documents: %w", err)
 		}
 
 		c.cursor = cursor
@@ -67,29 +59,19 @@ func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
 	for c.collection.GetBatchSize() > uint(len(mgoMsgs)) && c.cursor.Next(ctx) {
 		var result bson.M
 		if err := c.cursor.Decode(&result); err != nil {
-			return nil, fmt.Errorf("failed to decode document, err: %w", err)
+			return nil, fmt.Errorf("failed to decode document: %w", err)
 		}
 
-		jsonExtendedBytes, err := bson.MarshalExtJSON(result, false, false)
+		mgoMsg, err := parseMessage(result)
 		if err != nil {
-			return nil, fmt.Errorf("failed to marshal document to JSON extended, err: %w", err)
+			return nil, fmt.Errorf("failed to parse message: %w", err)
 		}
 
-		var jsonExtendedMap map[string]interface{}
-		if err = json.Unmarshal(jsonExtendedBytes, &jsonExtendedMap); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal JSON extended to map, err: %w", err)
-		}
-
-		pk, isOk := jsonExtendedMap["_id"]
-		if !isOk {
-			return nil, fmt.Errorf("failed to get partition key, row: %v", jsonExtendedMap)
-		}
-
-		mgoMsgs = append(mgoMsgs, newMgoMessage(jsonExtendedBytes, pk))
+		mgoMsgs = append(mgoMsgs, *mgoMsg)
 	}
 
 	if err := c.cursor.Err(); err != nil {
-		return nil, fmt.Errorf("failed to iterate over documents, err: %w", err)
+		return nil, fmt.Errorf("failed to iterate over documents: %w", err)
 	}
 
 	// If the number of fetched documents is less than the batch size, we are done
@@ -101,7 +83,7 @@ func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
 	for _, mgoMsg := range mgoMsgs {
 		rawMessage, err := newRawMessage(mgoMsg, c.collection, c.cfg.Database)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create raw message, err: %w", err)
+			return nil, fmt.Errorf("failed to create raw message: %w", err)
 		}
 
 		rawMessages = append(rawMessages, rawMessage)
