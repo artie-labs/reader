@@ -16,8 +16,8 @@ type MongoDB struct {
 }
 
 type Collection struct {
-	Name  string `yaml:"name"`
-	Limit uint   `yaml:"limit,omitempty"`
+	Name      string `yaml:"name"`
+	BatchSize int32  `yaml:"batchSize,omitempty"`
 	// TODO: In the future, we should be able to support customers passing Start/End PK values.
 }
 
@@ -25,12 +25,12 @@ func (c Collection) TopicSuffix(db string) string {
 	return fmt.Sprintf("%s.%s", db, c.Name)
 }
 
-func (c Collection) GetBatchSize() uint {
-	if c.Limit == 0 {
+func (c Collection) GetBatchSize() int32 {
+	if c.BatchSize == 0 {
 		return constants.DefaultBatchSize
 	}
 
-	return c.Limit
+	return c.BatchSize
 }
 
 func (m MongoDB) Validate() error {

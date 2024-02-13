@@ -40,8 +40,7 @@ func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
 	ctx := context.Background()
 	if c.cursor == nil {
 		findOptions := options.Find()
-		findOptions.SetLimit(int64(c.collection.GetBatchSize()))
-
+		findOptions.SetBatchSize(c.collection.GetBatchSize())
 		cursor, err := c.db.Collection(c.collection.Name).Find(ctx, bson.D{}, findOptions)
 		if err != nil {
 			return nil, fmt.Errorf("failed to find documents: %w", err)
@@ -51,7 +50,7 @@ func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
 	}
 
 	var mgoMsgs []mgoMessage
-	for c.collection.GetBatchSize() > uint(len(mgoMsgs)) && c.cursor.Next(ctx) {
+	for c.collection.GetBatchSize() > int32(len(mgoMsgs)) && c.cursor.Next(ctx) {
 		var result bson.M
 		if err := c.cursor.Decode(&result); err != nil {
 			return nil, fmt.Errorf("failed to decode document: %w", err)
@@ -70,7 +69,7 @@ func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
 	}
 
 	// If the number of fetched documents is less than the batch size, we are done
-	if c.collection.GetBatchSize() > uint(len(mgoMsgs)) {
+	if c.collection.GetBatchSize() > int32(len(mgoMsgs)) {
 		c.done = true
 	}
 
