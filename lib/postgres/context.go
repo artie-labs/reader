@@ -19,7 +19,7 @@ func NewConnection(cfg config.PostgreSQL) *Connection {
 	return &Connection{
 		Host:       cfg.Host,
 		Port:       uint16(cfg.Port),
-		Username:   cfg.GetUsername(),
+		Username:   cfg.Username,
 		Password:   cfg.Password,
 		Database:   cfg.Database,
 		DisableSSL: cfg.DisableSSL,

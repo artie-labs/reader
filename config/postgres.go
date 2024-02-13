@@ -17,12 +17,6 @@ type PostgreSQL struct {
 	Database   string             `yaml:"database"`
 	Tables     []*PostgreSQLTable `yaml:"tables"`
 	DisableSSL bool               `yaml:"disableSSL"`
-	// Deprecated
-	LegacyUsername string `yaml:"userName"`
-}
-
-func (p *PostgreSQL) GetUsername() string {
-	return stringutil.Override(p.LegacyUsername, p.Username)
 }
 
 type PostgreSQLTable struct {
@@ -46,7 +40,7 @@ func (p *PostgreSQL) Validate() error {
 		return fmt.Errorf("the PostgreSQL config is nil")
 	}
 
-	if stringutil.Empty(p.Host, p.GetUsername(), p.Password, p.Database) {
+	if stringutil.Empty(p.Host, p.Username, p.Password, p.Database) {
 		return fmt.Errorf("one of the PostgreSQL settings is empty: host, username, password, database")
 	}
 

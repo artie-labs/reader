@@ -136,31 +136,6 @@ func TestPostgreSQL_Validate(t *testing.T) {
 	}
 }
 
-func TestPostgreSQL_GetUsername(t *testing.T) {
-	{
-		// Username is set, legacy username is not set
-		p := &PostgreSQL{
-			Username: "username",
-		}
-		assert.Equal(t, "username", p.GetUsername())
-	}
-	{
-		// Legacy username is set, username is not set
-		p := &PostgreSQL{
-			LegacyUsername: "legacyUsername",
-		}
-		assert.Equal(t, "legacyUsername", p.GetUsername())
-	}
-	{
-		// Legacy username is set and username is set
-		p := &PostgreSQL{
-			Username:       "username",
-			LegacyUsername: "legacyUsername",
-		}
-		assert.Equal(t, "username", p.GetUsername())
-	}
-}
-
 func TestPostgreSQLTable_GetBatchSize(t *testing.T) {
 	{
 		// Batch size is not set
