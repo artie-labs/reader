@@ -39,13 +39,13 @@ func NewValueWrapper(value interface{}) ValueWrapper {
 	}
 }
 
-func (c *Config) ParseValue(args ParseValueArgs) (ValueWrapper, error) {
+func ParseValue(fields *debezium.Fields, args ParseValueArgs) (ValueWrapper, error) {
 	// If the value is nil, or already parsed - just return.
 	if args.Value() == nil || args.ValueWrapper.parsed {
 		return args.ValueWrapper, nil
 	}
 
-	colKind := c.Fields.GetDataType(args.ColName)
+	colKind := fields.GetDataType(args.ColName)
 	switch colKind {
 	case debezium.Geometry, debezium.Geography:
 		valString, isOk := args.Value().(string)

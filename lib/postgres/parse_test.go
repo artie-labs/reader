@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	debezium "github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/transfer/lib/ptr"
 
 	"github.com/stretchr/testify/assert"
@@ -94,11 +95,11 @@ func TestParse(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		cfg := NewPostgresConfig()
+		fields := debezium.NewFields()
 		dataType, opts := colKindToDataType(tc.colKind, nil, nil, tc.udtName)
-		cfg.Fields.AddField(tc.colName, dataType, opts)
+		fields.AddField(tc.colName, dataType, opts)
 
-		value, err := cfg.ParseValue(ParseValueArgs{
+		value, err := ParseValue(fields, ParseValueArgs{
 			ColName:      tc.colName,
 			ValueWrapper: tc.value,
 			ParseTime:    tc.parseTime,
@@ -112,7 +113,7 @@ func TestParse(t *testing.T) {
 
 			// if there are no errors, let's iterate over this a few times to make sure it's deterministic.
 			for i := 0; i < 5; i++ {
-				value, err = cfg.ParseValue(ParseValueArgs{
+				value, err = ParseValue(fields, ParseValueArgs{
 					ColName:      tc.colName,
 					ValueWrapper: value,
 					ParseTime:    tc.parseTime,
