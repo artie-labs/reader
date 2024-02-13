@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/artie-labs/reader/config"
 )
@@ -15,7 +16,10 @@ type Connection struct {
 	DisableSSL bool
 }
 
-func NewConnection(cfg config.PostgreSQL) *Connection {
+func NewConnection(cfg config.PostgreSQL) (*Connection, error) {
+	if cfg.Port > math.MaxUint16 {
+		return nil, fmt.Errorf("port is too large: %d", cfg.Port)
+	}
 	return &Connection{
 		Host:       cfg.Host,
 		Port:       uint16(cfg.Port),
