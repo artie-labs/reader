@@ -102,6 +102,14 @@ func (s *Settings) Validate() error {
 		if err := s.DynamoDB.Validate(); err != nil {
 			return fmt.Errorf("dynamodb validation failed: %w", err)
 		}
+	case SourceMongoDB:
+		if s.MongoDB == nil {
+			return fmt.Errorf("mongodb config is nil")
+		}
+
+		if err := s.MongoDB.Validate(); err != nil {
+			return fmt.Errorf("mongodb validation failed: %w", err)
+		}
 	case SourcePostgreSQL:
 		if s.PostgreSQL == nil {
 			return fmt.Errorf("postgres config is nil")
@@ -111,14 +119,6 @@ func (s *Settings) Validate() error {
 			return fmt.Errorf("postgres validation failed: %w", err)
 		}
 
-	case SourceMongoDB:
-		if s.MongoDB == nil {
-			return fmt.Errorf("mongodb config is nil")
-		}
-
-		if err := s.MongoDB.Validate(); err != nil {
-			return fmt.Errorf("mongodb validation failed: %v", err)
-		}
 	}
 
 	return nil

@@ -1,12 +1,12 @@
 source: mongodb
 mongodb:
   host: mongodb://localhost:27017
-  userName: foo
+  username: foo
   password: bar
   database: myFirstDatabase
   collections:
     - name: customers
-      limit: 1
+      batchSize: 1
 kafka:
   bootstrapServers: localhost:29092
   topicPrefix: dbserver1
