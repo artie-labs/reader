@@ -35,7 +35,7 @@ func (t *Table) RetrieveColumns(db *sql.DB) error {
 			return err
 		}
 
-		dataType, opts := ColKindToDataType(colKind, numericPrecision, numericScale, udtName)
+		dataType, opts := colKindToDataType(colKind, numericPrecision, numericScale, udtName)
 		if dataType == debezium.InvalidDataType {
 			slog.Warn("Column type did not get mapped in our message schema, so it will not be automatically created by transfer",
 				slog.String("colName", colName),
@@ -66,7 +66,7 @@ func (t *Table) RetrieveColumns(db *sql.DB) error {
 	return t.FindStartAndEndPrimaryKeys(db)
 }
 
-func ColKindToDataType(colKind string, precision, scale *string, udtName *string) (debezium.DataType, *debezium.Opts) {
+func colKindToDataType(colKind string, precision, scale *string, udtName *string) (debezium.DataType, *debezium.Opts) {
 	colKind = strings.ToLower(colKind)
 	switch colKind {
 	case "point":
