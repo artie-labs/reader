@@ -9,11 +9,6 @@ import (
 	"github.com/artie-labs/reader/lib/postgres/debezium"
 )
 
-type NumericDetails struct {
-	FieldName  string
-	Parameters map[string]interface{}
-}
-
 type Config struct {
 	Fields *debezium.Fields
 }
