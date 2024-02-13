@@ -22,10 +22,6 @@ func NewPostgresConfig() *Config {
 	return &Config{Fields: debezium.NewFields()}
 }
 
-func (c *Config) AddColumn(colName string, dataType debezium.DataType, opts *debezium.Opts) {
-	c.Fields.AddField(colName, dataType, opts)
-}
-
 // GetColEscaped will take a colName and return the escaped version of what we should be using to call Postgres.
 // If it doesn't exist, we'll return an empty string.
 func (c *Config) GetColEscaped(rawColName string) string {

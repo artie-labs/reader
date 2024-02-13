@@ -150,7 +150,7 @@ func TestPostgresConfig_Complete(t *testing.T) {
 		cfg := NewPostgresConfig()
 		// TODO: Add test for hstore
 		dataType, opts := colKindToDataType(testCase.colKind, nil, nil, nil)
-		cfg.AddColumn(testCase.colName, dataType, opts)
+		cfg.Fields.AddField(testCase.colName, dataType, opts)
 
 		actualEscCol := cfg.GetColEscaped(testCase.colName)
 		assert.Equal(t, testCase.expectedEscColString, actualEscCol, testCase.name)

@@ -42,7 +42,7 @@ func (t *Table) RetrieveColumns(db *sql.DB) error {
 				slog.String("colKind", colKind),
 			)
 		} else {
-			t.Config.AddColumn(colName, dataType, opts)
+			t.Config.Fields.AddField(colName, dataType, opts)
 		}
 	}
 
