@@ -13,9 +13,63 @@ func TestPostgreSQL_Validate(t *testing.T) {
 		assert.ErrorContains(t, p.Validate(), "the PostgreSQL config is nil")
 	}
 	{
-		// Host, port, username, password, database are empty
+		// Host, username, password, database are empty
 		p := &PostgreSQL{}
 		assert.ErrorContains(t, p.Validate(), "one of the PostgreSQL settings is empty: host, username, password, database")
+	}
+	{
+		// Port is -1
+		p := &PostgreSQL{
+			Host:     "host",
+			Port:     -1,
+			Username: "username",
+			Password: "password",
+			Database: "database",
+			Tables: []*PostgreSQLTable{
+				{
+					Name:   "name",
+					Schema: "schema",
+				},
+			},
+		}
+
+		assert.ErrorContains(t, p.Validate(), "port is not set or <= 0")
+	}
+	{
+		// Port is 0
+		p := &PostgreSQL{
+			Host:     "host",
+			Port:     -1,
+			Username: "username",
+			Password: "password",
+			Database: "database",
+			Tables: []*PostgreSQLTable{
+				{
+					Name:   "name",
+					Schema: "schema",
+				},
+			},
+		}
+
+		assert.ErrorContains(t, p.Validate(), "port is not set or <= 0")
+	}
+	{
+		// Port is too big
+		p := &PostgreSQL{
+			Host:     "host",
+			Port:     1_000_000,
+			Username: "username",
+			Password: "password",
+			Database: "database",
+			Tables: []*PostgreSQLTable{
+				{
+					Name:   "name",
+					Schema: "schema",
+				},
+			},
+		}
+
+		assert.ErrorContains(t, p.Validate(), "port is > 65535")
 	}
 	{
 		// Tables are empty
@@ -109,7 +163,7 @@ func TestPostgreSQL_GetUsername(t *testing.T) {
 
 func TestPostgreSQLTable_GetBatchSize(t *testing.T) {
 	{
-		// Neither batch size nor limit are set
+		// Batch size is not set
 		p := &PostgreSQLTable{}
 		assert.Equal(t, uint(5_000), p.GetBatchSize())
 	}
@@ -117,21 +171,6 @@ func TestPostgreSQLTable_GetBatchSize(t *testing.T) {
 		// Batch size is set
 		p := &PostgreSQLTable{
 			BatchSize: 1,
-		}
-		assert.Equal(t, uint(1), p.GetBatchSize())
-	}
-	{
-		// Limit is set
-		p := &PostgreSQLTable{
-			Limit: 1,
-		}
-		assert.Equal(t, uint(1), p.GetBatchSize())
-	}
-	{
-		// Batch size and limit are set
-		p := &PostgreSQLTable{
-			BatchSize: 1,
-			Limit:     2,
 		}
 		assert.Equal(t, uint(1), p.GetBatchSize())
 	}

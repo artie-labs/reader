@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/artie-labs/transfer/lib/stringutil"
 
@@ -10,7 +11,7 @@ import (
 
 type PostgreSQL struct {
 	Host       string             `yaml:"host"`
-	Port       uint16             `yaml:"port"`
+	Port       int                `yaml:"port"`
 	Username   string             `yaml:"username"`
 	Password   string             `yaml:"password"`
 	Database   string             `yaml:"database"`
@@ -30,15 +31,11 @@ type PostgreSQLTable struct {
 	BatchSize                  uint   `yaml:"batchSize"`
 	OptionalPrimaryKeyValStart string `yaml:"optionalPrimaryKeyValStart"`
 	OptionalPrimaryKeyValEnd   string `yaml:"optionalPrimaryKeyValEnd"`
-	// Deprecated
-	Limit uint `yaml:"limit"`
 }
 
 func (p *PostgreSQLTable) GetBatchSize() uint {
 	if p.BatchSize > 0 {
 		return p.BatchSize
-	} else if p.Limit > 0 {
-		return p.Limit
 	} else {
 		return constants.DefaultBatchSize
 	}
@@ -53,8 +50,10 @@ func (p *PostgreSQL) Validate() error {
 		return fmt.Errorf("one of the PostgreSQL settings is empty: host, username, password, database")
 	}
 
-	if p.Port == 0 {
-		return fmt.Errorf("port is not set or 0")
+	if p.Port <= 0 {
+		return fmt.Errorf("port is not set or <= 0")
+	} else if p.Port > math.MaxUint16 {
+		return fmt.Errorf("port is > %d", math.MaxUint16)
 	}
 
 	if len(p.Tables) == 0 {
