@@ -35,7 +35,7 @@ func (c Collection) GetBatchSize() int32 {
 
 func (m MongoDB) Validate() error {
 	if stringutil.Empty(m.Host, m.Database, m.Username, m.Password) {
-		return fmt.Errorf("one of the Mongodb settings is empty: host, username, password, database")
+		return fmt.Errorf("one of the MongoDB settings is empty: host, username, password, database")
 	}
 
 	if len(m.Collections) == 0 {
