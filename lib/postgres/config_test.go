@@ -152,7 +152,7 @@ func TestPostgresConfig_Complete(t *testing.T) {
 		dataType, opts := colKindToDataType(testCase.colKind, nil, nil, nil)
 		cfg.Fields.AddField(testCase.colName, dataType, opts)
 
-		actualEscCol := cfg.GetColEscaped(testCase.colName)
+		actualEscCol := castColumn(testCase.colName, cfg.Fields.GetDataType(testCase.colName))
 		assert.Equal(t, testCase.expectedEscColString, actualEscCol, testCase.name)
 
 		field, isOk := cfg.Fields.GetField(testCase.colName)
