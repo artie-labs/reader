@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"github.com/artie-labs/transfer/lib/ptr"
 	"testing"
 	"time"
 
@@ -11,6 +12,7 @@ func TestParse(t *testing.T) {
 	type _testCase struct {
 		colName       string
 		colKind       string
+		udtName       *string
 		parseTime     bool
 		value         ValueWrapper
 		expectErr     bool
@@ -76,11 +78,23 @@ func TestParse(t *testing.T) {
 			},
 			expectedValue: `{"foo":"bar"}`,
 		},
+		{
+			colName: "geography",
+			colKind: "user-defined",
+			udtName: ptr.ToString("geography"),
+			value: ValueWrapper{
+				Value: "0101000020E61000000000000000804B4000000000008040C0",
+			},
+			expectedValue: map[string]interface{}{
+				"srid": nil,
+				"wkb":  "AQEAACDmEAAAAAAAAACAS0AAAAAAAIBAwA==",
+			},
+		},
 	}
 
 	for _, tc := range tcs {
 		cfg := NewPostgresConfig()
-		cfg.UpdateCols(tc.colName, tc.colKind, nil, nil, nil)
+		cfg.UpdateCols(tc.colName, tc.colKind, nil, nil, tc.udtName)
 
 		value, err := cfg.ParseValue(ParseValueArgs{
 			ColName:      tc.colName,

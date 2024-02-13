@@ -14,6 +14,7 @@ import (
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/mtr"
+	"github.com/artie-labs/reader/sources"
 	"github.com/artie-labs/reader/sources/dynamodb"
 	"github.com/artie-labs/reader/sources/postgres"
 )
@@ -42,6 +43,18 @@ func setUpKafka(ctx context.Context, cfg *config.Kafka, statsD *mtr.Client) (*ka
 		slog.Uint64("maxRequestSize", cfg.MaxRequestSize),
 	)
 	return kafkalib.NewBatchWriter(ctx, *cfg, statsD)
+}
+
+func buildSource(cfg *config.Settings) (sources.Source, error) {
+	switch cfg.Source {
+	case "", config.SourceDynamo:
+		return dynamodb.Load(*cfg.DynamoDB)
+	case config.SourcePostgreSQL:
+		return postgres.Load(*cfg.PostgreSQL, cfg.Kafka.MaxRequestSize)
+	case config.SourceMongoDB:
+		return mongo.Load(*cfg.MongoDB)
+	}
+	panic(fmt.Sprintf("Unknown source: %s", cfg.Source)) // should never happen
 }
 
 func main() {
@@ -73,22 +86,14 @@ func main() {
 		logger.Fatal("Failed to set up kafka", slog.Any("err", err))
 	}
 
-	switch cfg.Source {
-	case "", config.SourceDynamo:
-		ddb, err := dynamodb.Load(*cfg.DynamoDB, *writer)
-		if err != nil {
-			logger.Fatal("Failed to load dynamodb", slog.Any("err", err))
-		}
-		if err = ddb.Run(ctx); err != nil {
-			logger.Fatal("Failed to run dynamodb snapshot", slog.Any("err", err))
-		}
-	case config.SourcePostgreSQL:
-		if err = postgres.Run(ctx, *cfg, statsD, *writer); err != nil {
-			logger.Fatal("Failed to run postgres snapshot", slog.Any("err", err))
-		}
-	case config.SourceMongoDB:
-		if err = mongo.Run(ctx, *cfg, statsD, *writer); err != nil {
-			logger.Fatal("Failed to run mongo snapshot", slog.Any("err", err))
-		}
+	source, err := buildSource(cfg)
+	if err != nil {
+		logger.Fatal(fmt.Sprintf("Failed to init %s", cfg.Source), slog.Any("err", err))
+	}
+	defer source.Close()
+
+	err = source.Run(ctx, *writer, statsD)
+	if err != nil {
+		logger.Fatal(fmt.Sprintf("Failed to run %s snapshot", cfg.Source), slog.Any("err", err))
 	}
 }

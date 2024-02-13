@@ -69,9 +69,9 @@ const (
 
 type Settings struct {
 	Source     Source      `yaml:"source"`
-	PostgreSQL *PostgreSQL `yaml:"postgresql,omitempty"`
 	DynamoDB   *DynamoDB   `yaml:"dynamodb,omitempty"`
 	MongoDB    *MongoDB    `yaml:"mongodb,omitempty"`
+	PostgreSQL *PostgreSQL `yaml:"postgresql,omitempty"`
 
 	Reporting *Reporting `yaml:"reporting"`
 	Metrics   *Metrics   `yaml:"metrics"`
@@ -88,7 +88,7 @@ func (s *Settings) Validate() error {
 	}
 
 	if err := s.Kafka.Validate(); err != nil {
-		return fmt.Errorf("kafka validation failed: %v", err)
+		return fmt.Errorf("kafka validation failed: %w", err)
 	}
 
 	switch s.Source {
@@ -99,7 +99,7 @@ func (s *Settings) Validate() error {
 		}
 
 		if err := s.DynamoDB.Validate(); err != nil {
-			return fmt.Errorf("dynamodb validation failed: %v", err)
+			return fmt.Errorf("dynamodb validation failed: %w", err)
 		}
 	case SourcePostgreSQL:
 		if s.PostgreSQL == nil {
@@ -107,7 +107,7 @@ func (s *Settings) Validate() error {
 		}
 
 		if err := s.PostgreSQL.Validate(); err != nil {
-			return fmt.Errorf("postgres validation failed: %v", err)
+			return fmt.Errorf("postgres validation failed: %w", err)
 		}
 
 	case SourceMongoDB:
@@ -126,17 +126,17 @@ func (s *Settings) Validate() error {
 func ReadConfig(fp string) (*Settings, error) {
 	bytes, err := os.ReadFile(fp)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read config file, err: %w", err)
+		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
 
 	var settings Settings
 	err = yaml.Unmarshal(bytes, &settings)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config file, err: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal config file: %w", err)
 	}
 
 	if err = settings.Validate(); err != nil {
-		return nil, fmt.Errorf("failed to validate config file, err: %v", err)
+		return nil, fmt.Errorf("failed to validate config file: %w", err)
 	}
 
 	return &settings, nil

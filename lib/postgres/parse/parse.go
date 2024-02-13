@@ -36,12 +36,12 @@ func ToPoint(data string) (*Point, error) {
 	// Parse the X and Y coordinates
 	x, err := strconv.ParseFloat(parts[0], 64)
 	if err != nil {
-		return nil, fmt.Errorf("invalid X coordinate: %v", err)
+		return nil, fmt.Errorf("invalid X coordinate: %w", err)
 	}
 
 	y, err := strconv.ParseFloat(parts[1], 64)
 	if err != nil {
-		return nil, fmt.Errorf("invalid Y coordinate: %v", err)
+		return nil, fmt.Errorf("invalid Y coordinate: %w", err)
 	}
 
 	return &Point{X: x, Y: y}, nil

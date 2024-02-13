@@ -6,22 +6,76 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPostgresValidate(t *testing.T) {
+func TestPostgreSQL_Validate(t *testing.T) {
 	{
 		// Config is empty
 		var p *PostgreSQL
-		assert.ErrorContains(t, p.Validate(), "postgres config is nil")
+		assert.ErrorContains(t, p.Validate(), "the PostgreSQL config is nil")
 	}
 	{
-		// Host, port, username, password, database are empty
+		// Host, username, password, database are empty
 		p := &PostgreSQL{}
-		assert.ErrorContains(t, p.Validate(), "one of the postgresql settings is empty: host, port, username, password, database")
+		assert.ErrorContains(t, p.Validate(), "one of the PostgreSQL settings is empty: host, username, password, database")
+	}
+	{
+		// Port is -1
+		p := &PostgreSQL{
+			Host:     "host",
+			Port:     -1,
+			Username: "username",
+			Password: "password",
+			Database: "database",
+			Tables: []*PostgreSQLTable{
+				{
+					Name:   "name",
+					Schema: "schema",
+				},
+			},
+		}
+
+		assert.ErrorContains(t, p.Validate(), "port is not set or <= 0")
+	}
+	{
+		// Port is 0
+		p := &PostgreSQL{
+			Host:     "host",
+			Port:     -1,
+			Username: "username",
+			Password: "password",
+			Database: "database",
+			Tables: []*PostgreSQLTable{
+				{
+					Name:   "name",
+					Schema: "schema",
+				},
+			},
+		}
+
+		assert.ErrorContains(t, p.Validate(), "port is not set or <= 0")
+	}
+	{
+		// Port is too big
+		p := &PostgreSQL{
+			Host:     "host",
+			Port:     1_000_000,
+			Username: "username",
+			Password: "password",
+			Database: "database",
+			Tables: []*PostgreSQLTable{
+				{
+					Name:   "name",
+					Schema: "schema",
+				},
+			},
+		}
+
+		assert.ErrorContains(t, p.Validate(), "port is > 65535")
 	}
 	{
 		// Tables are empty
 		p := &PostgreSQL{
 			Host:     "host",
-			Port:     "port",
+			Port:     1,
 			Username: "username",
 			Password: "password",
 			Database: "database",
@@ -33,7 +87,7 @@ func TestPostgresValidate(t *testing.T) {
 		// No table name
 		p := &PostgreSQL{
 			Host:     "host",
-			Port:     "port",
+			Port:     1,
 			Username: "username",
 			Password: "password",
 			Database: "database",
@@ -50,7 +104,7 @@ func TestPostgresValidate(t *testing.T) {
 		// No schema name
 		p := &PostgreSQL{
 			Host:     "host",
-			Port:     "port",
+			Port:     1,
 			Username: "username",
 			Password: "password",
 			Database: "database",
@@ -67,7 +121,7 @@ func TestPostgresValidate(t *testing.T) {
 		// Valid
 		p := &PostgreSQL{
 			Host:     "host",
-			Port:     "port",
+			Port:     1,
 			Username: "username",
 			Password: "password",
 			Database: "database",
@@ -79,5 +133,20 @@ func TestPostgresValidate(t *testing.T) {
 			},
 		}
 		assert.NoError(t, p.Validate())
+	}
+}
+
+func TestPostgreSQLTable_GetBatchSize(t *testing.T) {
+	{
+		// Batch size is not set
+		p := &PostgreSQLTable{}
+		assert.Equal(t, uint(5_000), p.GetBatchSize())
+	}
+	{
+		// Batch size is set
+		p := &PostgreSQLTable{
+			BatchSize: 1,
+		}
+		assert.Equal(t, uint(1), p.GetBatchSize())
 	}
 }

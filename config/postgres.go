@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/artie-labs/transfer/lib/stringutil"
 
@@ -10,8 +11,8 @@ import (
 
 type PostgreSQL struct {
 	Host       string             `yaml:"host"`
-	Port       string             `yaml:"port"`
-	Username   string             `yaml:"userName"`
+	Port       int                `yaml:"port"`
+	Username   string             `yaml:"username"`
 	Password   string             `yaml:"password"`
 	Database   string             `yaml:"database"`
 	Tables     []*PostgreSQLTable `yaml:"tables"`
@@ -21,26 +22,32 @@ type PostgreSQL struct {
 type PostgreSQLTable struct {
 	Name                       string `yaml:"name"`
 	Schema                     string `yaml:"schema"`
-	Limit                      uint   `yaml:"limit"`
+	BatchSize                  uint   `yaml:"batchSize"`
 	OptionalPrimaryKeyValStart string `yaml:"optionalPrimaryKeyValStart"`
 	OptionalPrimaryKeyValEnd   string `yaml:"optionalPrimaryKeyValEnd"`
 }
 
 func (p *PostgreSQLTable) GetBatchSize() uint {
-	if p.Limit == 0 {
+	if p.BatchSize > 0 {
+		return p.BatchSize
+	} else {
 		return constants.DefaultBatchSize
 	}
-
-	return p.Limit
 }
 
 func (p *PostgreSQL) Validate() error {
 	if p == nil {
-		return fmt.Errorf("postgres config is nil")
+		return fmt.Errorf("the PostgreSQL config is nil")
 	}
 
-	if stringutil.Empty(p.Host, p.Port, p.Username, p.Password, p.Database) {
-		return fmt.Errorf("one of the postgresql settings is empty: host, port, username, password, database")
+	if stringutil.Empty(p.Host, p.Username, p.Password, p.Database) {
+		return fmt.Errorf("one of the PostgreSQL settings is empty: host, username, password, database")
+	}
+
+	if p.Port <= 0 {
+		return fmt.Errorf("port is not set or <= 0")
+	} else if p.Port > math.MaxUint16 {
+		return fmt.Errorf("port is > %d", math.MaxUint16)
 	}
 
 	if len(p.Tables) == 0 {

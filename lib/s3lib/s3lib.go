@@ -75,7 +75,7 @@ func (s *S3Client) StreamJsonGzipFile(file S3File, ch chan<- dynamodb.ItemRespon
 		Key:    file.Key,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to get object from S3, err: %v", err)
+		return fmt.Errorf("failed to get object from S3: %w", err)
 	}
 
 	defer result.Body.Close()
@@ -83,7 +83,7 @@ func (s *S3Client) StreamJsonGzipFile(file S3File, ch chan<- dynamodb.ItemRespon
 	// Create a gzip reader
 	gz, err := gzip.NewReader(result.Body)
 	if err != nil {
-		return fmt.Errorf("failed to create a GZIP reader for object, err: %v", err)
+		return fmt.Errorf("failed to create a GZIP reader for object: %w", err)
 	}
 	defer gz.Close()
 
@@ -92,14 +92,14 @@ func (s *S3Client) StreamJsonGzipFile(file S3File, ch chan<- dynamodb.ItemRespon
 		line := scanner.Bytes()
 		var content dynamodb.ItemResponse
 		if err = json.Unmarshal(line, &content); err != nil {
-			return fmt.Errorf("failed to unmarshal, err: %v", err)
+			return fmt.Errorf("failed to unmarshal: %w", err)
 		}
 
 		ch <- content
 	}
 
 	if err = scanner.Err(); err != nil {
-		return fmt.Errorf("error reading from S3 object, err: %v", err)
+		return fmt.Errorf("error reading from S3 object: %w", err)
 	}
 
 	return nil

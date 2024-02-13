@@ -8,17 +8,17 @@ import (
 
 type Connection struct {
 	Host       string
-	Port       string
+	Port       uint16
 	Username   string
 	Password   string
 	Database   string
 	DisableSSL bool
 }
 
-func NewConnection(cfg *config.PostgreSQL) *Connection {
+func NewConnection(cfg config.PostgreSQL) *Connection {
 	return &Connection{
 		Host:       cfg.Host,
-		Port:       cfg.Port,
+		Port:       uint16(cfg.Port),
 		Username:   cfg.Username,
 		Password:   cfg.Password,
 		Database:   cfg.Database,
@@ -27,7 +27,7 @@ func NewConnection(cfg *config.PostgreSQL) *Connection {
 }
 
 func (c *Connection) String() string {
-	connString := fmt.Sprintf("user=%s dbname=%s password=%s port=%s host=%s",
+	connString := fmt.Sprintf("user=%s dbname=%s password=%s port=%d host=%s",
 		c.Username, c.Database, c.Password, c.Port, c.Host)
 
 	if c.DisableSSL {

@@ -47,6 +47,7 @@ const (
 	// PostGIS
 	Point
 	Geometry
+	Geography
 )
 
 type Result struct {
@@ -56,6 +57,11 @@ type Result struct {
 
 func (d DataType) ToDebeziumType() Result {
 	switch d {
+	case Geography:
+		return Result{
+			DebeziumType: string(debezium.GeographyType),
+			Type:         "struct",
+		}
 	case Geometry:
 		return Result{
 			DebeziumType: string(debezium.GeometryType),
