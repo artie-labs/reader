@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/artie-labs/reader/sources/mongo"
 	"log/slog"
 	"time"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/reader/sources"
 	"github.com/artie-labs/reader/sources/dynamodb"
+	"github.com/artie-labs/reader/sources/mongo"
 	"github.com/artie-labs/reader/sources/postgres"
 )
 
