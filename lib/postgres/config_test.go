@@ -3,9 +3,10 @@ package postgres
 import (
 	"testing"
 
-	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/stretchr/testify/assert"
+
+	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
 )
 
 func TestPostgresConfig_Complete(t *testing.T) {

@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
-	debezium "github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/transfer/lib/ptr"
-
 	"github.com/stretchr/testify/assert"
+
+	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
 )
 
 func TestParse(t *testing.T) {
@@ -95,7 +95,7 @@ func TestParse(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		fields := debezium.NewFields()
+		fields := pgDebezium.NewFields()
 		dataType, opts := colKindToDataType(tc.colKind, nil, nil, tc.udtName)
 		fields.AddField(tc.colName, dataType, opts)
 
