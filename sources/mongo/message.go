@@ -10,8 +10,13 @@ import (
 	"time"
 )
 
-func newRawMessage(msg mgoMessage, collection config.Collection, database string) (lib.RawMessage, error) {
-	jsonExtendedString := string(msg.jsonExtendedBytes)
+type mgoMessage struct {
+	jsonExtendedBytes []byte
+	pk                interface{}
+}
+
+func (m *mgoMessage) toRawMessage(collection config.Collection, database string) (lib.RawMessage, error) {
+	jsonExtendedString := string(m.jsonExtendedBytes)
 	evt := mongo.SchemaEventPayload{
 		Schema: debezium.Schema{},
 		Payload: mongo.Payload{
@@ -27,7 +32,7 @@ func newRawMessage(msg mgoMessage, collection config.Collection, database string
 
 	return lib.NewMongoMessage(
 		collection.TopicSuffix(database),
-		map[string]interface{}{"id": map[string]interface{}{"_id": msg.pk}}, evt,
+		map[string]interface{}{"id": map[string]interface{}{"_id": m.pk}}, evt,
 	), nil
 }
 

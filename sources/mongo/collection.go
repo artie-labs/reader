@@ -32,11 +32,6 @@ func (c *collectionScanner) HasNext() bool {
 	return !c.done
 }
 
-type mgoMessage struct {
-	jsonExtendedBytes []byte
-	pk                interface{}
-}
-
 func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
 	if !c.HasNext() {
 		return nil, fmt.Errorf("no more rows to scan")
@@ -81,7 +76,7 @@ func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
 
 	var rawMessages []lib.RawMessage
 	for _, mgoMsg := range mgoMsgs {
-		rawMessage, err := newRawMessage(mgoMsg, c.collection, c.cfg.Database)
+		rawMessage, err := mgoMsg.toRawMessage(c.collection, c.cfg.Database)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create raw message: %w", err)
 		}

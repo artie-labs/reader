@@ -17,7 +17,7 @@ type MongoDB struct {
 
 type Collection struct {
 	Name  string `yaml:"name"`
-	Limit uint   `yaml:"limit"`
+	Limit uint   `yaml:"limit,omitempty"`
 	// TODO: In the future, we should be able to support customers passing Start/End PK values.
 }
 
