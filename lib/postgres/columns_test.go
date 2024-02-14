@@ -19,12 +19,12 @@ func TestColKindToDataType(t *testing.T) {
 
 	var testCases = []_testCase{
 		{
-			name:             "happy path",
+			name:             "array",
 			colKind:          "ARRAY",
 			expectedDataType: pgDebezium.Array,
 		},
 		{
-			name:             "happy path",
+			name:             "character varying",
 			colKind:          "character varying",
 			expectedDataType: pgDebezium.Text,
 		},
