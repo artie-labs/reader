@@ -87,64 +87,64 @@ func TestCastColumn(t *testing.T) {
 		name     string
 		dataType pgDebezium.DataType
 
-		expectedCastColumn string
+		expected string
 	}
 
 	var testCases = []_testCase{
 		{
-			name:               "array",
-			dataType:           pgDebezium.Array,
-			expectedCastColumn: `ARRAY_TO_JSON("foo")::TEXT as "foo"`,
+			name:     "array",
+			dataType: pgDebezium.Array,
+			expected: `ARRAY_TO_JSON("foo")::TEXT as "foo"`,
 		},
 		{
-			name:               "text",
-			dataType:           pgDebezium.Text,
-			expectedCastColumn: `"foo"`,
+			name:     "text",
+			dataType: pgDebezium.Text,
+			expected: `"foo"`,
 		},
 		{
-			name:               "numeric",
-			dataType:           pgDebezium.Numeric,
-			expectedCastColumn: `"foo"`,
+			name:     "numeric",
+			dataType: pgDebezium.Numeric,
+			expected: `"foo"`,
 		},
 		{
-			name:               "bit",
-			dataType:           pgDebezium.Bit,
-			expectedCastColumn: `"foo"`,
+			name:     "bit",
+			dataType: pgDebezium.Bit,
+			expected: `"foo"`,
 		},
 		{
-			name:               "bool",
-			dataType:           pgDebezium.Boolean,
-			expectedCastColumn: `"foo"`,
+			name:     "bool",
+			dataType: pgDebezium.Boolean,
+			expected: `"foo"`,
 		},
 		{
-			name:               "interval",
-			dataType:           pgDebezium.Interval,
-			expectedCastColumn: `cast(extract(epoch from "foo")*1000000 as bigint) as "foo"`,
+			name:     "interval",
+			dataType: pgDebezium.Interval,
+			expected: `cast(extract(epoch from "foo")*1000000 as bigint) as "foo"`,
 		},
 		{
-			name:               "time",
-			dataType:           pgDebezium.Time,
-			expectedCastColumn: `cast(extract(epoch from "foo")*1000 as bigint) as "foo"`,
+			name:     "time",
+			dataType: pgDebezium.Time,
+			expected: `cast(extract(epoch from "foo")*1000 as bigint) as "foo"`,
 		},
 		{
-			name:               "date",
-			dataType:           pgDebezium.Date,
-			expectedCastColumn: `"foo"`,
+			name:     "date",
+			dataType: pgDebezium.Date,
+			expected: `"foo"`,
 		},
 		{
-			name:               "char_text",
-			dataType:           pgDebezium.TextThatRequiresEscaping,
-			expectedCastColumn: `"foo"::text`,
+			name:     "char_text",
+			dataType: pgDebezium.TextThatRequiresEscaping,
+			expected: `"foo"::text`,
 		},
 		{
-			name:               "variable numeric",
-			dataType:           pgDebezium.VariableNumeric,
-			expectedCastColumn: `"foo"`,
+			name:     "variable numeric",
+			dataType: pgDebezium.VariableNumeric,
+			expected: `"foo"`,
 		},
 	}
 
 	for _, testCase := range testCases {
 		actualEscCol := castColumn("foo", testCase.dataType)
-		assert.Equal(t, testCase.expectedCastColumn, actualEscCol, testCase.name)
+		assert.Equal(t, testCase.expected, actualEscCol, testCase.name)
 	}
 }

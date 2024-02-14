@@ -13,7 +13,7 @@ func TestFields_AddField(t *testing.T) {
 		colName  string
 		dataType DataType
 
-		expectedField debezium.Field
+		expected debezium.Field
 	}
 
 	testCases := []_testCase{
@@ -21,7 +21,7 @@ func TestFields_AddField(t *testing.T) {
 			name:     "array",
 			colName:  "foo",
 			dataType: Array,
-			expectedField: debezium.Field{
+			expected: debezium.Field{
 				Type:      "array",
 				FieldName: "foo",
 			},
@@ -30,7 +30,7 @@ func TestFields_AddField(t *testing.T) {
 			name:     "text",
 			colName:  "group",
 			dataType: Text,
-			expectedField: debezium.Field{
+			expected: debezium.Field{
 				Type:      "string",
 				FieldName: "group",
 			},
@@ -39,7 +39,7 @@ func TestFields_AddField(t *testing.T) {
 			name:     "numeric",
 			colName:  "numeric_col",
 			dataType: VariableNumeric,
-			expectedField: debezium.Field{
+			expected: debezium.Field{
 				Type:         "struct",
 				FieldName:    "numeric_col",
 				DebeziumType: string(debezium.KafkaVariableNumericType),
@@ -49,7 +49,7 @@ func TestFields_AddField(t *testing.T) {
 			name:     "bit",
 			colName:  "bit_col",
 			dataType: Bit,
-			expectedField: debezium.Field{
+			expected: debezium.Field{
 				Type:      "boolean",
 				FieldName: "bit_col",
 			},
@@ -58,7 +58,7 @@ func TestFields_AddField(t *testing.T) {
 			name:     "bool",
 			colName:  "bool_col",
 			dataType: Boolean,
-			expectedField: debezium.Field{
+			expected: debezium.Field{
 				Type:      "boolean",
 				FieldName: "bool_col",
 			},
@@ -67,7 +67,7 @@ func TestFields_AddField(t *testing.T) {
 			name:     "interval",
 			colName:  "interval_coL",
 			dataType: Interval,
-			expectedField: debezium.Field{
+			expected: debezium.Field{
 				Type:         "int64",
 				FieldName:    "interval_coL",
 				DebeziumType: "io.debezium.time.MicroDuration",
@@ -77,7 +77,7 @@ func TestFields_AddField(t *testing.T) {
 			name:     "time",
 			colName:  "time",
 			dataType: Time,
-			expectedField: debezium.Field{
+			expected: debezium.Field{
 				Type:         "int32",
 				FieldName:    "time",
 				DebeziumType: string(debezium.Time),
@@ -87,7 +87,7 @@ func TestFields_AddField(t *testing.T) {
 			name:     "date",
 			colName:  "date_col",
 			dataType: Date,
-			expectedField: debezium.Field{
+			expected: debezium.Field{
 				Type:         "int32",
 				FieldName:    "date_col",
 				DebeziumType: string(debezium.Date),
@@ -97,7 +97,7 @@ func TestFields_AddField(t *testing.T) {
 			name:     "char_text",
 			colName:  "char_text_col",
 			dataType: TextThatRequiresEscaping,
-			expectedField: debezium.Field{
+			expected: debezium.Field{
 				Type:      "string",
 				FieldName: "char_text_col",
 			},
@@ -110,6 +110,6 @@ func TestFields_AddField(t *testing.T) {
 
 		field, isOk := fields.GetField(testCase.colName)
 		assert.True(t, isOk, testCase.name)
-		assert.Equal(t, testCase.expectedField, field, testCase.name)
+		assert.Equal(t, testCase.expected, field, testCase.name)
 	}
 }
