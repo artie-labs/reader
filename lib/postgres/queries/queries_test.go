@@ -6,25 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDescribeTableQuery(t *testing.T) {
-	{
-		query, args := DescribeTableQuery(DescribeTableArgs{
-			Name:   "name",
-			Schema: "schema",
-		})
-		assert.Equal(t, "SELECT column_name, data_type, numeric_precision, numeric_scale, udt_name\nFROM information_schema.columns\nWHERE table_name = $1 AND table_schema = $2", query)
-		assert.Equal(t, []any{"name", "schema"}, args)
-	}
-	// test quotes in table name or schema are left alone
-	{
-		_, args := DescribeTableQuery(DescribeTableArgs{
-			Name:   `na"me`,
-			Schema: `s'ch"em'a`,
-		})
-		assert.Equal(t, []any{`na"me`, `s'ch"em'a`}, args)
-	}
-}
-
 func TestQuotedIdentifiers(t *testing.T) {
 	assert.Equal(t, []string{`"a"`, `"bb""bb"`, `"c"`}, quotedIdentifiers([]string{"a", `bb"bb`, "c"}))
 }

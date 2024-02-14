@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/artie-labs/reader/lib/debezium"
+	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/reader/lib/stringutil"
 	"github.com/artie-labs/transfer/lib/cdc/util"
 )
@@ -19,7 +20,7 @@ func ParseValue(key string, value interface{}, fields *Fields) (interface{}, err
 	var err error
 	dt := fields.GetDataType(key)
 	switch dt {
-	case Timestamp:
+	case schema.Timestamp:
 		valTime, isOk := value.(time.Time)
 		if isOk {
 			if valTime.Year() > 9999 || valTime.Year() < 0 {
@@ -29,14 +30,14 @@ func ParseValue(key string, value interface{}, fields *Fields) (interface{}, err
 				return nil, nil
 			}
 		}
-	case Date:
+	case schema.Date:
 		value, err = debezium.ToDebeziumDate(value)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse date for key %s: %w", key, err)
 		}
 
-	case Numeric, Money:
-		if dt == Money {
+	case schema.Numeric, schema.Money:
+		if dt == schema.Money {
 			value = stringutil.ParseMoneyIntoString(fmt.Sprint(value))
 		}
 
@@ -54,7 +55,7 @@ func ParseValue(key string, value interface{}, fields *Fields) (interface{}, err
 		if err != nil {
 			return nil, fmt.Errorf("failed to encode decimal to b64 for key %s: %w", key, err)
 		}
-	case VariableNumeric:
+	case schema.VariableNumeric:
 		encodedValue, err := debezium.EncodeDecimalToBase64(fmt.Sprint(value), debezium.GetScale(fmt.Sprint(value)))
 		if err != nil {
 			return util.SchemaEventPayload{}, fmt.Errorf("failed to encode decimal to b64 for key %s: %w", key, err)

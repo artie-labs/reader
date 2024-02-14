@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,21 +22,21 @@ func TestParseValue(t *testing.T) {
 	}
 
 	dateFields := NewFields()
-	dateFields.AddField("date_col", Date, nil)
+	dateFields.AddField("date_col", schema.Date, nil)
 
 	numericFields := NewFields()
-	numericFields.AddField("numeric_col", Numeric, &Opts{
+	numericFields.AddField("numeric_col", schema.Numeric, &schema.Opts{
 		Scale:     ptr.ToString("2"),
 		Precision: ptr.ToString("5"),
 	})
 
 	moneyFields := NewFields()
-	moneyFields.AddField("money_col", Money, &Opts{
+	moneyFields.AddField("money_col", schema.Money, &schema.Opts{
 		Scale: ptr.ToString("2"),
 	})
 
 	varNumericFields := NewFields()
-	varNumericFields.AddField("variable_numeric_col", VariableNumeric, nil)
+	varNumericFields.AddField("variable_numeric_col", schema.VariableNumeric, nil)
 
 	tcs := []_tc{
 		{

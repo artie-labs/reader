@@ -7,20 +7,6 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type DescribeTableArgs struct {
-	Name   string
-	Schema string
-}
-
-const describeTableQuery = `
-SELECT column_name, data_type, numeric_precision, numeric_scale, udt_name
-FROM information_schema.columns
-WHERE table_name = $1 AND table_schema = $2`
-
-func DescribeTableQuery(args DescribeTableArgs) (string, []any) {
-	return strings.TrimSpace(describeTableQuery), []any{args.Name, args.Schema}
-}
-
 func quotedIdentifiers(ids []string) []string {
 	quoted := make([]string, len(ids))
 	for idx := range ids {
