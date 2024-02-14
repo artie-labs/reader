@@ -5,6 +5,8 @@ import (
 
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/stretchr/testify/assert"
+
+	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
 )
 
 func TestPostgresConfig_Complete(t *testing.T) {
@@ -147,14 +149,15 @@ func TestPostgresConfig_Complete(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		cfg := NewPostgresConfig()
+		fields := pgDebezium.NewFields()
 		// TODO: Add test for hstore
-		cfg.UpdateCols(testCase.colName, testCase.colKind, nil, nil, nil)
+		dataType, opts := colKindToDataType(testCase.colKind, nil, nil, nil)
+		fields.AddField(testCase.colName, dataType, opts)
 
-		actualEscCol := cfg.GetColEscaped(testCase.colName)
+		actualEscCol := castColumn(testCase.colName, fields.GetDataType(testCase.colName))
 		assert.Equal(t, testCase.expectedEscColString, actualEscCol, testCase.name)
 
-		field, isOk := cfg.Fields.GetField(testCase.colName)
+		field, isOk := fields.GetField(testCase.colName)
 		assert.True(t, isOk, testCase.name)
 		assert.Equal(t, testCase.expectedField, field, testCase.name)
 	}

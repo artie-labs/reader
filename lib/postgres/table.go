@@ -10,6 +10,7 @@ import (
 	"github.com/artie-labs/transfer/lib/ptr"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/reader/lib/postgres/primary_key"
 	"github.com/artie-labs/reader/lib/postgres/queries"
 )
@@ -23,7 +24,7 @@ type Table struct {
 	// TODO: `OriginalColumns` and `ColumnsCastedForScanning` can be merged later to be more concise.
 	OriginalColumns          []string
 	ColumnsCastedForScanning []string
-	Config                   *Config
+	Fields                   *debezium.Fields
 
 	OptionalPrimaryKeyValStart string
 	OptionalPrimaryKeyValEnd   string
@@ -34,7 +35,7 @@ func NewTable(cfgTable *config.PostgreSQLTable) *Table {
 		Name:                       cfgTable.Name,
 		Schema:                     cfgTable.Schema,
 		PrimaryKeys:                primary_key.NewKeys(),
-		Config:                     NewPostgresConfig(),
+		Fields:                     debezium.NewFields(),
 		OptionalPrimaryKeyValStart: cfgTable.OptionalPrimaryKeyValStart,
 		OptionalPrimaryKeyValEnd:   cfgTable.OptionalPrimaryKeyValEnd,
 	}
@@ -108,7 +109,7 @@ func (t *Table) FindStartAndEndPrimaryKeys(db *sql.DB) error {
 	}
 
 	for idx, maxValue := range values {
-		val, err := t.Config.ParseValue(ParseValueArgs{
+		val, err := ParseValue(t.Fields, ParseValueArgs{
 			ColName: keys[idx],
 			ValueWrapper: ValueWrapper{
 				Value: maxValue,
@@ -143,7 +144,7 @@ func (t *Table) FindStartAndEndPrimaryKeys(db *sql.DB) error {
 	}
 
 	for idx, minValue := range minValues {
-		val, err := t.Config.ParseValue(ParseValueArgs{
+		val, err := ParseValue(t.Fields, ParseValueArgs{
 			ColName: keys[idx],
 			ValueWrapper: ValueWrapper{
 				Value: minValue,

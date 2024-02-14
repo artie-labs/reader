@@ -2,29 +2,25 @@ package postgres
 
 import (
 	"fmt"
-	"log/slog"
 	"strings"
 	"time"
 
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/reader/lib/postgres/debezium"
-	"github.com/artie-labs/transfer/lib/size"
 )
 
 type MessageBuilder struct {
-	statsD     *mtr.Client
-	maxRowSize uint64
-	table      *Table
-	iter       batchRowIterator
+	statsD *mtr.Client
+	table  *Table
+	iter   batchRowIterator
 }
 
-func NewMessageBuilder(table *Table, iter batchRowIterator, statsD *mtr.Client, maxRowSize uint64) *MessageBuilder {
+func NewMessageBuilder(table *Table, iter batchRowIterator, statsD *mtr.Client) *MessageBuilder {
 	return &MessageBuilder{
-		table:      table,
-		iter:       iter,
-		statsD:     statsD,
-		maxRowSize: maxRowSize,
+		table:  table,
+		iter:   iter,
+		statsD: statsD,
 	}
 }
 
@@ -59,15 +55,10 @@ func (m *MessageBuilder) Next() ([]lib.RawMessage, error) {
 	var result []lib.RawMessage
 	for _, row := range rows {
 		start := time.Now()
-		if m.maxRowSize > 0 && uint64(size.GetApproxSize(row)) > m.maxRowSize {
-			slog.Info(fmt.Sprintf("Row greater than %v mb, skipping...", m.maxRowSize/1024/1024), slog.Any("key", m.table.PartitionKey(row)))
-			continue
-		}
-
 		payload, err := debezium.NewPayload(&debezium.NewArgs{
 			TableName: m.table.Name,
 			Columns:   m.table.OriginalColumns,
-			Fields:    m.table.Config.Fields,
+			Fields:    m.table.Fields,
 			RowData:   row,
 		})
 		if err != nil {
