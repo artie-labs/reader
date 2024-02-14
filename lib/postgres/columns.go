@@ -67,7 +67,7 @@ func (t *Table) RetrieveColumns(db *sql.DB) error {
 	return t.FindStartAndEndPrimaryKeys(db)
 }
 
-func colKindToDataType(colKind string, precision, scale *string, udtName *string) (debezium.DataType, *debezium.Opts) {
+func colKindToDataType(colKind string, precision, scale, udtName *string) (debezium.DataType, *debezium.Opts) {
 	colKind = strings.ToLower(colKind)
 	switch colKind {
 	case "point":
