@@ -10,6 +10,7 @@ import (
 
 	"github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/reader/lib/postgres/parse"
+	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/reader/lib/timeutil"
 )
 
@@ -47,7 +48,7 @@ func ParseValue(fields *debezium.Fields, args ParseValueArgs) (ValueWrapper, err
 
 	colKind := fields.GetDataType(args.ColName)
 	switch colKind {
-	case debezium.Geometry, debezium.Geography:
+	case schema.Geometry, schema.Geography:
 		valString, isOk := args.Value().(string)
 		if !isOk {
 			return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type for geometry / geography", args.Value())
@@ -59,7 +60,7 @@ func ParseValue(fields *debezium.Fields, args ParseValueArgs) (ValueWrapper, err
 		}
 
 		return NewValueWrapper(geometry), nil
-	case debezium.Point:
+	case schema.Point:
 		valString, isOk := args.Value().(string)
 		if !isOk {
 			return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type for POINT", args.Value())
@@ -72,14 +73,14 @@ func ParseValue(fields *debezium.Fields, args ParseValueArgs) (ValueWrapper, err
 
 		return NewValueWrapper(point.ToMap()), nil
 
-	case debezium.Bit:
+	case schema.Bit:
 		// This will be 0 (false) or 1 (true)
 		valString, isOk := args.Value().(string)
 		if isOk {
 			return NewValueWrapper(valString == "1"), nil
 		}
 		return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type for bit", args.Value())
-	case debezium.JSON:
+	case schema.JSON:
 		// Debezium sends JSON as a JSON string
 		byteSlice, isByteSlice := args.Value().([]byte)
 		if !isByteSlice {
@@ -87,14 +88,14 @@ func ParseValue(fields *debezium.Fields, args ParseValueArgs) (ValueWrapper, err
 		}
 
 		return NewValueWrapper(string(byteSlice)), nil
-	case debezium.Numeric, debezium.VariableNumeric:
+	case schema.Numeric, schema.VariableNumeric:
 		stringVal, isStringVal := args.Value().(string)
 		if isStringVal {
 			return NewValueWrapper(stringVal), nil
 		}
 
 		return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type for Numeric or VariableNumeric", args.Value())
-	case debezium.Array:
+	case schema.Array:
 		var arr []interface{}
 		if reflect.TypeOf(args.Value()).Kind() == reflect.Slice {
 			// If it's already a slice, don't modify it further.
@@ -106,7 +107,7 @@ func ParseValue(fields *debezium.Fields, args ParseValueArgs) (ValueWrapper, err
 			return NewValueWrapper(nil), fmt.Errorf("failed to parse colName: %s, value: %v, err: %w", args.ColName, args.Value(), err)
 		}
 		return NewValueWrapper(arr), nil
-	case debezium.UUID:
+	case schema.UUID:
 		stringVal, isOk := args.Value().(string)
 		if !isOk {
 			return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type", args.Value())
@@ -118,7 +119,7 @@ func ParseValue(fields *debezium.Fields, args ParseValueArgs) (ValueWrapper, err
 		}
 
 		return NewValueWrapper(_uuid.String()), nil
-	case debezium.HStore:
+	case schema.HStore:
 		var val pgtype.Hstore
 		err := val.Scan(args.Value())
 		if err != nil {
@@ -133,7 +134,7 @@ func ParseValue(fields *debezium.Fields, args ParseValueArgs) (ValueWrapper, err
 		}
 
 		return NewValueWrapper(jsonMap), nil
-	case debezium.UserDefinedText:
+	case schema.UserDefinedText:
 		stringSlice, isOk := args.Value().(string)
 		if !isOk {
 			return NewValueWrapper(nil), fmt.Errorf("value: %v not of slice type", args.Value())

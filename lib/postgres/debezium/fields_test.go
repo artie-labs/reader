@@ -3,6 +3,7 @@ package debezium
 import (
 	"testing"
 
+	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
@@ -12,8 +13,8 @@ func TestFields_AddField(t *testing.T) {
 	type _testCase struct {
 		name     string
 		colName  string
-		dataType DataType
-		opts     *Opts
+		dataType schema.DataType
+		opts     *schema.Opts
 
 		expected debezium.Field
 	}
@@ -22,7 +23,7 @@ func TestFields_AddField(t *testing.T) {
 		{
 			name:     "array",
 			colName:  "foo",
-			dataType: Array,
+			dataType: schema.Array,
 			expected: debezium.Field{
 				Type:      "array",
 				FieldName: "foo",
@@ -31,7 +32,7 @@ func TestFields_AddField(t *testing.T) {
 		{
 			name:     "text",
 			colName:  "group",
-			dataType: Text,
+			dataType: schema.Text,
 			expected: debezium.Field{
 				Type:      "string",
 				FieldName: "group",
@@ -40,7 +41,7 @@ func TestFields_AddField(t *testing.T) {
 		{
 			name:     "numeric",
 			colName:  "numeric_col",
-			dataType: VariableNumeric,
+			dataType: schema.VariableNumeric,
 			expected: debezium.Field{
 				Type:         "struct",
 				FieldName:    "numeric_col",
@@ -50,8 +51,8 @@ func TestFields_AddField(t *testing.T) {
 		{
 			name:     "numeric - with scale + precision",
 			colName:  "numeric_col",
-			dataType: Numeric,
-			opts: &Opts{
+			dataType: schema.Numeric,
+			opts: &schema.Opts{
 				Scale:     ptr.ToString("2"),
 				Precision: ptr.ToString("10"),
 			},
@@ -65,7 +66,7 @@ func TestFields_AddField(t *testing.T) {
 		{
 			name:     "bit",
 			colName:  "bit_col",
-			dataType: Bit,
+			dataType: schema.Bit,
 			expected: debezium.Field{
 				Type:      "boolean",
 				FieldName: "bit_col",
@@ -74,7 +75,7 @@ func TestFields_AddField(t *testing.T) {
 		{
 			name:     "bool",
 			colName:  "bool_col",
-			dataType: Boolean,
+			dataType: schema.Boolean,
 			expected: debezium.Field{
 				Type:      "boolean",
 				FieldName: "bool_col",
@@ -83,7 +84,7 @@ func TestFields_AddField(t *testing.T) {
 		{
 			name:     "interval",
 			colName:  "interval_coL",
-			dataType: Interval,
+			dataType: schema.Interval,
 			expected: debezium.Field{
 				Type:         "int64",
 				FieldName:    "interval_coL",
@@ -93,7 +94,7 @@ func TestFields_AddField(t *testing.T) {
 		{
 			name:     "time",
 			colName:  "time",
-			dataType: Time,
+			dataType: schema.Time,
 			expected: debezium.Field{
 				Type:         "int32",
 				FieldName:    "time",
@@ -103,7 +104,7 @@ func TestFields_AddField(t *testing.T) {
 		{
 			name:     "date",
 			colName:  "date_col",
-			dataType: Date,
+			dataType: schema.Date,
 			expected: debezium.Field{
 				Type:         "int32",
 				FieldName:    "date_col",
@@ -113,7 +114,7 @@ func TestFields_AddField(t *testing.T) {
 		{
 			name:     "char_text",
 			colName:  "char_text_col",
-			dataType: TextThatRequiresEscaping,
+			dataType: schema.TextThatRequiresEscaping,
 			expected: debezium.Field{
 				Type:      "string",
 				FieldName: "char_text_col",

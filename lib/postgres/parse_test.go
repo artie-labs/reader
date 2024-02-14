@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
+	"github.com/artie-labs/reader/lib/postgres/schema"
 )
 
 func TestParse(t *testing.T) {
@@ -96,7 +97,7 @@ func TestParse(t *testing.T) {
 
 	for _, tc := range tcs {
 		fields := pgDebezium.NewFields()
-		dataType, opts := colKindToDataType(tc.colKind, nil, nil, tc.udtName)
+		dataType, opts := schema.ColKindToDataType(tc.colKind, nil, nil, tc.udtName)
 		fields.AddField(tc.colName, dataType, opts)
 
 		value, err := ParseValue(fields, ParseValueArgs{

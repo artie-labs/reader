@@ -1,6 +1,7 @@
 package debezium
 
 import (
+	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/transfer/lib/cdc"
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/artie-labs/transfer/lib/debezium"
@@ -9,12 +10,12 @@ import (
 
 type Fields struct {
 	fields              []debezium.Field
-	fieldKeyToDataTypes map[string]DataType
+	fieldKeyToDataTypes map[string]schema.DataType
 }
 
 func NewFields() *Fields {
 	return &Fields{
-		fieldKeyToDataTypes: make(map[string]DataType),
+		fieldKeyToDataTypes: make(map[string]schema.DataType),
 	}
 }
 
@@ -38,22 +39,17 @@ func (f *Fields) GetField(fieldName string) (debezium.Field, bool) {
 	return debezium.Field{}, false
 }
 
-func (f *Fields) GetDataType(fieldName string) DataType {
+func (f *Fields) GetDataType(fieldName string) schema.DataType {
 	dataType, isOk := f.fieldKeyToDataTypes[fieldName]
 	if !isOk {
-		return InvalidDataType
+		return schema.InvalidDataType
 	}
 
 	return dataType
 }
 
-type Opts struct {
-	Scale     *string
-	Precision *string
-}
-
-func (f *Fields) AddField(colName string, dataType DataType, opts *Opts) {
-	res := dataType.ToDebeziumType()
+func (f *Fields) AddField(colName string, dataType schema.DataType, opts *schema.Opts) {
+	res := ToDebeziumType(dataType)
 	field := debezium.Field{
 		FieldName:    colName,
 		Type:         res.Type,
