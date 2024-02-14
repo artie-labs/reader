@@ -1,0 +1,73 @@
+package mongo
+
+import (
+	"context"
+	"crypto/tls"
+	"fmt"
+	"log/slog"
+	"time"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
+
+	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/kafkalib"
+	"github.com/artie-labs/reader/lib/mtr"
+)
+
+type Source struct {
+	cfg config.MongoDB
+	db  *mongo.Database
+}
+
+func Load(cfg config.MongoDB) (*Source, error) {
+	creds := options.Credential{
+		Username: cfg.Username,
+		Password: cfg.Password,
+	}
+
+	opts := options.Client().ApplyURI(cfg.Host).SetAuth(creds).SetTLSConfig(&tls.Config{})
+	ctx := context.Background()
+	client, err := mongo.Connect(ctx, opts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
+	}
+
+	if err = client.Ping(ctx, readpref.Primary()); err != nil {
+		return nil, fmt.Errorf("failed to ping MongoDB: %w", err)
+	}
+
+	db := client.Database(cfg.Database)
+	return &Source{
+		cfg: cfg,
+		db:  db,
+	}, nil
+}
+
+func (s *Source) Close() error {
+	// MongoDB doesn't need to be closed.
+	return nil
+}
+
+func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, _ *mtr.Client) error {
+	for _, collection := range s.cfg.Collections {
+		snapshotStartTime := time.Now()
+
+		slog.Info("Scanning collection",
+			slog.String("collectionName", collection.Name),
+			slog.String("topicSuffix", collection.TopicSuffix(s.db.Name())),
+			slog.Any("batchSize", collection.GetBatchSize()),
+		)
+
+		iterator := newIterator(s.db, collection, s.cfg)
+		count, err := writer.WriteIterator(ctx, iterator)
+		if err != nil {
+			return fmt.Errorf("failed to snapshot for collection %s: %w", collection.Name, err)
+		}
+
+		slog.Info("Finished snapshotting", slog.Int("scannedTotal", count), slog.Duration("totalDuration", time.Since(snapshotStartTime)))
+	}
+
+	return nil
+}

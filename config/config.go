@@ -62,13 +62,16 @@ type Metrics struct {
 type Source string
 
 const (
+	SourceInvalid    Source = "invalid"
 	SourceDynamo     Source = "dynamodb"
+	SourceMongoDB    Source = "mongodb"
 	SourcePostgreSQL Source = "postgresql"
 )
 
 type Settings struct {
 	Source     Source      `yaml:"source"`
 	DynamoDB   *DynamoDB   `yaml:"dynamodb,omitempty"`
+	MongoDB    *MongoDB    `yaml:"mongodb,omitempty"`
 	PostgreSQL *PostgreSQL `yaml:"postgresql,omitempty"`
 
 	Reporting *Reporting `yaml:"reporting"`
@@ -99,6 +102,14 @@ func (s *Settings) Validate() error {
 		if err := s.DynamoDB.Validate(); err != nil {
 			return fmt.Errorf("dynamodb validation failed: %w", err)
 		}
+	case SourceMongoDB:
+		if s.MongoDB == nil {
+			return fmt.Errorf("mongodb config is nil")
+		}
+
+		if err := s.MongoDB.Validate(); err != nil {
+			return fmt.Errorf("mongodb validation failed: %w", err)
+		}
 	case SourcePostgreSQL:
 		if s.PostgreSQL == nil {
 			return fmt.Errorf("postgres config is nil")
@@ -107,6 +118,7 @@ func (s *Settings) Validate() error {
 		if err := s.PostgreSQL.Validate(); err != nil {
 			return fmt.Errorf("postgres validation failed: %w", err)
 		}
+
 	}
 
 	return nil

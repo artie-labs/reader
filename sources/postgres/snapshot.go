@@ -17,33 +17,34 @@ import (
 
 const defaultErrorRetries = 10
 
-type postgresSource struct {
+type Source struct {
 	cfg config.PostgreSQL
 	db  *sql.DB
 }
 
-func Load(cfg config.PostgreSQL) (*postgresSource, error) {
+func Load(cfg config.PostgreSQL) (*Source, error) {
 	db, err := sql.Open("pgx", postgres.NewConnection(cfg).String())
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to PostgreSQL: %w", err)
 	}
-	return &postgresSource{
+
+	return &Source{
 		cfg: cfg,
 		db:  db,
 	}, nil
 }
 
-func (p postgresSource) Close() error {
-	return p.db.Close()
+func (s *Source) Close() error {
+	return s.db.Close()
 }
 
-func (p postgresSource) Run(ctx context.Context, writer kafkalib.BatchWriter, statsD *mtr.Client) error {
-	for _, tableCfg := range p.cfg.Tables {
+func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, statsD *mtr.Client) error {
+	for _, tableCfg := range s.cfg.Tables {
 		snapshotStartTime := time.Now()
 
 		slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name))
 		table := postgres.NewTable(tableCfg)
-		if err := table.RetrieveColumns(p.db); err != nil {
+		if err := table.RetrieveColumns(s.db); err != nil {
 			if postgres.NoRowsError(err) {
 				slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name))
 				continue
@@ -60,7 +61,7 @@ func (p postgresSource) Run(ctx context.Context, writer kafkalib.BatchWriter, st
 			slog.Any("batchSize", tableCfg.GetBatchSize()),
 		)
 
-		scanner := table.NewScanner(p.db, tableCfg.GetBatchSize(), defaultErrorRetries)
+		scanner := table.NewScanner(s.db, tableCfg.GetBatchSize(), defaultErrorRetries)
 		messageBuilder := postgres.NewMessageBuilder(table, &scanner, statsD)
 		count, err := writer.WriteIterator(ctx, messageBuilder)
 		if err != nil {

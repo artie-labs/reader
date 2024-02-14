@@ -27,9 +27,10 @@ Artie Reader reads from databases to perform historical snapshots and also reads
 |            | Snapshot | Streaming |
 |------------|----------|-----------|
 | DynamoDB   | ✅        | ✅         |
-| PostgreSQL | ✅        | ❌         |
+| MongoDB    | ✅        | ❌         |
 | MySQL      | 🚧       | ❌         |
-| MongoDB    | 🚧       | ❌         |
+| PostgreSQL | ✅        | ❌         |
+
 
 ## Running
 
