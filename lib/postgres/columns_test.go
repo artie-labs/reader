@@ -14,6 +14,7 @@ func TestColKindToDataType(t *testing.T) {
 		colKind string
 
 		expectedDataType pgDebezium.DataType
+		expectedOpts     *pgDebezium.Opts
 	}
 
 	var testCases = []_testCase{
@@ -78,7 +79,7 @@ func TestColKindToDataType(t *testing.T) {
 		// TODO: Add test for hstore
 		dataType, opts := colKindToDataType(testCase.colKind, nil, nil, nil)
 		assert.Equal(t, testCase.expectedDataType, dataType, testCase.name)
-		assert.Nil(t, opts, testCase.name)
+		assert.Equal(t, testCase.expectedOpts, opts, testCase.name)
 	}
 }
 
