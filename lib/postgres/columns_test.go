@@ -1,0 +1,151 @@
+package postgres
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
+)
+
+func TestColKindToDataType(t *testing.T) {
+	type _testCase struct {
+		name    string
+		colKind string
+
+		expectedDataType pgDebezium.DataType
+		expectedOpts     *pgDebezium.Opts
+	}
+
+	var testCases = []_testCase{
+		{
+			name:             "array",
+			colKind:          "ARRAY",
+			expectedDataType: pgDebezium.Array,
+		},
+		{
+			name:             "character varying",
+			colKind:          "character varying",
+			expectedDataType: pgDebezium.Text,
+		},
+		{
+			name:             "numeric",
+			colKind:          "numeric",
+			expectedDataType: pgDebezium.VariableNumeric,
+		},
+		{
+			name:             "bit",
+			colKind:          "bit",
+			expectedDataType: pgDebezium.Bit,
+		},
+		{
+			name:             "bool",
+			colKind:          "boolean",
+			expectedDataType: pgDebezium.Boolean,
+		},
+		{
+			name:             "interval",
+			colKind:          "interval",
+			expectedDataType: pgDebezium.Interval,
+		},
+		{
+			name:             "time with time zone",
+			colKind:          "time with time zone",
+			expectedDataType: pgDebezium.Time,
+		},
+		{
+			name:             "time without time zone",
+			colKind:          "time without time zone",
+			expectedDataType: pgDebezium.Time,
+		},
+		{
+			name:             "date",
+			colKind:          "date",
+			expectedDataType: pgDebezium.Date,
+		},
+		{
+			name:             "char_text",
+			colKind:          "character",
+			expectedDataType: pgDebezium.TextThatRequiresEscaping,
+		},
+		{
+			name:             "variable numeric",
+			colKind:          "numeric",
+			expectedDataType: pgDebezium.VariableNumeric,
+		},
+	}
+
+	for _, testCase := range testCases {
+		// TODO: Add test for hstore
+		dataType, opts := colKindToDataType(testCase.colKind, nil, nil, nil)
+		assert.Equal(t, testCase.expectedDataType, dataType, testCase.name)
+		assert.Equal(t, testCase.expectedOpts, opts, testCase.name)
+	}
+}
+
+func TestCastColumn(t *testing.T) {
+	type _testCase struct {
+		name     string
+		dataType pgDebezium.DataType
+
+		expected string
+	}
+
+	var testCases = []_testCase{
+		{
+			name:     "array",
+			dataType: pgDebezium.Array,
+			expected: `ARRAY_TO_JSON("foo")::TEXT as "foo"`,
+		},
+		{
+			name:     "text",
+			dataType: pgDebezium.Text,
+			expected: `"foo"`,
+		},
+		{
+			name:     "numeric",
+			dataType: pgDebezium.Numeric,
+			expected: `"foo"`,
+		},
+		{
+			name:     "bit",
+			dataType: pgDebezium.Bit,
+			expected: `"foo"`,
+		},
+		{
+			name:     "bool",
+			dataType: pgDebezium.Boolean,
+			expected: `"foo"`,
+		},
+		{
+			name:     "interval",
+			dataType: pgDebezium.Interval,
+			expected: `cast(extract(epoch from "foo")*1000000 as bigint) as "foo"`,
+		},
+		{
+			name:     "time",
+			dataType: pgDebezium.Time,
+			expected: `cast(extract(epoch from "foo")*1000 as bigint) as "foo"`,
+		},
+		{
+			name:     "date",
+			dataType: pgDebezium.Date,
+			expected: `"foo"`,
+		},
+		{
+			name:     "char_text",
+			dataType: pgDebezium.TextThatRequiresEscaping,
+			expected: `"foo"::text`,
+		},
+		{
+			name:     "variable numeric",
+			dataType: pgDebezium.VariableNumeric,
+			expected: `"foo"`,
+		},
+	}
+
+	for _, testCase := range testCases {
+		actualEscCol := castColumn("foo", testCase.dataType)
+		assert.Equal(t, testCase.expected, actualEscCol, testCase.name)
+	}
+}
