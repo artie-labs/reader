@@ -6,12 +6,16 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
+	"github.com/artie-labs/transfer/lib/ptr"
 )
 
 func TestColKindToDataType(t *testing.T) {
 	type _testCase struct {
-		name    string
-		colKind string
+		name      string
+		colKind   string
+		precision *string
+		scale     *string
+		udtName   *string
 
 		expectedDataType pgDebezium.DataType
 		expectedOpts     *pgDebezium.Opts
@@ -27,11 +31,6 @@ func TestColKindToDataType(t *testing.T) {
 			name:             "character varying",
 			colKind:          "character varying",
 			expectedDataType: pgDebezium.Text,
-		},
-		{
-			name:             "numeric",
-			colKind:          "numeric",
-			expectedDataType: pgDebezium.VariableNumeric,
 		},
 		{
 			name:             "bit",
@@ -69,15 +68,62 @@ func TestColKindToDataType(t *testing.T) {
 			expectedDataType: pgDebezium.TextThatRequiresEscaping,
 		},
 		{
-			name:             "variable numeric",
+			name:             "numeric",
 			colKind:          "numeric",
 			expectedDataType: pgDebezium.VariableNumeric,
+		},
+		{
+			name:             "numeric - with scale + precision",
+			colKind:          "numeric",
+			scale:            ptr.ToString("2"),
+			precision:        ptr.ToString("3"),
+			expectedDataType: pgDebezium.Numeric,
+			expectedOpts: &pgDebezium.Opts{
+				Scale:     ptr.ToString("2"),
+				Precision: ptr.ToString("3"),
+			},
+		},
+		{
+			name:             "variable numeric",
+			colKind:          "variable numeric",
+			expectedDataType: pgDebezium.VariableNumeric,
+		},
+		{
+			name:             "money",
+			colKind:          "money",
+			expectedDataType: pgDebezium.Money,
+			expectedOpts: &pgDebezium.Opts{
+				Scale: ptr.ToString("2"), // money always has a scale of 2
+			},
+		},
+		{
+			name:             "hstore",
+			colKind:          "user-defined",
+			udtName:          ptr.ToString("hstore"),
+			expectedDataType: pgDebezium.HStore,
+		},
+		{
+			name:             "geometry",
+			colKind:          "user-defined",
+			udtName:          ptr.ToString("geometry"),
+			expectedDataType: pgDebezium.Geometry,
+		},
+		{
+			name:             "geography",
+			colKind:          "user-defined",
+			udtName:          ptr.ToString("geography"),
+			expectedDataType: pgDebezium.Geography,
+		},
+		{
+			name:             "user-defined text",
+			colKind:          "user-defined",
+			udtName:          ptr.ToString("foo"),
+			expectedDataType: pgDebezium.UserDefinedText,
 		},
 	}
 
 	for _, testCase := range testCases {
-		// TODO: Add test for hstore
-		dataType, opts := colKindToDataType(testCase.colKind, nil, nil, nil)
+		dataType, opts := colKindToDataType(testCase.colKind, testCase.precision, testCase.scale, testCase.udtName)
 		assert.Equal(t, testCase.expectedDataType, dataType, testCase.name)
 		assert.Equal(t, testCase.expectedOpts, opts, testCase.name)
 	}
