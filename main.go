@@ -49,7 +49,7 @@ func buildSource(cfg *config.Settings) (sources.Source, error) {
 	case "", config.SourceDynamo:
 		return dynamodb.Load(*cfg.DynamoDB)
 	case config.SourcePostgreSQL:
-		return postgres.Load(*cfg.PostgreSQL, cfg.Kafka.MaxRequestSize)
+		return postgres.Load(*cfg.PostgreSQL)
 	}
 	panic(fmt.Sprintf("Unknown source: %s", cfg.Source)) // should never happen
 }

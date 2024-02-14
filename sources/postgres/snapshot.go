@@ -18,20 +18,18 @@ import (
 const defaultErrorRetries = 10
 
 type postgresSource struct {
-	cfg        config.PostgreSQL
-	maxRowSize uint64
-	db         *sql.DB
+	cfg config.PostgreSQL
+	db  *sql.DB
 }
 
-func Load(cfg config.PostgreSQL, maxRowSize uint64) (*postgresSource, error) {
+func Load(cfg config.PostgreSQL) (*postgresSource, error) {
 	db, err := sql.Open("pgx", postgres.NewConnection(cfg).String())
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to PostgreSQL: %w", err)
 	}
 	return &postgresSource{
-		cfg:        cfg,
-		maxRowSize: maxRowSize,
-		db:         db,
+		cfg: cfg,
+		db:  db,
 	}, nil
 }
 
@@ -63,7 +61,7 @@ func (p postgresSource) Run(ctx context.Context, writer kafkalib.BatchWriter, st
 		)
 
 		scanner := table.NewScanner(p.db, tableCfg.GetBatchSize(), defaultErrorRetries)
-		messageBuilder := postgres.NewMessageBuilder(table, &scanner, statsD, p.maxRowSize)
+		messageBuilder := postgres.NewMessageBuilder(table, &scanner, statsD)
 		count, err := writer.WriteIterator(ctx, messageBuilder)
 		if err != nil {
 			return fmt.Errorf("failed to snapshot for table %s: %w", table.Name, err)
