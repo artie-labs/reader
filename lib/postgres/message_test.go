@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/artie-labs/transfer/lib/cdc/util"
-
-	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/artie-labs/reader/config"
 )
 
 type ErrorRowIterator struct{}
