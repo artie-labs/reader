@@ -2,8 +2,9 @@ package postgres
 
 import (
 	"fmt"
-	"github.com/artie-labs/transfer/lib/cdc/util"
 	"testing"
+
+	"github.com/artie-labs/transfer/lib/cdc/util"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/transfer/lib/ptr"
@@ -50,7 +51,6 @@ func TestMessageBuilder(t *testing.T) {
 			table,
 			&MockRowIterator{batches: [][]map[string]interface{}{}},
 			nil,
-			10000,
 		)
 		assert.False(t, builder.HasNext())
 	}
@@ -61,7 +61,6 @@ func TestMessageBuilder(t *testing.T) {
 			table,
 			&ErrorRowIterator{},
 			nil,
-			10000,
 		)
 
 		assert.True(t, builder.HasNext())
@@ -80,7 +79,6 @@ func TestMessageBuilder(t *testing.T) {
 				},
 			},
 			nil,
-			10000,
 		)
 
 		assert.True(t, builder.HasNext())
@@ -107,35 +105,4 @@ func TestMessageBuilder(t *testing.T) {
 
 		assert.False(t, builder.HasNext())
 	}
-
-	// test that big rows are excluded
-	{
-		builder := NewMessageBuilder(
-			table,
-			&MockRowIterator{
-				batches: [][]map[string]interface{}{
-					{{"a": "1", "b": "11"}, {"a": "2", "b": "12----------------------"}},
-					{{"a": "3", "b": "13----------------------"}, {"a": "4", "b": "14----------------------"}},
-				},
-			},
-			nil,
-			4,
-		)
-
-		assert.True(t, builder.HasNext())
-		msgs1, err := builder.Next()
-		assert.NoError(t, err)
-		assert.Len(t, msgs1, 1)
-		assert.Equal(t, "schema.table", msgs1[0].TopicSuffix)
-		assert.Equal(t, map[string]interface{}{"a": "1"}, msgs1[0].PartitionKey)
-		assert.Equal(t, map[string]interface{}{"a": "1", "b": "11"}, msgs1[0].GetPayload().(util.SchemaEventPayload).Payload.After)
-
-		assert.True(t, builder.HasNext())
-		msgs2, err := builder.Next()
-		assert.NoError(t, err)
-		assert.Len(t, msgs2, 0)
-
-		assert.False(t, builder.HasNext())
-	}
-
 }
