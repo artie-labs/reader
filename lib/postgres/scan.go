@@ -56,8 +56,8 @@ func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
 		secondWhereClause = queries.GreaterThanEqualTo
 	}
 
-	startKeys := s.primaryKeys.KeysToValueList(s.table.Config.Fields.GetOptionalSchema(), false)
-	endKeys := s.primaryKeys.KeysToValueList(s.table.Config.Fields.GetOptionalSchema(), true)
+	startKeys := s.primaryKeys.KeysToValueList(s.table.Fields.GetOptionalSchema(), false)
+	endKeys := s.primaryKeys.KeysToValueList(s.table.Fields.GetOptionalSchema(), true)
 
 	query := queries.ScanTableQuery(queries.ScanTableQueryArgs{
 		Schema:        s.table.Schema,
@@ -111,7 +111,7 @@ func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
 		row := make(map[string]ValueWrapper)
 		for k, v := range values {
 			colName := columns[k]
-			value, err := s.table.Config.ParseValue(ParseValueArgs{
+			value, err := ParseValue(s.table.Fields, ParseValueArgs{
 				ColName: colName,
 				ValueWrapper: ValueWrapper{
 					Value: v,
@@ -131,7 +131,7 @@ func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
 
 	// Update the starting key so that the next scan will pick off where we last left off.
 	for _, pk := range s.primaryKeys.Keys() {
-		val, err := s.table.Config.ParseValue(ParseValueArgs{
+		val, err := ParseValue(s.table.Fields, ParseValueArgs{
 			ColName:      pk,
 			ValueWrapper: lastRow[pk],
 			ParseTime:    true,

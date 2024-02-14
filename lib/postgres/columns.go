@@ -42,7 +42,7 @@ func (t *Table) RetrieveColumns(db *sql.DB) error {
 				slog.String("colKind", colKind),
 			)
 		} else {
-			t.Config.Fields.AddField(colName, dataType, opts)
+			t.Fields.AddField(colName, dataType, opts)
 		}
 	}
 
@@ -60,7 +60,7 @@ func (t *Table) RetrieveColumns(db *sql.DB) error {
 	for _, column := range columns {
 		// Add to original columns before mutation
 		t.OriginalColumns = append(t.OriginalColumns, column)
-		columnKind := t.Config.Fields.GetDataType(column)
+		columnKind := t.Fields.GetDataType(column)
 		t.ColumnsCastedForScanning = append(t.ColumnsCastedForScanning, castColumn(column, columnKind))
 	}
 
