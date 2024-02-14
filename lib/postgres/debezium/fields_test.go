@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,6 +13,7 @@ func TestFields_AddField(t *testing.T) {
 		name     string
 		colName  string
 		dataType DataType
+		opts     *Opts
 
 		expected debezium.Field
 	}
@@ -43,6 +45,21 @@ func TestFields_AddField(t *testing.T) {
 				Type:         "struct",
 				FieldName:    "numeric_col",
 				DebeziumType: string(debezium.KafkaVariableNumericType),
+			},
+		},
+		{
+			name:     "numeric - with scale + precision",
+			colName:  "numeric_col",
+			dataType: Numeric,
+			opts: &Opts{
+				Scale:     ptr.ToString("2"),
+				Precision: ptr.ToString("10"),
+			},
+			expected: debezium.Field{
+				Type:         "",
+				FieldName:    "numeric_col",
+				DebeziumType: string(debezium.KafkaDecimalType),
+				Parameters:   map[string]interface{}{"scale": "2", "connect.decimal.precision": "10"},
 			},
 		},
 		{
@@ -106,7 +123,7 @@ func TestFields_AddField(t *testing.T) {
 
 	for _, testCase := range testCases {
 		fields := NewFields()
-		fields.AddField(testCase.colName, testCase.dataType, nil)
+		fields.AddField(testCase.colName, testCase.dataType, testCase.opts)
 
 		field, isOk := fields.GetField(testCase.colName)
 		assert.True(t, isOk, testCase.name)

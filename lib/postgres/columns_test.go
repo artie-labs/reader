@@ -3,10 +3,10 @@ package postgres
 import (
 	"testing"
 
+	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
 
 	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
-	"github.com/artie-labs/transfer/lib/ptr"
 )
 
 func TestColKindToDataType(t *testing.T) {
