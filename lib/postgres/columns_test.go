@@ -3,10 +3,9 @@ package postgres
 import (
 	"testing"
 
+	"github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
-
-	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
 )
 
 func TestColKindToDataType(t *testing.T) {
@@ -17,68 +16,68 @@ func TestColKindToDataType(t *testing.T) {
 		scale     *string
 		udtName   *string
 
-		expectedDataType pgDebezium.DataType
-		expectedOpts     *pgDebezium.Opts
+		expectedDataType debezium.DataType
+		expectedOpts     *debezium.Opts
 	}
 
 	var testCases = []_testCase{
 		{
 			name:             "array",
 			colKind:          "ARRAY",
-			expectedDataType: pgDebezium.Array,
+			expectedDataType: debezium.Array,
 		},
 		{
 			name:             "character varying",
 			colKind:          "character varying",
-			expectedDataType: pgDebezium.Text,
+			expectedDataType: debezium.Text,
 		},
 		{
 			name:             "bit",
 			colKind:          "bit",
-			expectedDataType: pgDebezium.Bit,
+			expectedDataType: debezium.Bit,
 		},
 		{
 			name:             "bool",
 			colKind:          "boolean",
-			expectedDataType: pgDebezium.Boolean,
+			expectedDataType: debezium.Boolean,
 		},
 		{
 			name:             "interval",
 			colKind:          "interval",
-			expectedDataType: pgDebezium.Interval,
+			expectedDataType: debezium.Interval,
 		},
 		{
 			name:             "time with time zone",
 			colKind:          "time with time zone",
-			expectedDataType: pgDebezium.Time,
+			expectedDataType: debezium.Time,
 		},
 		{
 			name:             "time without time zone",
 			colKind:          "time without time zone",
-			expectedDataType: pgDebezium.Time,
+			expectedDataType: debezium.Time,
 		},
 		{
 			name:             "date",
 			colKind:          "date",
-			expectedDataType: pgDebezium.Date,
+			expectedDataType: debezium.Date,
 		},
 		{
 			name:             "char_text",
 			colKind:          "character",
-			expectedDataType: pgDebezium.TextThatRequiresEscaping,
+			expectedDataType: debezium.TextThatRequiresEscaping,
 		},
 		{
 			name:             "numeric",
 			colKind:          "numeric",
-			expectedDataType: pgDebezium.VariableNumeric,
+			expectedDataType: debezium.VariableNumeric,
 		},
 		{
 			name:             "numeric - with scale + precision",
 			colKind:          "numeric",
 			scale:            ptr.ToString("2"),
 			precision:        ptr.ToString("3"),
-			expectedDataType: pgDebezium.Numeric,
-			expectedOpts: &pgDebezium.Opts{
+			expectedDataType: debezium.Numeric,
+			expectedOpts: &debezium.Opts{
 				Scale:     ptr.ToString("2"),
 				Precision: ptr.ToString("3"),
 			},
@@ -86,13 +85,13 @@ func TestColKindToDataType(t *testing.T) {
 		{
 			name:             "variable numeric",
 			colKind:          "variable numeric",
-			expectedDataType: pgDebezium.VariableNumeric,
+			expectedDataType: debezium.VariableNumeric,
 		},
 		{
 			name:             "money",
 			colKind:          "money",
-			expectedDataType: pgDebezium.Money,
-			expectedOpts: &pgDebezium.Opts{
+			expectedDataType: debezium.Money,
+			expectedOpts: &debezium.Opts{
 				Scale: ptr.ToString("2"), // money always has a scale of 2
 			},
 		},
@@ -100,25 +99,25 @@ func TestColKindToDataType(t *testing.T) {
 			name:             "hstore",
 			colKind:          "user-defined",
 			udtName:          ptr.ToString("hstore"),
-			expectedDataType: pgDebezium.HStore,
+			expectedDataType: debezium.HStore,
 		},
 		{
 			name:             "geometry",
 			colKind:          "user-defined",
 			udtName:          ptr.ToString("geometry"),
-			expectedDataType: pgDebezium.Geometry,
+			expectedDataType: debezium.Geometry,
 		},
 		{
 			name:             "geography",
 			colKind:          "user-defined",
 			udtName:          ptr.ToString("geography"),
-			expectedDataType: pgDebezium.Geography,
+			expectedDataType: debezium.Geography,
 		},
 		{
 			name:             "user-defined text",
 			colKind:          "user-defined",
 			udtName:          ptr.ToString("foo"),
-			expectedDataType: pgDebezium.UserDefinedText,
+			expectedDataType: debezium.UserDefinedText,
 		},
 	}
 
@@ -132,7 +131,7 @@ func TestColKindToDataType(t *testing.T) {
 func TestCastColumn(t *testing.T) {
 	type _testCase struct {
 		name     string
-		dataType pgDebezium.DataType
+		dataType debezium.DataType
 
 		expected string
 	}
@@ -140,52 +139,52 @@ func TestCastColumn(t *testing.T) {
 	var testCases = []_testCase{
 		{
 			name:     "array",
-			dataType: pgDebezium.Array,
+			dataType: debezium.Array,
 			expected: `ARRAY_TO_JSON("foo")::TEXT as "foo"`,
 		},
 		{
 			name:     "text",
-			dataType: pgDebezium.Text,
+			dataType: debezium.Text,
 			expected: `"foo"`,
 		},
 		{
 			name:     "numeric",
-			dataType: pgDebezium.Numeric,
+			dataType: debezium.Numeric,
 			expected: `"foo"`,
 		},
 		{
 			name:     "bit",
-			dataType: pgDebezium.Bit,
+			dataType: debezium.Bit,
 			expected: `"foo"`,
 		},
 		{
 			name:     "bool",
-			dataType: pgDebezium.Boolean,
+			dataType: debezium.Boolean,
 			expected: `"foo"`,
 		},
 		{
 			name:     "interval",
-			dataType: pgDebezium.Interval,
+			dataType: debezium.Interval,
 			expected: `cast(extract(epoch from "foo")*1000000 as bigint) as "foo"`,
 		},
 		{
 			name:     "time",
-			dataType: pgDebezium.Time,
+			dataType: debezium.Time,
 			expected: `cast(extract(epoch from "foo")*1000 as bigint) as "foo"`,
 		},
 		{
 			name:     "date",
-			dataType: pgDebezium.Date,
+			dataType: debezium.Date,
 			expected: `"foo"`,
 		},
 		{
 			name:     "char_text",
-			dataType: pgDebezium.TextThatRequiresEscaping,
+			dataType: debezium.TextThatRequiresEscaping,
 			expected: `"foo"::text`,
 		},
 		{
 			name:     "variable numeric",
-			dataType: pgDebezium.VariableNumeric,
+			dataType: debezium.VariableNumeric,
 			expected: `"foo"`,
 		},
 	}
