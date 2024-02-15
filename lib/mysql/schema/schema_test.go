@@ -1,0 +1,52 @@
+package schema
+
+import (
+	"testing"
+
+	"github.com/artie-labs/transfer/lib/ptr"
+	"github.com/stretchr/testify/assert"
+)
+
+func TestQuoteIdentifier(t *testing.T) {
+	assert.Equal(t, QuoteIdentifier("foo"), "`foo`")
+	assert.Equal(t, QuoteIdentifier("fo`o"), "`fo``o`")
+}
+
+func TestParseColumnType(t *testing.T) {
+	tests := []struct {
+		input        string
+		expectedType DataType
+		expectedOpts *Opts
+	}{
+		{
+			input:        "int",
+			expectedType: Int,
+		},
+		{
+			input:        "varchar(255)",
+			expectedType: Varchar,
+			expectedOpts: &Opts{Size: ptr.ToInt(255)},
+		},
+		{
+			input:        "decimal(5,2)",
+			expectedType: Decimal,
+			expectedOpts: &Opts{Precision: ptr.ToInt(5), Scale: ptr.ToInt(2)},
+		},
+		{
+			input:        "numeric(3,4)",
+			expectedType: Numeric,
+			expectedOpts: &Opts{Precision: ptr.ToInt(3), Scale: ptr.ToInt(4)},
+		},
+		{
+			input:        "foo",
+			expectedType: InvalidDataType,
+		},
+	}
+
+	for _, test := range tests {
+		colType, opts, err := parseColumnType(test.input)
+		assert.NoError(t, err)
+		assert.Equal(t, test.expectedType, colType, test.input)
+		assert.Equal(t, test.expectedOpts, opts, test.input)
+	}
+}
