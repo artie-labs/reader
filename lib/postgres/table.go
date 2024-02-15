@@ -74,7 +74,7 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 	for _, primaryKey := range keys {
 		index := slices.IndexFunc(t.Columns, func(c schema.Column) bool { return c.Name == primaryKey })
 		if index < 0 {
-			return fmt.Errorf("failed to find primary key from original columns, key: %s, originalColumns: %v, index: %d", primaryKey, t.Columns, index)
+			return fmt.Errorf("failed to find primary key from original columns, key: %s, columns: %v", primaryKey, t.Columns)
 		}
 		col := t.Columns[index]
 		castedPrimaryKeys = append(castedPrimaryKeys, castColumn(col.Name, col.Type))
