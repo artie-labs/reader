@@ -10,50 +10,40 @@ func TestNewArgs_Validate(t *testing.T) {
 	type _tc struct {
 		name      string
 		newArgs   *NewArgs
-		expectErr bool
+		expectErr string
 	}
 
 	tcs := []_tc{
 		{
 			name:      "nil newArgs",
-			expectErr: true,
+			expectErr: "newArgs is nil",
 		},
 		{
 			name:      "newArgs is set",
 			newArgs:   &NewArgs{},
-			expectErr: true,
+			expectErr: "tableName is empty",
 		},
 		{
 			name: "newArgs, tableName is set",
 			newArgs: &NewArgs{
 				TableName: "hello",
 			},
-			expectErr: true,
+			expectErr: "rowData is empty",
 		},
 		{
-			name: "newArgs, tableName and columns is set",
+			name: "newArgs, tableName and rowData is set",
 			newArgs: &NewArgs{
 				TableName: "hello",
-				Columns:   []string{"a", "b"},
-			},
-			expectErr: true,
-		},
-		{
-			name: "newArgs, tableName, columns and rowData is set",
-			newArgs: &NewArgs{
-				TableName: "hello",
-				Columns:   []string{"a", "b"},
 				RowData: map[string]interface{}{
 					"a": 1,
 				},
 			},
-			expectErr: true,
+			expectErr: "fields is nil",
 		},
 		{
-			name: "newArgs, tableName, columns, rowData and config is set",
+			name: "newArgs, tableName, fields, rowData and config is set",
 			newArgs: &NewArgs{
 				TableName: "hello",
-				Columns:   []string{"a", "b"},
 				RowData: map[string]interface{}{
 					"a": 1,
 				},
@@ -64,8 +54,8 @@ func TestNewArgs_Validate(t *testing.T) {
 
 	for _, tc := range tcs {
 		actualErr := tc.newArgs.Validate()
-		if tc.expectErr {
-			assert.Error(t, actualErr, tc.name)
+		if tc.expectErr != "" {
+			assert.ErrorContains(t, actualErr, tc.expectErr, tc.name)
 		} else {
 			assert.NoError(t, actualErr, tc.name)
 		}
@@ -78,11 +68,8 @@ func TestNewPayload_NilOptionalSchema(t *testing.T) {
 		"name":    "Robin",
 	}
 
-	columns := []string{"user_id", "name"}
-
 	payload, err := NewPayload(&NewArgs{
 		TableName: "foo",
-		Columns:   columns,
 		Fields:    NewFields(),
 		RowData:   rowData,
 	})
