@@ -46,7 +46,7 @@ func (t *Table) TopicSuffix() string {
 	return fmt.Sprintf("%s.%s", t.Schema, strings.ReplaceAll(t.Name, `"`, ``))
 }
 
-func (t *Table) findPrimaryKeys(db *sql.DB) error {
+func (t *Table) FindStartAndEndPrimaryKeys(db *sql.DB) error {
 	primaryKeys, err := schema.GetPrimaryKeys(db, t.Schema, t.Name)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve primary keys: %w", err)
@@ -55,13 +55,6 @@ func (t *Table) findPrimaryKeys(db *sql.DB) error {
 	for _, primaryKey := range primaryKeys {
 		// Just fill the name in first, values will be loaded later.
 		t.PrimaryKeys.Upsert(primaryKey, nil, nil)
-	}
-	return nil
-}
-
-func (t *Table) FindStartAndEndPrimaryKeys(db *sql.DB) error {
-	if err := t.findPrimaryKeys(db); err != nil {
-		return fmt.Errorf("failed looking up primary keys: %w", err)
 	}
 
 	keys := t.PrimaryKeys.Keys()
@@ -90,7 +83,7 @@ func (t *Table) FindStartAndEndPrimaryKeys(db *sql.DB) error {
 	})
 
 	slog.Info("Find max pk query", slog.String("query", maxQuery))
-	err := db.QueryRow(maxQuery).Scan(scannedMaxPkValues...)
+	err = db.QueryRow(maxQuery).Scan(scannedMaxPkValues...)
 	if err != nil {
 		return err
 	}

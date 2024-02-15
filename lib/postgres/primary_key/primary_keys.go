@@ -104,7 +104,6 @@ func (k *Keys) Keys() []string {
 	for _, key := range k.keys {
 		keysToReturn = append(keysToReturn, key.Name)
 	}
-
 	return keysToReturn
 }
 
