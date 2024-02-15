@@ -239,8 +239,8 @@ func GetPrimaryKeysLowerBounds(db *sql.DB, schema, table string, primaryKeys []s
 		TableName: table,
 		OrderBy:   primaryKeys,
 	})
-
 	slog.Info("Find min pk query", slog.String("query", query))
+
 	if err := db.QueryRow(query).Scan(scanPtrs...); err != nil {
 		return nil, err
 	}
@@ -261,7 +261,6 @@ func GetPrimaryKeysUpperBounds(db *sql.DB, schema, table string, primaryKeys []s
 		OrderBy:    primaryKeys,
 		Descending: true,
 	})
-
 	slog.Info("Find max pk query", slog.String("query", query))
 
 	if err := db.QueryRow(query).Scan(scanPtrs...); err != nil {
