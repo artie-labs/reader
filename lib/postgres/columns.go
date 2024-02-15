@@ -35,7 +35,7 @@ func castColumn(col schema.Column) string {
 		// These are all the columns that do not need to be escaped.
 		return colName
 	default:
-		slog.Info("Unexpected column type", slog.Any("colType", col.Type), slog.String("colName", colName))
+		slog.Info("Unexpected column type", slog.String("colName", col.Name), slog.Any("colType", col.Type))
 		return colName
 	}
 }
