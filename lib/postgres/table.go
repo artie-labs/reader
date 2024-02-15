@@ -56,14 +56,6 @@ func (t *Table) PopulateColumns(db *sql.DB) error {
 	return t.findStartAndEndPrimaryKeys(db)
 }
 
-func (t *Table) ColumnsCastedForScanning() []string {
-	var result []string
-	for _, col := range t.Columns {
-		result = append(result, castColumn(col))
-	}
-	return result
-}
-
 func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 	keys, err := schema.GetPrimaryKeys(db, t.Schema, t.Name)
 	if err != nil {
