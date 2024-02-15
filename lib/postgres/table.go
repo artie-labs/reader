@@ -3,7 +3,6 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
-	"log/slog"
 	"slices"
 	"strings"
 
@@ -46,17 +45,11 @@ func (t *Table) TopicSuffix() string {
 }
 
 func (t *Table) FindStartAndEndPrimaryKeys(db *sql.DB) error {
-	primaryKeys, err := schema.GetPrimaryKeys(db, t.Schema, t.Name)
+	keys, err := schema.GetPrimaryKeys(db, t.Schema, t.Name)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve primary keys: %w", err)
 	}
 
-	for _, primaryKey := range primaryKeys {
-		// Just fill the name in first, values will be loaded later.
-		t.PrimaryKeys.Upsert(primaryKey, nil, nil)
-	}
-
-	keys := t.PrimaryKeys.Keys()
 	var castedPrimaryKeys []string
 	for _, primaryKey := range keys {
 		index := slices.Index(t.OriginalColumns, primaryKey)
@@ -67,48 +60,33 @@ func (t *Table) FindStartAndEndPrimaryKeys(db *sql.DB) error {
 		castedPrimaryKeys = append(castedPrimaryKeys, t.ColumnsCastedForScanning[index])
 	}
 
-	values, err := schema.GetPrimaryKeysUpperBounds(db, t.Schema, t.Name, keys, castedPrimaryKeys)
+	primaryKeysBounds, err := schema.GetPrimaryKeysBounds(db, t.Schema, t.Name, keys, castedPrimaryKeys)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve upper bounds for primary keys: %w", err)
+		return fmt.Errorf("failed to retrieve bounds for primary keys: %w", err)
 	}
 
-	for idx, maxValue := range values {
-		val, err := ParseValue(t.Fields, ParseValueArgs{
-			ColName: keys[idx],
-			ValueWrapper: ValueWrapper{
-				Value: maxValue,
-			},
-			ParseTime: true,
-		})
+	for idx, bound := range primaryKeysBounds {
+		colName := keys[idx]
 
+		minVal, err := ParseValue(t.Fields, ParseValueArgs{
+			ColName:      colName,
+			ValueWrapper: ValueWrapper{Value: bound.Min},
+			ParseTime:    true,
+		})
 		if err != nil {
 			return err
 		}
 
-		t.PrimaryKeys.Upsert(keys[idx], nil, ptr.ToString(val.String()))
-	}
-
-	minValues, err := schema.GetPrimaryKeysLowerBounds(db, t.Schema, t.Name, keys, castedPrimaryKeys)
-	if err != nil {
-		return fmt.Errorf("failed to retrieve lower bounds for primary keys: %w", err)
-	}
-
-	slog.Info("Primary keys bounds", slog.Any("min", minValues), slog.Any("max", values))
-
-	for idx, minValue := range minValues {
-		val, err := ParseValue(t.Fields, ParseValueArgs{
-			ColName: keys[idx],
-			ValueWrapper: ValueWrapper{
-				Value: minValue,
-			},
-			ParseTime: true,
+		maxVal, err := ParseValue(t.Fields, ParseValueArgs{
+			ColName:      colName,
+			ValueWrapper: ValueWrapper{Value: bound.Max},
+			ParseTime:    true,
 		})
-
 		if err != nil {
 			return err
 		}
 
-		t.PrimaryKeys.Upsert(keys[idx], ptr.ToString(val.String()), nil)
+		t.PrimaryKeys.Upsert(keys[idx], ptr.ToString(minVal.String()), ptr.ToString(maxVal.String()))
 	}
 
 	return t.PrimaryKeys.LoadValues(t.OptionalPrimaryKeyValStart, t.OptionalPrimaryKeyValEnd)

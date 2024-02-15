@@ -226,7 +226,7 @@ func selectTableQuery(args selectTableQueryArgs) string {
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(), strings.Join(fragments, ","))
 }
 
-func GetPrimaryKeysLowerBounds(db *sql.DB, schema, table string, primaryKeys []string, castedPrimaryKeys []string) ([]interface{}, error) {
+func getPrimaryKeysLowerBounds(db *sql.DB, schema, table string, primaryKeys []string, castedPrimaryKeys []string) ([]interface{}, error) {
 	result := make([]interface{}, len(primaryKeys))
 	scanPtrs := make([]interface{}, len(primaryKeys))
 	for i := range result {
@@ -247,7 +247,7 @@ func GetPrimaryKeysLowerBounds(db *sql.DB, schema, table string, primaryKeys []s
 	return result, nil
 }
 
-func GetPrimaryKeysUpperBounds(db *sql.DB, schema, table string, primaryKeys []string, castedPrimaryKeys []string) ([]interface{}, error) {
+func getPrimaryKeysUpperBounds(db *sql.DB, schema, table string, primaryKeys []string, castedPrimaryKeys []string) ([]interface{}, error) {
 	result := make([]interface{}, len(primaryKeys))
 	scanPtrs := make([]interface{}, len(primaryKeys))
 	for i := range result {
@@ -267,4 +267,32 @@ func GetPrimaryKeysUpperBounds(db *sql.DB, schema, table string, primaryKeys []s
 		return nil, err
 	}
 	return result, nil
+}
+
+type Bounds struct {
+	Min interface{}
+	Max interface{}
+}
+
+func GetPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []string, castedPrimaryKeys []string) ([]Bounds, error) {
+	minValues, err := getPrimaryKeysLowerBounds(db, schema, table, primaryKeys, castedPrimaryKeys)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve lower bounds for primary keys: %w", err)
+	}
+
+	maxValues, err := getPrimaryKeysUpperBounds(db, schema, table, primaryKeys, castedPrimaryKeys)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve upper bounds for primary keys: %w", err)
+	}
+
+	slog.Info("Primary keys bounds", slog.Any("min", minValues), slog.Any("max", maxValues))
+
+	var bounds []Bounds
+	for idx, minValue := range minValues {
+		bounds = append(bounds, Bounds{
+			Min: minValue,
+			Max: maxValues[idx],
+		})
+	}
+	return bounds, nil
 }
