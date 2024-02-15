@@ -228,7 +228,7 @@ func selectTableQuery(args selectTableQueryArgs) string {
 
 func GetPrimaryKeysLowerBounds(db *sql.DB, schema, table string, primaryKeys []string, castedPrimaryKeys []string) ([]interface{}, error) {
 	result := make([]interface{}, len(primaryKeys))
-	scanPtrs := make([]interface{}, len(primaryKeys))
+	scanPtrs := make([]interface{}, len(result))
 	for i := range result {
 		scanPtrs[i] = &result[i]
 	}
@@ -249,7 +249,7 @@ func GetPrimaryKeysLowerBounds(db *sql.DB, schema, table string, primaryKeys []s
 
 func GetPrimaryKeysUpperBounds(db *sql.DB, schema, table string, primaryKeys []string, castedPrimaryKeys []string) ([]interface{}, error) {
 	result := make([]interface{}, len(primaryKeys))
-	scanPtrs := make([]interface{}, len(primaryKeys))
+	scanPtrs := make([]interface{}, len(result))
 	for i := range result {
 		scanPtrs[i] = &result[i]
 	}
