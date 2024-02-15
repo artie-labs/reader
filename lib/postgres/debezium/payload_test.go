@@ -31,7 +31,7 @@ func TestNewArgs_Validate(t *testing.T) {
 			expectErr: "rowData is empty",
 		},
 		{
-			name: "newArgs, tableName, and rowData is set",
+			name: "newArgs, tableName and rowData is set",
 			newArgs: &NewArgs{
 				TableName: "hello",
 				RowData: map[string]interface{}{
