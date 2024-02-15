@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/artie-labs/transfer/lib/telemetry/metrics"
-
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/artie-labs/transfer/lib/ptr"
+	"github.com/artie-labs/transfer/lib/telemetry/metrics"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/config"
