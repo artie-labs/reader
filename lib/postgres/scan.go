@@ -63,7 +63,8 @@ func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
 		Schema:        s.table.Schema,
 		TableName:     s.table.Name,
 		PrimaryKeys:   s.table.PrimaryKeys.Keys(),
-		ColumnsToScan: s.table.ColumnsCastedForScanning(),
+		ColumnsToScan: s.table.Columns,
+		ColumnCast:    castColumn,
 
 		FirstWhere:   firstWhereClause,
 		StartingKeys: startKeys,

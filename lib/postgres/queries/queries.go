@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -33,7 +34,8 @@ type ScanTableQueryArgs struct {
 	Schema        string
 	TableName     string
 	PrimaryKeys   []string
-	ColumnsToScan []string
+	ColumnsToScan []schema.Column
+	ColumnCast    func(schema.Column) string
 
 	// First where clause
 	FirstWhere   Comparison
@@ -47,8 +49,13 @@ type ScanTableQueryArgs struct {
 }
 
 func ScanTableQuery(args ScanTableQueryArgs) string {
+	castedColumns := make([]string, len(args.ColumnsToScan))
+	for idx, col := range args.ColumnsToScan {
+		castedColumns[idx] = args.ColumnCast(col)
+	}
+
 	return fmt.Sprintf(`SELECT %s FROM %s WHERE row(%s) %s row(%s) AND NOT row(%s) %s row(%s) ORDER BY %s LIMIT %d`,
-		strings.Join(args.ColumnsToScan, ","),
+		strings.Join(castedColumns, ","),
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
 		// WHERE row(pk) > row(123)
 		strings.Join(quotedIdentifiers(args.PrimaryKeys), ","), args.FirstWhere.SQLString(), strings.Join(args.StartingKeys, ","),
