@@ -25,8 +25,8 @@ func (p *PostgreSQL) ToDSN() string {
 
 	if p.DisableSSL {
 		connString = fmt.Sprintf("%s sslmode=disable", connString)
-
 	}
+
 	return connString
 }
 
