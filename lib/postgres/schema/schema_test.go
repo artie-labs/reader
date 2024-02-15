@@ -7,26 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDescribeTableQuery(t *testing.T) {
-	{
-		query, args := DescribeTableQuery(DescribeTableArgs{
-			Name:   "name",
-			Schema: "schema",
-		})
-		assert.Equal(t, "SELECT column_name, data_type, numeric_precision, numeric_scale, udt_name\nFROM information_schema.columns\nWHERE table_name = $1 AND table_schema = $2", query)
-		assert.Equal(t, []any{"name", "schema"}, args)
-	}
-	// test quotes in table name or schema are left alone
-	{
-		_, args := DescribeTableQuery(DescribeTableArgs{
-			Name:   `na"me`,
-			Schema: `s'ch"em'a`,
-		})
-		assert.Equal(t, []any{`na"me`, `s'ch"em'a`}, args)
-	}
-}
-
-func TestColKindToDataType(t *testing.T) {
+func TestParseColumnDataType(t *testing.T) {
 	type _testCase struct {
 		name      string
 		colKind   string
@@ -140,7 +121,7 @@ func TestColKindToDataType(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		dataType, opts := ColKindToDataType(testCase.colKind, testCase.precision, testCase.scale, testCase.udtName)
+		dataType, opts := ParseColumnDataType(testCase.colKind, testCase.precision, testCase.scale, testCase.udtName)
 		assert.Equal(t, testCase.expectedDataType, dataType, testCase.name)
 		assert.Equal(t, testCase.expectedOpts, opts, testCase.name)
 	}
