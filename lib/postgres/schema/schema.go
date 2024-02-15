@@ -285,14 +285,13 @@ func GetPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []string
 		return nil, fmt.Errorf("failed to retrieve upper bounds for primary keys: %w", err)
 	}
 
-	slog.Info("Primary keys bounds", slog.Any("min", minValues), slog.Any("max", maxValues))
-
 	var bounds []Bounds
 	for idx, minValue := range minValues {
 		bounds = append(bounds, Bounds{
 			Min: minValue,
 			Max: maxValues[idx],
 		})
+		slog.Info("Primary key bounds", slog.String("key", primaryKeys[idx]), slog.Any("min", minValue), slog.Any("max", maxValues[idx]))
 	}
 	return bounds, nil
 }
