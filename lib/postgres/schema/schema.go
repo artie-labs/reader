@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"strings"
 
+	"github.com/artie-labs/reader/lib/postgres/queries"
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/jackc/pgx/v5"
 )
@@ -203,4 +204,48 @@ func GetPrimaryKeys(db *sql.DB, schema, table string) ([]string, error) {
 		primaryKeys = append(primaryKeys, primaryKey)
 	}
 	return primaryKeys, nil
+}
+
+func GetPrimaryKeysLowerBounds(db *sql.DB, schema, table string, primaryKeys []string, castedPrimaryKeys []string) ([]interface{}, error) {
+	minValues := make([]interface{}, len(primaryKeys))
+	scannedMinPkValues := make([]interface{}, len(primaryKeys))
+	for i := range minValues {
+		scannedMinPkValues[i] = &minValues[i]
+	}
+
+	minQuery := queries.SelectTableQuery(queries.SelectTableQueryArgs{
+		Keys:      castedPrimaryKeys,
+		Schema:    schema,
+		TableName: table,
+		OrderBy:   primaryKeys,
+	})
+
+	slog.Info("Find min pk query", slog.String("query", minQuery))
+	if err := db.QueryRow(minQuery).Scan(scannedMinPkValues...); err != nil {
+		return nil, err
+	}
+	return minValues, nil
+}
+
+func GetPrimaryKeysUpperBounds(db *sql.DB, schema, table string, primaryKeys []string, castedPrimaryKeys []string) ([]interface{}, error) {
+	maxValues := make([]interface{}, len(primaryKeys))
+	scannedMaxPkValues := make([]interface{}, len(primaryKeys))
+	for i := range maxValues {
+		scannedMaxPkValues[i] = &maxValues[i]
+	}
+
+	query := queries.SelectTableQuery(queries.SelectTableQueryArgs{
+		Keys:       castedPrimaryKeys,
+		Schema:     schema,
+		TableName:  table,
+		OrderBy:    primaryKeys,
+		Descending: true,
+	})
+
+	slog.Info("Find max pk query", slog.String("query", query))
+
+	if err := db.QueryRow(query).Scan(scannedMaxPkValues...); err != nil {
+		return nil, err
+	}
+	return maxValues, nil
 }
