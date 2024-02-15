@@ -56,7 +56,6 @@ func (t *Table) findPrimaryKeys(db *sql.DB) error {
 		// Just fill the name in first, values will be loaded later.
 		t.PrimaryKeys.Upsert(primaryKey, nil, nil)
 	}
-
 	return nil
 }
 
