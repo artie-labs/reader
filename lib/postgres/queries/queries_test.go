@@ -33,26 +33,6 @@ func TestSelectTableQuery(t *testing.T) {
 	}
 }
 
-func TestRetrievePrimaryKeys(t *testing.T) {
-	{
-		query, args := RetrievePrimaryKeys(RetrievePrimaryKeysArgs{
-			Schema:    "schema",
-			TableName: "table",
-		})
-		assert.Equal(t, "SELECT a.attname::text as id\nFROM   pg_index i\nJOIN   pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)\nWHERE  i.indrelid = $1::regclass\nAND    i.indisprimary;", query)
-		assert.Equal(t, []any{`"schema"."table"`}, args)
-	}
-	{
-		_, args := RetrievePrimaryKeys(RetrievePrimaryKeysArgs{
-			Schema:    "schEMA",
-			TableName: "__FOO",
-		})
-
-		assert.Equal(t, []any{`"schEMA"."__FOO"`}, args)
-	}
-
-}
-
 func TestScanTableQuery(t *testing.T) {
 	query := ScanTableQuery(ScanTableQueryArgs{
 		Schema:        "schema",

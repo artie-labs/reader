@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/artie-labs/transfer/lib/ptr"
+	"github.com/jackc/pgx/v5"
 )
 
 type DataType int
@@ -175,4 +176,31 @@ func ParseColumnDataType(colKind string, precision, scale, udtName *string) (Dat
 	}
 
 	return InvalidDataType, nil
+}
+
+// This is a fork of: https://wiki.postgresql.org/wiki/Retrieve_primary_key_columns
+const primaryKeysQuery = `
+SELECT a.attname::text as id
+FROM   pg_index i
+JOIN   pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)
+WHERE  i.indrelid = $1::regclass
+AND    i.indisprimary;`
+
+func GetPrimaryKeys(db *sql.DB, schema, table string) ([]string, error) {
+	query := strings.TrimSpace(primaryKeysQuery)
+	rows, err := db.Query(query, pgx.Identifier{schema, table}.Sanitize())
+	if err != nil {
+		return nil, fmt.Errorf("failed to run query: %s: %w", query, err)
+	}
+	defer rows.Close()
+
+	var primaryKeys []string
+	for rows.Next() {
+		var primaryKey string
+		if err = rows.Scan(&primaryKey); err != nil {
+			return nil, err
+		}
+		primaryKeys = append(primaryKeys, primaryKey)
+	}
+	return primaryKeys, nil
 }

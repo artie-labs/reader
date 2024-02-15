@@ -37,23 +37,6 @@ func SelectTableQuery(args SelectTableQueryArgs) string {
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(), strings.Join(fragments, ","))
 }
 
-type RetrievePrimaryKeysArgs struct {
-	Schema    string
-	TableName string
-}
-
-const primaryKeysQuery = `
-SELECT a.attname::text as id
-FROM   pg_index i
-JOIN   pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)
-WHERE  i.indrelid = $1::regclass
-AND    i.indisprimary;`
-
-func RetrievePrimaryKeys(args RetrievePrimaryKeysArgs) (string, []any) {
-	// This is a fork of: https://wiki.postgresql.org/wiki/Retrieve_primary_key_columns
-	return strings.TrimSpace(primaryKeysQuery), []any{pgx.Identifier{args.Schema, args.TableName}.Sanitize()}
-}
-
 type Comparison string
 
 const (

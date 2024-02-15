@@ -13,6 +13,7 @@ import (
 	"github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/reader/lib/postgres/primary_key"
 	"github.com/artie-labs/reader/lib/postgres/queries"
+	"github.com/artie-labs/reader/lib/postgres/schema"
 )
 
 type Table struct {
@@ -46,29 +47,15 @@ func (t *Table) TopicSuffix() string {
 }
 
 func (t *Table) findPrimaryKeys(db *sql.DB) error {
-	sqlQuery, sqlArgs := queries.RetrievePrimaryKeys(
-		queries.RetrievePrimaryKeysArgs{
-			Schema:    t.Schema,
-			TableName: t.Name,
-		},
-	)
-
-	rows, err := db.Query(sqlQuery, sqlArgs...)
+	primaryKeys, err := schema.GetPrimaryKeys(db, t.Schema, t.Name)
 	if err != nil {
-		return fmt.Errorf("failed to query, err: %w, sqlQuery: %s, sqlArgs: %v", err, sqlQuery, sqlArgs)
+		return fmt.Errorf("failed to retrieve primary keys: %w", err)
 	}
 
-	for rows.Next() {
-		var primaryKey string
-		err = rows.Scan(&primaryKey)
-		if err != nil {
-			return err
-		}
-
+	for _, primaryKey := range primaryKeys {
 		// Just fill the name in first, values will be loaded later.
 		t.PrimaryKeys.Upsert(primaryKey, nil, nil)
 	}
-
 	return nil
 }
 
