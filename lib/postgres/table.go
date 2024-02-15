@@ -20,10 +20,8 @@ type Table struct {
 
 	PrimaryKeys *primary_key.Keys
 
-	// TODO: `OriginalColumns` and `ColumnsCastedForScanning` can be merged later to be more concise.
-	OriginalColumns          []string
-	ColumnsCastedForScanning []string
-	Fields                   *debezium.Fields
+	Columns []schema.Column
+	Fields  *debezium.Fields
 
 	OptionalPrimaryKeyValStart string
 	OptionalPrimaryKeyValEnd   string
@@ -52,12 +50,18 @@ func (t *Table) PopulateColumns(db *sql.DB) error {
 
 	for _, col := range cols {
 		t.Fields.AddField(col.Name, col.Type, col.Opts)
-		// Add to original columns before mutation
-		t.OriginalColumns = append(t.OriginalColumns, col.Name)
-		t.ColumnsCastedForScanning = append(t.ColumnsCastedForScanning, castColumn(col.Name, col.Type))
+		t.Columns = append(t.Columns, col)
 	}
 
 	return t.findStartAndEndPrimaryKeys(db)
+}
+
+func (t *Table) ColumnsCastedForScanning() []string {
+	var result []string
+	for _, col := range t.Columns {
+		result = append(result, castColumn(col.Name, col.Type))
+	}
+	return result
 }
 
 func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
@@ -68,12 +72,12 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 
 	var castedPrimaryKeys []string
 	for _, primaryKey := range keys {
-		index := slices.Index(t.OriginalColumns, primaryKey)
+		index := slices.IndexFunc(t.Columns, func(c schema.Column) bool { return c.Name == primaryKey })
 		if index < 0 {
-			return fmt.Errorf("failed to find primary key from original columns, key: %s, originalColumns: %v, index: %d", primaryKey, t.OriginalColumns, index)
+			return fmt.Errorf("failed to find primary key from original columns, key: %s, columns: %v", primaryKey, t.Columns)
 		}
-
-		castedPrimaryKeys = append(castedPrimaryKeys, t.ColumnsCastedForScanning[index])
+		col := t.Columns[index]
+		castedPrimaryKeys = append(castedPrimaryKeys, castColumn(col.Name, col.Type))
 	}
 
 	primaryKeysBounds, err := schema.GetPrimaryKeysBounds(db, t.Schema, t.Name, keys, castedPrimaryKeys)

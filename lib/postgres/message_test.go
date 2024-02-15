@@ -2,14 +2,15 @@ package postgres
 
 import (
 	"fmt"
-	"github.com/artie-labs/transfer/lib/telemetry/metrics"
 	"testing"
 
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/artie-labs/transfer/lib/ptr"
+	"github.com/artie-labs/transfer/lib/telemetry/metrics"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/postgres/schema"
 )
 
 type ErrorRowIterator struct{}
@@ -42,8 +43,7 @@ func TestMessageBuilder(t *testing.T) {
 		Name:   "table",
 		Schema: "schema",
 	})
-	table.OriginalColumns = []string{"a"}
-	table.ColumnsCastedForScanning = []string{"a"}
+	table.Columns = []schema.Column{{Name: "a", Type: schema.Int16}}
 	table.PrimaryKeys.Upsert("a", ptr.ToString("1"), ptr.ToString("4"))
 
 	// test zero batches
