@@ -4,13 +4,14 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/ptr"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/artie-labs/reader/lib/postgres/primary_key"
-	"github.com/artie-labs/reader/lib/postgres/queries"
 )
 
 const (
@@ -45,21 +46,65 @@ func (t *Table) NewScanner(db *sql.DB, batchSize uint, errorRetries int) scanner
 	}
 }
 
+type Comparison string
+
+const (
+	GreaterThan        Comparison = ">"
+	GreaterThanEqualTo Comparison = ">="
+)
+
+func (c Comparison) SQLString() string {
+	if (c == GreaterThan) || (c == GreaterThanEqualTo) {
+		return string(c)
+	}
+	panic(fmt.Sprintf("invalid comparison: '%v'", c))
+}
+
+type scanTableQueryArgs struct {
+	Schema        string
+	TableName     string
+	PrimaryKeys   []string
+	ColumnsToScan []string
+
+	// First where clause
+	FirstWhere   Comparison
+	StartingKeys []string
+	// Second where clause
+	SecondWhere Comparison
+	EndingKeys  []string
+
+	OrderBy []string
+	Limit   uint
+}
+
+func scanTableQuery(args scanTableQueryArgs) string {
+	return fmt.Sprintf(`SELECT %s FROM %s WHERE row(%s) %s row(%s) AND NOT row(%s) %s row(%s) ORDER BY %s LIMIT %d`,
+		strings.Join(args.ColumnsToScan, ","),
+		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
+		// WHERE row(pk) > row(123)
+		strings.Join(QuotedIdentifiers(args.PrimaryKeys), ","), args.FirstWhere.SQLString(), strings.Join(args.StartingKeys, ","),
+		// AND NOT row(pk) < row(123)
+		strings.Join(QuotedIdentifiers(args.PrimaryKeys), ","), args.SecondWhere.SQLString(), strings.Join(args.EndingKeys, ","),
+		strings.Join(QuotedIdentifiers(args.OrderBy), ","),
+		args.Limit,
+	)
+}
+
 func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
-	firstWhereClause := queries.GreaterThan
+	firstWhereClause := GreaterThan
 	if s.isFirstRow {
-		firstWhereClause = queries.GreaterThanEqualTo
+		firstWhereClause = GreaterThanEqualTo
 	}
 
-	secondWhereClause := queries.GreaterThan
+	secondWhereClause := GreaterThan
 	if s.isLastRow {
-		secondWhereClause = queries.GreaterThanEqualTo
+		secondWhereClause = GreaterThanEqualTo
 	}
 
 	startKeys := s.primaryKeys.KeysToValueList(s.table.Fields.GetOptionalSchema(), false)
 	endKeys := s.primaryKeys.KeysToValueList(s.table.Fields.GetOptionalSchema(), true)
 
-	query := queries.ScanTableQuery(queries.ScanTableQueryArgs{
+	query := scanTableQuery(scanTableQueryArgs{
 		Schema:        s.table.Schema,
 		TableName:     s.table.Name,
 		PrimaryKeys:   s.table.PrimaryKeys.Keys(),

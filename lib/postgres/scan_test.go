@@ -1,4 +1,4 @@
-package queries
+package postgres
 
 import (
 	"testing"
@@ -6,12 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestQuotedIdentifiers(t *testing.T) {
-	assert.Equal(t, []string{`"a"`, `"bb""bb"`, `"c"`}, quotedIdentifiers([]string{"a", `bb"bb`, "c"}))
-}
-
 func TestScanTableQuery(t *testing.T) {
-	query := ScanTableQuery(ScanTableQueryArgs{
+	query := scanTableQuery(scanTableQueryArgs{
 		Schema:        "schema",
 		TableName:     "table",
 		PrimaryKeys:   []string{"a", "b", "c"},
