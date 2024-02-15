@@ -15,28 +15,6 @@ func quotedIdentifiers(ids []string) []string {
 	return quoted
 }
 
-type SelectTableQueryArgs struct {
-	Keys       []string
-	Schema     string
-	TableName  string
-	OrderBy    []string
-	Descending bool
-}
-
-func SelectTableQuery(args SelectTableQueryArgs) string {
-	var fragments []string
-	for _, orderBy := range args.OrderBy {
-		fragment := pgx.Identifier{orderBy}.Sanitize()
-		if args.Descending {
-			fragment += " DESC"
-		}
-
-		fragments = append(fragments, fragment)
-	}
-	return fmt.Sprintf(`SELECT %s FROM %s ORDER BY %s LIMIT 1`, strings.Join(args.Keys, ","),
-		pgx.Identifier{args.Schema, args.TableName}.Sanitize(), strings.Join(fragments, ","))
-}
-
 type Comparison string
 
 const (

@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/artie-labs/reader/lib/postgres/queries"
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/jackc/pgx/v5"
 )
@@ -206,6 +205,28 @@ func GetPrimaryKeys(db *sql.DB, schema, table string) ([]string, error) {
 	return primaryKeys, nil
 }
 
+type selectTableQueryArgs struct {
+	Keys       []string
+	Schema     string
+	TableName  string
+	OrderBy    []string
+	Descending bool
+}
+
+func selectTableQuery(args selectTableQueryArgs) string {
+	var fragments []string
+	for _, orderBy := range args.OrderBy {
+		fragment := pgx.Identifier{orderBy}.Sanitize()
+		if args.Descending {
+			fragment += " DESC"
+		}
+
+		fragments = append(fragments, fragment)
+	}
+	return fmt.Sprintf(`SELECT %s FROM %s ORDER BY %s LIMIT 1`, strings.Join(args.Keys, ","),
+		pgx.Identifier{args.Schema, args.TableName}.Sanitize(), strings.Join(fragments, ","))
+}
+
 func GetPrimaryKeysLowerBounds(db *sql.DB, schema, table string, primaryKeys []string, castedPrimaryKeys []string) ([]interface{}, error) {
 	minValues := make([]interface{}, len(primaryKeys))
 	scannedMinPkValues := make([]interface{}, len(primaryKeys))
@@ -213,7 +234,7 @@ func GetPrimaryKeysLowerBounds(db *sql.DB, schema, table string, primaryKeys []s
 		scannedMinPkValues[i] = &minValues[i]
 	}
 
-	minQuery := queries.SelectTableQuery(queries.SelectTableQueryArgs{
+	minQuery := selectTableQuery(selectTableQueryArgs{
 		Keys:      castedPrimaryKeys,
 		Schema:    schema,
 		TableName: table,
@@ -234,7 +255,7 @@ func GetPrimaryKeysUpperBounds(db *sql.DB, schema, table string, primaryKeys []s
 		scannedMaxPkValues[i] = &maxValues[i]
 	}
 
-	query := queries.SelectTableQuery(queries.SelectTableQueryArgs{
+	query := selectTableQuery(selectTableQueryArgs{
 		Keys:       castedPrimaryKeys,
 		Schema:     schema,
 		TableName:  table,
