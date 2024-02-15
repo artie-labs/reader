@@ -75,7 +75,7 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 	query := strings.TrimSpace(describeTableQuery)
 	rows, err := db.Query(query, _schema, table)
 	if err != nil {
-		return nil, fmt.Errorf("failed to run query: %s, err: %w", query, err)
+		return nil, fmt.Errorf("failed to run query: %s: %w", query, err)
 	}
 
 	var cols []Column
