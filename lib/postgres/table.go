@@ -59,7 +59,7 @@ func (t *Table) PopulateColumns(db *sql.DB) error {
 func (t *Table) ColumnsCastedForScanning() []string {
 	var result []string
 	for _, col := range t.Columns {
-		result = append(result, castColumn(col.Name, col.Type))
+		result = append(result, castColumn(col))
 	}
 	return result
 }
@@ -77,7 +77,7 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 			return fmt.Errorf("failed to find primary key from original columns, key: %s, columns: %v", primaryKey, t.Columns)
 		}
 		col := t.Columns[index]
-		castedPrimaryKeys = append(castedPrimaryKeys, castColumn(col.Name, col.Type))
+		castedPrimaryKeys = append(castedPrimaryKeys, castColumn(col))
 	}
 
 	primaryKeysBounds, err := schema.GetPrimaryKeysBounds(db, t.Schema, t.Name, keys, castedPrimaryKeys)

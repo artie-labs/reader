@@ -9,9 +9,9 @@ import (
 )
 
 // castColumn will take a colName and return the escaped version of what we should be using to call Postgres.
-func castColumn(rawColName string, colKind schema.DataType) string {
-	colName := pgx.Identifier{rawColName}.Sanitize()
-	switch colKind {
+func castColumn(col schema.Column) string {
+	colName := pgx.Identifier{col.Name}.Sanitize()
+	switch col.Type {
 	case schema.InvalidDataType:
 		return colName
 	case schema.Money, schema.TextThatRequiresEscaping:
@@ -22,20 +22,20 @@ func castColumn(rawColName string, colKind schema.DataType) string {
 		// We need to use CAST, because regular ::int makes this into a bytes array.
 		// extract from epoch outputs in seconds, default multiplier to ms.
 		multiplier := 1000
-		if colKind == schema.Interval {
+		if col.Type == schema.Interval {
 			// ms to macro seconds.
 			multiplier = 1000 * 1000
 		}
 
-		return fmt.Sprintf(`cast(extract(epoch from %s)*%d as bigint) as "%s"`, colName, multiplier, rawColName)
+		return fmt.Sprintf(`cast(extract(epoch from %s)*%d as bigint) as "%s"`, colName, multiplier, col.Name)
 	case schema.Array:
-		return fmt.Sprintf(`ARRAY_TO_JSON(%s)::TEXT as "%s"`, colName, rawColName)
+		return fmt.Sprintf(`ARRAY_TO_JSON(%s)::TEXT as "%s"`, colName, col.Name)
 	case schema.Int16, schema.Int32, schema.Int64, schema.UUID, schema.UserDefinedText,
 		schema.VariableNumeric, schema.Numeric, schema.Text, schema.Boolean, schema.Date, schema.Timestamp, schema.HStore, schema.JSON, schema.Bit:
 		// These are all the columns that do not need to be escaped.
 		return colName
 	default:
-		slog.Info("Unexpected column kind", slog.Any("colKind", colKind), slog.String("colName", colName))
+		slog.Info("Unexpected column type", slog.String("colName", col.Name), slog.Any("colType", col.Type))
 		return colName
 	}
 }

@@ -70,7 +70,7 @@ func TestCastColumn(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		actualEscCol := castColumn("foo", testCase.dataType)
+		actualEscCol := castColumn(schema.Column{Name: "foo", Type: testCase.dataType})
 		assert.Equal(t, testCase.expected, actualEscCol, testCase.name)
 	}
 }
