@@ -228,9 +228,9 @@ func selectTableQuery(args selectTableQueryArgs) string {
 
 func GetPrimaryKeysLowerBounds(db *sql.DB, schema, table string, primaryKeys []string, castedPrimaryKeys []string) ([]interface{}, error) {
 	result := make([]interface{}, len(primaryKeys))
-	scannedMinPkValues := make([]interface{}, len(primaryKeys))
+	scanPtrs := make([]interface{}, len(primaryKeys))
 	for i := range result {
-		scannedMinPkValues[i] = &result[i]
+		scanPtrs[i] = &result[i]
 	}
 
 	minQuery := selectTableQuery(selectTableQueryArgs{
@@ -241,7 +241,7 @@ func GetPrimaryKeysLowerBounds(db *sql.DB, schema, table string, primaryKeys []s
 	})
 
 	slog.Info("Find min pk query", slog.String("query", minQuery))
-	if err := db.QueryRow(minQuery).Scan(scannedMinPkValues...); err != nil {
+	if err := db.QueryRow(minQuery).Scan(scanPtrs...); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -249,9 +249,9 @@ func GetPrimaryKeysLowerBounds(db *sql.DB, schema, table string, primaryKeys []s
 
 func GetPrimaryKeysUpperBounds(db *sql.DB, schema, table string, primaryKeys []string, castedPrimaryKeys []string) ([]interface{}, error) {
 	result := make([]interface{}, len(primaryKeys))
-	scannedMaxPkValues := make([]interface{}, len(primaryKeys))
+	scanPtrs := make([]interface{}, len(primaryKeys))
 	for i := range result {
-		scannedMaxPkValues[i] = &result[i]
+		scanPtrs[i] = &result[i]
 	}
 
 	query := selectTableQuery(selectTableQueryArgs{
@@ -264,7 +264,7 @@ func GetPrimaryKeysUpperBounds(db *sql.DB, schema, table string, primaryKeys []s
 
 	slog.Info("Find max pk query", slog.String("query", query))
 
-	if err := db.QueryRow(query).Scan(scannedMaxPkValues...); err != nil {
+	if err := db.QueryRow(query).Scan(scanPtrs...); err != nil {
 		return nil, err
 	}
 	return result, nil
