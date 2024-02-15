@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/artie-labs/reader/lib/postgres/primary_key"
+	"github.com/artie-labs/reader/lib/postgres/schema"
 )
 
 const (
@@ -61,10 +62,10 @@ func (c Comparison) SQLString() string {
 }
 
 type scanTableQueryArgs struct {
-	Schema        string
-	TableName     string
-	PrimaryKeys   []string
-	ColumnsToScan []string
+	Schema      string
+	TableName   string
+	PrimaryKeys []string
+	Columns     []schema.Column
 
 	// First where clause
 	FirstWhere   Comparison
@@ -78,8 +79,13 @@ type scanTableQueryArgs struct {
 }
 
 func scanTableQuery(args scanTableQueryArgs) string {
+	castedColumns := make([]string, len(args.Columns))
+	for idx, col := range args.Columns {
+		castedColumns[idx] = castColumn(col)
+	}
+
 	return fmt.Sprintf(`SELECT %s FROM %s WHERE row(%s) %s row(%s) AND NOT row(%s) %s row(%s) ORDER BY %s LIMIT %d`,
-		strings.Join(args.ColumnsToScan, ","),
+		strings.Join(castedColumns, ","),
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
 		// WHERE row(pk) > row(123)
 		strings.Join(QuotedIdentifiers(args.PrimaryKeys), ","), args.FirstWhere.SQLString(), strings.Join(args.StartingKeys, ","),
@@ -105,10 +111,10 @@ func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
 	endKeys := s.primaryKeys.KeysToValueList(s.table.Fields.GetOptionalSchema(), true)
 
 	query := scanTableQuery(scanTableQueryArgs{
-		Schema:        s.table.Schema,
-		TableName:     s.table.Name,
-		PrimaryKeys:   s.table.PrimaryKeys.Keys(),
-		ColumnsToScan: s.table.ColumnsCastedForScanning(),
+		Schema:      s.table.Schema,
+		TableName:   s.table.Name,
+		PrimaryKeys: s.table.PrimaryKeys.Keys(),
+		Columns:     s.table.Columns,
 
 		FirstWhere:   firstWhereClause,
 		StartingKeys: startKeys,
