@@ -16,14 +16,7 @@ func (t *Table) PopulateColumns(db *sql.DB) error {
 	}
 
 	for _, col := range cols {
-		if col.Type == schema.InvalidDataType {
-			slog.Warn("Column type did not get mapped in our message schema, so it will not be automatically created by transfer",
-				slog.String("colName", col.Name),
-			)
-		} else {
-			t.Fields.AddField(col.Name, col.Type, col.Opts)
-		}
-
+		t.Fields.AddField(col.Name, col.Type, col.Opts)
 		// Add to original columns before mutation
 		t.OriginalColumns = append(t.OriginalColumns, col.Name)
 		t.ColumnsCastedForScanning = append(t.ColumnsCastedForScanning, castColumn(col.Name, col.Type))
