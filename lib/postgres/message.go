@@ -11,12 +11,12 @@ import (
 )
 
 type MessageBuilder struct {
-	statsD *mtr.Client
+	statsD mtr.Client
 	table  *Table
 	iter   batchRowIterator
 }
 
-func NewMessageBuilder(table *Table, iter batchRowIterator, statsD *mtr.Client) *MessageBuilder {
+func NewMessageBuilder(table *Table, iter batchRowIterator, statsD mtr.Client) *MessageBuilder {
 	return &MessageBuilder{
 		table:  table,
 		iter:   iter,
@@ -34,12 +34,11 @@ func (m *MessageBuilder) HasNext() bool {
 }
 
 func (m *MessageBuilder) recordMetrics(start time.Time) {
-	if m.statsD != nil {
-		(*m.statsD).Timing("scanned_and_parsed", time.Since(start), map[string]string{
-			"table":  strings.ReplaceAll(m.table.Name, `"`, ``),
-			"schema": m.table.Schema,
-		})
-	}
+	m.statsD.Timing("scanned_and_parsed", time.Since(start), map[string]string{
+		"table":  strings.ReplaceAll(m.table.Name, `"`, ``),
+		"schema": m.table.Schema,
+	})
+
 }
 
 func (m *MessageBuilder) Next() ([]lib.RawMessage, error) {

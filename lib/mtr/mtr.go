@@ -9,7 +9,7 @@ import (
 	"github.com/artie-labs/transfer/lib/stringutil"
 )
 
-func New(namespace string, tags []string, samplingRate float64) (Client, error) {
+func New(namespace string, tags []string, samplingRate float64) (*statsClient, error) {
 	host := os.Getenv("TELEMETRY_HOST")
 	port := os.Getenv("TELEMETRY_PORT")
 	address := DefaultAddr

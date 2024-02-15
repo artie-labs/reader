@@ -70,7 +70,7 @@ func (s *Store) Close() error {
 	return nil
 }
 
-func (s *Store) Run(ctx context.Context, writer kafkalib.BatchWriter, _ *mtr.Client) error {
+func (s *Store) Run(ctx context.Context, writer kafkalib.BatchWriter, _ mtr.Client) error {
 	if s.cfg.Snapshot {
 		if err := s.scanFilesOverBucket(); err != nil {
 			return fmt.Errorf("scanning files over bucket failed: %w", err)

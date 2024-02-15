@@ -50,7 +50,7 @@ func (s *Source) Close() error {
 	return nil
 }
 
-func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, _ *mtr.Client) error {
+func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, _ mtr.Client) error {
 	for _, collection := range s.cfg.Collections {
 		snapshotStartTime := time.Now()
 
