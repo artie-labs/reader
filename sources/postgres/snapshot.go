@@ -44,7 +44,7 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, statsD mt
 
 		slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name))
 		table := postgres.NewTable(tableCfg)
-		if err := table.RetrieveColumns(s.db); err != nil {
+		if err := table.PopulateColumns(s.db); err != nil {
 			if postgres.NoRowsError(err) {
 				slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name))
 				continue
