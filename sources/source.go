@@ -9,5 +9,5 @@ import (
 
 type Source interface {
 	Close() error
-	Run(ctx context.Context, writer kafkalib.BatchWriter, statsD *mtr.Client) error
+	Run(ctx context.Context, writer kafkalib.BatchWriter, statsD mtr.Client) error
 }

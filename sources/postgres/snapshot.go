@@ -38,7 +38,7 @@ func (s *Source) Close() error {
 	return s.db.Close()
 }
 
-func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, statsD *mtr.Client) error {
+func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, statsD mtr.Client) error {
 	for _, tableCfg := range s.cfg.Tables {
 		snapshotStartTime := time.Now()
 

@@ -24,10 +24,10 @@ const (
 type BatchWriter struct {
 	writer *kafka.Writer
 	cfg    config.Kafka
-	statsD *mtr.Client
+	statsD mtr.Client
 }
 
-func NewBatchWriter(ctx context.Context, cfg config.Kafka, statsD *mtr.Client) (*BatchWriter, error) {
+func NewBatchWriter(ctx context.Context, cfg config.Kafka, statsD mtr.Client) (*BatchWriter, error) {
 	if cfg.TopicPrefix == "" {
 		return nil, fmt.Errorf("kafka topic prefix cannot be empty")
 	}
@@ -123,10 +123,7 @@ func (w *BatchWriter) WriteMessages(ctx context.Context, msgs []kafka.Message) e
 			}
 		}
 
-		if w.statsD != nil {
-			(*w.statsD).Count("kafka.publish", int64(len(chunk)), tags)
-		}
-
+		w.statsD.Count("kafka.publish", int64(len(chunk)), tags)
 		if kafkaErr != nil {
 			return fmt.Errorf("failed to write message: %w, approxSize: %d", kafkaErr, size.GetApproxSize(chunk))
 		}

@@ -16,7 +16,7 @@ const (
 type Client interface {
 	Timing(name string, value time.Duration, tags map[string]string)
 	Incr(name string, tags map[string]string)
-	Gauge(name string, tags map[string]string, value float64)
+	Gauge(name string, value float64, tags map[string]string)
 	Count(name string, value int64, tags map[string]string)
 }
 
@@ -46,6 +46,6 @@ func (s *statsClient) Incr(name string, tags map[string]string) {
 	_ = s.client.Incr(name, toDatadogTags(tags), s.rate)
 }
 
-func (s *statsClient) Gauge(name string, tags map[string]string, value float64) {
+func (s *statsClient) Gauge(name string, value float64, tags map[string]string) {
 	_ = s.client.Gauge(name, value, toDatadogTags(tags), s.rate)
 }

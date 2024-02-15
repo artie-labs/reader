@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/artie-labs/transfer/lib/telemetry/metrics"
 	"log/slog"
 	"time"
 
@@ -19,9 +20,9 @@ import (
 	"github.com/artie-labs/reader/sources/postgres"
 )
 
-func setUpMetrics(cfg *config.Metrics) (*mtr.Client, error) {
+func setUpMetrics(cfg *config.Metrics) (mtr.Client, error) {
 	if cfg == nil {
-		return nil, nil
+		return &metrics.NullMetricsProvider{}, nil
 	}
 
 	slog.Info("Creating metrics client")
@@ -29,10 +30,11 @@ func setUpMetrics(cfg *config.Metrics) (*mtr.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &client, nil
+
+	return client, nil
 }
 
-func setUpKafka(ctx context.Context, cfg *config.Kafka, statsD *mtr.Client) (*kafkalib.BatchWriter, error) {
+func setUpKafka(ctx context.Context, cfg *config.Kafka, statsD mtr.Client) (*kafkalib.BatchWriter, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("kafka configuration is not set")
 	}
