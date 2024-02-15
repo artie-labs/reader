@@ -6,9 +6,8 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/jackc/pgx/v5"
-
 	"github.com/artie-labs/transfer/lib/ptr"
+	"github.com/jackc/pgx/v5"
 )
 
 type DataType int
