@@ -12,7 +12,7 @@ func TestQuoteIdentifier(t *testing.T) {
 	assert.Equal(t, QuoteIdentifier("fo`o"), "`fo``o`")
 }
 
-func TestParseColumnType(t *testing.T) {
+func TestParseColumnDataType(t *testing.T) {
 	tests := []struct {
 		input        string
 		expectedType DataType
@@ -44,7 +44,7 @@ func TestParseColumnType(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		colType, opts, err := parseColumnType(test.input)
+		colType, opts, err := parseColumnDataType(test.input)
 		assert.NoError(t, err)
 		assert.Equal(t, test.expectedType, colType, test.input)
 		assert.Equal(t, test.expectedOpts, opts, test.input)

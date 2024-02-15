@@ -70,29 +70,34 @@ func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 	var result []Column
 	for r.Next() {
 		var colName string
-		var colTypeRaw string
+		var colType string
 		var nullable string
 		var key string
 		var defaultValue sql.NullString
 		var extra string
-		err = r.Scan(&colName, &colTypeRaw, &nullable, &key, &defaultValue, &extra)
+		err = r.Scan(&colName, &colType, &nullable, &key, &defaultValue, &extra)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan: %w", err)
 		}
-		colType, opts, err := parseColumnType(colTypeRaw)
+
+		dataType, opts, err := parseColumnDataType(colType)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse data type: %w", err)
 		}
+		if dataType == InvalidDataType {
+			return nil, fmt.Errorf("unable to identify type for column %s: %s", colName, colType)
+		}
+
 		result = append(result, Column{
 			Name: colName,
-			Type: colType,
+			Type: dataType,
 			Opts: opts,
 		})
 	}
 	return result, nil
 }
 
-func parseColumnType(s string) (DataType, *Opts, error) {
+func parseColumnDataType(s string) (DataType, *Opts, error) {
 	var metadata string
 	parenIndex := strings.Index(s, "(")
 	if parenIndex != -1 {
