@@ -192,6 +192,7 @@ func GetPrimaryKeys(db *sql.DB, schema, table string) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to run query: %s: %w", query, err)
 	}
+	defer rows.Close()
 
 	var primaryKeys []string
 	for rows.Next() {
