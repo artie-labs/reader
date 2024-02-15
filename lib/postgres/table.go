@@ -57,10 +57,10 @@ func (t *Table) PopulateColumns(db *sql.DB) error {
 		t.ColumnsCastedForScanning = append(t.ColumnsCastedForScanning, castColumn(col.Name, col.Type))
 	}
 
-	return t.FindStartAndEndPrimaryKeys(db)
+	return t.findStartAndEndPrimaryKeys(db)
 }
 
-func (t *Table) FindStartAndEndPrimaryKeys(db *sql.DB) error {
+func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 	keys, err := schema.GetPrimaryKeys(db, t.Schema, t.Name)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve primary keys: %w", err)
