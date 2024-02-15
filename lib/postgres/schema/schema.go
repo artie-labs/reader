@@ -233,15 +233,15 @@ func GetPrimaryKeysLowerBounds(db *sql.DB, schema, table string, primaryKeys []s
 		scanPtrs[i] = &result[i]
 	}
 
-	minQuery := selectTableQuery(selectTableQueryArgs{
+	query := selectTableQuery(selectTableQueryArgs{
 		Keys:      castedPrimaryKeys,
 		Schema:    schema,
 		TableName: table,
 		OrderBy:   primaryKeys,
 	})
 
-	slog.Info("Find min pk query", slog.String("query", minQuery))
-	if err := db.QueryRow(minQuery).Scan(scanPtrs...); err != nil {
+	slog.Info("Find min pk query", slog.String("query", query))
+	if err := db.QueryRow(query).Scan(scanPtrs...); err != nil {
 		return nil, err
 	}
 	return result, nil
