@@ -20,27 +20,13 @@ func (t *Table) RetrieveColumns(db *sql.DB) error {
 			slog.Warn("Column type did not get mapped in our message schema, so it will not be automatically created by transfer",
 				slog.String("colName", col.Name),
 			)
-		} else {
-			t.Fields.AddField(col.Name, col.Type, col.Opts)
+			continue
 		}
-	}
 
-	query := fmt.Sprintf("SELECT * FROM %s LIMIT 1", pgx.Identifier{t.Schema, t.Name}.Sanitize())
-	rows, err := db.Query(query)
-	if err != nil {
-		return fmt.Errorf("failed to query, query: %v, err: %w", query, err)
-	}
-
-	columns, err := rows.Columns()
-	if err != nil {
-		return err
-	}
-
-	for _, column := range columns {
+		t.Fields.AddField(col.Name, col.Type, col.Opts)
 		// Add to original columns before mutation
-		t.OriginalColumns = append(t.OriginalColumns, column)
-		columnKind := t.Fields.GetDataType(column)
-		t.ColumnsCastedForScanning = append(t.ColumnsCastedForScanning, castColumn(column, columnKind))
+		t.OriginalColumns = append(t.OriginalColumns, col.Name)
+		t.ColumnsCastedForScanning = append(t.ColumnsCastedForScanning, castColumn(col.Name, col.Type))
 	}
 
 	return t.FindStartAndEndPrimaryKeys(db)
