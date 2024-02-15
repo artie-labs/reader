@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (t *Table) RetrieveColumns(db *sql.DB) error {
+func (t *Table) PopulateColumns(db *sql.DB) error {
 	cols, err := schema.DescribeTable(db, t.Schema, t.Name)
 	if err != nil {
 		return fmt.Errorf("failed to describe table %s.%s: %w", t.Schema, t.Name, err)
