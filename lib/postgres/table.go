@@ -44,6 +44,22 @@ func (t *Table) TopicSuffix() string {
 	return fmt.Sprintf("%s.%s", t.Schema, strings.ReplaceAll(t.Name, `"`, ``))
 }
 
+func (t *Table) PopulateColumns(db *sql.DB) error {
+	cols, err := schema.DescribeTable(db, t.Schema, t.Name)
+	if err != nil {
+		return fmt.Errorf("failed to describe table %s.%s: %w", t.Schema, t.Name, err)
+	}
+
+	for _, col := range cols {
+		t.Fields.AddField(col.Name, col.Type, col.Opts)
+		// Add to original columns before mutation
+		t.OriginalColumns = append(t.OriginalColumns, col.Name)
+		t.ColumnsCastedForScanning = append(t.ColumnsCastedForScanning, castColumn(col.Name, col.Type))
+	}
+
+	return t.FindStartAndEndPrimaryKeys(db)
+}
+
 func (t *Table) FindStartAndEndPrimaryKeys(db *sql.DB) error {
 	keys, err := schema.GetPrimaryKeys(db, t.Schema, t.Name)
 	if err != nil {
