@@ -86,7 +86,7 @@ func (t *Table) FindStartAndEndPrimaryKeys(db *sql.DB) error {
 			return err
 		}
 
-		t.PrimaryKeys.Upsert(keys[idx], ptr.ToString(minVal.String()), ptr.ToString(maxVal.String()))
+		t.PrimaryKeys.Upsert(colName, ptr.ToString(minVal.String()), ptr.ToString(maxVal.String()))
 	}
 
 	return t.PrimaryKeys.LoadValues(t.OptionalPrimaryKeyValStart, t.OptionalPrimaryKeyValEnd)
