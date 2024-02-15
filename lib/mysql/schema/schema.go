@@ -60,7 +60,7 @@ type Column struct {
 	Opts *Opts
 }
 
-func RetreiveColumns(db *sql.DB, table string) ([]Column, error) {
+func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 	r, err := db.Query("DESCRIBE " + QuoteIdentifier(table))
 	if err != nil {
 		return nil, fmt.Errorf("failed to describe table %s: %w", table, err)
