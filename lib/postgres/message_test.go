@@ -44,7 +44,6 @@ func TestMessageBuilder(t *testing.T) {
 		Schema: "schema",
 	})
 	table.Columns = []schema.Column{{Name: "a", Type: schema.Int16}}
-	table.ColumnsCastedForScanning = []string{"a"}
 	table.PrimaryKeys.Upsert("a", ptr.ToString("1"), ptr.ToString("4"))
 
 	// test zero batches
