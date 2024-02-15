@@ -220,8 +220,8 @@ func selectTableQuery(args selectTableQueryArgs) string {
 	}
 
 	var fragments []string
-	for _, orderBy := range args.Keys {
-		fragment := pgx.Identifier{orderBy.Name}.Sanitize()
+	for _, key := range args.Keys {
+		fragment := pgx.Identifier{key.Name}.Sanitize()
 		if args.Descending {
 			fragment += " DESC"
 		}
