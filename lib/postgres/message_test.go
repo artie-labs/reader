@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/postgres/schema"
 )
 
 type ErrorRowIterator struct{}
@@ -43,7 +44,7 @@ func TestMessageBuilder(t *testing.T) {
 		Name:   "table",
 		Schema: "schema",
 	})
-	table.Columns = []string{"a"}
+	table.Columns = []schema.Column{{Name: "a", Type: schema.Int16}}
 	table.ColumnsCastedForScanning = []string{"a"}
 	table.PrimaryKeys.Upsert("a", ptr.ToString("1"), ptr.ToString("4"))
 
