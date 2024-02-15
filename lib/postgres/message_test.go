@@ -2,8 +2,9 @@ package postgres
 
 import (
 	"fmt"
-	"github.com/artie-labs/transfer/lib/telemetry/metrics"
 	"testing"
+
+	"github.com/artie-labs/transfer/lib/telemetry/metrics"
 
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/artie-labs/transfer/lib/ptr"
@@ -42,7 +43,7 @@ func TestMessageBuilder(t *testing.T) {
 		Name:   "table",
 		Schema: "schema",
 	})
-	table.OriginalColumns = []string{"a"}
+	table.Columns = []string{"a"}
 	table.ColumnsCastedForScanning = []string{"a"}
 	table.PrimaryKeys.Upsert("a", ptr.ToString("1"), ptr.ToString("4"))
 
