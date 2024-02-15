@@ -19,6 +19,17 @@ type PostgreSQL struct {
 	DisableSSL bool               `yaml:"disableSSL"`
 }
 
+func (p *PostgreSQL) ToDSN() string {
+	connString := fmt.Sprintf("user=%s dbname=%s password=%s port=%d host=%s",
+		p.Username, p.Database, p.Password, p.Port, p.Host)
+
+	if p.DisableSSL {
+		connString = fmt.Sprintf("%s sslmode=disable", connString)
+	}
+
+	return connString
+}
+
 type PostgreSQLTable struct {
 	Name                       string `yaml:"name"`
 	Schema                     string `yaml:"schema"`
