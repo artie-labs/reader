@@ -56,23 +56,30 @@ func (t *Table) PopulateColumns(db *sql.DB) error {
 	return t.findStartAndEndPrimaryKeys(db)
 }
 
+func (t *Table) GetColumnsByName(colNames []string) ([]schema.Column, error) {
+	var result []schema.Column
+	for _, colName := range colNames {
+		index := slices.IndexFunc(t.Columns, func(c schema.Column) bool { return c.Name == colName })
+		if index < 0 {
+			return nil, fmt.Errorf("failed to find column with name %s", colName)
+		}
+		result = append(result, t.Columns[index])
+	}
+	return result, nil
+}
+
 func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 	keys, err := schema.GetPrimaryKeys(db, t.Schema, t.Name)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve primary keys: %w", err)
 	}
 
-	var castedPrimaryKeys []string
-	for _, primaryKey := range keys {
-		index := slices.IndexFunc(t.Columns, func(c schema.Column) bool { return c.Name == primaryKey })
-		if index < 0 {
-			return fmt.Errorf("failed to find primary key from original columns, key: %s, columns: %v", primaryKey, t.Columns)
-		}
-		col := t.Columns[index]
-		castedPrimaryKeys = append(castedPrimaryKeys, castColumn(col))
+	keyColumns, err := t.GetColumnsByName(keys)
+	if err != nil {
+		return fmt.Errorf("missing primary key columns: %w", err)
 	}
 
-	primaryKeysBounds, err := schema.GetPrimaryKeysBounds(db, t.Schema, t.Name, keys, castedPrimaryKeys)
+	primaryKeysBounds, err := schema.GetPrimaryKeysBounds(db, t.Schema, t.Name, keyColumns, castColumn)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve bounds for primary keys: %w", err)
 	}

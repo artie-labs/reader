@@ -206,27 +206,32 @@ func GetPrimaryKeys(db *sql.DB, schema, table string) ([]string, error) {
 }
 
 type selectTableQueryArgs struct {
-	Keys       []string
+	Keys       []Column
 	Schema     string
 	TableName  string
-	OrderBy    []string
 	Descending bool
+	CastFunc   func(c Column) string
 }
 
 func selectTableQuery(args selectTableQueryArgs) string {
+	castedColumns := make([]string, len(args.Keys))
+	for i, col := range args.Keys {
+		castedColumns[i] = args.CastFunc(col)
+	}
+
 	var fragments []string
-	for _, orderBy := range args.OrderBy {
-		fragment := pgx.Identifier{orderBy}.Sanitize()
+	for _, orderBy := range args.Keys {
+		fragment := pgx.Identifier{orderBy.Name}.Sanitize()
 		if args.Descending {
 			fragment += " DESC"
 		}
 		fragments = append(fragments, fragment)
 	}
-	return fmt.Sprintf(`SELECT %s FROM %s ORDER BY %s LIMIT 1`, strings.Join(args.Keys, ","),
+	return fmt.Sprintf(`SELECT %s FROM %s ORDER BY %s LIMIT 1`, strings.Join(castedColumns, ","),
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(), strings.Join(fragments, ","))
 }
 
-func getPrimaryKeysLowerBounds(db *sql.DB, schema, table string, primaryKeys []string, castedPrimaryKeys []string) ([]interface{}, error) {
+func getPrimaryKeysLowerBounds(db *sql.DB, schema, table string, primaryKeys []Column, cast func(c Column) string) ([]interface{}, error) {
 	result := make([]interface{}, len(primaryKeys))
 	scanPtrs := make([]interface{}, len(primaryKeys))
 	for i := range result {
@@ -234,10 +239,10 @@ func getPrimaryKeysLowerBounds(db *sql.DB, schema, table string, primaryKeys []s
 	}
 
 	query := selectTableQuery(selectTableQueryArgs{
-		Keys:      castedPrimaryKeys,
+		Keys:      primaryKeys,
 		Schema:    schema,
 		TableName: table,
-		OrderBy:   primaryKeys,
+		CastFunc:  cast,
 	})
 	slog.Info("Find min pk query", slog.String("query", query))
 
@@ -247,7 +252,7 @@ func getPrimaryKeysLowerBounds(db *sql.DB, schema, table string, primaryKeys []s
 	return result, nil
 }
 
-func getPrimaryKeysUpperBounds(db *sql.DB, schema, table string, primaryKeys []string, castedPrimaryKeys []string) ([]interface{}, error) {
+func getPrimaryKeysUpperBounds(db *sql.DB, schema, table string, primaryKeys []Column, cast func(c Column) string) ([]interface{}, error) {
 	result := make([]interface{}, len(primaryKeys))
 	scanPtrs := make([]interface{}, len(primaryKeys))
 	for i := range result {
@@ -255,10 +260,10 @@ func getPrimaryKeysUpperBounds(db *sql.DB, schema, table string, primaryKeys []s
 	}
 
 	query := selectTableQuery(selectTableQueryArgs{
-		Keys:       castedPrimaryKeys,
+		Keys:       primaryKeys,
 		Schema:     schema,
 		TableName:  table,
-		OrderBy:    primaryKeys,
+		CastFunc:   cast,
 		Descending: true,
 	})
 	slog.Info("Find max pk query", slog.String("query", query))
@@ -274,13 +279,13 @@ type Bounds struct {
 	Max interface{}
 }
 
-func GetPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []string, castedPrimaryKeys []string) ([]Bounds, error) {
-	minValues, err := getPrimaryKeysLowerBounds(db, schema, table, primaryKeys, castedPrimaryKeys)
+func GetPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []Column, cast func(c Column) string) ([]Bounds, error) {
+	minValues, err := getPrimaryKeysLowerBounds(db, schema, table, primaryKeys, cast)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve lower bounds for primary keys: %w", err)
 	}
 
-	maxValues, err := getPrimaryKeysUpperBounds(db, schema, table, primaryKeys, castedPrimaryKeys)
+	maxValues, err := getPrimaryKeysUpperBounds(db, schema, table, primaryKeys, cast)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve upper bounds for primary keys: %w", err)
 	}
@@ -291,7 +296,7 @@ func GetPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []string
 			Min: minValue,
 			Max: maxValues[idx],
 		})
-		slog.Info("Primary key bounds", slog.String("key", primaryKeys[idx]), slog.Any("min", minValue), slog.Any("max", maxValues[idx]))
+		slog.Info("Primary key bounds", slog.String("key", primaryKeys[idx].Name), slog.Any("min", minValue), slog.Any("max", maxValues[idx]))
 	}
 	return bounds, nil
 }
