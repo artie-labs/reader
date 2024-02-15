@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"fmt"
+	"github.com/artie-labs/transfer/lib/telemetry/metrics"
 	"testing"
 
 	"github.com/artie-labs/transfer/lib/cdc/util"
@@ -50,7 +51,7 @@ func TestMessageBuilder(t *testing.T) {
 		builder := NewMessageBuilder(
 			table,
 			&MockRowIterator{batches: [][]map[string]interface{}{}},
-			nil,
+			&metrics.NullMetricsProvider{},
 		)
 		assert.False(t, builder.HasNext())
 	}
@@ -60,7 +61,7 @@ func TestMessageBuilder(t *testing.T) {
 		builder := NewMessageBuilder(
 			table,
 			&ErrorRowIterator{},
-			nil,
+			&metrics.NullMetricsProvider{},
 		)
 
 		assert.True(t, builder.HasNext())
@@ -78,7 +79,7 @@ func TestMessageBuilder(t *testing.T) {
 					{{"a": "3", "b": "13"}, {"a": "4", "b": "14"}},
 				},
 			},
-			nil,
+			&metrics.NullMetricsProvider{},
 		)
 
 		assert.True(t, builder.HasNext())
