@@ -81,18 +81,18 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 	var cols []Column
 	for rows.Next() {
 		var colName string
-		var colKind string
+		var colType string
 		var numericPrecision *string
 		var numericScale *string
 		var udtName *string
-		err = rows.Scan(&colName, &colKind, &numericPrecision, &numericScale, &udtName)
+		err = rows.Scan(&colName, &colType, &numericPrecision, &numericScale, &udtName)
 		if err != nil {
 			return nil, err
 		}
 
-		dataType, opts := ParseColumnDataType(colKind, numericPrecision, numericScale, udtName)
+		dataType, opts := ParseColumnDataType(colType, numericPrecision, numericScale, udtName)
 		if dataType == InvalidDataType {
-			slog.Warn("Unable to identify column type", slog.String("colName", colName), slog.String("colType", colKind))
+			slog.Warn("Unable to identify column type", slog.String("colName", colName), slog.String("colType", colType))
 		}
 
 		cols = append(cols, Column{
