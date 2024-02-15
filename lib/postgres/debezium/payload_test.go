@@ -34,7 +34,6 @@ func TestNewArgs_Validate(t *testing.T) {
 			name: "newArgs, tableName and columns is set",
 			newArgs: &NewArgs{
 				TableName: "hello",
-				Columns:   []string{"a", "b"},
 			},
 			expectErr: true,
 		},
@@ -42,7 +41,6 @@ func TestNewArgs_Validate(t *testing.T) {
 			name: "newArgs, tableName, columns and rowData is set",
 			newArgs: &NewArgs{
 				TableName: "hello",
-				Columns:   []string{"a", "b"},
 				RowData: map[string]interface{}{
 					"a": 1,
 				},
@@ -53,7 +51,6 @@ func TestNewArgs_Validate(t *testing.T) {
 			name: "newArgs, tableName, columns, rowData and config is set",
 			newArgs: &NewArgs{
 				TableName: "hello",
-				Columns:   []string{"a", "b"},
 				RowData: map[string]interface{}{
 					"a": 1,
 				},
@@ -78,11 +75,8 @@ func TestNewPayload_NilOptionalSchema(t *testing.T) {
 		"name":    "Robin",
 	}
 
-	columns := []string{"user_id", "name"}
-
 	payload, err := NewPayload(&NewArgs{
 		TableName: "foo",
-		Columns:   columns,
 		Fields:    NewFields(),
 		RowData:   rowData,
 	})

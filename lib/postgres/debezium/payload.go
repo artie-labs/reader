@@ -11,7 +11,6 @@ import (
 
 type NewArgs struct {
 	TableName string
-	Columns   []string
 	Fields    *Fields
 	RowData   map[string]interface{}
 }
@@ -19,10 +18,6 @@ type NewArgs struct {
 func (n *NewArgs) Validate() error {
 	if n == nil {
 		return fmt.Errorf("newArgs is nil")
-	}
-
-	if len(n.Columns) == 0 {
-		return fmt.Errorf("columns is empty")
 	}
 
 	if n.TableName == "" {
