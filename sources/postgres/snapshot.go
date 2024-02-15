@@ -23,7 +23,7 @@ type Source struct {
 }
 
 func Load(cfg config.PostgreSQL) (*Source, error) {
-	db, err := sql.Open("pgx", postgres.NewConnection(cfg).String())
+	db, err := sql.Open("pgx", cfg.ToDSN())
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to PostgreSQL: %w", err)
 	}
