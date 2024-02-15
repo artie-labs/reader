@@ -126,3 +126,26 @@ func TestParseColumnDataType(t *testing.T) {
 		assert.Equal(t, testCase.expectedOpts, opts, testCase.name)
 	}
 }
+
+func TestSelectTableQuery(t *testing.T) {
+	{
+		query := selectTableQuery(selectTableQueryArgs{
+			Keys:      []string{"a", "b", "c"},
+			Schema:    "schema",
+			TableName: "table",
+			OrderBy:   []string{"e", "f", "g"},
+		})
+		assert.Equal(t, `SELECT a,b,c FROM "schema"."table" ORDER BY "e","f","g" LIMIT 1`, query)
+	}
+	// Descending
+	{
+		query := selectTableQuery(selectTableQueryArgs{
+			Keys:       []string{"a", "b", "c"},
+			Schema:     "schema",
+			TableName:  "table",
+			OrderBy:    []string{"e", "f", "g"},
+			Descending: true,
+		})
+		assert.Equal(t, `SELECT a,b,c FROM "schema"."table" ORDER BY "e" DESC,"f" DESC,"g" DESC LIMIT 1`, query)
+	}
+}

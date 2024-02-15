@@ -204,3 +204,67 @@ func GetPrimaryKeys(db *sql.DB, schema, table string) ([]string, error) {
 	}
 	return primaryKeys, nil
 }
+
+type selectTableQueryArgs struct {
+	Keys       []string
+	Schema     string
+	TableName  string
+	OrderBy    []string
+	Descending bool
+}
+
+func selectTableQuery(args selectTableQueryArgs) string {
+	var fragments []string
+	for _, orderBy := range args.OrderBy {
+		fragment := pgx.Identifier{orderBy}.Sanitize()
+		if args.Descending {
+			fragment += " DESC"
+		}
+		fragments = append(fragments, fragment)
+	}
+	return fmt.Sprintf(`SELECT %s FROM %s ORDER BY %s LIMIT 1`, strings.Join(args.Keys, ","),
+		pgx.Identifier{args.Schema, args.TableName}.Sanitize(), strings.Join(fragments, ","))
+}
+
+func GetPrimaryKeysLowerBounds(db *sql.DB, schema, table string, primaryKeys []string, castedPrimaryKeys []string) ([]interface{}, error) {
+	result := make([]interface{}, len(primaryKeys))
+	scanPtrs := make([]interface{}, len(primaryKeys))
+	for i := range result {
+		scanPtrs[i] = &result[i]
+	}
+
+	query := selectTableQuery(selectTableQueryArgs{
+		Keys:      castedPrimaryKeys,
+		Schema:    schema,
+		TableName: table,
+		OrderBy:   primaryKeys,
+	})
+	slog.Info("Find min pk query", slog.String("query", query))
+
+	if err := db.QueryRow(query).Scan(scanPtrs...); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func GetPrimaryKeysUpperBounds(db *sql.DB, schema, table string, primaryKeys []string, castedPrimaryKeys []string) ([]interface{}, error) {
+	result := make([]interface{}, len(primaryKeys))
+	scanPtrs := make([]interface{}, len(primaryKeys))
+	for i := range result {
+		scanPtrs[i] = &result[i]
+	}
+
+	query := selectTableQuery(selectTableQueryArgs{
+		Keys:       castedPrimaryKeys,
+		Schema:     schema,
+		TableName:  table,
+		OrderBy:    primaryKeys,
+		Descending: true,
+	})
+	slog.Info("Find max pk query", slog.String("query", query))
+
+	if err := db.QueryRow(query).Scan(scanPtrs...); err != nil {
+		return nil, err
+	}
+	return result, nil
+}

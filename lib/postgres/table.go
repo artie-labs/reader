@@ -12,7 +12,6 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/reader/lib/postgres/primary_key"
-	"github.com/artie-labs/reader/lib/postgres/queries"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
 
@@ -68,24 +67,9 @@ func (t *Table) FindStartAndEndPrimaryKeys(db *sql.DB) error {
 		castedPrimaryKeys = append(castedPrimaryKeys, t.ColumnsCastedForScanning[index])
 	}
 
-	values := make([]interface{}, t.PrimaryKeys.Length())
-	scannedMaxPkValues := make([]interface{}, t.PrimaryKeys.Length())
-	for i := range values {
-		scannedMaxPkValues[i] = &values[i]
-	}
-
-	maxQuery := queries.SelectTableQuery(queries.SelectTableQueryArgs{
-		Keys:       castedPrimaryKeys,
-		Schema:     t.Schema,
-		TableName:  t.Name,
-		OrderBy:    t.PrimaryKeys.Keys(),
-		Descending: true,
-	})
-
-	slog.Info("Find max pk query", slog.String("query", maxQuery))
-	err = db.QueryRow(maxQuery).Scan(scannedMaxPkValues...)
+	values, err := schema.GetPrimaryKeysUpperBounds(db, t.Schema, t.Name, keys, castedPrimaryKeys)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to retrieve upper bounds for primary keys: %w", err)
 	}
 
 	for idx, maxValue := range values {
@@ -104,24 +88,12 @@ func (t *Table) FindStartAndEndPrimaryKeys(db *sql.DB) error {
 		t.PrimaryKeys.Upsert(keys[idx], nil, ptr.ToString(val.String()))
 	}
 
-	minValues := make([]interface{}, t.PrimaryKeys.Length())
-	scannedMinPkValues := make([]interface{}, t.PrimaryKeys.Length())
-	for i := range minValues {
-		scannedMinPkValues[i] = &minValues[i]
-	}
-
-	minQuery := queries.SelectTableQuery(queries.SelectTableQueryArgs{
-		Keys:      castedPrimaryKeys,
-		Schema:    t.Schema,
-		TableName: t.Name,
-		OrderBy:   t.PrimaryKeys.Keys(),
-	})
-
-	slog.Info("Find min pk query", slog.String("query", minQuery))
-	err = db.QueryRow(minQuery).Scan(scannedMinPkValues...)
+	minValues, err := schema.GetPrimaryKeysLowerBounds(db, t.Schema, t.Name, keys, castedPrimaryKeys)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to retrieve lower bounds for primary keys: %w", err)
 	}
+
+	slog.Info("Primary keys bounds", slog.Any("min", minValues), slog.Any("max", values))
 
 	for idx, minValue := range minValues {
 		val, err := ParseValue(t.Fields, ParseValueArgs{

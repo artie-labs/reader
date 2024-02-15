@@ -10,29 +10,6 @@ func TestQuotedIdentifiers(t *testing.T) {
 	assert.Equal(t, []string{`"a"`, `"bb""bb"`, `"c"`}, quotedIdentifiers([]string{"a", `bb"bb`, "c"}))
 }
 
-func TestSelectTableQuery(t *testing.T) {
-	{
-		query := SelectTableQuery(SelectTableQueryArgs{
-			Keys:      []string{"a", "b", "c"},
-			Schema:    "schema",
-			TableName: "table",
-			OrderBy:   []string{"e", "f", "g"},
-		})
-		assert.Equal(t, `SELECT a,b,c FROM "schema"."table" ORDER BY "e","f","g" LIMIT 1`, query)
-	}
-	// Descending
-	{
-		query := SelectTableQuery(SelectTableQueryArgs{
-			Keys:       []string{"a", "b", "c"},
-			Schema:     "schema",
-			TableName:  "table",
-			OrderBy:    []string{"e", "f", "g"},
-			Descending: true,
-		})
-		assert.Equal(t, `SELECT a,b,c FROM "schema"."table" ORDER BY "e" DESC,"f" DESC,"g" DESC LIMIT 1`, query)
-	}
-}
-
 func TestScanTableQuery(t *testing.T) {
 	query := ScanTableQuery(ScanTableQueryArgs{
 		Schema:        "schema",
