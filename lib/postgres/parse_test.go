@@ -97,7 +97,7 @@ func TestParse(t *testing.T) {
 
 	for _, tc := range tcs {
 		fields := pgDebezium.NewFields()
-		dataType, opts := schema.ColKindToDataType(tc.colKind, nil, nil, tc.udtName)
+		dataType, opts := schema.ParseColumnDataType(tc.colKind, nil, nil, tc.udtName)
 		fields.AddField(tc.colName, dataType, opts)
 
 		value, err := ParseValue(fields, ParseValueArgs{

@@ -10,40 +10,23 @@ import (
 )
 
 func (t *Table) RetrieveColumns(db *sql.DB) error {
-	describeQuery, describeArgs := schema.DescribeTableQuery(schema.DescribeTableArgs{
-		Name:   t.Name,
-		Schema: t.Schema,
-	})
-
-	rows, err := db.Query(describeQuery, describeArgs...)
+	cols, err := schema.DescribeTable(db, t.Schema, t.Name)
 	if err != nil {
-		return fmt.Errorf("failed to query: %s, args: %v, err: %w", describeQuery, describeArgs, err)
+		return fmt.Errorf("failed to describe table %s.%s: %w", t.Schema, t.Name, err)
 	}
 
-	for rows.Next() {
-		var colName string
-		var colKind string
-		var numericPrecision *string
-		var numericScale *string
-		var udtName *string
-		err = rows.Scan(&colName, &colKind, &numericPrecision, &numericScale, &udtName)
-		if err != nil {
-			return err
-		}
-
-		dataType, opts := schema.ColKindToDataType(colKind, numericPrecision, numericScale, udtName)
-		if dataType == schema.InvalidDataType {
+	for _, col := range cols {
+		if col.Type == schema.InvalidDataType {
 			slog.Warn("Column type did not get mapped in our message schema, so it will not be automatically created by transfer",
-				slog.String("colName", colName),
-				slog.String("colKind", colKind),
+				slog.String("colName", col.Name),
 			)
 		} else {
-			t.Fields.AddField(colName, dataType, opts)
+			t.Fields.AddField(col.Name, col.Type, col.Opts)
 		}
 	}
 
 	query := fmt.Sprintf("SELECT * FROM %s LIMIT 1", pgx.Identifier{t.Schema, t.Name}.Sanitize())
-	rows, err = db.Query(query)
+	rows, err := db.Query(query)
 	if err != nil {
 		return fmt.Errorf("failed to query, query: %v, err: %w", query, err)
 	}

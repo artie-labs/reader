@@ -1,6 +1,9 @@
 package schema
 
 import (
+	"database/sql"
+	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/artie-labs/transfer/lib/ptr"
@@ -57,21 +60,52 @@ type Opts struct {
 	Precision *string
 }
 
-type DescribeTableArgs struct {
-	Name   string
-	Schema string
+type Column struct {
+	Name string
+	Type DataType
+	Opts *Opts
 }
 
 const describeTableQuery = `
 SELECT column_name, data_type, numeric_precision, numeric_scale, udt_name
 FROM information_schema.columns
-WHERE table_name = $1 AND table_schema = $2`
+WHERE table_schema = $1 AND table_name = $2`
 
-func DescribeTableQuery(args DescribeTableArgs) (string, []any) {
-	return strings.TrimSpace(describeTableQuery), []any{args.Name, args.Schema}
+func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
+	query := strings.TrimSpace(describeTableQuery)
+	rows, err := db.Query(query, _schema, table)
+	if err != nil {
+		return nil, fmt.Errorf("failed to run query: %s: %w", query, err)
+	}
+	defer rows.Close()
+
+	var cols []Column
+	for rows.Next() {
+		var colName string
+		var colType string
+		var numericPrecision *string
+		var numericScale *string
+		var udtName *string
+		err = rows.Scan(&colName, &colType, &numericPrecision, &numericScale, &udtName)
+		if err != nil {
+			return nil, err
+		}
+
+		dataType, opts := ParseColumnDataType(colType, numericPrecision, numericScale, udtName)
+		if dataType == InvalidDataType {
+			slog.Warn("Unable to identify column type", slog.String("colName", colName), slog.String("colType", colType))
+		}
+
+		cols = append(cols, Column{
+			Name: colName,
+			Type: dataType,
+			Opts: opts,
+		})
+	}
+	return cols, nil
 }
 
-func ColKindToDataType(colKind string, precision, scale, udtName *string) (DataType, *Opts) {
+func ParseColumnDataType(colKind string, precision, scale, udtName *string) (DataType, *Opts) {
 	colKind = strings.ToLower(colKind)
 	switch colKind {
 	case "point":
