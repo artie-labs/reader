@@ -129,7 +129,7 @@ func TestParseColumnDataType(t *testing.T) {
 
 func TestSelectTableQuery(t *testing.T) {
 	{
-		query := selectTableQuery(SelectTableQueryArgs{
+		query := selectTableQuery(selectTableQueryArgs{
 			Keys:      []string{"a", "b", "c"},
 			Schema:    "schema",
 			TableName: "table",
@@ -139,7 +139,7 @@ func TestSelectTableQuery(t *testing.T) {
 	}
 	// Descending
 	{
-		query := selectTableQuery(SelectTableQueryArgs{
+		query := selectTableQuery(selectTableQueryArgs{
 			Keys:       []string{"a", "b", "c"},
 			Schema:     "schema",
 			TableName:  "table",

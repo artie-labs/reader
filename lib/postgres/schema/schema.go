@@ -220,7 +220,6 @@ func selectTableQuery(args selectTableQueryArgs) string {
 		if args.Descending {
 			fragment += " DESC"
 		}
-
 		fragments = append(fragments, fragment)
 	}
 	return fmt.Sprintf(`SELECT %s FROM %s ORDER BY %s LIMIT 1`, strings.Join(args.Keys, ","),
