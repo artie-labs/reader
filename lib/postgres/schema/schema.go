@@ -197,8 +197,7 @@ func GetPrimaryKeys(db *sql.DB, schema, table string) ([]string, error) {
 	var primaryKeys []string
 	for rows.Next() {
 		var primaryKey string
-		err = rows.Scan(&primaryKey)
-		if err != nil {
+		if err = rows.Scan(&primaryKey); err != nil {
 			return nil, err
 		}
 		primaryKeys = append(primaryKeys, primaryKey)
