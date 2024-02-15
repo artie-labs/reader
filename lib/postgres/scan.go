@@ -162,8 +162,7 @@ func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
 		row := make(map[string]ValueWrapper)
 		for k, v := range values {
 			colName := columns[k]
-			value, err := ParseValue(s.table.Fields, ParseValueArgs{
-				ColName: colName,
+			value, err := ParseValue(s.table.Fields.GetDataType(colName), ParseValueArgs{
 				ValueWrapper: ValueWrapper{
 					Value: v,
 				},
@@ -182,8 +181,7 @@ func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
 
 	// Update the starting key so that the next scan will pick off where we last left off.
 	for _, pk := range s.primaryKeys.Keys() {
-		val, err := ParseValue(s.table.Fields, ParseValueArgs{
-			ColName:      pk,
+		val, err := ParseValue(s.table.Fields.GetDataType(pk), ParseValueArgs{
 			ValueWrapper: lastRow[pk],
 			ParseTime:    true,
 		})

@@ -8,14 +8,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
 
-	"github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/reader/lib/postgres/parse"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/reader/lib/timeutil"
 )
 
 type ParseValueArgs struct {
-	ColName      string
 	ParseTime    bool
 	ValueWrapper ValueWrapper
 }
@@ -40,13 +38,12 @@ func NewValueWrapper(value interface{}) ValueWrapper {
 	}
 }
 
-func ParseValue(fields *debezium.Fields, args ParseValueArgs) (ValueWrapper, error) {
+func ParseValue(colKind schema.DataType, args ParseValueArgs) (ValueWrapper, error) {
 	// If the value is nil, or already parsed - just return.
 	if args.Value() == nil || args.ValueWrapper.parsed {
 		return args.ValueWrapper, nil
 	}
 
-	colKind := fields.GetDataType(args.ColName)
 	switch colKind {
 	case schema.Geometry, schema.Geography:
 		valString, isOk := args.Value().(string)
@@ -104,7 +101,7 @@ func ParseValue(fields *debezium.Fields, args ParseValueArgs) (ValueWrapper, err
 
 		err := json.Unmarshal([]byte(fmt.Sprint(args.Value())), &arr)
 		if err != nil {
-			return NewValueWrapper(nil), fmt.Errorf("failed to parse colName: %s, value: %v, err: %w", args.ColName, args.Value(), err)
+			return NewValueWrapper(nil), fmt.Errorf("failed to parse array value %v: %w", args.Value(), err)
 		}
 		return NewValueWrapper(arr), nil
 	case schema.UUID:

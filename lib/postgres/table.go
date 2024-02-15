@@ -79,9 +79,9 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 
 	for idx, bound := range primaryKeysBounds {
 		colName := keys[idx]
+		dataType := t.Fields.GetDataType(colName)
 
-		minVal, err := ParseValue(t.Fields, ParseValueArgs{
-			ColName:      colName,
+		minVal, err := ParseValue(dataType, ParseValueArgs{
 			ValueWrapper: ValueWrapper{Value: bound.Min},
 			ParseTime:    true,
 		})
@@ -89,8 +89,7 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 			return err
 		}
 
-		maxVal, err := ParseValue(t.Fields, ParseValueArgs{
-			ColName:      colName,
+		maxVal, err := ParseValue(dataType, ParseValueArgs{
 			ValueWrapper: ValueWrapper{Value: bound.Max},
 			ParseTime:    true,
 		})
