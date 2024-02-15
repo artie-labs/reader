@@ -7,7 +7,6 @@ import (
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
 
-	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
 
@@ -96,12 +95,9 @@ func TestParse(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		fields := pgDebezium.NewFields()
-		dataType, opts := schema.ParseColumnDataType(tc.colKind, nil, nil, tc.udtName)
-		fields.AddField(tc.colName, dataType, opts)
+		dataType, _ := schema.ParseColumnDataType(tc.colKind, nil, nil, tc.udtName)
 
-		value, err := ParseValue(fields, ParseValueArgs{
-			ColName:      tc.colName,
+		value, err := ParseValue(dataType, ParseValueArgs{
 			ValueWrapper: tc.value,
 			ParseTime:    tc.parseTime,
 		})
@@ -114,8 +110,7 @@ func TestParse(t *testing.T) {
 
 			// if there are no errors, let's iterate over this a few times to make sure it's deterministic.
 			for i := 0; i < 5; i++ {
-				value, err = ParseValue(fields, ParseValueArgs{
-					ColName:      tc.colName,
+				value, err = ParseValue(dataType, ParseValueArgs{
 					ValueWrapper: value,
 					ParseTime:    tc.parseTime,
 				})
