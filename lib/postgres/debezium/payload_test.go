@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/artie-labs/reader/lib/postgres/schema"
+	"github.com/artie-labs/transfer/lib/debezium"
 )
 
 func TestNewArgs_Validate(t *testing.T) {
@@ -40,7 +40,7 @@ func TestNewArgs_Validate(t *testing.T) {
 					"a": 1,
 				},
 			},
-			expectErr: "fields is nil",
+			expectErr: "fields is empty",
 		},
 		{
 			name: "newArgs, tableName, fields, rowData and config is set",
@@ -49,7 +49,7 @@ func TestNewArgs_Validate(t *testing.T) {
 				RowData: map[string]interface{}{
 					"a": 1,
 				},
-				Fields: NewFields([]schema.Column{}),
+				Fields: []debezium.Field{{FieldName: "foo", Type: "int"}},
 			},
 		},
 	}
@@ -72,7 +72,7 @@ func TestNewPayload_NilOptionalSchema(t *testing.T) {
 
 	payload, err := NewPayload(&NewArgs{
 		TableName: "foo",
-		Fields:    NewFields([]schema.Column{}),
+		Fields:    []debezium.Field{{FieldName: "foo", Type: "int"}},
 		RowData:   rowData,
 	})
 	assert.NotNil(t, payload)
