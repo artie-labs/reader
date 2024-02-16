@@ -48,18 +48,8 @@ func NewPayload(newArgs *NewArgs) (util.SchemaEventPayload, error) {
 		}},
 	}
 
-	parsedRowData := make(map[string]interface{})
-	for key, value := range newArgs.RowData {
-		val, err := ParseValue(key, value, newArgs.Fields)
-		if err != nil {
-			return util.SchemaEventPayload{}, fmt.Errorf("failed to parseValue: %w", err)
-		}
-
-		parsedRowData[key] = val
-	}
-
 	payload := util.Payload{
-		After: parsedRowData,
+		After: newArgs.RowData,
 		Source: util.Source{
 			Table: newArgs.TableName,
 			TsMs:  time.Now().UnixMilli(),

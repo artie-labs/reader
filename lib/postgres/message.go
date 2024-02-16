@@ -54,10 +54,16 @@ func (m *MessageBuilder) Next() ([]lib.RawMessage, error) {
 	var result []lib.RawMessage
 	for _, row := range rows {
 		start := time.Now()
+
+		dbzRow, err := m.convertRowToDebezium(row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert row to debezium: %w", err)
+		}
+
 		payload, err := debezium.NewPayload(&debezium.NewArgs{
 			TableName: m.table.Name,
 			Fields:    debezium.NewFields(m.table.Columns),
-			RowData:   row,
+			RowData:   dbzRow,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to create debezium payload: %w", err)
@@ -65,6 +71,24 @@ func (m *MessageBuilder) Next() ([]lib.RawMessage, error) {
 
 		result = append(result, lib.NewRawMessage(m.table.TopicSuffix(), m.table.PartitionKey(row), payload))
 		m.recordMetrics(start)
+	}
+	return result, nil
+}
+
+func (m *MessageBuilder) convertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error) {
+	result := make(map[string]interface{})
+	for key, value := range row {
+		col, err := m.table.GetColumnByName(key)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get column %s by name: %w", key, err)
+		}
+
+		val, err := debezium.ParseValue(*col, value)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert value: %w", err)
+		}
+
+		result[key] = val
 	}
 	return result, nil
 }

@@ -43,7 +43,10 @@ func TestMessageBuilder(t *testing.T) {
 		Name:   "table",
 		Schema: "schema",
 	})
-	table.Columns = []schema.Column{{Name: "a", Type: schema.Int16}}
+	table.Columns = []schema.Column{
+		{Name: "a", Type: schema.Int16},
+		{Name: "b", Type: schema.Text},
+	}
 	table.PrimaryKeys.Upsert("a", ptr.ToString("1"), ptr.ToString("4"))
 
 	// test zero batches
