@@ -13,92 +13,71 @@ import (
 func TestParseValue(t *testing.T) {
 	type _tc struct {
 		name          string
-		key           string
+		col           schema.Column
 		value         interface{}
-		config        *Fields
 		numericValue  bool
 		expectedValue interface{}
 		expectErr     bool
 	}
 
-	dateFields := NewFields([]schema.Column{})
-	dateFields.AddField("date_col", schema.Date, nil)
-
-	numericFields := NewFields([]schema.Column{})
-	numericFields.AddField("numeric_col", schema.Numeric, &schema.Opts{
-		Scale:     ptr.ToString("2"),
-		Precision: ptr.ToString("5"),
-	})
-
-	moneyFields := NewFields([]schema.Column{})
-	moneyFields.AddField("money_col", schema.Money, &schema.Opts{
-		Scale: ptr.ToString("2"),
-	})
-
-	varNumericFields := NewFields([]schema.Column{})
-	varNumericFields.AddField("variable_numeric_col", schema.VariableNumeric, nil)
-
 	tcs := []_tc{
 		{
-			name:   "nil value",
-			key:    "user_id",
-			value:  nil,
-			config: NewFields([]schema.Column{}),
+			name:  "nil value",
+			value: nil,
 		},
 		{
 			name:          "date (postgres.Date)",
-			key:           "date_col",
+			col:           schema.Column{Name: "date_col", Type: schema.Date},
 			value:         time.Date(2023, 5, 3, 0, 0, 0, 0, time.UTC),
-			config:        dateFields,
 			expectedValue: 19480,
 		},
 		{
-			name:          "numeric (postgres.Numeric)",
-			key:           "numeric_col",
+			name: "numeric (postgres.Numeric)",
+			col: schema.Column{Name: "numeric_col", Type: schema.Numeric, Opts: &schema.Opts{
+				Scale:     ptr.ToString("2"),
+				Precision: ptr.ToString("5"),
+			}},
 			value:         578.01,
 			numericValue:  true,
-			config:        numericFields,
 			expectedValue: "578.01",
 		},
 		{
 			name:          "numeric (postgres.Numeric) - money",
-			key:           "money_col",
-			config:        moneyFields,
+			col:           schema.Column{Name: "money_col", Type: schema.Money, Opts: &schema.Opts{Scale: ptr.ToString("2")}},
 			numericValue:  true,
 			value:         123.99,
 			expectedValue: "123.99",
 		},
 		{
 			name:          "numeric (postgres.Numeric) - variable numeric",
-			key:           "variable_numeric_col",
-			config:        varNumericFields,
+			col:           schema.Column{Name: "variable_numeric_col", Type: schema.VariableNumeric},
 			value:         123.98,
 			expectedValue: map[string]string{"scale": "2", "value": "MG4="},
 		},
 		{
 			name:          "string",
-			key:           "name",
+			col:           schema.Column{Name: "name", Type: schema.Text},
 			value:         "name",
-			config:        NewFields([]schema.Column{}),
 			expectedValue: "name",
 		},
 		{
 			name:          "boolean",
-			key:           "bool",
+			col:           schema.Column{Name: "bool", Type: schema.Boolean},
 			value:         true,
-			config:        NewFields([]schema.Column{}),
 			expectedValue: true,
 		},
 	}
 
 	for _, tc := range tcs {
-		actualValue, actualErr := ParseValue(tc.key, tc.value, tc.config)
+		actualValue, actualErr := ParseValue(tc.col, tc.value)
 		if tc.expectErr {
 			assert.Error(t, actualErr, tc.name)
 		} else {
 			assert.NoError(t, actualErr, tc.name)
 			if tc.numericValue {
-				field, isOk := tc.config.GetField(tc.key)
+				numericFields := NewFields([]schema.Column{})
+				numericFields.AddField(tc.col.Name, tc.col.Type, tc.col.Opts)
+				field, isOk := numericFields.GetField(tc.col.Name)
 				assert.True(t, isOk, tc.name)
 
 				val, err := field.DecodeDecimal(fmt.Sprint(actualValue))
