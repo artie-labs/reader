@@ -60,10 +60,9 @@ func (t *Table) PopulateColumns(db *sql.DB) error {
 		return fmt.Errorf("failed to describe table %s.%s: %w", t.Schema, t.Name, err)
 	}
 
-	t.Columns = cols
-
 	for _, col := range cols {
 		t.Fields.AddField(col.Name, col.Type, col.Opts)
+		t.Columns = append(t.Columns, col)
 	}
 
 	return t.findStartAndEndPrimaryKeys(db)
