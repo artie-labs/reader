@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/artie-labs/transfer/lib/ptr"
+	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -128,24 +129,36 @@ func TestParseColumnDataType(t *testing.T) {
 }
 
 func TestSelectTableQuery(t *testing.T) {
+	var cast = func(c Column) string {
+		return pgx.Identifier{c.Name}.Sanitize()
+	}
+
 	{
 		query := selectTableQuery(selectTableQueryArgs{
-			Keys:      []string{"a", "b", "c"},
+			Keys: []Column{
+				{Name: "a", Type: Text},
+				{Name: "b", Type: Text},
+				{Name: "c", Type: Text},
+			},
 			Schema:    "schema",
 			TableName: "table",
-			OrderBy:   []string{"e", "f", "g"},
+			CastFunc:  cast,
 		})
-		assert.Equal(t, `SELECT a,b,c FROM "schema"."table" ORDER BY "e","f","g" LIMIT 1`, query)
+		assert.Equal(t, `SELECT "a","b","c" FROM "schema"."table" ORDER BY "a","b","c" LIMIT 1`, query)
 	}
 	// Descending
 	{
 		query := selectTableQuery(selectTableQueryArgs{
-			Keys:       []string{"a", "b", "c"},
+			Keys: []Column{
+				{Name: "a", Type: Text},
+				{Name: "b", Type: Text},
+				{Name: "c", Type: Text},
+			},
 			Schema:     "schema",
 			TableName:  "table",
-			OrderBy:    []string{"e", "f", "g"},
+			CastFunc:   cast,
 			Descending: true,
 		})
-		assert.Equal(t, `SELECT a,b,c FROM "schema"."table" ORDER BY "e" DESC,"f" DESC,"g" DESC LIMIT 1`, query)
+		assert.Equal(t, `SELECT "a","b","c" FROM "schema"."table" ORDER BY "a" DESC,"b" DESC,"c" DESC LIMIT 1`, query)
 	}
 }
