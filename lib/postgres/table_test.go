@@ -35,6 +35,70 @@ func TestTopicSuffix(t *testing.T) {
 	}
 }
 
+func TestGetColumnByName(t *testing.T) {
+	type _tc struct {
+		table          *Table
+		columnName     string
+		expectedResult *schema.Column
+		expectedErr    string
+	}
+
+	tcs := []_tc{
+		{
+			table: &Table{
+				Columns: []schema.Column{},
+			},
+			columnName:  "col2",
+			expectedErr: "failed to find column with name col2",
+		},
+		{
+			table: &Table{
+				Columns: []schema.Column{
+					{
+						Name: "col1",
+						Type: schema.Text,
+					},
+					{
+						Name: "col2",
+						Type: schema.VariableNumeric,
+					},
+					{
+						Name: "col3",
+						Type: schema.Array,
+					},
+				},
+			},
+			columnName: "col2",
+			expectedResult: &schema.Column{
+				Name: "col2",
+				Type: schema.VariableNumeric,
+			},
+		},
+		{
+			table: &Table{
+				Columns: []schema.Column{
+					{
+						Name: "col1",
+						Type: schema.Text,
+					},
+				},
+			},
+			columnName:  "col2",
+			expectedErr: "failed to find column with name col2",
+		},
+	}
+
+	for _, tc := range tcs {
+		result, err := tc.table.GetColumnByName(tc.columnName)
+		if tc.expectedErr != "" {
+			assert.ErrorContains(t, err, tc.expectedErr)
+		} else {
+			assert.Nil(t, err)
+			assert.Equal(t, tc.expectedResult, result)
+		}
+	}
+}
+
 func TestGetColumnsByName(t *testing.T) {
 	type _tc struct {
 		table          *Table
