@@ -21,21 +21,21 @@ func TestParseValue(t *testing.T) {
 		expectErr     bool
 	}
 
-	dateFields := NewFields()
+	dateFields := NewFields([]schema.Column{})
 	dateFields.AddField("date_col", schema.Date, nil)
 
-	numericFields := NewFields()
+	numericFields := NewFields([]schema.Column{})
 	numericFields.AddField("numeric_col", schema.Numeric, &schema.Opts{
 		Scale:     ptr.ToString("2"),
 		Precision: ptr.ToString("5"),
 	})
 
-	moneyFields := NewFields()
+	moneyFields := NewFields([]schema.Column{})
 	moneyFields.AddField("money_col", schema.Money, &schema.Opts{
 		Scale: ptr.ToString("2"),
 	})
 
-	varNumericFields := NewFields()
+	varNumericFields := NewFields([]schema.Column{})
 	varNumericFields.AddField("variable_numeric_col", schema.VariableNumeric, nil)
 
 	tcs := []_tc{
@@ -43,7 +43,7 @@ func TestParseValue(t *testing.T) {
 			name:   "nil value",
 			key:    "user_id",
 			value:  nil,
-			config: NewFields(),
+			config: NewFields([]schema.Column{}),
 		},
 		{
 			name:          "date (postgres.Date)",
@@ -79,14 +79,14 @@ func TestParseValue(t *testing.T) {
 			name:          "string",
 			key:           "name",
 			value:         "name",
-			config:        NewFields(),
+			config:        NewFields([]schema.Column{}),
 			expectedValue: "name",
 		},
 		{
 			name:          "boolean",
 			key:           "bool",
 			value:         true,
-			config:        NewFields(),
+			config:        NewFields([]schema.Column{}),
 			expectedValue: true,
 		},
 	}

@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/artie-labs/reader/lib/postgres/schema"
 )
 
 func TestNewArgs_Validate(t *testing.T) {
@@ -47,7 +49,7 @@ func TestNewArgs_Validate(t *testing.T) {
 				RowData: map[string]interface{}{
 					"a": 1,
 				},
-				Fields: NewFields(),
+				Fields: NewFields([]schema.Column{}),
 			},
 		},
 	}
@@ -70,7 +72,7 @@ func TestNewPayload_NilOptionalSchema(t *testing.T) {
 
 	payload, err := NewPayload(&NewArgs{
 		TableName: "foo",
-		Fields:    NewFields(),
+		Fields:    NewFields([]schema.Column{}),
 		RowData:   rowData,
 	})
 	assert.NotNil(t, payload)

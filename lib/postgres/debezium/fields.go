@@ -13,10 +13,14 @@ type Fields struct {
 	fieldKeyToDataTypes map[string]schema.DataType
 }
 
-func NewFields() *Fields {
-	return &Fields{
+func NewFields(columns []schema.Column) *Fields {
+	fields := &Fields{
 		fieldKeyToDataTypes: make(map[string]schema.DataType),
 	}
+	for _, col := range columns {
+		fields.AddField(col.Name, col.Type, col.Opts)
+	}
+	return fields
 }
 
 func (f *Fields) GetDebeziumFields() []debezium.Field {

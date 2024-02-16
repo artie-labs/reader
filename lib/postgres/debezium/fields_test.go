@@ -123,7 +123,7 @@ func TestFields_AddField(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		fields := NewFields()
+		fields := NewFields([]schema.Column{})
 		fields.AddField(testCase.colName, testCase.dataType, testCase.opts)
 
 		field, isOk := fields.GetField(testCase.colName)
