@@ -5,9 +5,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/artie-labs/transfer/lib/cdc"
+	"github.com/artie-labs/transfer/lib/cdc/util"
+	"github.com/artie-labs/transfer/lib/debezium"
+
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/mtr"
-	"github.com/artie-labs/reader/lib/postgres/debezium"
+	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
 )
 
 type MessageBuilder struct {
@@ -55,16 +59,7 @@ func (m *MessageBuilder) Next() ([]lib.RawMessage, error) {
 	for _, row := range rows {
 		start := time.Now()
 
-		dbzRow, err := m.convertRowToDebezium(row)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert row to debezium: %w", err)
-		}
-
-		payload, err := debezium.NewPayload(&debezium.NewArgs{
-			TableName: m.table.Name,
-			Fields:    debezium.NewFields(m.table.Columns).GetDebeziumFields(),
-			RowData:   dbzRow,
-		})
+		payload, err := m.createPayload(row)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create debezium payload: %w", err)
 		}
@@ -83,7 +78,7 @@ func (m *MessageBuilder) convertRowToDebezium(row map[string]interface{}) (map[s
 			return nil, fmt.Errorf("failed to get column %s by name: %w", key, err)
 		}
 
-		val, err := debezium.ParseValue(*col, value)
+		val, err := pgDebezium.ParseValue(*col, value)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert value: %w", err)
 		}
@@ -91,4 +86,33 @@ func (m *MessageBuilder) convertRowToDebezium(row map[string]interface{}) (map[s
 		result[key] = val
 	}
 	return result, nil
+}
+
+func (m *MessageBuilder) createPayload(row map[string]interface{}) (util.SchemaEventPayload, error) {
+	dbzRow, err := m.convertRowToDebezium(row)
+	if err != nil {
+		return util.SchemaEventPayload{}, fmt.Errorf("failed to convert row to debezium: %w", err)
+	}
+
+	schema := debezium.Schema{
+		FieldsObject: []debezium.FieldsObject{{
+			Fields:     pgDebezium.NewFields(m.table.Columns).GetDebeziumFields(),
+			Optional:   false,
+			FieldLabel: cdc.After,
+		}},
+	}
+
+	payload := util.Payload{
+		After: dbzRow,
+		Source: util.Source{
+			Table: m.table.Name,
+			TsMs:  time.Now().UnixMilli(),
+		},
+		Operation: "r",
+	}
+
+	return util.SchemaEventPayload{
+		Schema:  schema,
+		Payload: payload,
+	}, nil
 }

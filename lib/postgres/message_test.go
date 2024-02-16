@@ -110,3 +110,33 @@ func TestMessageBuilder(t *testing.T) {
 		assert.False(t, builder.HasNext())
 	}
 }
+
+func TestMessageBuilder_CreatePayload_NilOptionalSchema(t *testing.T) {
+	table := NewTable(&config.PostgreSQLTable{
+		Name:   "foo",
+		Schema: "schema",
+	})
+	table.Columns = []schema.Column{
+		{Name: "user_id", Type: schema.Int16},
+		{Name: "name", Type: schema.Text},
+	}
+
+	builder := NewMessageBuilder(
+		table,
+		&MockRowIterator{},
+		&metrics.NullMetricsProvider{},
+	)
+
+	rowData := map[string]interface{}{
+		"user_id": 123,
+		"name":    "Robin",
+	}
+
+	payload, err := builder.createPayload(rowData)
+	assert.NoError(t, err)
+	assert.NotNil(t, payload)
+
+	assert.Equal(t, "r", payload.Payload.Operation)
+	assert.Equal(t, rowData, payload.Payload.After)
+	assert.Equal(t, "foo", payload.GetTableName())
+}
