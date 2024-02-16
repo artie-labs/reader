@@ -44,6 +44,11 @@ func TestGetColumnsByName(t *testing.T) {
 
 	tcs := []_tc{
 		{
+			table:          &Table{},
+			columnNames:    []string{},
+			expectedResult: []schema.Column(nil),
+		},
+		{
 			table: &Table{
 				Columns: []schema.Column{
 					{
