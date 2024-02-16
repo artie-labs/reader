@@ -38,14 +38,22 @@ func (t *Table) TopicSuffix() string {
 	return fmt.Sprintf("%s.%s", t.Schema, strings.ReplaceAll(t.Name, `"`, ``))
 }
 
+func (t *Table) GetColumnByName(colName string) (*schema.Column, error) {
+	index := slices.IndexFunc(t.Columns, func(c schema.Column) bool { return c.Name == colName })
+	if index < 0 {
+		return nil, fmt.Errorf("failed to find column with name %s", colName)
+	}
+	return &t.Columns[index], nil
+}
+
 func (t *Table) GetColumnsByName(colNames []string) ([]schema.Column, error) {
 	var result []schema.Column
 	for _, colName := range colNames {
-		index := slices.IndexFunc(t.Columns, func(c schema.Column) bool { return c.Name == colName })
-		if index < 0 {
-			return nil, fmt.Errorf("failed to find column with name %s", colName)
+		col, err := t.GetColumnByName(colName)
+		if err != nil {
+			return nil, err
 		}
-		result = append(result, t.Columns[index])
+		result = append(result, *col)
 	}
 	return result, nil
 }

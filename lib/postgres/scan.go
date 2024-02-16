@@ -146,6 +146,13 @@ func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
 		return nil, err
 	}
 
+	// TODO: Remove this check once we're confident columns isn't different from s.table.Columns
+	for idx, col := range columns {
+		if col != s.table.Columns[idx].Name {
+			return nil, fmt.Errorf("column mismatch: expected %v, got %v", s.table.Columns[idx].Name, col)
+		}
+	}
+
 	count := len(columns)
 	values := make([]interface{}, count)
 	scanArgs := make([]interface{}, count)
@@ -162,19 +169,19 @@ func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
 		}
 
 		row := make(map[string]ValueWrapper)
-		for k, v := range values {
-			colName := columns[k]
-			value, err := ParseValue(s.table.Fields.GetDataType(colName), ParseValueArgs{
+		for idx, v := range values {
+			col := s.table.Columns[idx]
+
+			value, err := ParseValue(col.Type, ParseValueArgs{
 				ValueWrapper: ValueWrapper{
 					Value: v,
 				},
 			})
-
 			if err != nil {
 				return nil, err
 			}
 
-			row[colName] = value
+			row[col.Name] = value
 		}
 
 		rowsData = append(rowsData, row)
@@ -183,11 +190,15 @@ func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
 
 	// Update the starting key so that the next scan will pick off where we last left off.
 	for _, pk := range s.primaryKeys.Keys() {
-		val, err := ParseValue(s.table.Fields.GetDataType(pk), ParseValueArgs{
+		col, err := s.table.GetColumnByName(pk)
+		if err != nil {
+			return nil, err
+		}
+
+		val, err := ParseValue(col.Type, ParseValueArgs{
 			ValueWrapper: lastRow[pk],
 			ParseTime:    true,
 		})
-
 		if err != nil {
 			return nil, err
 		}
