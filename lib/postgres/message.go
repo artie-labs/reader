@@ -56,7 +56,7 @@ func (m *MessageBuilder) Next() ([]lib.RawMessage, error) {
 		start := time.Now()
 		payload, err := debezium.NewPayload(&debezium.NewArgs{
 			TableName: m.table.Name,
-			Fields:    m.table.Fields,
+			Fields:    debezium.NewFields(m.table.Columns),
 			RowData:   row,
 		})
 		if err != nil {

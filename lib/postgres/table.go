@@ -9,7 +9,6 @@ import (
 	"github.com/artie-labs/transfer/lib/ptr"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/reader/lib/postgres/primary_key"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
@@ -18,10 +17,8 @@ type Table struct {
 	Name   string
 	Schema string
 
+	Columns     []schema.Column
 	PrimaryKeys *primary_key.Keys
-
-	Columns []schema.Column
-	Fields  *debezium.Fields
 
 	OptionalPrimaryKeyValStart string
 	OptionalPrimaryKeyValEnd   string
@@ -32,7 +29,6 @@ func NewTable(cfgTable *config.PostgreSQLTable) *Table {
 		Name:                       cfgTable.Name,
 		Schema:                     cfgTable.Schema,
 		PrimaryKeys:                primary_key.NewKeys(),
-		Fields:                     debezium.NewFields(),
 		OptionalPrimaryKeyValStart: cfgTable.OptionalPrimaryKeyValStart,
 		OptionalPrimaryKeyValEnd:   cfgTable.OptionalPrimaryKeyValEnd,
 	}
@@ -67,11 +63,7 @@ func (t *Table) PopulateColumns(db *sql.DB) error {
 	if err != nil {
 		return fmt.Errorf("failed to describe table %s.%s: %w", t.Schema, t.Name, err)
 	}
-
-	for _, col := range cols {
-		t.Fields.AddField(col.Name, col.Type, col.Opts)
-		t.Columns = append(t.Columns, col)
-	}
+	t.Columns = cols
 
 	return t.findStartAndEndPrimaryKeys(db)
 }
