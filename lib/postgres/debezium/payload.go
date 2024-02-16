@@ -11,7 +11,7 @@ import (
 
 type NewArgs struct {
 	TableName string
-	Fields    []debezium.Field
+	Fields    *Fields
 	RowData   map[string]interface{}
 }
 
@@ -28,8 +28,8 @@ func (n *NewArgs) Validate() error {
 		return fmt.Errorf("rowData is empty")
 	}
 
-	if len(n.Fields) == 0 {
-		return fmt.Errorf("fields is empty")
+	if n.Fields == nil {
+		return fmt.Errorf("fields is nil")
 	}
 
 	return nil
@@ -42,7 +42,7 @@ func NewPayload(newArgs *NewArgs) (util.SchemaEventPayload, error) {
 
 	schema := debezium.Schema{
 		FieldsObject: []debezium.FieldsObject{{
-			Fields:     newArgs.Fields,
+			Fields:     newArgs.Fields.GetDebeziumFields(),
 			Optional:   false,
 			FieldLabel: cdc.After,
 		}},
