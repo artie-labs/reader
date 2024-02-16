@@ -55,7 +55,7 @@ func (m *MessageBuilder) Next() ([]lib.RawMessage, error) {
 	for _, row := range rows {
 		start := time.Now()
 
-		dbzRow, err := m.ConvertRowToDebezium(row)
+		dbzRow, err := m.convertRowToDebezium(row)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert row to debezium: %w", err)
 		}
@@ -75,7 +75,7 @@ func (m *MessageBuilder) Next() ([]lib.RawMessage, error) {
 	return result, nil
 }
 
-func (m *MessageBuilder) ConvertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error) {
+func (m *MessageBuilder) convertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error) {
 	result := make(map[string]interface{})
 	for key, value := range row {
 		col, err := m.table.GetColumnByName(key)
