@@ -40,6 +40,7 @@ func TestGetColumnsByName(t *testing.T) {
 		table          *Table
 		columnNames    []string
 		expectedResult []schema.Column
+		expectedErr    string
 	}
 
 	tcs := []_tc{
@@ -77,11 +78,27 @@ func TestGetColumnsByName(t *testing.T) {
 				},
 			},
 		},
+		{
+			table: &Table{
+				Columns: []schema.Column{
+					{
+						Name: "col1",
+						Type: schema.Text,
+					},
+				},
+			},
+			columnNames: []string{"col1", "col2"},
+			expectedErr: "failed to find column with name col2",
+		},
 	}
 
 	for _, tc := range tcs {
 		result, err := tc.table.GetColumnsByName(tc.columnNames)
-		assert.Nil(t, err)
-		assert.Equal(t, tc.expectedResult, result)
+		if tc.expectedErr != "" {
+			assert.ErrorContains(t, err, tc.expectedErr)
+		} else {
+			assert.Nil(t, err)
+			assert.Equal(t, tc.expectedResult, result)
+		}
 	}
 }

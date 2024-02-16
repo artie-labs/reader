@@ -42,6 +42,18 @@ func (t *Table) TopicSuffix() string {
 	return fmt.Sprintf("%s.%s", t.Schema, strings.ReplaceAll(t.Name, `"`, ``))
 }
 
+func (t *Table) GetColumnsByName(colNames []string) ([]schema.Column, error) {
+	var result []schema.Column
+	for _, colName := range colNames {
+		index := slices.IndexFunc(t.Columns, func(c schema.Column) bool { return c.Name == colName })
+		if index < 0 {
+			return nil, fmt.Errorf("failed to find column with name %s", colName)
+		}
+		result = append(result, t.Columns[index])
+	}
+	return result, nil
+}
+
 func (t *Table) PopulateColumns(db *sql.DB) error {
 	cols, err := schema.DescribeTable(db, t.Schema, t.Name)
 	if err != nil {
@@ -54,18 +66,6 @@ func (t *Table) PopulateColumns(db *sql.DB) error {
 	}
 
 	return t.findStartAndEndPrimaryKeys(db)
-}
-
-func (t *Table) GetColumnsByName(colNames []string) ([]schema.Column, error) {
-	var result []schema.Column
-	for _, colName := range colNames {
-		index := slices.IndexFunc(t.Columns, func(c schema.Column) bool { return c.Name == colName })
-		if index < 0 {
-			return nil, fmt.Errorf("failed to find column with name %s", colName)
-		}
-		result = append(result, t.Columns[index])
-	}
-	return result, nil
 }
 
 func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
@@ -84,27 +84,26 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 		return fmt.Errorf("failed to retrieve bounds for primary keys: %w", err)
 	}
 
-	for idx, bound := range primaryKeysBounds {
-		colName := keys[idx]
-		dataType := t.Fields.GetDataType(colName)
+	for idx, bounds := range primaryKeysBounds {
+		col := keyColumns[idx]
 
-		minVal, err := ParseValue(dataType, ParseValueArgs{
-			ValueWrapper: ValueWrapper{Value: bound.Min},
+		minVal, err := ParseValue(col.Type, ParseValueArgs{
+			ValueWrapper: ValueWrapper{Value: bounds.Min},
 			ParseTime:    true,
 		})
 		if err != nil {
 			return err
 		}
 
-		maxVal, err := ParseValue(dataType, ParseValueArgs{
-			ValueWrapper: ValueWrapper{Value: bound.Max},
+		maxVal, err := ParseValue(col.Type, ParseValueArgs{
+			ValueWrapper: ValueWrapper{Value: bounds.Max},
 			ParseTime:    true,
 		})
 		if err != nil {
 			return err
 		}
 
-		t.PrimaryKeys.Upsert(colName, ptr.ToString(minVal.String()), ptr.ToString(maxVal.String()))
+		t.PrimaryKeys.Upsert(col.Name, ptr.ToString(minVal.String()), ptr.ToString(maxVal.String()))
 	}
 
 	return t.PrimaryKeys.LoadValues(t.OptionalPrimaryKeyValStart, t.OptionalPrimaryKeyValEnd)
