@@ -63,7 +63,6 @@ func (t *Table) PopulateColumns(db *sql.DB) error {
 	if err != nil {
 		return fmt.Errorf("failed to describe table %s.%s: %w", t.Schema, t.Name, err)
 	}
-
 	t.Columns = cols
 
 	return t.findStartAndEndPrimaryKeys(db)
