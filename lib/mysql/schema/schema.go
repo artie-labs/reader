@@ -212,24 +212,24 @@ func GetPrimaryKeys(db *sql.DB, table string) ([]string, error) {
 }
 
 func selectTableQuery(keys []Column, tableName string, descending bool) string {
-	castedColumns := make([]string, len(keys))
+	quotedColumns := make([]string, len(keys))
 	for i, col := range keys {
-		castedColumns[i] = QuoteIdentifier(col.Name)
+		quotedColumns[i] = QuoteIdentifier(col.Name)
 	}
 
-	var fragments []string
+	var orderByFragments []string
 	for _, key := range keys {
 		fragment := QuoteIdentifier(key.Name)
 		if descending {
 			fragment += " DESC"
 		}
-		fragments = append(fragments, fragment)
+		orderByFragments = append(orderByFragments, fragment)
 	}
 	// The LIMIT ? at the end is a hack to force the MySQL driver to used a prepared statement.
 	// This is necessary because otherwise the values returned will be []uint8.
 	// See https://github.com/go-sql-driver/mysql/issues/861
-	return fmt.Sprintf(`SELECT %s FROM %s ORDER BY %s LIMIT ?`, strings.Join(castedColumns, ","),
-		QuoteIdentifier(tableName), strings.Join(fragments, ","))
+	return fmt.Sprintf(`SELECT %s FROM %s ORDER BY %s LIMIT ?`, strings.Join(quotedColumns, ","),
+		QuoteIdentifier(tableName), strings.Join(orderByFragments, ","))
 }
 
 func getTableRow(db *sql.DB, table string, primaryKeys []Column, descending bool) ([]interface{}, error) {
