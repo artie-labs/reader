@@ -6,10 +6,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/artie-labs/transfer/lib/cdc/util"
+
 	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/reader/lib/stringutil"
-	"github.com/artie-labs/transfer/lib/cdc/util"
 )
 
 func ParseValue(col schema.Column, value interface{}) (interface{}, error) {

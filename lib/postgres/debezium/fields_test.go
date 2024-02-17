@@ -3,10 +3,11 @@ package debezium
 import (
 	"testing"
 
-	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/artie-labs/reader/lib/postgres/schema"
 )
 
 func TestColumnToField(t *testing.T) {

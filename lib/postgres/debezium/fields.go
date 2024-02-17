@@ -1,8 +1,9 @@
 package debezium
 
 import (
-	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/transfer/lib/debezium"
+
+	"github.com/artie-labs/reader/lib/postgres/schema"
 )
 
 type Result struct {
