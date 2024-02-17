@@ -7,7 +7,7 @@ import (
 	"github.com/artie-labs/transfer/lib/typing/ext"
 )
 
-func ParseValue(settings typing.Settings, key string, optionalSchema map[string]typing.KindDetails, val string) typing.KindDetails {
+func ParseValue(key string, optionalSchema map[string]typing.KindDetails, val string) typing.KindDetails {
 	if len(optionalSchema) > 0 {
 		// If the column exists in the schema, let's early exit.
 		if kindDetail, isOk := optionalSchema[key]; isOk {
@@ -17,7 +17,7 @@ func ParseValue(settings typing.Settings, key string, optionalSchema map[string]
 				// We are not skipping so that we are able to get the exact layout specified at the row level to preserve:
 				// 1. Layout for time / date / timestamps
 				// 2. Precision and scale for numeric values
-				return ParseValue(settings, key, nil, val)
+				return ParseValue(key, nil, val)
 			}
 
 			return kindDetail
@@ -30,7 +30,7 @@ func ParseValue(settings typing.Settings, key string, optionalSchema map[string]
 	// This way, we don't penalize every string into going through this loop
 	// In the future, we can have specific layout RFCs run depending on the char
 	if strings.Contains(convertedVal, ":") || strings.Contains(convertedVal, "-") {
-		extendedKind, err := ext.ParseExtendedDateTime(convertedVal, settings.AdditionalDateFormats)
+		extendedKind, err := ext.ParseExtendedDateTime(convertedVal, []string{})
 		if err == nil {
 			return typing.KindDetails{
 				Kind:                typing.ETime.Kind,

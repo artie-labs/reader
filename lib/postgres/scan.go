@@ -120,7 +120,7 @@ func shouldQuoteValue(col schema.Column, val string) bool {
 		},
 	}
 	optionalSchema := schemaEvtPayload.GetOptionalSchema()
-	kindDetails := temp.ParseValue(typing.Settings{}, col.Name, optionalSchema, val)
+	kindDetails := temp.ParseValue(col.Name, optionalSchema, val)
 	switch kindDetails.Kind {
 	case typing.String.Kind, typing.Struct.Kind, typing.ETime.Kind:
 		return true
