@@ -18,6 +18,7 @@ import (
 
 	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/reader/lib/postgres/schema"
+	"github.com/artie-labs/reader/lib/postgres/temp"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
 
@@ -119,7 +120,7 @@ func shouldQuoteValue(col schema.Column, val string) bool {
 		},
 	}
 	optionalSchema := schemaEvtPayload.GetOptionalSchema()
-	kindDetails := typing.ParseValue(typing.Settings{}, col.Name, optionalSchema, val)
+	kindDetails := temp.ParseValue(typing.Settings{}, col.Name, optionalSchema, val)
 	switch kindDetails.Kind {
 	case typing.String.Kind, typing.Struct.Kind, typing.ETime.Kind:
 		return true
