@@ -1,4 +1,4 @@
-package postgres
+package transformer
 
 import (
 	"fmt"
@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
 
@@ -38,8 +39,8 @@ func (m *MockRowIterator) Next() ([]map[string]interface{}, error) {
 	return result, nil
 }
 
-func TestMessageBuilder(t *testing.T) {
-	table := NewTable(&config.PostgreSQLTable{
+func TestDebeziumTransformer(t *testing.T) {
+	table := postgres.NewTable(&config.PostgreSQLTable{
 		Name:   "table",
 		Schema: "schema",
 	})
@@ -51,7 +52,7 @@ func TestMessageBuilder(t *testing.T) {
 
 	// test zero batches
 	{
-		builder := NewMessageBuilder(
+		builder := NewDebeziumTransformer(
 			table,
 			&MockRowIterator{batches: [][]map[string]interface{}{}},
 			&metrics.NullMetricsProvider{},
@@ -61,7 +62,7 @@ func TestMessageBuilder(t *testing.T) {
 
 	// test an iterator that returns an error
 	{
-		builder := NewMessageBuilder(
+		builder := NewDebeziumTransformer(
 			table,
 			&ErrorRowIterator{},
 			&metrics.NullMetricsProvider{},
@@ -74,7 +75,7 @@ func TestMessageBuilder(t *testing.T) {
 
 	// test two batches each with two rows
 	{
-		builder := NewMessageBuilder(
+		builder := NewDebeziumTransformer(
 			table,
 			&MockRowIterator{
 				batches: [][]map[string]interface{}{
@@ -112,7 +113,7 @@ func TestMessageBuilder(t *testing.T) {
 }
 
 func TestMessageBuilder_CreatePayload_NilOptionalSchema(t *testing.T) {
-	table := NewTable(&config.PostgreSQLTable{
+	table := postgres.NewTable(&config.PostgreSQLTable{
 		Name:   "foo",
 		Schema: "schema",
 	})
@@ -121,7 +122,7 @@ func TestMessageBuilder_CreatePayload_NilOptionalSchema(t *testing.T) {
 		{Name: "name", Type: schema.Text},
 	}
 
-	builder := NewMessageBuilder(
+	builder := NewDebeziumTransformer(
 		table,
 		&MockRowIterator{},
 		&metrics.NullMetricsProvider{},
