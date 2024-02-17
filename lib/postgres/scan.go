@@ -64,7 +64,7 @@ func (c Comparison) SQLString() string {
 type scanTableQueryArgs struct {
 	Schema      string
 	TableName   string
-	PrimaryKeys []string
+	PrimaryKeys *primary_key.Keys
 	Columns     []schema.Column
 
 	// First where clause
@@ -74,8 +74,7 @@ type scanTableQueryArgs struct {
 	SecondWhere Comparison
 	EndingKeys  []string
 
-	OrderBy []string
-	Limit   uint
+	Limit uint
 }
 
 func scanTableQuery(args scanTableQueryArgs) string {
@@ -84,14 +83,17 @@ func scanTableQuery(args scanTableQueryArgs) string {
 		castedColumns[idx] = castColumn(col)
 	}
 
+	startingValues := args.PrimaryKeys.KeysToValueList(args.Columns, false)
+	endingValues := args.PrimaryKeys.KeysToValueList(args.Columns, true)
+
 	return fmt.Sprintf(`SELECT %s FROM %s WHERE row(%s) %s row(%s) AND NOT row(%s) %s row(%s) ORDER BY %s LIMIT %d`,
 		strings.Join(castedColumns, ","),
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
 		// WHERE row(pk) > row(123)
-		strings.Join(QuotedIdentifiers(args.PrimaryKeys), ","), args.FirstWhere.SQLString(), strings.Join(args.StartingKeys, ","),
+		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), args.FirstWhere.SQLString(), strings.Join(startingValues, ","),
 		// AND NOT row(pk) < row(123)
-		strings.Join(QuotedIdentifiers(args.PrimaryKeys), ","), args.SecondWhere.SQLString(), strings.Join(args.EndingKeys, ","),
-		strings.Join(QuotedIdentifiers(args.OrderBy), ","),
+		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), args.SecondWhere.SQLString(), strings.Join(endingValues, ","),
+		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","),
 		args.Limit,
 	)
 }
@@ -107,23 +109,17 @@ func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
 		secondWhereClause = GreaterThanEqualTo
 	}
 
-	startKeys := s.primaryKeys.KeysToValueList(s.table.Columns, false)
-	endKeys := s.primaryKeys.KeysToValueList(s.table.Columns, true)
-
 	query := scanTableQuery(scanTableQueryArgs{
 		Schema:      s.table.Schema,
 		TableName:   s.table.Name,
-		PrimaryKeys: s.table.PrimaryKeys.Keys(),
+		PrimaryKeys: s.primaryKeys,
 		Columns:     s.table.Columns,
 
-		FirstWhere:   firstWhereClause,
-		StartingKeys: startKeys,
+		FirstWhere: firstWhereClause,
 
 		SecondWhere: secondWhereClause,
-		EndingKeys:  endKeys,
 
-		OrderBy: s.table.PrimaryKeys.Keys(),
-		Limit:   s.batchSize,
+		Limit: s.batchSize,
 	})
 
 	slog.Info(fmt.Sprintf("Query looks like: %v", query))
