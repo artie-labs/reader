@@ -17,7 +17,7 @@ import (
 
 	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/reader/lib/postgres/schema"
-	"github.com/artie-labs/reader/lib/rdms/primary_key"
+	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
 
 const (
