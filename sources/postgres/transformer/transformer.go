@@ -1,4 +1,4 @@
-package postgres
+package transformer
 
 import (
 	"fmt"
@@ -11,17 +11,18 @@ import (
 
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/mtr"
+	"github.com/artie-labs/reader/lib/postgres"
 	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
 )
 
-type MessageBuilder struct {
+type DebeziumTransformer struct {
 	statsD mtr.Client
-	table  *Table
+	table  *postgres.Table
 	iter   batchRowIterator
 }
 
-func NewMessageBuilder(table *Table, iter batchRowIterator, statsD mtr.Client) *MessageBuilder {
-	return &MessageBuilder{
+func NewDebeziumTransformer(table *postgres.Table, iter batchRowIterator, statsD mtr.Client) *DebeziumTransformer {
+	return &DebeziumTransformer{
 		table:  table,
 		iter:   iter,
 		statsD: statsD,
@@ -33,11 +34,11 @@ type batchRowIterator interface {
 	Next() ([]map[string]interface{}, error)
 }
 
-func (m *MessageBuilder) HasNext() bool {
+func (m *DebeziumTransformer) HasNext() bool {
 	return m != nil && m.iter.HasNext()
 }
 
-func (m *MessageBuilder) recordMetrics(start time.Time) {
+func (m *DebeziumTransformer) recordMetrics(start time.Time) {
 	m.statsD.Timing("scanned_and_parsed", time.Since(start), map[string]string{
 		"table":  strings.ReplaceAll(m.table.Name, `"`, ``),
 		"schema": m.table.Schema,
@@ -45,7 +46,7 @@ func (m *MessageBuilder) recordMetrics(start time.Time) {
 
 }
 
-func (m *MessageBuilder) Next() ([]lib.RawMessage, error) {
+func (m *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 	if !m.HasNext() {
 		return make([]lib.RawMessage, 0), nil
 	}
@@ -70,7 +71,7 @@ func (m *MessageBuilder) Next() ([]lib.RawMessage, error) {
 	return result, nil
 }
 
-func (m *MessageBuilder) convertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error) {
+func (m *DebeziumTransformer) convertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error) {
 	result := make(map[string]interface{})
 	for key, value := range row {
 		col, err := m.table.GetColumnByName(key)
@@ -88,7 +89,7 @@ func (m *MessageBuilder) convertRowToDebezium(row map[string]interface{}) (map[s
 	return result, nil
 }
 
-func (m *MessageBuilder) createPayload(row map[string]interface{}) (util.SchemaEventPayload, error) {
+func (m *DebeziumTransformer) createPayload(row map[string]interface{}) (util.SchemaEventPayload, error) {
 	dbzRow, err := m.convertRowToDebezium(row)
 	if err != nil {
 		return util.SchemaEventPayload{}, fmt.Errorf("failed to convert row to debezium: %w", err)

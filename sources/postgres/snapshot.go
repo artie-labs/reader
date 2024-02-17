@@ -13,6 +13,7 @@ import (
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/reader/lib/postgres"
+	"github.com/artie-labs/reader/sources/postgres/transformer"
 )
 
 const defaultErrorRetries = 10
@@ -62,8 +63,8 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, statsD mt
 		)
 
 		scanner := table.NewScanner(s.db, tableCfg.GetBatchSize(), defaultErrorRetries)
-		messageBuilder := postgres.NewMessageBuilder(table, &scanner, statsD)
-		count, err := writer.WriteIterator(ctx, messageBuilder)
+		transformer := transformer.NewDebeziumTransformer(table, &scanner, statsD)
+		count, err := writer.WriteIterator(ctx, transformer)
 		if err != nil {
 			return fmt.Errorf("failed to snapshot for table %s: %w", table.Name, err)
 		}
