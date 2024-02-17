@@ -180,3 +180,32 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 		return InvalidDataType, nil, nil
 	}
 }
+
+const primaryKeysQuery = `
+SELECT key_column_usage.column_name
+FROM information_schema.table_constraints
+JOIN information_schema.key_column_usage
+USING (constraint_name, table_schema, table_name)
+WHERE table_constraints.constraint_type='PRIMARY KEY'
+  AND table_constraints.table_schema=DATABASE()
+  AND table_constraints.table_name=?
+`
+
+func GetPrimaryKeys(db *sql.DB, table string) ([]string, error) {
+	query := strings.TrimSpace(primaryKeysQuery)
+	rows, err := db.Query(query, table)
+	if err != nil {
+		return nil, fmt.Errorf("failed to run query: %s: %w", query, err)
+	}
+	defer rows.Close()
+
+	var primaryKeys []string
+	for rows.Next() {
+		var primaryKey string
+		if err = rows.Scan(&primaryKey); err != nil {
+			return nil, err
+		}
+		primaryKeys = append(primaryKeys, primaryKey)
+	}
+	return primaryKeys, nil
+}
