@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/artie-labs/reader/lib/postgres/primary_key"
 	"github.com/artie-labs/reader/lib/postgres/schema"
+	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 	"github.com/artie-labs/transfer/lib/ptr"
 )
 
