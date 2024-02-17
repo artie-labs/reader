@@ -7,10 +7,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/artie-labs/transfer/lib/cdc"
+	"github.com/artie-labs/transfer/lib/cdc/util"
+	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/ptr"
+	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/jackc/pgx/v5"
 
+	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/reader/lib/postgres/primary_key"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
@@ -64,18 +69,15 @@ func (c Comparison) SQLString() string {
 type scanTableQueryArgs struct {
 	Schema      string
 	TableName   string
-	PrimaryKeys []string
+	PrimaryKeys *primary_key.Keys
 	Columns     []schema.Column
 
 	// First where clause
-	FirstWhere   Comparison
-	StartingKeys []string
+	FirstWhere Comparison
 	// Second where clause
 	SecondWhere Comparison
-	EndingKeys  []string
 
-	OrderBy []string
-	Limit   uint
+	Limit uint
 }
 
 func scanTableQuery(args scanTableQueryArgs) string {
@@ -84,16 +86,50 @@ func scanTableQuery(args scanTableQueryArgs) string {
 		castedColumns[idx] = castColumn(col)
 	}
 
+	startingValues := keysToValueList(args.PrimaryKeys, args.Columns, false)
+	endingValues := keysToValueList(args.PrimaryKeys, args.Columns, true)
+
 	return fmt.Sprintf(`SELECT %s FROM %s WHERE row(%s) %s row(%s) AND NOT row(%s) %s row(%s) ORDER BY %s LIMIT %d`,
 		strings.Join(castedColumns, ","),
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
 		// WHERE row(pk) > row(123)
-		strings.Join(QuotedIdentifiers(args.PrimaryKeys), ","), args.FirstWhere.SQLString(), strings.Join(args.StartingKeys, ","),
+		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), args.FirstWhere.SQLString(), strings.Join(startingValues, ","),
 		// AND NOT row(pk) < row(123)
-		strings.Join(QuotedIdentifiers(args.PrimaryKeys), ","), args.SecondWhere.SQLString(), strings.Join(args.EndingKeys, ","),
-		strings.Join(QuotedIdentifiers(args.OrderBy), ","),
+		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), args.SecondWhere.SQLString(), strings.Join(endingValues, ","),
+		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","),
 		args.Limit,
 	)
+}
+
+func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) []string {
+	schemaEvtPayload := &util.SchemaEventPayload{
+		Schema: debezium.Schema{
+			FieldsObject: []debezium.FieldsObject{{
+				Fields:     pgDebezium.ColumnsToFields(columns),
+				Optional:   false,
+				FieldLabel: cdc.After,
+			}},
+		},
+	}
+	optionalSchema := schemaEvtPayload.GetOptionalSchema()
+
+	var valuesToReturn []string
+	for _, pk := range k.KeysList() {
+		val := pk.StartingValue
+		if end {
+			val = pk.EndingValue
+		}
+
+		kindDetails := typing.ParseValue(typing.Settings{}, pk.Name, optionalSchema, val)
+		switch kindDetails.Kind {
+		case typing.String.Kind, typing.Struct.Kind, typing.ETime.Kind:
+			valuesToReturn = append(valuesToReturn, fmt.Sprintf(`'%s'`, val))
+		default:
+			valuesToReturn = append(valuesToReturn, val)
+		}
+	}
+
+	return valuesToReturn
 }
 
 func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
@@ -107,23 +143,17 @@ func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
 		secondWhereClause = GreaterThanEqualTo
 	}
 
-	startKeys := s.primaryKeys.KeysToValueList(s.table.Columns, false)
-	endKeys := s.primaryKeys.KeysToValueList(s.table.Columns, true)
-
 	query := scanTableQuery(scanTableQueryArgs{
 		Schema:      s.table.Schema,
 		TableName:   s.table.Name,
-		PrimaryKeys: s.table.PrimaryKeys.Keys(),
+		PrimaryKeys: s.primaryKeys,
 		Columns:     s.table.Columns,
 
-		FirstWhere:   firstWhereClause,
-		StartingKeys: startKeys,
+		FirstWhere: firstWhereClause,
 
 		SecondWhere: secondWhereClause,
-		EndingKeys:  endKeys,
 
-		OrderBy: s.table.PrimaryKeys.Keys(),
-		Limit:   s.batchSize,
+		Limit: s.batchSize,
 	})
 
 	slog.Info(fmt.Sprintf("Query looks like: %v", query))
