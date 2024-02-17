@@ -9,14 +9,11 @@ import (
 )
 
 type Fields struct {
-	fields              []debezium.Field
-	fieldKeyToDataTypes map[string]schema.DataType
+	fields []debezium.Field
 }
 
 func NewFields(columns []schema.Column) *Fields {
-	fields := &Fields{
-		fieldKeyToDataTypes: make(map[string]schema.DataType),
-	}
+	fields := &Fields{}
 	for _, col := range columns {
 		fields.AddField(col)
 	}
@@ -28,28 +25,12 @@ func (f *Fields) GetDebeziumFields() []debezium.Field {
 }
 
 func (f *Fields) GetField(fieldName string) (debezium.Field, bool) {
-	// Let's not waste time iterating over an array if we have a faster lookup field.
-	_, isOk := f.fieldKeyToDataTypes[fieldName]
-	if !isOk {
-		return debezium.Field{}, false
-	}
-
 	for _, field := range f.fields {
 		if field.FieldName == fieldName {
 			return field, true
 		}
 	}
-
 	return debezium.Field{}, false
-}
-
-func (f *Fields) GetDataType(fieldName string) schema.DataType {
-	dataType, isOk := f.fieldKeyToDataTypes[fieldName]
-	if !isOk {
-		return schema.InvalidDataType
-	}
-
-	return dataType
 }
 
 func ColumnToField(col schema.Column) debezium.Field {
@@ -76,7 +57,6 @@ func ColumnToField(col schema.Column) debezium.Field {
 
 func (f *Fields) AddField(col schema.Column) {
 	f.fields = append(f.fields, ColumnToField(col))
-	f.fieldKeyToDataTypes[col.Name] = col.Type
 }
 
 func (f *Fields) GetOptionalSchema() map[string]typing.KindDetails {
