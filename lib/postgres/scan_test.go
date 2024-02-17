@@ -55,6 +55,7 @@ func TestKeysToValueList(t *testing.T) {
 	primaryKeys.Upsert("a", ptr.ToString("1"), ptr.ToString("4"))
 	primaryKeys.Upsert("b", ptr.ToString("a"), ptr.ToString("z"))
 	primaryKeys.Upsert("c", ptr.ToString("2000-01-02 03:04:05"), ptr.ToString("2001-01-02 03:04:05"))
+
 	cols := []schema.Column{
 		{Name: "a", Type: schema.Int64},
 		{Name: "b", Type: schema.Text},
@@ -70,6 +71,11 @@ func TestKeysToValueList(t *testing.T) {
 		values, err := keysToValueList(primaryKeys, cols, true)
 		assert.NoError(t, err)
 		assert.Equal(t, []string{"4", "'z'", "'2001-01-02 03:04:05'"}, values)
+	}
+	{
+		primaryKeys.Upsert("d", ptr.ToString("1"), ptr.ToString("4"))
+		_, err := keysToValueList(primaryKeys, cols, true)
+		assert.ErrorContains(t, err, "primary key d not found in columns")
 	}
 }
 
