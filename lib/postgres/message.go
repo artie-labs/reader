@@ -96,7 +96,7 @@ func (m *MessageBuilder) createPayload(row map[string]interface{}) (util.SchemaE
 
 	schema := debezium.Schema{
 		FieldsObject: []debezium.FieldsObject{{
-			Fields:     pgDebezium.NewFields(m.table.Columns).GetDebeziumFields(),
+			Fields:     pgDebezium.ColumnsToFields(m.table.Columns),
 			Optional:   false,
 			FieldLabel: cdc.After,
 		}},
