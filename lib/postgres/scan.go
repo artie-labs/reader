@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 	"time"
 
@@ -80,14 +81,20 @@ type scanTableQueryArgs struct {
 	Limit uint
 }
 
-func scanTableQuery(args scanTableQueryArgs) string {
+func scanTableQuery(args scanTableQueryArgs) (string, error) {
 	castedColumns := make([]string, len(args.Columns))
 	for idx, col := range args.Columns {
 		castedColumns[idx] = castColumn(col)
 	}
 
-	startingValues := keysToValueList(args.PrimaryKeys, args.Columns, false)
-	endingValues := keysToValueList(args.PrimaryKeys, args.Columns, true)
+	startingValues, err := keysToValueList(args.PrimaryKeys, args.Columns, false)
+	if err != nil {
+		return "", err
+	}
+	endingValues, err := keysToValueList(args.PrimaryKeys, args.Columns, true)
+	if err != nil {
+		return "", err
+	}
 
 	return fmt.Sprintf(`SELECT %s FROM %s WHERE row(%s) %s row(%s) AND NOT row(%s) %s row(%s) ORDER BY %s LIMIT %d`,
 		strings.Join(castedColumns, ","),
@@ -98,21 +105,30 @@ func scanTableQuery(args scanTableQueryArgs) string {
 		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), args.SecondWhere.SQLString(), strings.Join(endingValues, ","),
 		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","),
 		args.Limit,
-	)
+	), nil
 }
 
-func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) []string {
+func shouldQuoteValue(col schema.Column, val string) bool {
 	schemaEvtPayload := &util.SchemaEventPayload{
 		Schema: debezium.Schema{
 			FieldsObject: []debezium.FieldsObject{{
-				Fields:     pgDebezium.ColumnsToFields(columns),
+				Fields:     []debezium.Field{pgDebezium.ColumnToField(col)},
 				Optional:   false,
 				FieldLabel: cdc.After,
 			}},
 		},
 	}
 	optionalSchema := schemaEvtPayload.GetOptionalSchema()
+	kindDetails := typing.ParseValue(typing.Settings{}, col.Name, optionalSchema, val)
+	switch kindDetails.Kind {
+	case typing.String.Kind, typing.Struct.Kind, typing.ETime.Kind:
+		return true
+	default:
+		return false
+	}
+}
 
+func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) ([]string, error) {
 	var valuesToReturn []string
 	for _, pk := range k.KeysList() {
 		val := pk.StartingValue
@@ -120,16 +136,18 @@ func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) []s
 			val = pk.EndingValue
 		}
 
-		kindDetails := typing.ParseValue(typing.Settings{}, pk.Name, optionalSchema, val)
-		switch kindDetails.Kind {
-		case typing.String.Kind, typing.Struct.Kind, typing.ETime.Kind:
+		colIndex := slices.IndexFunc(columns, func(col schema.Column) bool { return col.Name == pk.Name })
+		if colIndex == -1 {
+			return nil, fmt.Errorf("primary key %v not found in columns", pk.Name)
+		}
+
+		if shouldQuoteValue(columns[colIndex], val) {
 			valuesToReturn = append(valuesToReturn, fmt.Sprintf(`'%s'`, val))
-		default:
+		} else {
 			valuesToReturn = append(valuesToReturn, val)
 		}
 	}
-
-	return valuesToReturn
+	return valuesToReturn, nil
 }
 
 func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
@@ -143,7 +161,7 @@ func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
 		secondWhereClause = GreaterThanEqualTo
 	}
 
-	query := scanTableQuery(scanTableQueryArgs{
+	query, err := scanTableQuery(scanTableQueryArgs{
 		Schema:      s.table.Schema,
 		TableName:   s.table.Name,
 		PrimaryKeys: s.primaryKeys,
@@ -155,6 +173,9 @@ func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
 
 		Limit: s.batchSize,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate query: %w", err)
+	}
 
 	slog.Info(fmt.Sprintf("Query looks like: %v", query))
 	rows, err := s.db.Query(query)
