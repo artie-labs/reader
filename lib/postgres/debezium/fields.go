@@ -52,6 +52,11 @@ func (f *Fields) GetDataType(fieldName string) schema.DataType {
 	return dataType
 }
 
+func (f *Fields) AddField(col schema.Column) {
+	f.fields = append(f.fields, ColumnToField(col))
+	f.fieldKeyToDataTypes[col.Name] = col.Type
+}
+
 func ColumnToField(col schema.Column) debezium.Field {
 	res := ToDebeziumType(col.Type)
 	field := debezium.Field{
@@ -72,11 +77,6 @@ func ColumnToField(col schema.Column) debezium.Field {
 		}
 	}
 	return field
-}
-
-func (f *Fields) AddField(col schema.Column) {
-	f.fields = append(f.fields, ColumnToField(col))
-	f.fieldKeyToDataTypes[col.Name] = col.Type
 }
 
 func (f *Fields) GetOptionalSchema() map[string]typing.KindDetails {
