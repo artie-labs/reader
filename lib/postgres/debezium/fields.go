@@ -2,10 +2,7 @@ package debezium
 
 import (
 	"github.com/artie-labs/reader/lib/postgres/schema"
-	"github.com/artie-labs/transfer/lib/cdc"
-	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/artie-labs/transfer/lib/debezium"
-	"github.com/artie-labs/transfer/lib/typing"
 )
 
 type Fields struct {
@@ -54,18 +51,4 @@ func (f *Fields) AddField(colName string, dataType schema.DataType, opts *schema
 	}
 
 	f.fields = append(f.fields, field)
-}
-
-func (f *Fields) GetOptionalSchema() map[string]typing.KindDetails {
-	schemaEvtPayload := &util.SchemaEventPayload{
-		Schema: debezium.Schema{
-			FieldsObject: []debezium.FieldsObject{{
-				Fields:     f.GetDebeziumFields(),
-				Optional:   false,
-				FieldLabel: cdc.After,
-			}},
-		},
-	}
-
-	return schemaEvtPayload.GetOptionalSchema()
 }

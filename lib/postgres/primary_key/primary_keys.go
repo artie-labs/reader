@@ -4,7 +4,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/artie-labs/transfer/lib/cdc"
+	"github.com/artie-labs/transfer/lib/cdc/util"
+	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/artie-labs/transfer/lib/typing"
+
+	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
+	"github.com/artie-labs/reader/lib/postgres/schema"
 )
 
 type Keys struct {
@@ -108,7 +114,9 @@ func (k *Keys) Keys() []string {
 }
 
 // TODO: This function should just fold into the column escape function.
-func (k *Keys) KeysToValueList(optionalSchema map[string]typing.KindDetails, end bool) []string {
+func (k *Keys) KeysToValueList(columns []schema.Column, end bool) []string {
+	optionalSchema := getOptionalSchema(columns)
+
 	var valuesToReturn []string
 	for _, pk := range k.keys {
 		val := pk.StartingValue
@@ -126,4 +134,17 @@ func (k *Keys) KeysToValueList(optionalSchema map[string]typing.KindDetails, end
 	}
 
 	return valuesToReturn
+}
+
+func getOptionalSchema(columns []schema.Column) map[string]typing.KindDetails {
+	schemaEvtPayload := &util.SchemaEventPayload{
+		Schema: debezium.Schema{
+			FieldsObject: []debezium.FieldsObject{{
+				Fields:     pgDebezium.NewFields(columns).GetDebeziumFields(),
+				Optional:   false,
+				FieldLabel: cdc.After,
+			}},
+		},
+	}
+	return schemaEvtPayload.GetOptionalSchema()
 }
