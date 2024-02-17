@@ -8,9 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/artie-labs/transfer/lib/cdc"
-	"github.com/artie-labs/transfer/lib/cdc/util"
-	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/artie-labs/transfer/lib/typing"
@@ -109,16 +106,14 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 }
 
 func shouldQuoteValue(col schema.Column, val string) bool {
-	schemaEvtPayload := &util.SchemaEventPayload{
-		Schema: debezium.Schema{
-			FieldsObject: []debezium.FieldsObject{{
-				Fields:     []debezium.Field{pgDebezium.ColumnToField(col)},
-				Optional:   false,
-				FieldLabel: cdc.After,
-			}},
-		},
+	optionalSchema := make(map[string]typing.KindDetails)
+	kd := pgDebezium.ColumnToField(col).ToKindDetails()
+	if kd == typing.Invalid {
+		slog.Warn("Skipping field from optional schema b/c we cannot determine the data type", slog.String("field", col.Name))
+	} else {
+		optionalSchema[col.Name] = kd
 	}
-	optionalSchema := schemaEvtPayload.GetOptionalSchema()
+
 	kindDetails := typing.ParseValue(typing.Settings{}, col.Name, optionalSchema, val)
 	switch kindDetails.Kind {
 	case typing.String.Kind, typing.Struct.Kind, typing.ETime.Kind:
