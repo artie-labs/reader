@@ -3,18 +3,21 @@ package mysql
 import (
 	"database/sql"
 	"fmt"
-	"log/slog"
 	"slices"
 	"strings"
 
+	"github.com/artie-labs/transfer/lib/ptr"
+
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/mysql/schema"
+	"github.com/artie-labs/reader/lib/postgres/primary_key"
 )
 
 type Table struct {
 	Name string
 
-	Columns []schema.Column
+	Columns     []schema.Column
+	PrimaryKeys *primary_key.Keys
 
 	OptionalPrimaryKeyValStart string
 	OptionalPrimaryKeyValEnd   string
@@ -59,7 +62,6 @@ func (t *Table) PopulateColumns(db *sql.DB) error {
 	}
 	t.Columns = cols
 
-	// TODO: Fetch primary keys
 	return t.findStartAndEndPrimaryKeys(db)
 }
 
@@ -79,6 +81,12 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 		return fmt.Errorf("failed to retrieve bounds for primary keys: %w", err)
 	}
 
-	slog.Info("Primary key columns", slog.Any("columns", primaryKeysBounds[0]))
-	return nil
+	for idx, bounds := range primaryKeysBounds {
+		col := keyColumns[idx]
+		minValue := fmt.Sprint(bounds.Min)
+		maxValue := fmt.Sprint(bounds.Max)
+		t.PrimaryKeys.Upsert(col.Name, ptr.ToString(minValue), ptr.ToString(maxValue))
+	}
+
+	return t.PrimaryKeys.LoadValues(t.OptionalPrimaryKeyValStart, t.OptionalPrimaryKeyValEnd)
 }
