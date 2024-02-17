@@ -140,7 +140,7 @@ func getOptionalSchema(columns []schema.Column) map[string]typing.KindDetails {
 	schemaEvtPayload := &util.SchemaEventPayload{
 		Schema: debezium.Schema{
 			FieldsObject: []debezium.FieldsObject{{
-				Fields:     pgDebezium.NewFields(columns).GetDebeziumFields(),
+				Fields:     pgDebezium.ColumnsToFields(columns),
 				Optional:   false,
 				FieldLabel: cdc.After,
 			}},

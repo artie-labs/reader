@@ -5,31 +5,6 @@ import (
 	"github.com/artie-labs/transfer/lib/debezium"
 )
 
-type Fields struct {
-	fields []debezium.Field
-}
-
-func NewFields(columns []schema.Column) *Fields {
-	fields := &Fields{}
-	for _, col := range columns {
-		fields.AddField(col)
-	}
-	return fields
-}
-
-func (f *Fields) GetDebeziumFields() []debezium.Field {
-	return f.fields
-}
-
-func (f *Fields) GetField(fieldName string) (debezium.Field, bool) {
-	for _, field := range f.fields {
-		if field.FieldName == fieldName {
-			return field, true
-		}
-	}
-	return debezium.Field{}, false
-}
-
 func ColumnToField(col schema.Column) debezium.Field {
 	res := ToDebeziumType(col.Type)
 	field := debezium.Field{
@@ -52,6 +27,10 @@ func ColumnToField(col schema.Column) debezium.Field {
 	return field
 }
 
-func (f *Fields) AddField(col schema.Column) {
-	f.fields = append(f.fields, ColumnToField(col))
+func ColumnsToFields(columns []schema.Column) []debezium.Field {
+	fields := make([]debezium.Field, len(columns))
+	for i, col := range columns {
+		fields[i] = ColumnToField(col)
+	}
+	return fields
 }
