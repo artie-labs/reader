@@ -12,7 +12,7 @@ type Fields struct {
 func NewFields(columns []schema.Column) *Fields {
 	fields := &Fields{}
 	for _, col := range columns {
-		fields.AddField(col.Name, col.Type, col.Opts)
+		fields.AddField(col)
 	}
 	return fields
 }
@@ -30,25 +30,28 @@ func (f *Fields) GetField(fieldName string) (debezium.Field, bool) {
 	return debezium.Field{}, false
 }
 
-func (f *Fields) AddField(colName string, dataType schema.DataType, opts *schema.Opts) {
-	res := ToDebeziumType(dataType)
+func ColumnToField(col schema.Column) debezium.Field {
+	res := ToDebeziumType(col.Type)
 	field := debezium.Field{
-		FieldName:    colName,
+		FieldName:    col.Name,
 		Type:         res.Type,
 		DebeziumType: res.DebeziumType,
 	}
 
-	if opts != nil {
+	if col.Opts != nil {
 		field.Parameters = make(map[string]interface{})
 
-		if opts.Scale != nil {
-			field.Parameters["scale"] = *opts.Scale
+		if col.Opts.Scale != nil {
+			field.Parameters["scale"] = *col.Opts.Scale
 		}
 
-		if opts.Precision != nil {
-			field.Parameters[debezium.KafkaDecimalPrecisionKey] = *opts.Precision
+		if col.Opts.Precision != nil {
+			field.Parameters[debezium.KafkaDecimalPrecisionKey] = *col.Opts.Precision
 		}
 	}
+	return field
+}
 
-	f.fields = append(f.fields, field)
+func (f *Fields) AddField(col schema.Column) {
+	f.fields = append(f.fields, ColumnToField(col))
 }

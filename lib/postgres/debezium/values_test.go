@@ -75,12 +75,7 @@ func TestParseValue(t *testing.T) {
 		} else {
 			assert.NoError(t, actualErr, tc.name)
 			if tc.numericValue {
-				numericFields := NewFields([]schema.Column{})
-				numericFields.AddField(tc.col.Name, tc.col.Type, tc.col.Opts)
-				field, isOk := numericFields.GetField(tc.col.Name)
-				assert.True(t, isOk, tc.name)
-
-				val, err := field.DecodeDecimal(fmt.Sprint(actualValue))
+				val, err := ColumnToField(tc.col).DecodeDecimal(fmt.Sprint(actualValue))
 				assert.NoError(t, err)
 				assert.Equal(t, tc.expectedValue, val.String(), tc.name)
 			} else {
