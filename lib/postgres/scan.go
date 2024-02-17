@@ -106,14 +106,11 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 }
 
 func shouldQuoteValue(col schema.Column) bool {
-	kd := pgDebezium.ColumnToField(col).ToKindDetails()
-	if kd == typing.Invalid {
-		slog.Warn("Skipping field from optional schema b/c we cannot determine the data type", slog.String("field", col.Name))
-		return true
-	}
-	kindDetail := kd
-
+	kindDetail := pgDebezium.ColumnToField(col).ToKindDetails()
 	switch kindDetail.Kind {
+	case typing.Invalid.Kind:
+		slog.Warn("Could not determine data type for column", slog.String("colName", col.Name))
+		return true
 	case typing.String.Kind, typing.Struct.Kind, typing.ETime.Kind, typing.EDecimal.Kind:
 		return true
 	default:
