@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFields_AddField(t *testing.T) {
+func TestFields_ColumnToField(t *testing.T) {
 	type _testCase struct {
 		name     string
 		colName  string
@@ -123,11 +123,8 @@ func TestFields_AddField(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		fields := NewFields([]schema.Column{})
-		fields.AddField(testCase.colName, testCase.dataType, testCase.opts)
-
-		field, isOk := fields.GetField(testCase.colName)
-		assert.True(t, isOk, testCase.name)
+		col := schema.Column{Name: testCase.colName, Type: testCase.dataType, Opts: testCase.opts}
+		field := ColumnToField(col)
 		assert.Equal(t, testCase.expected, field, testCase.name)
 	}
 }
