@@ -233,9 +233,9 @@ func buildPkValuesQuery(args buildPkValuesQueryArgs) string {
 
 func getPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column, cast func(c Column) string, descending bool) ([]interface{}, error) {
 	result := make([]interface{}, len(primaryKeys))
-	scanPtrs := make([]interface{}, len(primaryKeys))
+	resultPtrs := make([]interface{}, len(primaryKeys))
 	for i := range result {
-		scanPtrs[i] = &result[i]
+		resultPtrs[i] = &result[i]
 	}
 
 	query := buildPkValuesQuery(buildPkValuesQueryArgs{
@@ -251,7 +251,7 @@ func getPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column,
 		slog.Info("Find min pk query", slog.String("query", query))
 	}
 
-	if err := db.QueryRow(query).Scan(scanPtrs...); err != nil {
+	if err := db.QueryRow(query).Scan(resultPtrs...); err != nil {
 		return nil, err
 	}
 	return result, nil
