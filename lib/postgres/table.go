@@ -9,8 +9,8 @@ import (
 	"github.com/artie-labs/transfer/lib/ptr"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib/postgres/primary_key"
 	"github.com/artie-labs/reader/lib/postgres/schema"
+	"github.com/artie-labs/reader/lib/rdms/primary_key"
 )
 
 type Table struct {
