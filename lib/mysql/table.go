@@ -26,6 +26,7 @@ type Table struct {
 func NewTable(cfgTable config.MySQLTable) *Table {
 	return &Table{
 		Name:                       cfgTable.Name,
+		PrimaryKeys *primary_key.Keys
 		OptionalPrimaryKeyValStart: cfgTable.OptionalPrimaryKeyValStart,
 		OptionalPrimaryKeyValEnd:   cfgTable.OptionalPrimaryKeyValEnd,
 	}
