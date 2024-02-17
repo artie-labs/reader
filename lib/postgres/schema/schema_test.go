@@ -128,13 +128,13 @@ func TestParseColumnDataType(t *testing.T) {
 	}
 }
 
-func TestSelectTableQuery(t *testing.T) {
+func TestBuildPkValuesQuery(t *testing.T) {
 	var cast = func(c Column) string {
 		return pgx.Identifier{c.Name}.Sanitize()
 	}
 
 	{
-		query := selectTableQuery(selectTableQueryArgs{
+		query := buildPkValuesQuery(buildPkValuesQueryArgs{
 			Keys: []Column{
 				{Name: "a", Type: Text},
 				{Name: "b", Type: Text},
@@ -148,7 +148,7 @@ func TestSelectTableQuery(t *testing.T) {
 	}
 	// Descending
 	{
-		query := selectTableQuery(selectTableQueryArgs{
+		query := buildPkValuesQuery(buildPkValuesQueryArgs{
 			Keys: []Column{
 				{Name: "a", Type: Text},
 				{Name: "b", Type: Text},
