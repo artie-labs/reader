@@ -225,7 +225,7 @@ func selectTableQuery(keys []Column, tableName string, descending bool) string {
 		}
 		orderByFragments = append(orderByFragments, fragment)
 	}
-	// The LIMIT ? at the end is a hack to force the MySQL driver to used a prepared statement.
+	// We're using a `LIMIT ?` instead of a `LIMIT 1` as a hack to force the MySQL driver to use a prepared statement.
 	// This is necessary because otherwise the values returned will be []uint8.
 	// See https://github.com/go-sql-driver/mysql/issues/861
 	return fmt.Sprintf(`SELECT %s FROM %s ORDER BY %s LIMIT ?`, strings.Join(quotedColumns, ","),
