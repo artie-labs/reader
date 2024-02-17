@@ -63,8 +63,8 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, statsD mt
 		)
 
 		scanner := table.NewScanner(s.db, tableCfg.GetBatchSize(), defaultErrorRetries)
-		transformer := transformer.NewDebeziumTransformer(table, &scanner, statsD)
-		count, err := writer.WriteIterator(ctx, transformer)
+		dbzTransformer := transformer.NewDebeziumTransformer(table, &scanner, statsD)
+		count, err := writer.WriteIterator(ctx, dbzTransformer)
 		if err != nil {
 			return fmt.Errorf("failed to snapshot for table %s: %w", table.Name, err)
 		}
