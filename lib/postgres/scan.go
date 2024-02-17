@@ -13,7 +13,6 @@ import (
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/ptr"
-	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/jackc/pgx/v5"
 
 	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
@@ -120,13 +119,7 @@ func shouldQuoteValue(col schema.Column, val string) bool {
 		},
 	}
 	optionalSchema := schemaEvtPayload.GetOptionalSchema()
-	kindDetails := temp.ParseValue(col.Name, optionalSchema, val)
-	switch kindDetails.Kind {
-	case typing.String.Kind, typing.Struct.Kind, typing.ETime.Kind:
-		return true
-	default:
-		return false
-	}
+	return temp.ParseValue(col.Name, optionalSchema, val)
 }
 
 func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) ([]string, error) {

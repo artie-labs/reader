@@ -7,7 +7,7 @@ import (
 	"github.com/artie-labs/transfer/lib/typing/ext"
 )
 
-func ParseValue(key string, optionalSchema map[string]typing.KindDetails, val string) typing.KindDetails {
+func ParseValue(key string, optionalSchema map[string]typing.KindDetails, val string) bool {
 	if len(optionalSchema) > 0 {
 		// If the column exists in the schema, let's early exit.
 		if kindDetail, isOk := optionalSchema[key]; isOk {
@@ -20,7 +20,12 @@ func ParseValue(key string, optionalSchema map[string]typing.KindDetails, val st
 				return ParseValue(key, nil, val)
 			}
 
-			return kindDetail
+			switch kindDetail.Kind {
+			case typing.String.Kind, typing.Struct.Kind, typing.ETime.Kind:
+				return true
+			default:
+				return false
+			}
 		}
 	}
 
@@ -30,18 +35,15 @@ func ParseValue(key string, optionalSchema map[string]typing.KindDetails, val st
 	// This way, we don't penalize every string into going through this loop
 	// In the future, we can have specific layout RFCs run depending on the char
 	if strings.Contains(convertedVal, ":") || strings.Contains(convertedVal, "-") {
-		extendedKind, err := ext.ParseExtendedDateTime(convertedVal, []string{})
+		_, err := ext.ParseExtendedDateTime(convertedVal, []string{})
 		if err == nil {
-			return typing.KindDetails{
-				Kind:                typing.ETime.Kind,
-				ExtendedTimeDetails: &extendedKind.NestedKind,
-			}
+			return true
 		}
 	}
 
 	if typing.IsJSON(convertedVal) {
-		return typing.Struct
+		return true
 	}
 
-	return typing.String
+	return true
 }
