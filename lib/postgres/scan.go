@@ -119,7 +119,7 @@ func shouldQuoteValue(col schema.Column, val string) bool {
 		},
 	}
 	optionalSchema := schemaEvtPayload.GetOptionalSchema()
-	return temp.ParseValue(col.Name, optionalSchema, val)
+	return temp.ParseValue(col.Name, optionalSchema)
 }
 
 func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) ([]string, error) {
