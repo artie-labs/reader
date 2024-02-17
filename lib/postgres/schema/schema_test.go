@@ -128,7 +128,7 @@ func TestParseColumnDataType(t *testing.T) {
 	}
 }
 
-func TestSelectTableQuery(t *testing.T) {
+func TestBuildPkValuesQuery(t *testing.T) {
 	var cast = func(c Column) string {
 		return pgx.Identifier{c.Name}.Sanitize()
 	}
