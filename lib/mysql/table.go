@@ -3,6 +3,7 @@ package mysql
 import (
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"slices"
 	"strings"
 
@@ -59,5 +60,25 @@ func (t *Table) PopulateColumns(db *sql.DB) error {
 	t.Columns = cols
 
 	// TODO: Fetch primary keys
+	return t.findStartAndEndPrimaryKeys(db)
+}
+
+func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
+	keys, err := schema.GetPrimaryKeys(db, t.Name)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve primary keys: %w", err)
+	}
+
+	keyColumns, err := t.GetColumnsByName(keys)
+	if err != nil {
+		return fmt.Errorf("missing primary key columns: %w", err)
+	}
+
+	primaryKeysBounds, err := schema.GetPrimaryKeysBounds(db, t.Name, keyColumns)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve bounds for primary keys: %w", err)
+	}
+
+	slog.Info("Primary key columns", slog.Any("columns", primaryKeysBounds[0]))
 	return nil
 }
