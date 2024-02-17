@@ -240,7 +240,11 @@ func getPrimaryKeyValues(db *sql.DB, table string, primaryKeys []Column, descend
 	}
 
 	query := buildPkValuesQuery(primaryKeys, table, descending)
-	slog.Info("Running query", slog.String("query", query))
+	if descending {
+		slog.Info("Find max pk query", slog.String("query", query))
+	} else {
+		slog.Info("Find min pk query", slog.String("query", query))
+	}
 
 	if err := db.QueryRow(query, 1).Scan(resultPtrs...); err != nil {
 		return nil, err
