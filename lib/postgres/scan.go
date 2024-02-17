@@ -11,7 +11,6 @@ import (
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/jackc/pgx/v5"
 
-	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/reader/lib/postgres/primary_key"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
@@ -108,9 +107,8 @@ func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
 		secondWhereClause = GreaterThanEqualTo
 	}
 
-	optionalSchema := pgDebezium.NewFields(s.table.Columns).GetOptionalSchema()
-	startKeys := s.primaryKeys.KeysToValueList(optionalSchema, false)
-	endKeys := s.primaryKeys.KeysToValueList(optionalSchema, true)
+	startKeys := s.primaryKeys.KeysToValueList(s.table.Columns, false)
+	endKeys := s.primaryKeys.KeysToValueList(s.table.Columns, true)
 
 	query := scanTableQuery(scanTableQueryArgs{
 		Schema:      s.table.Schema,
