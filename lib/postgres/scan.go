@@ -68,11 +68,9 @@ type scanTableQueryArgs struct {
 	Columns     []schema.Column
 
 	// First where clause
-	FirstWhere   Comparison
-	StartingKeys []string
+	FirstWhere Comparison
 	// Second where clause
 	SecondWhere Comparison
-	EndingKeys  []string
 
 	Limit uint
 }
