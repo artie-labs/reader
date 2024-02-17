@@ -10,10 +10,8 @@ import (
 
 	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/ptr"
-	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/jackc/pgx/v5"
 
-	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
@@ -105,21 +103,39 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 	), nil
 }
 
-func shouldQuoteValue(col schema.Column, val string) bool {
-	optionalSchema := make(map[string]typing.KindDetails)
-	kd := pgDebezium.ColumnToField(col).ToKindDetails()
-	if kd == typing.Invalid {
-		slog.Warn("Skipping field from optional schema b/c we cannot determine the data type", slog.String("field", col.Name))
-	} else {
-		optionalSchema[col.Name] = kd
-	}
-
-	kindDetails := typing.ParseValue(typing.Settings{}, col.Name, optionalSchema, val)
-	switch kindDetails.Kind {
-	case typing.String.Kind, typing.Struct.Kind, typing.ETime.Kind:
-		return true
+func shouldQuoteValue(col schema.Column) (bool, error) {
+	switch col.Type {
+	case schema.InvalidDataType:
+		return false, fmt.Errorf("invalid data type")
+	case schema.Money, schema.Numeric:
+		// TODO: Returning true for these to maintain parity with existing code, but double check this
+		slog.Warn("Could not determine data type for column", slog.String("colName", col.Name))
+		return true, nil
+	case schema.Float,
+		schema.Int16,
+		schema.Int32,
+		schema.Int64,
+		schema.Bit,
+		schema.Boolean,
+		schema.Interval, // TODO: Double check this
+		schema.Array:    // TODO: Double check this
+		return false, nil
+	case schema.VariableNumeric,
+		schema.TextThatRequiresEscaping,
+		schema.Text,
+		schema.HStore,
+		schema.UUID,
+		schema.UserDefinedText,
+		schema.JSON,
+		schema.Timestamp,
+		schema.Time,
+		schema.Date,
+		schema.Point,
+		schema.Geometry,
+		schema.Geography:
+		return true, nil
 	default:
-		return false
+		return false, fmt.Errorf("unknown data type: %v", col.Type)
 	}
 }
 
@@ -136,7 +152,12 @@ func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) ([]
 			return nil, fmt.Errorf("primary key %v not found in columns", pk.Name)
 		}
 
-		if shouldQuoteValue(columns[colIndex], val) {
+		shouldQuote, err := shouldQuoteValue(columns[colIndex])
+		if err != nil {
+			return nil, err
+		}
+
+		if shouldQuote {
 			valuesToReturn = append(valuesToReturn, fmt.Sprintf(`'%s'`, val))
 		} else {
 			valuesToReturn = append(valuesToReturn, val)
