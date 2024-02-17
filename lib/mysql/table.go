@@ -6,14 +6,18 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/artie-labs/transfer/lib/ptr"
+
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/mysql/schema"
+	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
 
 type Table struct {
 	Name string
 
-	Columns []schema.Column
+	Columns     []schema.Column
+	PrimaryKeys *primary_key.Keys
 
 	OptionalPrimaryKeyValStart string
 	OptionalPrimaryKeyValEnd   string
@@ -58,6 +62,31 @@ func (t *Table) PopulateColumns(db *sql.DB) error {
 	}
 	t.Columns = cols
 
-	// TODO: Fetch primary keys
-	return nil
+	return t.findStartAndEndPrimaryKeys(db)
+}
+
+func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
+	keys, err := schema.GetPrimaryKeys(db, t.Name)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve primary keys: %w", err)
+	}
+
+	keyColumns, err := t.GetColumnsByName(keys)
+	if err != nil {
+		return fmt.Errorf("missing primary key columns: %w", err)
+	}
+
+	primaryKeysBounds, err := schema.GetPrimaryKeysBounds(db, t.Name, keyColumns)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve bounds for primary keys: %w", err)
+	}
+
+	for idx, bounds := range primaryKeysBounds {
+		col := keyColumns[idx]
+		minValue := fmt.Sprint(bounds.Min)
+		maxValue := fmt.Sprint(bounds.Max)
+		t.PrimaryKeys.Upsert(col.Name, ptr.ToString(minValue), ptr.ToString(maxValue))
+	}
+
+	return t.PrimaryKeys.LoadValues(t.OptionalPrimaryKeyValStart, t.OptionalPrimaryKeyValEnd)
 }

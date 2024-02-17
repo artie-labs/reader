@@ -3,6 +3,7 @@ package schema
 import (
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"strconv"
 	"strings"
 
@@ -208,4 +209,68 @@ func GetPrimaryKeys(db *sql.DB, table string) ([]string, error) {
 		primaryKeys = append(primaryKeys, primaryKey)
 	}
 	return primaryKeys, nil
+}
+
+func selectTableQuery(keys []Column, tableName string, descending bool) string {
+	quotedColumns := make([]string, len(keys))
+	for i, col := range keys {
+		quotedColumns[i] = QuoteIdentifier(col.Name)
+	}
+
+	var orderByFragments []string
+	for _, key := range keys {
+		fragment := QuoteIdentifier(key.Name)
+		if descending {
+			fragment += " DESC"
+		}
+		orderByFragments = append(orderByFragments, fragment)
+	}
+	// We're using `LIMIT ?` instead of `LIMIT 1` as a hack to force the MySQL driver to use a prepared statement.
+	// This is necessary because otherwise the values returned will be []uint8.
+	// See https://github.com/go-sql-driver/mysql/issues/861
+	return fmt.Sprintf(`SELECT %s FROM %s ORDER BY %s LIMIT ?`, strings.Join(quotedColumns, ","),
+		QuoteIdentifier(tableName), strings.Join(orderByFragments, ","))
+}
+
+func getTableRow(db *sql.DB, table string, primaryKeys []Column, descending bool) ([]interface{}, error) {
+	result := make([]interface{}, len(primaryKeys))
+	resultPtrs := make([]interface{}, len(primaryKeys))
+	for i := range result {
+		resultPtrs[i] = &result[i]
+	}
+
+	query := selectTableQuery(primaryKeys, table, descending)
+	slog.Info("Running query", slog.String("query", query))
+
+	if err := db.QueryRow(query, 1).Scan(resultPtrs...); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+type Bounds struct {
+	Min interface{}
+	Max interface{}
+}
+
+func GetPrimaryKeysBounds(db *sql.DB, table string, primaryKeys []Column) ([]Bounds, error) {
+	minValues, err := getTableRow(db, table, primaryKeys, false)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve lower bounds for primary keys: %w", err)
+	}
+
+	maxValues, err := getTableRow(db, table, primaryKeys, true)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve upper bounds for primary keys: %w", err)
+	}
+
+	var bounds []Bounds
+	for idx, minValue := range minValues {
+		bounds = append(bounds, Bounds{
+			Min: minValue,
+			Max: maxValues[idx],
+		})
+		slog.Info("Primary key bounds", slog.String("key", primaryKeys[idx].Name), slog.Any("min", minValue), slog.Any("max", maxValues[idx]))
+	}
+	return bounds, nil
 }
