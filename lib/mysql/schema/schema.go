@@ -248,26 +248,18 @@ func getTableRow(db *sql.DB, table string, primaryKeys []Column, descending bool
 	return result, nil
 }
 
-func getPrimaryKeysLowerBounds(db *sql.DB, table string, primaryKeys []Column) ([]interface{}, error) {
-	return getTableRow(db, table, primaryKeys, false)
-}
-
-func getPrimaryKeysUpperBounds(db *sql.DB, table string, primaryKeys []Column) ([]interface{}, error) {
-	return getTableRow(db, table, primaryKeys, true)
-}
-
 type Bounds struct {
 	Min interface{}
 	Max interface{}
 }
 
 func GetPrimaryKeysBounds(db *sql.DB, table string, primaryKeys []Column) ([]Bounds, error) {
-	minValues, err := getPrimaryKeysLowerBounds(db, table, primaryKeys)
+	minValues, err := getTableRow(db, table, primaryKeys, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve lower bounds for primary keys: %w", err)
 	}
 
-	maxValues, err := getPrimaryKeysUpperBounds(db, table, primaryKeys)
+	maxValues, err := getTableRow(db, table, primaryKeys, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve upper bounds for primary keys: %w", err)
 	}
