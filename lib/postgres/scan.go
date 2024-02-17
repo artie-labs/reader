@@ -7,10 +7,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/artie-labs/transfer/lib/cdc"
+	"github.com/artie-labs/transfer/lib/cdc/util"
+	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/ptr"
+	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/jackc/pgx/v5"
 
+	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/reader/lib/postgres/primary_key"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
@@ -81,8 +86,8 @@ func scanTableQuery(args scanTableQueryArgs) string {
 		castedColumns[idx] = castColumn(col)
 	}
 
-	startingValues := args.PrimaryKeys.KeysToValueList(args.Columns, false)
-	endingValues := args.PrimaryKeys.KeysToValueList(args.Columns, true)
+	startingValues := keysToValueList(args.PrimaryKeys, args.Columns, false)
+	endingValues := keysToValueList(args.PrimaryKeys, args.Columns, true)
 
 	return fmt.Sprintf(`SELECT %s FROM %s WHERE row(%s) %s row(%s) AND NOT row(%s) %s row(%s) ORDER BY %s LIMIT %d`,
 		strings.Join(castedColumns, ","),
@@ -94,6 +99,37 @@ func scanTableQuery(args scanTableQueryArgs) string {
 		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","),
 		args.Limit,
 	)
+}
+
+func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) []string {
+	schemaEvtPayload := &util.SchemaEventPayload{
+		Schema: debezium.Schema{
+			FieldsObject: []debezium.FieldsObject{{
+				Fields:     pgDebezium.ColumnsToFields(columns),
+				Optional:   false,
+				FieldLabel: cdc.After,
+			}},
+		},
+	}
+	optionalSchema := schemaEvtPayload.GetOptionalSchema()
+
+	var valuesToReturn []string
+	for _, pk := range k.KeysList() {
+		val := pk.StartingValue
+		if end {
+			val = pk.EndingValue
+		}
+
+		kindDetails := typing.ParseValue(typing.Settings{}, pk.Name, optionalSchema, val)
+		switch kindDetails.Kind {
+		case typing.String.Kind, typing.Struct.Kind, typing.ETime.Kind:
+			valuesToReturn = append(valuesToReturn, fmt.Sprintf(`'%s'`, val))
+		default:
+			valuesToReturn = append(valuesToReturn, val)
+		}
+	}
+
+	return valuesToReturn
 }
 
 func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
