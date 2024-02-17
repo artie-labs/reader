@@ -32,7 +32,7 @@ func TestShouldQuoteValue(t *testing.T) {
 		{"Int16", schema.Column{Type: schema.Int16}, "12", false},
 		{"Int32", schema.Column{Type: schema.Int32}, "12", false},
 		{"Int64", schema.Column{Type: schema.Int64}, "12", false},
-		{"UUID", schema.Column{Type: schema.UUID}, "", true},
+		{"UUID", schema.Column{Type: schema.UUID}, "7152e149-65b9-44ae-aec0-5685777204e8", true},
 		{"UserDefinedText", schema.Column{Type: schema.UserDefinedText}, "foo", true},
 		{"JSON", schema.Column{Type: schema.JSON}, "{}", true},
 		{"Timestamp", schema.Column{Type: schema.Timestamp}, "2000-01-02 03:04:05", true},
