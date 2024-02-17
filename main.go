@@ -4,9 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/artie-labs/transfer/lib/telemetry/metrics"
 	"log/slog"
 	"time"
+
+	"github.com/artie-labs/transfer/lib/telemetry/metrics"
 
 	"github.com/getsentry/sentry-go"
 
@@ -17,6 +18,7 @@ import (
 	"github.com/artie-labs/reader/sources"
 	"github.com/artie-labs/reader/sources/dynamodb"
 	"github.com/artie-labs/reader/sources/mongo"
+	"github.com/artie-labs/reader/sources/mysql"
 	"github.com/artie-labs/reader/sources/postgres"
 )
 
@@ -53,6 +55,8 @@ func buildSource(cfg *config.Settings) (sources.Source, error) {
 		return dynamodb.Load(*cfg.DynamoDB)
 	case config.SourceMongoDB:
 		return mongo.Load(*cfg.MongoDB)
+	case config.SourceMySQL:
+		return mysql.Load(*cfg.MySQL)
 	case config.SourcePostgreSQL:
 		return postgres.Load(*cfg.PostgreSQL)
 	}
