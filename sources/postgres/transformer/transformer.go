@@ -79,7 +79,7 @@ func (m *DebeziumTransformer) convertRowToDebezium(row map[string]interface{}) (
 			return nil, fmt.Errorf("failed to get column %s by name: %w", key, err)
 		}
 
-		val, err := pgDebezium.ParseValue(*col, value)
+		val, err := ParseValue(*col, value)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert value: %w", err)
 		}
