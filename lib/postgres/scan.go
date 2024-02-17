@@ -108,7 +108,7 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 	), nil
 }
 
-func shouldQuoteValue(col schema.Column, val string) bool {
+func shouldQuoteValue(col schema.Column) bool {
 	schemaEvtPayload := &util.SchemaEventPayload{
 		Schema: debezium.Schema{
 			FieldsObject: []debezium.FieldsObject{{
@@ -135,7 +135,7 @@ func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) ([]
 			return nil, fmt.Errorf("primary key %v not found in columns", pk.Name)
 		}
 
-		if shouldQuoteValue(columns[colIndex], val) {
+		if shouldQuoteValue(columns[colIndex]) {
 			valuesToReturn = append(valuesToReturn, fmt.Sprintf(`'%s'`, val))
 		} else {
 			valuesToReturn = append(valuesToReturn, val)
