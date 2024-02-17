@@ -3,8 +3,9 @@ package postgres
 import (
 	"testing"
 
-	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/artie-labs/reader/lib/postgres/schema"
 )
 
 func TestTopicSuffix(t *testing.T) {

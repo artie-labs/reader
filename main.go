@@ -4,10 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/artie-labs/transfer/lib/telemetry/metrics"
 	"log/slog"
 	"time"
 
+	"github.com/artie-labs/transfer/lib/telemetry/metrics"
 	"github.com/getsentry/sentry-go"
 
 	"github.com/artie-labs/reader/config"
