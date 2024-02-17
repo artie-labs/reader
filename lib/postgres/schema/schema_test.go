@@ -134,7 +134,7 @@ func TestSelectTableQuery(t *testing.T) {
 	}
 
 	{
-		query := selectTableQuery(selectTableQueryArgs{
+		query := buildPkValuesQuery(buildPkValuesQueryArgs{
 			Keys: []Column{
 				{Name: "a", Type: Text},
 				{Name: "b", Type: Text},
@@ -148,7 +148,7 @@ func TestSelectTableQuery(t *testing.T) {
 	}
 	// Descending
 	{
-		query := selectTableQuery(selectTableQueryArgs{
+		query := buildPkValuesQuery(buildPkValuesQueryArgs{
 			Keys: []Column{
 				{Name: "a", Type: Text},
 				{Name: "b", Type: Text},

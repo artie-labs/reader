@@ -205,7 +205,7 @@ func GetPrimaryKeys(db *sql.DB, schema, table string) ([]string, error) {
 	return primaryKeys, nil
 }
 
-type selectTableQueryArgs struct {
+type buildPkValuesQueryArgs struct {
 	Keys       []Column
 	Schema     string
 	TableName  string
@@ -213,7 +213,7 @@ type selectTableQueryArgs struct {
 	CastFunc   func(c Column) string
 }
 
-func selectTableQuery(args selectTableQueryArgs) string {
+func buildPkValuesQuery(args buildPkValuesQueryArgs) string {
 	castedColumns := make([]string, len(args.Keys))
 	for i, col := range args.Keys {
 		castedColumns[i] = args.CastFunc(col)
@@ -231,14 +231,14 @@ func selectTableQuery(args selectTableQueryArgs) string {
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(), strings.Join(fragments, ","))
 }
 
-func getTableRow(db *sql.DB, schema, table string, primaryKeys []Column, cast func(c Column) string, descending bool) ([]interface{}, error) {
+func getPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column, cast func(c Column) string, descending bool) ([]interface{}, error) {
 	result := make([]interface{}, len(primaryKeys))
 	scanPtrs := make([]interface{}, len(primaryKeys))
 	for i := range result {
 		scanPtrs[i] = &result[i]
 	}
 
-	query := selectTableQuery(selectTableQueryArgs{
+	query := buildPkValuesQuery(buildPkValuesQueryArgs{
 		Keys:       primaryKeys,
 		Schema:     schema,
 		TableName:  table,
@@ -263,12 +263,12 @@ type Bounds struct {
 }
 
 func GetPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []Column, cast func(c Column) string) ([]Bounds, error) {
-	minValues, err := getTableRow(db, schema, table, primaryKeys, cast, false)
+	minValues, err := getPrimaryKeyValues(db, schema, table, primaryKeys, cast, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve lower bounds for primary keys: %w", err)
 	}
 
-	maxValues, err := getTableRow(db, schema, table, primaryKeys, cast, true)
+	maxValues, err := getPrimaryKeyValues(db, schema, table, primaryKeys, cast, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve upper bounds for primary keys: %w", err)
 	}

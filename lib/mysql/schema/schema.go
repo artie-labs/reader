@@ -211,7 +211,7 @@ func GetPrimaryKeys(db *sql.DB, table string) ([]string, error) {
 	return primaryKeys, nil
 }
 
-func selectTableQuery(keys []Column, tableName string, descending bool) string {
+func buildPkValuesQuery(keys []Column, tableName string, descending bool) string {
 	quotedColumns := make([]string, len(keys))
 	for i, col := range keys {
 		quotedColumns[i] = QuoteIdentifier(col.Name)
@@ -232,14 +232,14 @@ func selectTableQuery(keys []Column, tableName string, descending bool) string {
 		QuoteIdentifier(tableName), strings.Join(orderByFragments, ","))
 }
 
-func getTableRow(db *sql.DB, table string, primaryKeys []Column, descending bool) ([]interface{}, error) {
+func getPrimaryKeyValues(db *sql.DB, table string, primaryKeys []Column, descending bool) ([]interface{}, error) {
 	result := make([]interface{}, len(primaryKeys))
 	resultPtrs := make([]interface{}, len(primaryKeys))
 	for i := range result {
 		resultPtrs[i] = &result[i]
 	}
 
-	query := selectTableQuery(primaryKeys, table, descending)
+	query := buildPkValuesQuery(primaryKeys, table, descending)
 	slog.Info("Running query", slog.String("query", query))
 
 	if err := db.QueryRow(query, 1).Scan(resultPtrs...); err != nil {
@@ -254,12 +254,12 @@ type Bounds struct {
 }
 
 func GetPrimaryKeysBounds(db *sql.DB, table string, primaryKeys []Column) ([]Bounds, error) {
-	minValues, err := getTableRow(db, table, primaryKeys, false)
+	minValues, err := getPrimaryKeyValues(db, table, primaryKeys, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve lower bounds for primary keys: %w", err)
 	}
 
-	maxValues, err := getTableRow(db, table, primaryKeys, true)
+	maxValues, err := getPrimaryKeyValues(db, table, primaryKeys, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve upper bounds for primary keys: %w", err)
 	}
