@@ -17,6 +17,10 @@ func NewPostgresAdapter(table postgres.Table) postgresAdapter {
 	return postgresAdapter{table: table}
 }
 
+func (p postgresAdapter) TableName() string {
+	return p.table.Name
+}
+
 func (p postgresAdapter) TopicSuffix() string {
 	return fmt.Sprintf("%s.%s", p.table.Schema, strings.ReplaceAll(p.table.Name, `"`, ``))
 }
@@ -28,6 +32,14 @@ func (p postgresAdapter) PartitionKey(row map[string]interface{}) map[string]int
 		result[key] = row[key]
 	}
 	return result
+}
+
+func (p postgresAdapter) Fields() []debezium.Field {
+	fields := make([]debezium.Field, len(p.table.Columns))
+	for i, col := range p.table.Columns {
+		fields[i] = ColumnToField(col)
+	}
+	return fields
 }
 
 func (p postgresAdapter) ConvertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error) {
@@ -46,12 +58,4 @@ func (p postgresAdapter) ConvertRowToDebezium(row map[string]interface{}) (map[s
 		result[key] = val
 	}
 	return result, nil
-}
-
-func (p postgresAdapter) Fields() []debezium.Field {
-	return ColumnsToFields(p.table.Columns)
-}
-
-func (p postgresAdapter) TableName() string {
-	return p.table.Name
 }
