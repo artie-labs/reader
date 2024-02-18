@@ -103,8 +103,8 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 	), nil
 }
 
-func shouldQuoteValue(col schema.Column) (bool, error) {
-	switch col.Type {
+func shouldQuoteValue(dataType schema.DataType) (bool, error) {
+	switch dataType {
 	case schema.InvalidDataType:
 		return false, fmt.Errorf("invalid data type")
 	case schema.Float,
@@ -113,8 +113,8 @@ func shouldQuoteValue(col schema.Column) (bool, error) {
 		schema.Int64,
 		schema.Bit,
 		schema.Boolean,
-		schema.Interval, // TODO: Double check this
-		schema.Array:    // TODO: Double check this
+		schema.Interval, // TODO: This may be wrong, check using a real database
+		schema.Array:    // TODO: This may be wrong, check using a real database
 		return false, nil
 	case schema.VariableNumeric,
 		schema.Money,
@@ -133,7 +133,7 @@ func shouldQuoteValue(col schema.Column) (bool, error) {
 		schema.Geography:
 		return true, nil
 	default:
-		return false, fmt.Errorf("unsupported data type: %v", col.Type)
+		return false, fmt.Errorf("unsupported data type: %v", dataType)
 	}
 }
 
@@ -150,7 +150,7 @@ func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) ([]
 			return nil, fmt.Errorf("primary key %v not found in columns", pk.Name)
 		}
 
-		shouldQuote, err := shouldQuoteValue(columns[colIndex])
+		shouldQuote, err := shouldQuoteValue(columns[colIndex].Type)
 		if err != nil {
 			return nil, err
 		}
