@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"slices"
-	"strings"
 
 	"github.com/artie-labs/transfer/lib/ptr"
 
@@ -24,7 +23,7 @@ type Table struct {
 	OptionalPrimaryKeyValEnd   string
 }
 
-func NewTable(cfgTable *config.PostgreSQLTable) *Table {
+func NewTable(cfgTable config.PostgreSQLTable) *Table {
 	return &Table{
 		Name:                       cfgTable.Name,
 		Schema:                     cfgTable.Schema,
@@ -32,10 +31,6 @@ func NewTable(cfgTable *config.PostgreSQLTable) *Table {
 		OptionalPrimaryKeyValStart: cfgTable.OptionalPrimaryKeyValStart,
 		OptionalPrimaryKeyValEnd:   cfgTable.OptionalPrimaryKeyValEnd,
 	}
-}
-
-func (t *Table) TopicSuffix() string {
-	return fmt.Sprintf("%s.%s", t.Schema, strings.ReplaceAll(t.Name, `"`, ``))
 }
 
 func (t *Table) GetColumnByName(colName string) (*schema.Column, error) {

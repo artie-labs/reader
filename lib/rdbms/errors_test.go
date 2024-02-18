@@ -1,4 +1,4 @@
-package postgres
+package rdbms
 
 import (
 	"database/sql"
@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNoRowsError(t *testing.T) {
+func TestIsNoRowsErr(t *testing.T) {
 	type _tc struct {
 		name     string
 		err      error
@@ -34,7 +34,7 @@ func TestNoRowsError(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		actualData := NoRowsError(tc.err)
+		actualData := IsNoRowsErr(tc.err)
 		assert.Equal(t, tc.expected, actualData, tc.name)
 	}
 }
