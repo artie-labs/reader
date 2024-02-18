@@ -14,17 +14,34 @@ import (
 	"github.com/artie-labs/reader/lib/postgres"
 )
 
-type DebeziumTransformer struct {
-	statsD mtr.Client
-	table  *postgres.Table
-	iter   batchRowIterator
+type Adapter interface {
+	TableName() string
+	TopicSuffix() string
+	PartitionKey(row map[string]interface{}) map[string]interface{}
+	Fields() []debezium.Field
+	MetricTags() map[string]string
+	ConvertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error)
 }
 
-func NewDebeziumTransformer(table *postgres.Table, iter batchRowIterator, statsD mtr.Client) *DebeziumTransformer {
+type postgresAdapter struct {
+	table postgres.Table
+}
+
+func NewPostgresAdapter(table postgres.Table) Adapter {
+	return postgresAdapter{table: table}
+}
+
+type DebeziumTransformer struct {
+	statsD  mtr.Client
+	adapter Adapter
+	iter    batchRowIterator
+}
+
+func NewDebeziumTransformer(adapter Adapter, iter batchRowIterator, statsD mtr.Client) *DebeziumTransformer {
 	return &DebeziumTransformer{
-		table:  table,
-		iter:   iter,
-		statsD: statsD,
+		adapter: adapter,
+		iter:    iter,
+		statsD:  statsD,
 	}
 }
 
@@ -38,11 +55,14 @@ func (d *DebeziumTransformer) HasNext() bool {
 }
 
 func (d *DebeziumTransformer) recordMetrics(start time.Time) {
-	d.statsD.Timing("scanned_and_parsed", time.Since(start), map[string]string{
-		"table":  strings.ReplaceAll(d.table.Name, `"`, ``),
-		"schema": d.table.Schema,
-	})
+	d.statsD.Timing("scanned_and_parsed", time.Since(start), d.adapter.MetricTags())
+}
 
+func (p postgresAdapter) MetricTags() map[string]string {
+	return map[string]string{
+		"table":  strings.ReplaceAll(p.table.Name, `"`, ``),
+		"schema": p.table.Schema,
+	}
 }
 
 func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
@@ -64,18 +84,18 @@ func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 			return nil, fmt.Errorf("failed to create debezium payload: %w", err)
 		}
 
-		result = append(result, lib.NewRawMessage(d.topicSuffix(), d.partitionKey(row), payload))
+		result = append(result, lib.NewRawMessage(d.adapter.TopicSuffix(), d.adapter.PartitionKey(row), payload))
 		d.recordMetrics(start)
 	}
 	return result, nil
 }
 
-func (d *DebeziumTransformer) topicSuffix() string {
+func (d postgresAdapter) TopicSuffix() string {
 	return fmt.Sprintf("%s.%s", d.table.Schema, strings.ReplaceAll(d.table.Name, `"`, ``))
 }
 
-// partitionKey returns a map of primary keys and their values for a given row.
-func (d *DebeziumTransformer) partitionKey(row map[string]interface{}) map[string]interface{} {
+// PartitionKey returns a map of primary keys and their values for a given row.
+func (d postgresAdapter) PartitionKey(row map[string]interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
 	for _, key := range d.table.PrimaryKeys.Keys() {
 		result[key] = row[key]
@@ -83,7 +103,7 @@ func (d *DebeziumTransformer) partitionKey(row map[string]interface{}) map[strin
 	return result
 }
 
-func (d *DebeziumTransformer) convertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error) {
+func (d postgresAdapter) ConvertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error) {
 	result := make(map[string]interface{})
 	for key, value := range row {
 		col, err := d.table.GetColumnByName(key)
@@ -101,15 +121,23 @@ func (d *DebeziumTransformer) convertRowToDebezium(row map[string]interface{}) (
 	return result, nil
 }
 
+func (p postgresAdapter) Fields() []debezium.Field {
+	return ColumnsToFields(p.table.Columns)
+}
+
+func (p postgresAdapter) TableName() string {
+	return p.table.Name
+}
+
 func (d *DebeziumTransformer) createPayload(row map[string]interface{}) (util.SchemaEventPayload, error) {
-	dbzRow, err := d.convertRowToDebezium(row)
+	dbzRow, err := d.adapter.ConvertRowToDebezium(row)
 	if err != nil {
 		return util.SchemaEventPayload{}, fmt.Errorf("failed to convert row to debezium: %w", err)
 	}
 
 	schema := debezium.Schema{
 		FieldsObject: []debezium.FieldsObject{{
-			Fields:     ColumnsToFields(d.table.Columns),
+			Fields:     d.adapter.Fields(),
 			Optional:   false,
 			FieldLabel: cdc.After,
 		}},
@@ -118,7 +146,7 @@ func (d *DebeziumTransformer) createPayload(row map[string]interface{}) (util.Sc
 	payload := util.Payload{
 		After: dbzRow,
 		Source: util.Source{
-			Table: d.table.Name,
+			Table: d.adapter.TableName(),
 			TsMs:  time.Now().UnixMilli(),
 		},
 		Operation: "r",
