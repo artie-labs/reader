@@ -39,7 +39,7 @@ func (m *MockRowIterator) Next() ([]map[string]interface{}, error) {
 	return result, nil
 }
 
-func TestTopicSuffix(t *testing.T) {
+func TestDebeziumTransformer_TopicSuffix(t *testing.T) {
 	type _tc struct {
 		table             *postgres.Table
 		expectedTopicName string
