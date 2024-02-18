@@ -69,7 +69,7 @@ func TestDebeziumTransformer_TopicSuffix(t *testing.T) {
 }
 
 func TestDebeziumTransformer(t *testing.T) {
-	table := postgres.NewTable(&config.PostgreSQLTable{
+	table := postgres.NewTable(config.PostgreSQLTable{
 		Name:   "table",
 		Schema: "schema",
 	})
@@ -142,7 +142,7 @@ func TestDebeziumTransformer(t *testing.T) {
 }
 
 func TestDebeziumTransformer_CreatePayload_NilOptionalSchema(t *testing.T) {
-	table := postgres.NewTable(&config.PostgreSQLTable{
+	table := postgres.NewTable(config.PostgreSQLTable{
 		Name:   "foo",
 		Schema: "schema",
 	})

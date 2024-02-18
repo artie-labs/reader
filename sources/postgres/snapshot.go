@@ -44,20 +44,20 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, statsD mt
 	for _, tableCfg := range s.cfg.Tables {
 		snapshotStartTime := time.Now()
 
-		slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name))
-		table := postgres.NewTable(tableCfg)
+		slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name), slog.String("schema", tableCfg.Schema))
+		table := postgres.NewTable(*tableCfg)
 		if err := table.PopulateColumns(s.db); err != nil {
 			if rdbms.IsNoRowsErr(err) {
-				slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name))
+				slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name), slog.String("schema", table.Schema))
 				continue
 			} else {
-				return fmt.Errorf("failed to load configuration for table %s: %w", table.Name, err)
+				return fmt.Errorf("failed to load configuration for table %s.%s: %w", table.Schema, table.Name, err)
 			}
 		}
 
 		slog.Info("Scanning table",
-			slog.String("tableName", table.Name),
-			slog.String("schemaName", table.Schema),
+			slog.String("table", table.Name),
+			slog.String("schema", table.Schema),
 			slog.Any("primaryKeyColumns", table.PrimaryKeys.Keys()),
 			slog.Any("batchSize", tableCfg.GetBatchSize()),
 		)

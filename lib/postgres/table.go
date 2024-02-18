@@ -23,7 +23,7 @@ type Table struct {
 	OptionalPrimaryKeyValEnd   string
 }
 
-func NewTable(cfgTable *config.PostgreSQLTable) *Table {
+func NewTable(cfgTable config.PostgreSQLTable) *Table {
 	return &Table{
 		Name:                       cfgTable.Name,
 		Schema:                     cfgTable.Schema,
