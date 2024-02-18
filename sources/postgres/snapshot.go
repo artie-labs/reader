@@ -10,11 +10,11 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/kafkalib"
-	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/rdbms"
-	"github.com/artie-labs/reader/sources/postgres/transformer"
+	"github.com/artie-labs/reader/sources/postgres/adapter"
 )
 
 const defaultErrorRetries = 10
@@ -40,7 +40,7 @@ func (s *Source) Close() error {
 	return s.db.Close()
 }
 
-func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, statsD mtr.Client) error {
+func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 	for _, tableCfg := range s.cfg.Tables {
 		snapshotStartTime := time.Now()
 
@@ -63,7 +63,7 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, statsD mt
 		)
 
 		scanner := table.NewScanner(s.db, tableCfg.GetBatchSize(), defaultErrorRetries)
-		dbzTransformer := transformer.NewDebeziumTransformer(table, &scanner, statsD)
+		dbzTransformer := debezium.NewDebeziumTransformer(adapter.NewPostgresAdapter(*table), &scanner)
 		count, err := writer.WriteIterator(ctx, dbzTransformer)
 		if err != nil {
 			return fmt.Errorf("failed to snapshot for table %s: %w", table.Name, err)

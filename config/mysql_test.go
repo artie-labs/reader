@@ -102,3 +102,18 @@ func TestMySQL_ToDSN(t *testing.T) {
 	c := createValidConfig()
 	assert.Equal(t, "username:password@tcp(example.com:3306)/database", c.ToDSN())
 }
+
+func TestMySQLTable_GetBatchSize(t *testing.T) {
+	{
+		// Batch size is not set
+		table := &MySQLTable{}
+		assert.Equal(t, uint(5_000), table.GetBatchSize())
+	}
+	{
+		// Batch size is set
+		table := &MySQLTable{
+			BatchSize: 1,
+		}
+		assert.Equal(t, uint(1), table.GetBatchSize())
+	}
+}

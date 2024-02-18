@@ -1,4 +1,4 @@
-package transformer
+package adapter
 
 import (
 	"fmt"
@@ -6,10 +6,10 @@ import (
 
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/artie-labs/transfer/lib/ptr"
-	"github.com/artie-labs/transfer/lib/telemetry/metrics"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
@@ -39,37 +39,8 @@ func (m *MockRowIterator) Next() ([]map[string]interface{}, error) {
 	return result, nil
 }
 
-func TestDebeziumTransformer_TopicSuffix(t *testing.T) {
-	type _tc struct {
-		table             *postgres.Table
-		expectedTopicName string
-	}
-
-	tcs := []_tc{
-		{
-			table: &postgres.Table{
-				Name:   "table1",
-				Schema: "schema1",
-			},
-			expectedTopicName: "schema1.table1",
-		},
-		{
-			table: &postgres.Table{
-				Name:   `"PublicStatus"`,
-				Schema: "schema2",
-			},
-			expectedTopicName: "schema2.PublicStatus",
-		},
-	}
-
-	for _, tc := range tcs {
-		dt := DebeziumTransformer{metrics.NullMetricsProvider{}, tc.table, nil}
-		assert.Equal(t, tc.expectedTopicName, dt.topicSuffix())
-	}
-}
-
 func TestDebeziumTransformer(t *testing.T) {
-	table := postgres.NewTable(config.PostgreSQLTable{
+	table := *postgres.NewTable(config.PostgreSQLTable{
 		Name:   "table",
 		Schema: "schema",
 	})
@@ -81,20 +52,18 @@ func TestDebeziumTransformer(t *testing.T) {
 
 	// test zero batches
 	{
-		builder := NewDebeziumTransformer(
-			table,
+		builder := debezium.NewDebeziumTransformer(
+			NewPostgresAdapter(table),
 			&MockRowIterator{batches: [][]map[string]interface{}{}},
-			&metrics.NullMetricsProvider{},
 		)
 		assert.False(t, builder.HasNext())
 	}
 
 	// test an iterator that returns an error
 	{
-		builder := NewDebeziumTransformer(
-			table,
+		builder := debezium.NewDebeziumTransformer(
+			NewPostgresAdapter(table),
 			&ErrorRowIterator{},
-			&metrics.NullMetricsProvider{},
 		)
 
 		assert.True(t, builder.HasNext())
@@ -104,15 +73,14 @@ func TestDebeziumTransformer(t *testing.T) {
 
 	// test two batches each with two rows
 	{
-		builder := NewDebeziumTransformer(
-			table,
+		builder := debezium.NewDebeziumTransformer(
+			NewPostgresAdapter(table),
 			&MockRowIterator{
 				batches: [][]map[string]interface{}{
 					{{"a": "1", "b": "11"}, {"a": "2", "b": "12"}},
 					{{"a": "3", "b": "13"}, {"a": "4", "b": "14"}},
 				},
 			},
-			&metrics.NullMetricsProvider{},
 		)
 
 		assert.True(t, builder.HasNext())
@@ -141,8 +109,8 @@ func TestDebeziumTransformer(t *testing.T) {
 	}
 }
 
-func TestDebeziumTransformer_CreatePayload_NilOptionalSchema(t *testing.T) {
-	table := postgres.NewTable(config.PostgreSQLTable{
+func TestDebeziumTransformer_NilOptionalSchema(t *testing.T) {
+	table := *postgres.NewTable(config.PostgreSQLTable{
 		Name:   "foo",
 		Schema: "schema",
 	})
@@ -151,20 +119,20 @@ func TestDebeziumTransformer_CreatePayload_NilOptionalSchema(t *testing.T) {
 		{Name: "name", Type: schema.Text},
 	}
 
-	builder := NewDebeziumTransformer(
-		table,
-		&MockRowIterator{},
-		&metrics.NullMetricsProvider{},
-	)
-
 	rowData := map[string]interface{}{
 		"user_id": 123,
 		"name":    "Robin",
 	}
 
-	payload, err := builder.createPayload(rowData)
+	builder := debezium.NewDebeziumTransformer(
+		NewPostgresAdapter(table),
+		&MockRowIterator{batches: [][]map[string]interface{}{{rowData}}},
+	)
+
+	rows, err := builder.Next()
 	assert.NoError(t, err)
-	assert.NotNil(t, payload)
+	assert.NotNil(t, rows)
+	payload := rows[0].GetPayload().(util.SchemaEventPayload)
 
 	assert.Equal(t, "r", payload.Payload.Operation)
 	assert.Equal(t, rowData, payload.Payload.After)
