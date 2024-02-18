@@ -10,10 +10,14 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/rdbms"
+	"github.com/artie-labs/reader/sources/mysql/adapter"
 )
+
+const defaultErrorRetries = 10
 
 type Source struct {
 	cfg config.MySQL
@@ -64,8 +68,12 @@ func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, 
 		slog.Any("batchSize", tableCfg.BatchSize),
 	)
 
-	// TODO: Implement snapshotting logic here
-	count := 0
+	scanner := table.NewScanner(s.db, tableCfg.GetBatchSize(), defaultErrorRetries)
+	dbzTransformer := debezium.NewDebeziumTransformer(adapter.NewMySQLAdapter(*table), &scanner)
+	count, err := writer.WriteIterator(ctx, dbzTransformer)
+	if err != nil {
+		return fmt.Errorf("failed to snapshot for table %s: %w", table.Name, err)
+	}
 
 	slog.Info("Finished snapshotting",
 		slog.String("table", tableCfg.Name),

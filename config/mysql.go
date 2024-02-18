@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/artie-labs/reader/constants"
 	"github.com/artie-labs/transfer/lib/stringutil"
 	"github.com/go-sql-driver/mysql"
 )
@@ -32,6 +33,14 @@ type MySQLTable struct {
 	BatchSize                  uint   `yaml:"batchSize"`
 	OptionalPrimaryKeyValStart string `yaml:"optionalPrimaryKeyValStart"`
 	OptionalPrimaryKeyValEnd   string `yaml:"optionalPrimaryKeyValEnd"`
+}
+
+func (m *MySQLTable) GetBatchSize() uint {
+	if m.BatchSize > 0 {
+		return m.BatchSize
+	} else {
+		return constants.DefaultBatchSize
+	}
 }
 
 func (m *MySQL) Validate() error {
