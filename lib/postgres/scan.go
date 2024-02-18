@@ -107,10 +107,6 @@ func shouldQuoteValue(col schema.Column) (bool, error) {
 	switch col.Type {
 	case schema.InvalidDataType:
 		return false, fmt.Errorf("invalid data type")
-	case schema.Money, schema.Numeric:
-		// TODO: Returning true for these to maintain parity with existing code, but double check this
-		slog.Warn("Could not determine data type for column", slog.String("colName", col.Name))
-		return true, nil
 	case schema.Float,
 		schema.Int16,
 		schema.Int32,
@@ -121,6 +117,8 @@ func shouldQuoteValue(col schema.Column) (bool, error) {
 		schema.Array:    // TODO: Double check this
 		return false, nil
 	case schema.VariableNumeric,
+		schema.Money,
+		schema.Numeric,
 		schema.TextThatRequiresEscaping,
 		schema.Text,
 		schema.HStore,
