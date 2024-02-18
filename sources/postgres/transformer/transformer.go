@@ -64,10 +64,19 @@ func (m *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 			return nil, fmt.Errorf("failed to create debezium payload: %w", err)
 		}
 
-		result = append(result, lib.NewRawMessage(m.table.TopicSuffix(), m.table.PartitionKey(row), payload))
+		result = append(result, lib.NewRawMessage(m.table.TopicSuffix(), m.partitionKey(row), payload))
 		m.recordMetrics(start)
 	}
 	return result, nil
+}
+
+// PartitionKey returns a map of primary keys and their values for a given row.
+func (m *DebeziumTransformer) partitionKey(row map[string]interface{}) map[string]interface{} {
+	result := make(map[string]interface{})
+	for _, key := range m.table.PrimaryKeys.Keys() {
+		result[key] = row[key]
+	}
+	return result
 }
 
 func (m *DebeziumTransformer) convertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error) {

@@ -108,12 +108,3 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 
 	return t.PrimaryKeys.LoadValues(t.OptionalPrimaryKeyValStart, t.OptionalPrimaryKeyValEnd)
 }
-
-// PartitionKeyMap returns a map of primary keys and their values for a given row.
-func (t *Table) PartitionKey(row map[string]interface{}) map[string]interface{} {
-	result := make(map[string]interface{})
-	for _, key := range t.PrimaryKeys.Keys() {
-		result[key] = row[key]
-	}
-	return result
-}
