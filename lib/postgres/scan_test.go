@@ -14,39 +14,38 @@ func TestShouldQuoteValue(t *testing.T) {
 	tests := []struct {
 		name     string
 		col      schema.Column
-		value    string
 		expected bool
 	}{
-		{"InvalidDataType", schema.Column{Type: schema.InvalidDataType}, "invalid", true},
-		{"VariableNumeric", schema.Column{Type: schema.VariableNumeric}, "var_numeric", true},
-		{"Money", schema.Column{Type: schema.Money, Opts: &schema.Opts{Scale: ptr.ToString("2")}}, "1.00", true},
-		{"Numeric", schema.Column{Type: schema.Numeric, Opts: &schema.Opts{Scale: ptr.ToString("2"), Precision: ptr.ToString("2")}}, "1.23", true},
-		{"Bit", schema.Column{Type: schema.Bit}, "1", false},
-		{"Boolean", schema.Column{Type: schema.Boolean}, "true", false},
-		{"TextThatRequiresEscaping", schema.Column{Type: schema.TextThatRequiresEscaping}, "select", true},
-		{"Text", schema.Column{Type: schema.Text}, "foo", true},
-		{"Interval", schema.Column{Type: schema.Interval}, "", false},
-		{"Array", schema.Column{Type: schema.Array}, "", false},
-		{"HStore", schema.Column{Type: schema.HStore}, "", true},
-		{"Float", schema.Column{Type: schema.Float}, "12.34", false},
-		{"Int16", schema.Column{Type: schema.Int16}, "12", false},
-		{"Int32", schema.Column{Type: schema.Int32}, "12", false},
-		{"Int64", schema.Column{Type: schema.Int64}, "12", false},
-		{"UUID", schema.Column{Type: schema.UUID}, "7152e149-65b9-44ae-aec0-5685777204e8", true},
-		{"UserDefinedText", schema.Column{Type: schema.UserDefinedText}, "foo", true},
-		{"JSON", schema.Column{Type: schema.JSON}, "{}", true},
-		{"Timestamp", schema.Column{Type: schema.Timestamp}, "2000-01-02 03:04:05", true},
-		{"Time", schema.Column{Type: schema.Time}, "03:04:05", true},
-		{"Date", schema.Column{Type: schema.Date}, "2000-01-02", true},
+		{"InvalidDataType", schema.Column{Type: schema.InvalidDataType}, true},
+		{"VariableNumeric", schema.Column{Type: schema.VariableNumeric}, true},
+		{"Money", schema.Column{Type: schema.Money, Opts: &schema.Opts{Scale: ptr.ToString("2")}}, true},
+    {"Numeric", schema.Column{Type: schema.Numeric, Opts: &schema.Opts{Scale: ptr.ToString("2")}}, true},
+		{"Bit", schema.Column{Type: schema.Bit}, false},
+		{"Boolean", schema.Column{Type: schema.Boolean}, false},
+		{"TextThatRequiresEscaping", schema.Column{Type: schema.TextThatRequiresEscaping}, true},
+		{"Text", schema.Column{Type: schema.Text}, true},
+		{"Interval", schema.Column{Type: schema.Interval}, false},
+		{"Array", schema.Column{Type: schema.Array}, false},
+		{"HStore", schema.Column{Type: schema.HStore}, true},
+		{"Float", schema.Column{Type: schema.Float}, false},
+		{"Int16", schema.Column{Type: schema.Int16}, false},
+		{"Int32", schema.Column{Type: schema.Int32}, false},
+		{"Int64", schema.Column{Type: schema.Int64}, false},
+		{"UUID", schema.Column{Type: schema.UUID}, true},
+		{"UserDefinedText", schema.Column{Type: schema.UserDefinedText}, true},
+		{"JSON", schema.Column{Type: schema.JSON}, true},
+		{"Timestamp", schema.Column{Type: schema.Timestamp}, true},
+		{"Time", schema.Column{Type: schema.Time}, true},
+		{"Date", schema.Column{Type: schema.Date}, true},
 		// PostGIS
-		{"Point", schema.Column{Type: schema.Point}, "", true},
-		{"Geometry", schema.Column{Type: schema.Geometry}, "", true},
-		{"Geography", schema.Column{Type: schema.Geography}, "", true},
+		{"Point", schema.Column{Type: schema.Point}, true},
+		{"Geometry", schema.Column{Type: schema.Geometry}, true},
+		{"Geography", schema.Column{Type: schema.Geography}, true},
 	}
 
 	for _, tc := range tests {
 		tc.col.Name = tc.name
-		assert.Equal(t, tc.expected, shouldQuoteValue(tc.col, tc.value), tc.name)
+		assert.Equal(t, tc.expected, shouldQuoteValue(tc.col), tc.name)
 	}
 }
 

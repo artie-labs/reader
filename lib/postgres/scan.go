@@ -105,18 +105,13 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 	), nil
 }
 
-func shouldQuoteValue(col schema.Column, val string) bool {
-	optionalSchema := make(map[string]typing.KindDetails)
-	kd := pgDebezium.ColumnToField(col).ToKindDetails()
-	if kd == typing.Invalid {
-		slog.Warn("Skipping field from optional schema b/c we cannot determine the data type", slog.String("field", col.Name))
-	} else {
-		optionalSchema[col.Name] = kd
-	}
-
-	kindDetails := typing.ParseValue(typing.Settings{}, col.Name, optionalSchema, val)
-	switch kindDetails.Kind {
-	case typing.String.Kind, typing.Struct.Kind, typing.ETime.Kind:
+func shouldQuoteValue(col schema.Column) bool {
+	kindDetail := pgDebezium.ColumnToField(col).ToKindDetails()
+	switch kindDetail.Kind {
+	case typing.Invalid.Kind:
+		slog.Warn("Could not determine data type for column", slog.String("colName", col.Name))
+		return true
+	case typing.String.Kind, typing.Struct.Kind, typing.ETime.Kind, typing.EDecimal.Kind:
 		return true
 	default:
 		return false
@@ -136,7 +131,7 @@ func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) ([]
 			return nil, fmt.Errorf("primary key %v not found in columns", pk.Name)
 		}
 
-		if shouldQuoteValue(columns[colIndex], val) {
+		if shouldQuoteValue(columns[colIndex]) {
 			valuesToReturn = append(valuesToReturn, fmt.Sprintf(`'%s'`, val))
 		} else {
 			valuesToReturn = append(valuesToReturn, val)
