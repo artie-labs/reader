@@ -1,10 +1,10 @@
-package postgres
+package rdbms
 
 import (
 	"database/sql"
 	"errors"
 )
 
-func NoRowsError(err error) bool {
+func IsNoRowsErr(err error) bool {
 	return errors.Is(err, sql.ErrNoRows)
 }
