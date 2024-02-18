@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/artie-labs/reader/constants"
 	"github.com/artie-labs/transfer/lib/stringutil"
 	"github.com/go-sql-driver/mysql"
+
+	"github.com/artie-labs/reader/constants"
 )
 
 type MySQL struct {
