@@ -106,14 +106,14 @@ func TestMySQL_ToDSN(t *testing.T) {
 func TestMySQLTable_GetBatchSize(t *testing.T) {
 	{
 		// Batch size is not set
-		p := &MySQLTable{}
-		assert.Equal(t, uint(5_000), p.GetBatchSize())
+		table := &MySQLTable{}
+		assert.Equal(t, uint(5_000), table.GetBatchSize())
 	}
 	{
 		// Batch size is set
-		p := &MySQLTable{
+		table := &MySQLTable{
 			BatchSize: 1,
 		}
-		assert.Equal(t, uint(1), p.GetBatchSize())
+		assert.Equal(t, uint(1), table.GetBatchSize())
 	}
 }
