@@ -16,27 +16,27 @@ func NewMySQLAdapter(table mysql.Table) mysqlAdapter {
 	return mysqlAdapter{table: table}
 }
 
-func (d mysqlAdapter) TopicSuffix() string {
-	return strings.ReplaceAll(d.table.Name, `"`, ``)
+func (m mysqlAdapter) TableName() string {
+	return m.table.Name
+}
+
+func (m mysqlAdapter) TopicSuffix() string {
+	return strings.ReplaceAll(m.table.Name, `"`, ``)
 }
 
 // PartitionKey returns a map of primary keys and their values for a given row.
-func (d mysqlAdapter) PartitionKey(row map[string]interface{}) map[string]interface{} {
+func (m mysqlAdapter) PartitionKey(row map[string]interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
-	for _, key := range d.table.PrimaryKeys.Keys() {
+	for _, key := range m.table.PrimaryKeys.Keys() {
 		result[key] = row[key]
 	}
 	return result
 }
 
-func (d mysqlAdapter) ConvertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error) {
+func (m mysqlAdapter) Fields() []debezium.Field {
 	panic("not implemented")
 }
 
-func (p mysqlAdapter) Fields() []debezium.Field {
+func (m mysqlAdapter) ConvertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error) {
 	panic("not implemented")
-}
-
-func (p mysqlAdapter) TableName() string {
-	return p.table.Name
 }
