@@ -42,46 +42,39 @@ func (s *Source) Close() error {
 
 func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, statsD mtr.Client) error {
 	for _, tableCfg := range s.cfg.Tables {
-		if err := s.snapshotTable(ctx, writer, statsD, *tableCfg); err != nil {
-			return err
+		snapshotStartTime := time.Now()
+
+		slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name), slog.String("schema", tableCfg.Schema))
+		table := postgres.NewTable(*tableCfg)
+		if err := table.PopulateColumns(s.db); err != nil {
+			if rdbms.IsNoRowsErr(err) {
+				slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name), slog.String("schema", table.Schema))
+				continue
+			} else {
+				return fmt.Errorf("failed to load configuration for table %s: %w", table.Name, err)
+			}
 		}
-	}
-	return nil
-}
 
-func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, statsD mtr.Client, tableCfg config.PostgreSQLTable) error {
-	snapshotStartTime := time.Now()
+		slog.Info("Scanning table",
+			slog.String("table", table.Name),
+			slog.String("schema", table.Schema),
+			slog.String("topicSuffix", table.TopicSuffix()),
+			slog.Any("primaryKeyColumns", table.PrimaryKeys.Keys()),
+			slog.Any("batchSize", tableCfg.GetBatchSize()),
+		)
 
-	slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name))
-	table := postgres.NewTable(tableCfg)
-	if err := table.PopulateColumns(s.db); err != nil {
-		if rdbms.IsNoRowsErr(err) {
-			slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name),
-				slog.String("schema", table.Schema))
-			return nil
-		} else {
-			return fmt.Errorf("failed to load configuration for table %s: %w", table.Name, err)
+		scanner := table.NewScanner(s.db, tableCfg.GetBatchSize(), defaultErrorRetries)
+		dbzTransformer := transformer.NewDebeziumTransformer(table, &scanner, statsD)
+		count, err := writer.WriteIterator(ctx, dbzTransformer)
+		if err != nil {
+			return fmt.Errorf("failed to snapshot for table %s: %w", table.Name, err)
 		}
+
+		slog.Info("Finished snapshotting",
+			slog.Int("scannedTotal", count),
+			slog.Duration("totalDuration", time.Since(snapshotStartTime)),
+		)
 	}
-
-	slog.Info("Scanning table",
-		slog.String("table", table.Name),
-		slog.String("schema", table.Schema),
-		slog.Any("primaryKeyColumns", table.PrimaryKeys.Keys()),
-		slog.Any("batchSize", tableCfg.GetBatchSize()),
-	)
-
-	scanner := table.NewScanner(s.db, tableCfg.GetBatchSize(), defaultErrorRetries)
-	dbzTransformer := transformer.NewDebeziumTransformer(table, &scanner, statsD)
-	count, err := writer.WriteIterator(ctx, dbzTransformer)
-	if err != nil {
-		return fmt.Errorf("failed to snapshot for table %s: %w", table.Name, err)
-	}
-
-	slog.Info("Finished snapshotting",
-		slog.Int("scannedTotal", count),
-		slog.Duration("totalDuration", time.Since(snapshotStartTime)),
-	)
 
 	return nil
 }
