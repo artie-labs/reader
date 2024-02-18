@@ -12,7 +12,6 @@ import (
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/reader/lib/postgres"
-	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
 )
 
 type DebeziumTransformer struct {
@@ -97,7 +96,7 @@ func (m *DebeziumTransformer) createPayload(row map[string]interface{}) (util.Sc
 
 	schema := debezium.Schema{
 		FieldsObject: []debezium.FieldsObject{{
-			Fields:     pgDebezium.ColumnsToFields(m.table.Columns),
+			Fields:     ColumnsToFields(m.table.Columns),
 			Optional:   false,
 			FieldLabel: cdc.After,
 		}},
