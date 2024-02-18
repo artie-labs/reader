@@ -39,22 +39,22 @@ func (m *MockRowIterator) Next() ([]map[string]interface{}, error) {
 	return result, nil
 }
 
-func TestDebeziumTransformer_TopicSuffix(t *testing.T) {
+func TestPostgresAdapter_TopicSuffix(t *testing.T) {
 	type _tc struct {
-		table             *postgres.Table
+		table             postgres.Table
 		expectedTopicName string
 	}
 
 	tcs := []_tc{
 		{
-			table: &postgres.Table{
+			table: postgres.Table{
 				Name:   "table1",
 				Schema: "schema1",
 			},
 			expectedTopicName: "schema1.table1",
 		},
 		{
-			table: &postgres.Table{
+			table: postgres.Table{
 				Name:   `"PublicStatus"`,
 				Schema: "schema2",
 			},
@@ -63,13 +63,13 @@ func TestDebeziumTransformer_TopicSuffix(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		dt := DebeziumTransformer{metrics.NullMetricsProvider{}, tc.table, nil}
-		assert.Equal(t, tc.expectedTopicName, dt.topicSuffix())
+		adapter := NewPostgresAdapter(tc.table)
+		assert.Equal(t, tc.expectedTopicName, adapter.TopicSuffix())
 	}
 }
 
 func TestDebeziumTransformer(t *testing.T) {
-	table := postgres.NewTable(config.PostgreSQLTable{
+	table := *postgres.NewTable(config.PostgreSQLTable{
 		Name:   "table",
 		Schema: "schema",
 	})
@@ -82,7 +82,7 @@ func TestDebeziumTransformer(t *testing.T) {
 	// test zero batches
 	{
 		builder := NewDebeziumTransformer(
-			table,
+			NewPostgresAdapter(table),
 			&MockRowIterator{batches: [][]map[string]interface{}{}},
 			&metrics.NullMetricsProvider{},
 		)
@@ -92,7 +92,7 @@ func TestDebeziumTransformer(t *testing.T) {
 	// test an iterator that returns an error
 	{
 		builder := NewDebeziumTransformer(
-			table,
+			NewPostgresAdapter(table),
 			&ErrorRowIterator{},
 			&metrics.NullMetricsProvider{},
 		)
@@ -105,7 +105,7 @@ func TestDebeziumTransformer(t *testing.T) {
 	// test two batches each with two rows
 	{
 		builder := NewDebeziumTransformer(
-			table,
+			NewPostgresAdapter(table),
 			&MockRowIterator{
 				batches: [][]map[string]interface{}{
 					{{"a": "1", "b": "11"}, {"a": "2", "b": "12"}},
@@ -142,7 +142,7 @@ func TestDebeziumTransformer(t *testing.T) {
 }
 
 func TestDebeziumTransformer_CreatePayload_NilOptionalSchema(t *testing.T) {
-	table := postgres.NewTable(config.PostgreSQLTable{
+	table := *postgres.NewTable(config.PostgreSQLTable{
 		Name:   "foo",
 		Schema: "schema",
 	})
@@ -152,7 +152,7 @@ func TestDebeziumTransformer_CreatePayload_NilOptionalSchema(t *testing.T) {
 	}
 
 	builder := NewDebeziumTransformer(
-		table,
+		NewPostgresAdapter(table),
 		&MockRowIterator{},
 		&metrics.NullMetricsProvider{},
 	)
