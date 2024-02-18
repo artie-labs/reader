@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
@@ -80,7 +81,7 @@ func TestDebeziumTransformer(t *testing.T) {
 
 	// test zero batches
 	{
-		builder := NewDebeziumTransformer(
+		builder := debezium.NewDebeziumTransformer(
 			NewPostgresAdapter(table),
 			&MockRowIterator{batches: [][]map[string]interface{}{}},
 		)
@@ -89,7 +90,7 @@ func TestDebeziumTransformer(t *testing.T) {
 
 	// test an iterator that returns an error
 	{
-		builder := NewDebeziumTransformer(
+		builder := debezium.NewDebeziumTransformer(
 			NewPostgresAdapter(table),
 			&ErrorRowIterator{},
 		)
@@ -101,7 +102,7 @@ func TestDebeziumTransformer(t *testing.T) {
 
 	// test two batches each with two rows
 	{
-		builder := NewDebeziumTransformer(
+		builder := debezium.NewDebeziumTransformer(
 			NewPostgresAdapter(table),
 			&MockRowIterator{
 				batches: [][]map[string]interface{}{
@@ -147,19 +148,20 @@ func TestDebeziumTransformer_CreatePayload_NilOptionalSchema(t *testing.T) {
 		{Name: "name", Type: schema.Text},
 	}
 
-	builder := NewDebeziumTransformer(
-		NewPostgresAdapter(table),
-		&MockRowIterator{},
-	)
-
 	rowData := map[string]interface{}{
 		"user_id": 123,
 		"name":    "Robin",
 	}
 
-	payload, err := builder.createPayload(rowData)
+	builder := debezium.NewDebeziumTransformer(
+		NewPostgresAdapter(table),
+		&MockRowIterator{batches: [][]map[string]interface{}{{rowData}}},
+	)
+
+	rows, err := builder.Next()
 	assert.NoError(t, err)
-	assert.NotNil(t, payload)
+	assert.NotNil(t, rows)
+	payload := rows[0].GetPayload().(util.SchemaEventPayload)
 
 	assert.Equal(t, "r", payload.Payload.Operation)
 	assert.Equal(t, rowData, payload.Payload.After)
