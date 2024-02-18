@@ -19,7 +19,6 @@ type Adapter interface {
 	TopicSuffix() string
 	PartitionKey(row map[string]interface{}) map[string]interface{}
 	Fields() []debezium.Field
-	MetricTags() map[string]string
 	ConvertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error)
 }
 
@@ -37,11 +36,10 @@ type DebeziumTransformer struct {
 	iter    batchRowIterator
 }
 
-func NewDebeziumTransformer(adapter Adapter, iter batchRowIterator, statsD mtr.Client) *DebeziumTransformer {
+func NewDebeziumTransformer(adapter Adapter, iter batchRowIterator) *DebeziumTransformer {
 	return &DebeziumTransformer{
 		adapter: adapter,
 		iter:    iter,
-		statsD:  statsD,
 	}
 }
 
@@ -52,17 +50,6 @@ type batchRowIterator interface {
 
 func (d *DebeziumTransformer) HasNext() bool {
 	return d != nil && d.iter.HasNext()
-}
-
-func (d *DebeziumTransformer) recordMetrics(start time.Time) {
-	d.statsD.Timing("scanned_and_parsed", time.Since(start), d.adapter.MetricTags())
-}
-
-func (p postgresAdapter) MetricTags() map[string]string {
-	return map[string]string{
-		"table":  strings.ReplaceAll(p.table.Name, `"`, ``),
-		"schema": p.table.Schema,
-	}
 }
 
 func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
@@ -77,15 +64,12 @@ func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 
 	var result []lib.RawMessage
 	for _, row := range rows {
-		start := time.Now()
-
 		payload, err := d.createPayload(row)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create debezium payload: %w", err)
 		}
 
 		result = append(result, lib.NewRawMessage(d.adapter.TopicSuffix(), d.adapter.PartitionKey(row), payload))
-		d.recordMetrics(start)
 	}
 	return result, nil
 }

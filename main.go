@@ -94,7 +94,7 @@ func main() {
 	}
 	defer source.Close()
 
-	err = source.Run(ctx, *writer, statsD)
+	err = source.Run(ctx, *writer)
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("Failed to run %s snapshot", cfg.Source), slog.Any("err", err))
 	}
