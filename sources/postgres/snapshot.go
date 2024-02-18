@@ -51,7 +51,7 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, statsD mt
 				slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name), slog.String("schema", table.Schema))
 				continue
 			} else {
-				return fmt.Errorf("failed to load configuration for table %s: %w", table.Name, err)
+				return fmt.Errorf("failed to load configuration for table %s.%s: %w", table.Schema, table.Name, err)
 			}
 		}
 
