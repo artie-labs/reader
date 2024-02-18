@@ -18,8 +18,8 @@ func TestShouldQuoteValue(t *testing.T) {
 	}{
 		{"InvalidDataType", schema.Column{Type: schema.InvalidDataType}, true},
 		{"VariableNumeric", schema.Column{Type: schema.VariableNumeric}, true},
-		{"Money", schema.Column{Type: schema.Money}, true},
-		{"Numeric", schema.Column{Type: schema.Numeric}, true},
+		{"Money", schema.Column{Type: schema.Money, Opts: &schema.Opts{Scale: ptr.ToString("2")}}, true},
+    {"Numeric", schema.Column{Type: schema.Numeric, Opts: &schema.Opts{Scale: ptr.ToString("2")}}, true},
 		{"Bit", schema.Column{Type: schema.Bit}, false},
 		{"Boolean", schema.Column{Type: schema.Boolean}, false},
 		{"TextThatRequiresEscaping", schema.Column{Type: schema.TextThatRequiresEscaping}, true},
