@@ -35,7 +35,11 @@ func (p postgresAdapter) PartitionKey(row map[string]interface{}) map[string]int
 }
 
 func (p postgresAdapter) Fields() []debezium.Field {
-	return ColumnsToFields(p.table.Columns)
+	fields := make([]debezium.Field, len(p.table.Columns))
+	for i, col := range p.table.Columns {
+		fields[i] = ColumnToField(col)
+	}
+	return fields
 }
 
 func (p postgresAdapter) ConvertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error) {
