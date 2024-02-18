@@ -127,11 +127,3 @@ func ColumnToField(col schema.Column) debezium.Field {
 	}
 	return field
 }
-
-func ColumnsToFields(columns []schema.Column) []debezium.Field {
-	fields := make([]debezium.Field, len(columns))
-	for i, col := range columns {
-		fields[i] = ColumnToField(col)
-	}
-	return fields
-}

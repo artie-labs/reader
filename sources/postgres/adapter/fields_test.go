@@ -129,16 +129,3 @@ func TestColumnToField(t *testing.T) {
 		assert.Equal(t, testCase.expected, field, testCase.name)
 	}
 }
-
-func TestColumnsToFields(t *testing.T) {
-	col1 := schema.Column{Name: "col1", Type: schema.Text}
-	col2 := schema.Column{Name: "col2", Type: schema.Boolean}
-	col3 := schema.Column{Name: "col3", Type: schema.Array}
-	fields := ColumnsToFields([]schema.Column{col1, col2, col3})
-	expected := []debezium.Field{
-		{Type: "string", FieldName: "col1"},
-		{Type: "boolean", FieldName: "col2"},
-		{Type: "array", FieldName: "col3"},
-	}
-	assert.Equal(t, expected, fields)
-}
