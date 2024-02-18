@@ -10,7 +10,6 @@ import (
 	"github.com/artie-labs/transfer/lib/debezium"
 
 	"github.com/artie-labs/reader/lib"
-	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/reader/lib/postgres"
 )
 
@@ -31,7 +30,6 @@ func NewPostgresAdapter(table postgres.Table) Adapter {
 }
 
 type DebeziumTransformer struct {
-	statsD  mtr.Client
 	adapter Adapter
 	iter    batchRowIterator
 }
