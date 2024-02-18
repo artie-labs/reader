@@ -1,4 +1,4 @@
-package transformer
+package adapter
 
 import (
 	"github.com/artie-labs/transfer/lib/debezium"

@@ -14,7 +14,7 @@ import (
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/rdbms"
-	"github.com/artie-labs/reader/sources/postgres/transformer"
+	"github.com/artie-labs/reader/sources/postgres/adapter"
 )
 
 const defaultErrorRetries = 10
@@ -63,7 +63,7 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 		)
 
 		scanner := table.NewScanner(s.db, tableCfg.GetBatchSize(), defaultErrorRetries)
-		dbzTransformer := debezium.NewDebeziumTransformer(transformer.NewPostgresAdapter(*table), &scanner)
+		dbzTransformer := debezium.NewDebeziumTransformer(adapter.NewPostgresAdapter(*table), &scanner)
 		count, err := writer.WriteIterator(ctx, dbzTransformer)
 		if err != nil {
 			return fmt.Errorf("failed to snapshot for table %s: %w", table.Name, err)

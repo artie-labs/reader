@@ -1,4 +1,4 @@
-package transformer
+package adapter
 
 import (
 	"fmt"
@@ -17,23 +17,23 @@ func NewPostgresAdapter(table postgres.Table) postgresAdapter {
 	return postgresAdapter{table: table}
 }
 
-func (d postgresAdapter) TopicSuffix() string {
-	return fmt.Sprintf("%s.%s", d.table.Schema, strings.ReplaceAll(d.table.Name, `"`, ``))
+func (p postgresAdapter) TopicSuffix() string {
+	return fmt.Sprintf("%s.%s", p.table.Schema, strings.ReplaceAll(p.table.Name, `"`, ``))
 }
 
 // PartitionKey returns a map of primary keys and their values for a given row.
-func (d postgresAdapter) PartitionKey(row map[string]interface{}) map[string]interface{} {
+func (p postgresAdapter) PartitionKey(row map[string]interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
-	for _, key := range d.table.PrimaryKeys.Keys() {
+	for _, key := range p.table.PrimaryKeys.Keys() {
 		result[key] = row[key]
 	}
 	return result
 }
 
-func (d postgresAdapter) ConvertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error) {
+func (p postgresAdapter) ConvertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error) {
 	result := make(map[string]interface{})
 	for key, value := range row {
-		col, err := d.table.GetColumnByName(key)
+		col, err := p.table.GetColumnByName(key)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get column %s by name: %w", key, err)
 		}
