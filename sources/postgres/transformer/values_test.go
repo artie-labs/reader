@@ -8,7 +8,6 @@ import (
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
 
@@ -77,7 +76,7 @@ func TestParseValue(t *testing.T) {
 		} else {
 			assert.NoError(t, actualErr, tc.name)
 			if tc.numericValue {
-				val, err := debezium.ColumnToField(tc.col).DecodeDecimal(fmt.Sprint(actualValue))
+				val, err := ColumnToField(tc.col).DecodeDecimal(fmt.Sprint(actualValue))
 				assert.NoError(t, err)
 				assert.Equal(t, tc.expectedValue, val.String(), tc.name)
 			} else {

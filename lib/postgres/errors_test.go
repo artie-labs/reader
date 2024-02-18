@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"database/sql"
 	"fmt"
 	"testing"
 
@@ -22,7 +23,7 @@ func TestNoRowsError(t *testing.T) {
 		},
 		{
 			name:     "Test Case 2: no rows error",
-			err:      fmt.Errorf("sql: no rows in result set"),
+			err:      sql.ErrNoRows,
 			expected: true,
 		},
 		{
