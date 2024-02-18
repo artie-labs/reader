@@ -1,9 +1,10 @@
 package postgres
 
-func NoRowsError(err error) bool {
-	if err != nil {
-		return err.Error() == "sql: no rows in result set"
-	}
+import (
+	"database/sql"
+	"errors"
+)
 
-	return false
+func NoRowsError(err error) bool {
+	return errors.Is(err, sql.ErrNoRows)
 }
