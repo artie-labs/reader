@@ -11,7 +11,6 @@ import (
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/kafkalib"
-	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/rdbms"
 )
@@ -36,16 +35,16 @@ func (s Source) Close() error {
 	return s.db.Close()
 }
 
-func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, statsD mtr.Client) error {
+func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 	for _, tableCfg := range s.cfg.Tables {
-		if err := s.snapshotTable(ctx, writer, statsD, *tableCfg); err != nil {
+		if err := s.snapshotTable(ctx, writer, *tableCfg); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, statsD mtr.Client, tableCfg config.MySQLTable) error {
+func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, tableCfg config.MySQLTable) error {
 	snapshotStartTime := time.Now()
 
 	slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name))

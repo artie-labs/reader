@@ -13,7 +13,6 @@ import (
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/kafkalib"
-	"github.com/artie-labs/reader/lib/mtr"
 )
 
 type Source struct {
@@ -50,7 +49,7 @@ func (s *Source) Close() error {
 	return nil
 }
 
-func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, _ mtr.Client) error {
+func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 	for _, collection := range s.cfg.Collections {
 		snapshotStartTime := time.Now()
 

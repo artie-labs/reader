@@ -6,7 +6,6 @@ import (
 
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/artie-labs/transfer/lib/ptr"
-	"github.com/artie-labs/transfer/lib/telemetry/metrics"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/config"
@@ -84,7 +83,6 @@ func TestDebeziumTransformer(t *testing.T) {
 		builder := NewDebeziumTransformer(
 			NewPostgresAdapter(table),
 			&MockRowIterator{batches: [][]map[string]interface{}{}},
-			&metrics.NullMetricsProvider{},
 		)
 		assert.False(t, builder.HasNext())
 	}
@@ -94,7 +92,6 @@ func TestDebeziumTransformer(t *testing.T) {
 		builder := NewDebeziumTransformer(
 			NewPostgresAdapter(table),
 			&ErrorRowIterator{},
-			&metrics.NullMetricsProvider{},
 		)
 
 		assert.True(t, builder.HasNext())
@@ -112,7 +109,6 @@ func TestDebeziumTransformer(t *testing.T) {
 					{{"a": "3", "b": "13"}, {"a": "4", "b": "14"}},
 				},
 			},
-			&metrics.NullMetricsProvider{},
 		)
 
 		assert.True(t, builder.HasNext())
@@ -154,7 +150,6 @@ func TestDebeziumTransformer_CreatePayload_NilOptionalSchema(t *testing.T) {
 	builder := NewDebeziumTransformer(
 		NewPostgresAdapter(table),
 		&MockRowIterator{},
-		&metrics.NullMetricsProvider{},
 	)
 
 	rowData := map[string]interface{}{
