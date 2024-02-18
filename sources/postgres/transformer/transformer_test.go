@@ -39,6 +39,35 @@ func (m *MockRowIterator) Next() ([]map[string]interface{}, error) {
 	return result, nil
 }
 
+func TestDebeziumTransformer_TopicSuffix(t *testing.T) {
+	type _tc struct {
+		table             *postgres.Table
+		expectedTopicName string
+	}
+
+	tcs := []_tc{
+		{
+			table: &postgres.Table{
+				Name:   "table1",
+				Schema: "schema1",
+			},
+			expectedTopicName: "schema1.table1",
+		},
+		{
+			table: &postgres.Table{
+				Name:   `"PublicStatus"`,
+				Schema: "schema2",
+			},
+			expectedTopicName: "schema2.PublicStatus",
+		},
+	}
+
+	for _, tc := range tcs {
+		dt := DebeziumTransformer{metrics.NullMetricsProvider{}, tc.table, nil}
+		assert.Equal(t, tc.expectedTopicName, dt.topicSuffix())
+	}
+}
+
 func TestDebeziumTransformer(t *testing.T) {
 	table := postgres.NewTable(&config.PostgreSQLTable{
 		Name:   "table",
