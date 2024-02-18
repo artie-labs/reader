@@ -133,7 +133,7 @@ func shouldQuoteValue(col schema.Column) (bool, error) {
 		schema.Geography:
 		return true, nil
 	default:
-		return false, fmt.Errorf("unknown data type: %v", col.Type)
+		return false, fmt.Errorf("unsupported data type: %v", col.Type)
 	}
 }
 
