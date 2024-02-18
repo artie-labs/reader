@@ -33,24 +33,24 @@ type batchRowIterator interface {
 	Next() ([]map[string]interface{}, error)
 }
 
-func (m *DebeziumTransformer) HasNext() bool {
-	return m != nil && m.iter.HasNext()
+func (d *DebeziumTransformer) HasNext() bool {
+	return d != nil && d.iter.HasNext()
 }
 
-func (m *DebeziumTransformer) recordMetrics(start time.Time) {
-	m.statsD.Timing("scanned_and_parsed", time.Since(start), map[string]string{
-		"table":  strings.ReplaceAll(m.table.Name, `"`, ``),
-		"schema": m.table.Schema,
+func (d *DebeziumTransformer) recordMetrics(start time.Time) {
+	d.statsD.Timing("scanned_and_parsed", time.Since(start), map[string]string{
+		"table":  strings.ReplaceAll(d.table.Name, `"`, ``),
+		"schema": d.table.Schema,
 	})
 
 }
 
-func (m *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
-	if !m.HasNext() {
+func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
+	if !d.HasNext() {
 		return make([]lib.RawMessage, 0), nil
 	}
 
-	rows, err := m.iter.Next()
+	rows, err := d.iter.Next()
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan postgres: %w", err)
 	}
@@ -59,34 +59,34 @@ func (m *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 	for _, row := range rows {
 		start := time.Now()
 
-		payload, err := m.createPayload(row)
+		payload, err := d.createPayload(row)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create debezium payload: %w", err)
 		}
 
-		result = append(result, lib.NewRawMessage(m.topicSuffix(), m.partitionKey(row), payload))
-		m.recordMetrics(start)
+		result = append(result, lib.NewRawMessage(d.topicSuffix(), d.partitionKey(row), payload))
+		d.recordMetrics(start)
 	}
 	return result, nil
 }
 
-func (m *DebeziumTransformer) topicSuffix() string {
-	return fmt.Sprintf("%s.%s", m.table.Schema, strings.ReplaceAll(m.table.Name, `"`, ``))
+func (d *DebeziumTransformer) topicSuffix() string {
+	return fmt.Sprintf("%s.%s", d.table.Schema, strings.ReplaceAll(d.table.Name, `"`, ``))
 }
 
 // partitionKey returns a map of primary keys and their values for a given row.
-func (m *DebeziumTransformer) partitionKey(row map[string]interface{}) map[string]interface{} {
+func (d *DebeziumTransformer) partitionKey(row map[string]interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
-	for _, key := range m.table.PrimaryKeys.Keys() {
+	for _, key := range d.table.PrimaryKeys.Keys() {
 		result[key] = row[key]
 	}
 	return result
 }
 
-func (m *DebeziumTransformer) convertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error) {
+func (d *DebeziumTransformer) convertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error) {
 	result := make(map[string]interface{})
 	for key, value := range row {
-		col, err := m.table.GetColumnByName(key)
+		col, err := d.table.GetColumnByName(key)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get column %s by name: %w", key, err)
 		}
@@ -101,15 +101,15 @@ func (m *DebeziumTransformer) convertRowToDebezium(row map[string]interface{}) (
 	return result, nil
 }
 
-func (m *DebeziumTransformer) createPayload(row map[string]interface{}) (util.SchemaEventPayload, error) {
-	dbzRow, err := m.convertRowToDebezium(row)
+func (d *DebeziumTransformer) createPayload(row map[string]interface{}) (util.SchemaEventPayload, error) {
+	dbzRow, err := d.convertRowToDebezium(row)
 	if err != nil {
 		return util.SchemaEventPayload{}, fmt.Errorf("failed to convert row to debezium: %w", err)
 	}
 
 	schema := debezium.Schema{
 		FieldsObject: []debezium.FieldsObject{{
-			Fields:     ColumnsToFields(m.table.Columns),
+			Fields:     ColumnsToFields(d.table.Columns),
 			Optional:   false,
 			FieldLabel: cdc.After,
 		}},
@@ -118,7 +118,7 @@ func (m *DebeziumTransformer) createPayload(row map[string]interface{}) (util.Sc
 	payload := util.Payload{
 		After: dbzRow,
 		Source: util.Source{
-			Table: m.table.Name,
+			Table: d.table.Name,
 			TsMs:  time.Now().UnixMilli(),
 		},
 		Operation: "r",
