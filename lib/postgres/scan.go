@@ -10,10 +10,8 @@ import (
 
 	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/ptr"
-	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/jackc/pgx/v5"
 
-	pgDebezium "github.com/artie-labs/reader/lib/postgres/debezium"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
@@ -105,16 +103,37 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 	), nil
 }
 
-func shouldQuoteValue(col schema.Column) bool {
-	kindDetail := pgDebezium.ColumnToField(col).ToKindDetails()
-	switch kindDetail.Kind {
-	case typing.Invalid.Kind:
-		slog.Warn("Could not determine data type for column", slog.String("colName", col.Name))
-		return true
-	case typing.String.Kind, typing.Struct.Kind, typing.ETime.Kind, typing.EDecimal.Kind:
-		return true
+func shouldQuoteValue(col schema.Column) (bool, error) {
+	switch col.Type {
+	case schema.InvalidDataType:
+		return false, fmt.Errorf("invalid data type")
+	case schema.Float,
+		schema.Int16,
+		schema.Int32,
+		schema.Int64,
+		schema.Bit,
+		schema.Boolean,
+		schema.Interval, // TODO: Double check this
+		schema.Array:    // TODO: Double check this
+		return false, nil
+	case schema.VariableNumeric,
+		schema.Money,
+		schema.Numeric,
+		schema.TextThatRequiresEscaping,
+		schema.Text,
+		schema.HStore,
+		schema.UUID,
+		schema.UserDefinedText,
+		schema.JSON,
+		schema.Timestamp,
+		schema.Time,
+		schema.Date,
+		schema.Point,
+		schema.Geometry,
+		schema.Geography:
+		return true, nil
 	default:
-		return false
+		return false, fmt.Errorf("unsupported data type: %v", col.Type)
 	}
 }
 
@@ -131,7 +150,12 @@ func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) ([]
 			return nil, fmt.Errorf("primary key %v not found in columns", pk.Name)
 		}
 
-		if shouldQuoteValue(columns[colIndex]) {
+		shouldQuote, err := shouldQuoteValue(columns[colIndex])
+		if err != nil {
+			return nil, err
+		}
+
+		if shouldQuote {
 			valuesToReturn = append(valuesToReturn, fmt.Sprintf(`'%s'`, val))
 		} else {
 			valuesToReturn = append(valuesToReturn, val)

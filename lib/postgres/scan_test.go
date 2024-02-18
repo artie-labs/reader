@@ -16,7 +16,6 @@ func TestShouldQuoteValue(t *testing.T) {
 		col      schema.Column
 		expected bool
 	}{
-		{"InvalidDataType", schema.Column{Type: schema.InvalidDataType}, true},
 		{"VariableNumeric", schema.Column{Type: schema.VariableNumeric}, true},
 		{"Money", schema.Column{Type: schema.Money, Opts: &schema.Opts{Scale: ptr.ToString("2")}}, true},
     {"Numeric", schema.Column{Type: schema.Numeric, Opts: &schema.Opts{Scale: ptr.ToString("2")}}, true},
@@ -45,8 +44,13 @@ func TestShouldQuoteValue(t *testing.T) {
 
 	for _, tc := range tests {
 		tc.col.Name = tc.name
-		assert.Equal(t, tc.expected, shouldQuoteValue(tc.col), tc.name)
+		result, err := shouldQuoteValue(tc.col)
+		assert.NoError(t, err)
+		assert.Equal(t, tc.expected, result, tc.name)
 	}
+
+	_, err := shouldQuoteValue(schema.Column{Type: schema.InvalidDataType})
+	assert.ErrorContains(t, err, "invalid data type")
 }
 
 func TestKeysToValueList(t *testing.T) {
