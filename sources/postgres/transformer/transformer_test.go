@@ -141,7 +141,7 @@ func TestDebeziumTransformer(t *testing.T) {
 	}
 }
 
-func TestMessageBuilder_CreatePayload_NilOptionalSchema(t *testing.T) {
+func TestDebeziumTransformer_CreatePayload_NilOptionalSchema(t *testing.T) {
 	table := postgres.NewTable(&config.PostgreSQLTable{
 		Name:   "foo",
 		Schema: "schema",
