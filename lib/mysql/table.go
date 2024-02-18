@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"slices"
-	"strings"
 
 	"github.com/artie-labs/transfer/lib/ptr"
 
@@ -30,10 +29,6 @@ func NewTable(cfgTable config.MySQLTable) *Table {
 		OptionalPrimaryKeyValStart: cfgTable.OptionalPrimaryKeyValStart,
 		OptionalPrimaryKeyValEnd:   cfgTable.OptionalPrimaryKeyValEnd,
 	}
-}
-
-func (t *Table) TopicSuffix() string {
-	return strings.ReplaceAll(t.Name, `"`, ``)
 }
 
 func (t *Table) GetColumnByName(colName string) (*schema.Column, error) {

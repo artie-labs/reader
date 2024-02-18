@@ -58,7 +58,6 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter, statsD mt
 		slog.Info("Scanning table",
 			slog.String("table", table.Name),
 			slog.String("schema", table.Schema),
-			slog.String("topicSuffix", table.TopicSuffix()),
 			slog.Any("primaryKeyColumns", table.PrimaryKeys.Keys()),
 			slog.Any("batchSize", tableCfg.GetBatchSize()),
 		)

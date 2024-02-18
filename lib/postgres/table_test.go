@@ -8,34 +8,6 @@ import (
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
 
-func TestTopicSuffix(t *testing.T) {
-	type _tc struct {
-		table             *Table
-		expectedTopicName string
-	}
-
-	tcs := []_tc{
-		{
-			table: &Table{
-				Name:   "table1",
-				Schema: "schema1",
-			},
-			expectedTopicName: "schema1.table1",
-		},
-		{
-			table: &Table{
-				Name:   `"PublicStatus"`,
-				Schema: "schema2",
-			},
-			expectedTopicName: "schema2.PublicStatus",
-		},
-	}
-
-	for _, tc := range tcs {
-		assert.Equal(t, tc.expectedTopicName, tc.table.TopicSuffix())
-	}
-}
-
 func TestGetColumnByName(t *testing.T) {
 	type _tc struct {
 		table          *Table
