@@ -11,7 +11,7 @@ import (
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
 
-func TestParseValue(t *testing.T) {
+func TestConvertValueToDebezium(t *testing.T) {
 	type _tc struct {
 		name          string
 		col           schema.Column
@@ -70,7 +70,7 @@ func TestParseValue(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		actualValue, actualErr := ParseValue(tc.col, tc.value)
+		actualValue, actualErr := ConvertValueToDebezium(tc.col, tc.value)
 		if tc.expectErr {
 			assert.Error(t, actualErr, tc.name)
 		} else {

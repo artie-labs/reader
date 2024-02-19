@@ -50,7 +50,7 @@ func (p postgresAdapter) ConvertRowToDebezium(row map[string]interface{}) (map[s
 			return nil, fmt.Errorf("failed to get column %s by name: %w", key, err)
 		}
 
-		val, err := ParseValue(*col, value)
+		val, err := ConvertValueToDebezium(*col, value)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert value: %w", err)
 		}

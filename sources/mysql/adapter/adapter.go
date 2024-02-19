@@ -46,7 +46,7 @@ func (m mysqlAdapter) ConvertRowToDebezium(row map[string]interface{}) (map[stri
 			return nil, fmt.Errorf("failed to get column %s by name: %w", key, err)
 		}
 
-		val, err := ParseValue(*col, value)
+		val, err := ConvertValueToDebezium(*col, value)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert value: %w", err)
 		}
