@@ -43,7 +43,7 @@ func TestMySQLAdapter_TopicSuffix(t *testing.T) {
 	}
 }
 
-func TestMySQLAdatper_PartitionKey(t *testing.T) {
+func TestMySQLAdapter_PartitionKey(t *testing.T) {
 	type _tc struct {
 		name     string
 		keys     []string
