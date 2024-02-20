@@ -20,6 +20,15 @@ import (
 	"github.com/artie-labs/reader/sources/dynamodb/offsets"
 )
 
+type SnapshotStore struct {
+	tableName string
+	streamArn string
+	cfg       *config.DynamoDB
+
+	s3Client       *s3lib.S3Client
+	dynamoDBClient *dynamodb.DynamoDB
+}
+
 type StreamStore struct {
 	tableName string
 	streamArn string
@@ -28,15 +37,6 @@ type StreamStore struct {
 	streams   *dynamodbstreams.DynamoDBStreams
 	storage   *offsets.OffsetStorage
 	shardChan chan *dynamodbstreams.Shard
-}
-
-type SnapshotStore struct {
-	tableName string
-	streamArn string
-	cfg       *config.DynamoDB
-
-	s3Client       *s3lib.S3Client
-	dynamoDBClient *dynamodb.DynamoDB
 }
 
 // jitterSleepBaseMs - sleep for 50 ms as the base.
