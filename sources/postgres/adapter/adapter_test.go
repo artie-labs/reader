@@ -6,7 +6,6 @@ import (
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
@@ -98,10 +97,7 @@ func TestPostgresAdapter_PartitionKey(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		table := postgres.NewTable(config.PostgreSQLTable{
-			Schema: "schema",
-			Name:   "tbl1",
-		})
+		table := postgres.NewTable("schema", "tbl1")
 		for _, key := range tc.keys {
 			table.PrimaryKeys.Upsert(key, nil, nil)
 		}

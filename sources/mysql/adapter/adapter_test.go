@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/mysql"
 )
 
@@ -73,9 +72,7 @@ func TestMySQLAdapter_PartitionKey(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		table := mysql.NewTable(config.MySQLTable{
-			Name: "tbl1",
-		})
+		table := mysql.NewTable("tbl1")
 		for _, key := range tc.keys {
 			table.PrimaryKeys.Upsert(key, nil, nil)
 		}
