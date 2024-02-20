@@ -18,16 +18,16 @@ type Table struct {
 	Columns     []schema.Column
 	PrimaryKeys *primary_key.Keys
 
-	OptionalPrimaryKeyValStart string
-	OptionalPrimaryKeyValEnd   string
+	OptionalPrimaryKeyValStart []string
+	OptionalPrimaryKeyValEnd   []string
 }
 
 func NewTable(cfgTable config.MySQLTable) *Table {
 	return &Table{
 		Name:                       cfgTable.Name,
 		PrimaryKeys:                primary_key.NewKeys(),
-		OptionalPrimaryKeyValStart: cfgTable.OptionalPrimaryKeyValStart,
-		OptionalPrimaryKeyValEnd:   cfgTable.OptionalPrimaryKeyValEnd,
+		OptionalPrimaryKeyValStart: cfgTable.GetOptionalPrimaryKeyValStart(),
+		OptionalPrimaryKeyValEnd:   cfgTable.GetOptionalPrimaryKeyValEnd(),
 	}
 }
 

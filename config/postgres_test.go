@@ -150,3 +150,33 @@ func TestPostgreSQLTable_GetBatchSize(t *testing.T) {
 		assert.Equal(t, uint(1), p.GetBatchSize())
 	}
 }
+
+func TestPostgreSQLTable_GetOptionalPrimaryKeyValStart(t *testing.T) {
+	{
+		// not set
+		p := &PostgreSQLTable{}
+		assert.Len(t, p.GetOptionalPrimaryKeyValStart(), 0)
+	}
+	{
+		// set
+		p := &PostgreSQLTable{
+			OptionalPrimaryKeyValStart: "a,b,c",
+		}
+		assert.Equal(t, []string{"a", "b", "c"}, p.GetOptionalPrimaryKeyValStart())
+	}
+}
+
+func TestPostgreSQLTable_GetOptionalPrimaryKeyValEnd(t *testing.T) {
+	{
+		// not set
+		p := &PostgreSQLTable{}
+		assert.Len(t, p.GetOptionalPrimaryKeyValEnd(), 0)
+	}
+	{
+		// set
+		p := &PostgreSQLTable{
+			OptionalPrimaryKeyValEnd: "a,b,c",
+		}
+		assert.Equal(t, []string{"a", "b", "c"}, p.GetOptionalPrimaryKeyValEnd())
+	}
+}

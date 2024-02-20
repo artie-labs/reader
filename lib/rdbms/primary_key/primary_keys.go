@@ -2,7 +2,6 @@ package primary_key
 
 import (
 	"fmt"
-	"strings"
 )
 
 type Keys struct {
@@ -16,29 +15,27 @@ func NewKeys() *Keys {
 	}
 }
 
-func (k *Keys) LoadValues(startingValues, endingValues string) error {
+func (k *Keys) LoadValues(startingValues, endingValues []string) error {
 	length := len(k.keys)
-	if startingValues != "" {
-		vals := strings.Split(startingValues, ",")
-		if len(vals) != length {
+	if len(startingValues) != 0 {
+		if len(startingValues) != length {
 			return fmt.Errorf("keys (%v), and passed in values (%v) length does not match, keys: %v, values: %s",
-				length, len(vals), k.Keys(), vals)
+				length, len(startingValues), k.Keys(), startingValues)
 		}
 
 		for idx := range k.keys {
-			k.keys[idx].StartingValue = vals[idx]
+			k.keys[idx].StartingValue = startingValues[idx]
 		}
 	}
 
-	if endingValues != "" {
-		vals := strings.Split(endingValues, ",")
-		if len(vals) != length {
+	if len(endingValues) != 0 {
+		if len(endingValues) != length {
 			return fmt.Errorf("keys (%v), and passed in values (%v) length does not match, keys: %v, values: %s",
-				length, len(vals), k.Keys(), vals)
+				length, len(endingValues), k.Keys(), endingValues)
 		}
 
 		for idx := range k.keys {
-			k.keys[idx].EndingValue = vals[idx]
+			k.keys[idx].EndingValue = endingValues[idx]
 		}
 	}
 

@@ -117,3 +117,33 @@ func TestMySQLTable_GetBatchSize(t *testing.T) {
 		assert.Equal(t, uint(1), table.GetBatchSize())
 	}
 }
+
+func TestMySQLTable_GetOptionalPrimaryKeyValStart(t *testing.T) {
+	{
+		// not set
+		p := &MySQLTable{}
+		assert.Len(t, p.GetOptionalPrimaryKeyValStart(), 0)
+	}
+	{
+		// set
+		p := &MySQLTable{
+			OptionalPrimaryKeyValStart: "a,b,c",
+		}
+		assert.Equal(t, []string{"a", "b", "c"}, p.GetOptionalPrimaryKeyValStart())
+	}
+}
+
+func TestMySQLTable_GetOptionalPrimaryKeyValEnd(t *testing.T) {
+	{
+		// not set
+		p := &MySQLTable{}
+		assert.Len(t, p.GetOptionalPrimaryKeyValEnd(), 0)
+	}
+	{
+		// set
+		p := &MySQLTable{
+			OptionalPrimaryKeyValEnd: "a,b,c",
+		}
+		assert.Equal(t, []string{"a", "b", "c"}, p.GetOptionalPrimaryKeyValEnd())
+	}
+}
