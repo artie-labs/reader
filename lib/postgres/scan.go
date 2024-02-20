@@ -156,7 +156,7 @@ func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) ([]
 		}
 
 		// TODO: look into storing primary key values as their raw types instead of converting them to strings
-		strVal := val.(string)
+		strVal := fmt.Sprint(val)
 
 		if shouldQuote {
 			valuesToReturn = append(valuesToReturn, fmt.Sprintf(`'%s'`, strVal))
