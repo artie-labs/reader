@@ -17,17 +17,12 @@ type Table struct {
 
 	Columns     []schema.Column
 	PrimaryKeys *primary_key.Keys
-
-	OptionalPrimaryKeyValStart []string
-	OptionalPrimaryKeyValEnd   []string
 }
 
 func NewTable(cfgTable config.MySQLTable) *Table {
 	return &Table{
-		Name:                       cfgTable.Name,
-		PrimaryKeys:                primary_key.NewKeys(),
-		OptionalPrimaryKeyValStart: cfgTable.GetOptionalPrimaryKeyValStart(),
-		OptionalPrimaryKeyValEnd:   cfgTable.GetOptionalPrimaryKeyValEnd(),
+		Name:        cfgTable.Name,
+		PrimaryKeys: primary_key.NewKeys(),
 	}
 }
 
@@ -84,5 +79,5 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 		t.PrimaryKeys.Upsert(col.Name, ptr.ToString(minValue), ptr.ToString(maxValue))
 	}
 
-	return t.PrimaryKeys.LoadValues(t.OptionalPrimaryKeyValStart, t.OptionalPrimaryKeyValEnd)
+	return nil
 }

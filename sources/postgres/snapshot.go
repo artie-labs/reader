@@ -55,6 +55,10 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 			}
 		}
 
+		if err := table.PrimaryKeys.LoadValues(tableCfg.GetOptionalPrimaryKeyValStart(), tableCfg.GetOptionalPrimaryKeyValEnd()); err != nil {
+			return fmt.Errorf("failed to override primary key values: %w", err)
+		}
+
 		slog.Info("Scanning table",
 			slog.String("table", table.Name),
 			slog.String("schema", table.Schema),
