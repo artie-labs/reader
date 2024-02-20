@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"math"
+	"strings"
 
 	"github.com/artie-labs/transfer/lib/stringutil"
 	"github.com/go-sql-driver/mysql"
@@ -42,6 +43,20 @@ func (m *MySQLTable) GetBatchSize() uint {
 	} else {
 		return constants.DefaultBatchSize
 	}
+}
+
+func (m *MySQLTable) GetOptionalPrimaryKeyValStart() []string {
+	if m.OptionalPrimaryKeyValStart == "" {
+		return []string{}
+	}
+	return strings.Split(m.OptionalPrimaryKeyValStart, ",")
+}
+
+func (m *MySQLTable) GetOptionalPrimaryKeyValEnd() []string {
+	if m.OptionalPrimaryKeyValEnd == "" {
+		return []string{}
+	}
+	return strings.Split(m.OptionalPrimaryKeyValEnd, ",")
 }
 
 func (m *MySQL) Validate() error {

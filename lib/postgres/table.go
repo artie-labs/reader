@@ -19,8 +19,8 @@ type Table struct {
 	Columns     []schema.Column
 	PrimaryKeys *primary_key.Keys
 
-	OptionalPrimaryKeyValStart string
-	OptionalPrimaryKeyValEnd   string
+	OptionalPrimaryKeyValStart []string
+	OptionalPrimaryKeyValEnd   []string
 }
 
 func NewTable(cfgTable config.PostgreSQLTable) *Table {
@@ -28,8 +28,8 @@ func NewTable(cfgTable config.PostgreSQLTable) *Table {
 		Name:                       cfgTable.Name,
 		Schema:                     cfgTable.Schema,
 		PrimaryKeys:                primary_key.NewKeys(),
-		OptionalPrimaryKeyValStart: cfgTable.OptionalPrimaryKeyValStart,
-		OptionalPrimaryKeyValEnd:   cfgTable.OptionalPrimaryKeyValEnd,
+		OptionalPrimaryKeyValStart: cfgTable.GetOptionalPrimaryKeyValStart(),
+		OptionalPrimaryKeyValEnd:   cfgTable.GetOptionalPrimaryKeyValEnd(),
 	}
 }
 

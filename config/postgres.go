@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"math"
+	"strings"
 
 	"github.com/artie-labs/transfer/lib/stringutil"
 
@@ -44,6 +45,20 @@ func (p *PostgreSQLTable) GetBatchSize() uint {
 	} else {
 		return constants.DefaultBatchSize
 	}
+}
+
+func (m *PostgreSQLTable) GetOptionalPrimaryKeyValStart() []string {
+	if m.OptionalPrimaryKeyValStart == "" {
+		return []string{}
+	}
+	return strings.Split(m.OptionalPrimaryKeyValStart, ",")
+}
+
+func (m *PostgreSQLTable) GetOptionalPrimaryKeyValEnd() []string {
+	if m.OptionalPrimaryKeyValEnd == "" {
+		return []string{}
+	}
+	return strings.Split(m.OptionalPrimaryKeyValEnd, ",")
 }
 
 func (p *PostgreSQL) Validate() error {
