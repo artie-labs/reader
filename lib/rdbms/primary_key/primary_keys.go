@@ -28,7 +28,7 @@ func (k *Keys) LoadValues(startingValues, endingValues []string) error {
 			newValue := startingValues[idx]
 
 			slog.Info("Overriding primary key start value",
-				slog.String("key", k.keys[idx].Name),
+				slog.String("colName", k.keys[idx].Name),
 				slog.Any("dbMin", k.keys[idx].StartingValue),
 				slog.Any("configValue", newValue),
 			)
@@ -47,7 +47,7 @@ func (k *Keys) LoadValues(startingValues, endingValues []string) error {
 			newValue := endingValues[idx]
 
 			slog.Info("Overriding primary key end value",
-				slog.String("key", k.keys[idx].Name),
+				slog.String("colName", k.keys[idx].Name),
 				slog.Any("dbMax", k.keys[idx].EndingValue),
 				slog.Any("configValue", newValue),
 			)
