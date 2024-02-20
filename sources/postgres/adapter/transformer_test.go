@@ -8,7 +8,6 @@ import (
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/postgres/schema"
@@ -40,10 +39,7 @@ func (m *MockRowIterator) Next() ([]map[string]interface{}, error) {
 }
 
 func TestDebeziumTransformer(t *testing.T) {
-	table := *postgres.NewTable(config.PostgreSQLTable{
-		Name:   "table",
-		Schema: "schema",
-	})
+	table := *postgres.NewTable("schema", "table")
 	table.Columns = []schema.Column{
 		{Name: "a", Type: schema.Int16},
 		{Name: "b", Type: schema.Text},
@@ -110,10 +106,7 @@ func TestDebeziumTransformer(t *testing.T) {
 }
 
 func TestDebeziumTransformer_NilOptionalSchema(t *testing.T) {
-	table := *postgres.NewTable(config.PostgreSQLTable{
-		Name:   "foo",
-		Schema: "schema",
-	})
+	table := *postgres.NewTable("schema", "foo")
 	table.Columns = []schema.Column{
 		{Name: "user_id", Type: schema.Int16},
 		{Name: "name", Type: schema.Text},

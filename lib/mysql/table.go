@@ -7,7 +7,6 @@ import (
 
 	"github.com/artie-labs/transfer/lib/ptr"
 
-	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/mysql/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
@@ -19,9 +18,9 @@ type Table struct {
 	PrimaryKeys *primary_key.Keys
 }
 
-func NewTable(cfgTable config.MySQLTable) *Table {
+func NewTable(name string) *Table {
 	return &Table{
-		Name:        cfgTable.Name,
+		Name:        name,
 		PrimaryKeys: primary_key.NewKeys(),
 	}
 }

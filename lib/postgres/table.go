@@ -7,7 +7,6 @@ import (
 
 	"github.com/artie-labs/transfer/lib/ptr"
 
-	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
@@ -20,10 +19,10 @@ type Table struct {
 	PrimaryKeys *primary_key.Keys
 }
 
-func NewTable(cfgTable config.PostgreSQLTable) *Table {
+func NewTable(schema string, name string) *Table {
 	return &Table{
-		Name:        cfgTable.Name,
-		Schema:      cfgTable.Schema,
+		Name:        name,
+		Schema:      schema,
 		PrimaryKeys: primary_key.NewKeys(),
 	}
 }
