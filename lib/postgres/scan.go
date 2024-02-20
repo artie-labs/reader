@@ -159,7 +159,7 @@ func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) ([]
 		strVal := fmt.Sprint(val)
 
 		if shouldQuote {
-			valuesToReturn = append(valuesToReturn, fmt.Sprintf(`'%s'`, strVal))
+			valuesToReturn = append(valuesToReturn, QuoteLiteral(strVal))
 		} else {
 			valuesToReturn = append(valuesToReturn, strVal)
 		}
