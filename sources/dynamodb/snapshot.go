@@ -1,7 +1,6 @@
 package dynamodb
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 
@@ -9,7 +8,6 @@ import (
 
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/dynamo"
-	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 )
 
@@ -36,40 +34,57 @@ func (s *Store) scanFilesOverBucket() error {
 	return nil
 }
 
-func (s *Store) streamAndPublish(ctx context.Context, writer kafkalib.BatchWriter) error {
+type iterator struct {
+	keys  []string
+	index int
+	store *Store
+}
+
+func (s *Store) NewIterator() (*iterator, error) {
 	keys, err := s.retrievePrimaryKeys()
 	if err != nil {
-		return fmt.Errorf("failed to retrieve primary keys: %w", err)
+		return nil, fmt.Errorf("failed to retrieve primary keys: %w", err)
 	}
 
-	for _, file := range s.cfg.SnapshotSettings.SpecifiedFiles {
-		logFields := []any{
-			slog.String("fileName", *file.Key),
-		}
+	return &iterator{
+		keys:  keys,
+		store: s,
+	}, nil
+}
 
-		slog.Info("Processing file...", logFields...)
-		ch := make(chan dynamodb.ItemResponse)
-		go func() {
-			if err := s.s3Client.StreamJsonGzipFile(file, ch); err != nil {
-				logger.Panic("Failed to read file", slog.Any("err", err))
-			}
-		}()
+func (i *iterator) HasNext() bool {
+	return i.index < len(i.store.cfg.SnapshotSettings.SpecifiedFiles)
+}
 
-		var messages []lib.RawMessage
-		for msg := range ch {
-			dynamoMsg, err := dynamo.NewMessageFromExport(msg, keys, s.tableName)
-			if err != nil {
-				return fmt.Errorf("failed to cast message from DynamoDB, msg: %v, err: %w", msg, err)
-			}
-			messages = append(messages, dynamoMsg.RawMessage())
-		}
-
-		if err = writer.WriteRawMessages(ctx, messages); err != nil {
-			return fmt.Errorf("failed to publish messages: %w", err)
-		}
-
-		slog.Info("Successfully processed file...", logFields...)
+func (i *iterator) Next() ([]lib.RawMessage, error) {
+	if !i.HasNext() {
+		return nil, fmt.Errorf("no more files to scan")
 	}
 
-	return nil
+	file := i.store.cfg.SnapshotSettings.SpecifiedFiles[i.index]
+	logFields := []any{
+		slog.String("fileName", *file.Key),
+	}
+
+	slog.Info("Processing file...", logFields...)
+	ch := make(chan dynamodb.ItemResponse)
+	go func() {
+		if err := i.store.s3Client.StreamJsonGzipFile(file, ch); err != nil {
+			logger.Panic("Failed to read file", slog.Any("err", err))
+		}
+	}()
+
+	var messages []lib.RawMessage
+	for msg := range ch {
+		dynamoMsg, err := dynamo.NewMessageFromExport(msg, i.keys, i.store.tableName)
+		if err != nil {
+			return nil, fmt.Errorf("failed to cast message from DynamoDB, msg: %v, err: %w", msg, err)
+		}
+		messages = append(messages, dynamoMsg.RawMessage())
+	}
+
+	slog.Info("Successfully processed file...", logFields...)
+
+	i.index++
+	return messages, nil
 }

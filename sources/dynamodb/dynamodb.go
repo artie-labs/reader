@@ -75,11 +75,17 @@ func (s *Store) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 			return fmt.Errorf("scanning files over bucket failed: %w", err)
 		}
 
-		if err := s.streamAndPublish(ctx, writer); err != nil {
-			return fmt.Errorf("stream and publish failed: %w", err)
+		iter, err := s.NewIterator()
+		if err != nil {
+			return fmt.Errorf("failed to create iterator: %w", err)
 		}
 
-		slog.Info("Finished snapshotting all the files")
+		count, err := writer.WriteIterator(ctx, iter)
+		if err != nil {
+			return fmt.Errorf("failed to write from iterator: %w", err)
+		}
+
+		slog.Info("Finished snapshotting all the files", slog.Int("scannedTotal", count))
 	} else {
 		ticker := time.NewTicker(shardScannerInterval)
 
