@@ -2,6 +2,7 @@ package primary_key
 
 import (
 	"fmt"
+	"log/slog"
 )
 
 type Keys struct {
@@ -24,7 +25,15 @@ func (k *Keys) LoadValues(startingValues, endingValues []string) error {
 		}
 
 		for idx := range k.keys {
-			k.keys[idx].StartingValue = startingValues[idx]
+			newValue := startingValues[idx]
+
+			slog.Info("Overriding primary key start value",
+				slog.String("key", k.keys[idx].Name),
+				slog.Any("dbMin", k.keys[idx].StartingValue),
+				slog.Any("configValue", newValue),
+			)
+
+			k.keys[idx].StartingValue = newValue
 		}
 	}
 
@@ -35,6 +44,14 @@ func (k *Keys) LoadValues(startingValues, endingValues []string) error {
 		}
 
 		for idx := range k.keys {
+			newValue := endingValues[idx]
+
+			slog.Info("Overriding primary key end value",
+				slog.String("key", k.keys[idx].Name),
+				slog.Any("dbMax", k.keys[idx].EndingValue),
+				slog.Any("configValue", newValue),
+			)
+
 			k.keys[idx].EndingValue = endingValues[idx]
 		}
 	}
