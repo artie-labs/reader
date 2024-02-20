@@ -6,9 +6,18 @@ import (
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
+
+func TestPostgresAdapter_TableName(t *testing.T) {
+	table := postgres.Table{
+		Schema: "schema",
+		Name:   "table1",
+	}
+	assert.Equal(t, "table1", NewPostgresAdapter(table).TableName())
+}
 
 func TestPostgresAdapter_TopicSuffix(t *testing.T) {
 	type _tc struct {
@@ -57,4 +66,46 @@ func TestPostgresAdapter_Fields(t *testing.T) {
 		{Type: "array", FieldName: "col3"},
 	}
 	assert.Equal(t, expected, adapter.Fields())
+}
+
+func TestPostgresAdapter_PartitionKey(t *testing.T) {
+	type _tc struct {
+		name     string
+		keys     []string
+		row      map[string]interface{}
+		expected map[string]interface{}
+	}
+
+	tcs := []_tc{
+		{
+			name:     "no primary keys",
+			keys:     []string{},
+			row:      map[string]interface{}{},
+			expected: map[string]interface{}{},
+		},
+		{
+			name:     "primary keys - empty row",
+			keys:     []string{"foo", "bar"},
+			row:      map[string]interface{}{},
+			expected: map[string]interface{}{"foo": nil, "bar": nil},
+		},
+		{
+			name:     "primary keys - row has data",
+			keys:     []string{"foo", "bar"},
+			row:      map[string]interface{}{"foo": "a", "bar": 2, "baz": 3},
+			expected: map[string]interface{}{"foo": "a", "bar": 2},
+		},
+	}
+
+	for _, tc := range tcs {
+		table := postgres.NewTable(config.PostgreSQLTable{
+			Schema: "schema",
+			Name:   "tbl1",
+		})
+		for _, key := range tc.keys {
+			table.PrimaryKeys.Upsert(key, nil, nil)
+		}
+		adapter := NewPostgresAdapter(*table)
+		assert.Equal(t, tc.expected, adapter.PartitionKey(tc.row), tc.name)
+	}
 }
