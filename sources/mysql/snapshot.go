@@ -62,6 +62,10 @@ func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, 
 		}
 	}
 
+	if err := table.PrimaryKeys.LoadValues(tableCfg.GetOptionalPrimaryKeyValStart(), tableCfg.GetOptionalPrimaryKeyValEnd()); err != nil {
+		return fmt.Errorf("failed to override primary key values: %w", err)
+	}
+
 	slog.Info("Scanning table",
 		slog.String("table", table.Name),
 		slog.Any("primaryKeyColumns", table.PrimaryKeys.Keys()),

@@ -25,6 +25,14 @@ func (p postgresAdapter) TopicSuffix() string {
 	return fmt.Sprintf("%s.%s", p.table.Schema, strings.ReplaceAll(p.table.Name, `"`, ``))
 }
 
+func (p postgresAdapter) Fields() []debezium.Field {
+	fields := make([]debezium.Field, len(p.table.Columns))
+	for i, col := range p.table.Columns {
+		fields[i] = ColumnToField(col)
+	}
+	return fields
+}
+
 // PartitionKey returns a map of primary keys and their values for a given row.
 func (p postgresAdapter) PartitionKey(row map[string]interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
@@ -32,14 +40,6 @@ func (p postgresAdapter) PartitionKey(row map[string]interface{}) map[string]int
 		result[key] = row[key]
 	}
 	return result
-}
-
-func (p postgresAdapter) Fields() []debezium.Field {
-	fields := make([]debezium.Field, len(p.table.Columns))
-	for i, col := range p.table.Columns {
-		fields[i] = ColumnToField(col)
-	}
-	return fields
 }
 
 func (p postgresAdapter) ConvertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error) {
@@ -50,7 +50,7 @@ func (p postgresAdapter) ConvertRowToDebezium(row map[string]interface{}) (map[s
 			return nil, fmt.Errorf("failed to get column %s by name: %w", key, err)
 		}
 
-		val, err := ParseValue(*col, value)
+		val, err := ConvertValueToDebezium(*col, value)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert value: %w", err)
 		}

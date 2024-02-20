@@ -1,6 +1,7 @@
 package adapter
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/artie-labs/transfer/lib/debezium"
@@ -24,6 +25,10 @@ func (m mysqlAdapter) TopicSuffix() string {
 	return strings.ReplaceAll(m.table.Name, `"`, ``)
 }
 
+func (m mysqlAdapter) Fields() []debezium.Field {
+	panic("not implemented")
+}
+
 // PartitionKey returns a map of primary keys and their values for a given row.
 func (m mysqlAdapter) PartitionKey(row map[string]interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
@@ -33,10 +38,20 @@ func (m mysqlAdapter) PartitionKey(row map[string]interface{}) map[string]interf
 	return result
 }
 
-func (m mysqlAdapter) Fields() []debezium.Field {
-	panic("not implemented")
-}
-
 func (m mysqlAdapter) ConvertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error) {
-	panic("not implemented")
+	result := make(map[string]interface{})
+	for key, value := range row {
+		col, err := m.table.GetColumnByName(key)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get column %s by name: %w", key, err)
+		}
+
+		val, err := ConvertValueToDebezium(*col, value)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert value: %w", err)
+		}
+
+		result[key] = val
+	}
+	return result, nil
 }

@@ -7,13 +7,41 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 
+	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/dynamo"
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
+	"github.com/artie-labs/reader/lib/s3lib"
 )
 
-func (s *Store) scanFilesOverBucket() error {
+type SnapshotStore struct {
+	tableName string
+	streamArn string
+	cfg       *config.DynamoDB
+
+	s3Client       *s3lib.S3Client
+	dynamoDBClient *dynamodb.DynamoDB
+}
+
+func (s *SnapshotStore) Close() error {
+	return nil
+}
+
+func (s *SnapshotStore) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
+	if err := s.scanFilesOverBucket(); err != nil {
+		return fmt.Errorf("scanning files over bucket failed: %w", err)
+	}
+
+	if err := s.streamAndPublish(ctx, writer); err != nil {
+		return fmt.Errorf("stream and publish failed: %w", err)
+	}
+
+	slog.Info("Finished snapshotting all the files")
+	return nil
+}
+
+func (s *SnapshotStore) scanFilesOverBucket() error {
 	if len(s.cfg.SnapshotSettings.SpecifiedFiles) > 0 {
 		// Don't scan because you are already specifying files
 		return nil
@@ -36,7 +64,7 @@ func (s *Store) scanFilesOverBucket() error {
 	return nil
 }
 
-func (s *Store) streamAndPublish(ctx context.Context, writer kafkalib.BatchWriter) error {
+func (s *SnapshotStore) streamAndPublish(ctx context.Context, writer kafkalib.BatchWriter) error {
 	keys, err := s.retrievePrimaryKeys()
 	if err != nil {
 		return fmt.Errorf("failed to retrieve primary keys: %w", err)
