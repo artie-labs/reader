@@ -18,18 +18,13 @@ type Table struct {
 
 	Columns     []schema.Column
 	PrimaryKeys *primary_key.Keys
-
-	OptionalPrimaryKeyValStart []string
-	OptionalPrimaryKeyValEnd   []string
 }
 
 func NewTable(cfgTable config.PostgreSQLTable) *Table {
 	return &Table{
-		Name:                       cfgTable.Name,
-		Schema:                     cfgTable.Schema,
-		PrimaryKeys:                primary_key.NewKeys(),
-		OptionalPrimaryKeyValStart: cfgTable.GetOptionalPrimaryKeyValStart(),
-		OptionalPrimaryKeyValEnd:   cfgTable.GetOptionalPrimaryKeyValEnd(),
+		Name:        cfgTable.Name,
+		Schema:      cfgTable.Schema,
+		PrimaryKeys: primary_key.NewKeys(),
 	}
 }
 
@@ -101,5 +96,5 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 		t.PrimaryKeys.Upsert(col.Name, ptr.ToString(minVal.String()), ptr.ToString(maxVal.String()))
 	}
 
-	return t.PrimaryKeys.LoadValues(t.OptionalPrimaryKeyValStart, t.OptionalPrimaryKeyValEnd)
+	return nil
 }
