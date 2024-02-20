@@ -121,12 +121,12 @@ func TestMySQLTable_GetBatchSize(t *testing.T) {
 func TestMySQLTable_GetOptionalPrimaryKeyValStart(t *testing.T) {
 	{
 		// not set
-		p := &PostgreSQLTable{}
+		p := &MySQLTable{}
 		assert.Len(t, p.GetOptionalPrimaryKeyValStart(), 0)
 	}
 	{
 		// set
-		p := &PostgreSQLTable{
+		p := &MySQLTable{
 			OptionalPrimaryKeyValStart: "a,b,c",
 		}
 		assert.Equal(t, []string{"a", "b", "c"}, p.GetOptionalPrimaryKeyValStart())
