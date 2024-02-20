@@ -155,10 +155,12 @@ func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) ([]
 			return nil, err
 		}
 
+		strVal := val.(string)
+
 		if shouldQuote {
-			valuesToReturn = append(valuesToReturn, fmt.Sprintf(`'%s'`, val))
+			valuesToReturn = append(valuesToReturn, fmt.Sprintf(`'%s'`, strVal))
 		} else {
-			valuesToReturn = append(valuesToReturn, val)
+			valuesToReturn = append(valuesToReturn, strVal)
 		}
 	}
 	return valuesToReturn, nil
