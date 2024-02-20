@@ -31,27 +31,21 @@ func Load(cfg config.DynamoDB) (sources.Source, error) {
 	}
 
 	if cfg.Snapshot {
-		store := &SnapshotStore{
-			tableName: cfg.TableName,
-			streamArn: cfg.StreamArn,
-			cfg:       &cfg,
-		}
-
-		// Snapshot needs the DynamoDB client to describe table and S3 library to read from the files.
-		store.dynamoDBClient = dynamodb.New(sess)
-		store.s3Client = s3lib.NewClient(sess)
-		return store, nil
+		return &SnapshotStore{
+			tableName:      cfg.TableName,
+			streamArn:      cfg.StreamArn,
+			cfg:            &cfg,
+			dynamoDBClient: dynamodb.New(sess),
+			s3Client:       s3lib.NewClient(sess),
+		}, nil
 	} else {
-		store := &StreamStore{
+		return &StreamStore{
 			tableName: cfg.TableName,
 			streamArn: cfg.StreamArn,
 			cfg:       &cfg,
-		}
-
-		// If it's not snapshotting, then we'll need to create offset storage, streams client and a channel.
-		store.storage = offsets.NewStorage(cfg.OffsetFile, nil, nil)
-		store.streams = dynamodbstreams.New(sess)
-		store.shardChan = make(chan *dynamodbstreams.Shard)
-		return store, nil
+			storage:   offsets.NewStorage(cfg.OffsetFile, nil, nil),
+			streams:   dynamodbstreams.New(sess),
+			shardChan: make(chan *dynamodbstreams.Shard),
+		}, nil
 	}
 }
