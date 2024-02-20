@@ -13,7 +13,7 @@ import (
 	"github.com/artie-labs/reader/lib/logger"
 )
 
-func (s *Store) scanFilesOverBucket() error {
+func (s *SnapshotStore) scanFilesOverBucket() error {
 	if len(s.cfg.SnapshotSettings.SpecifiedFiles) > 0 {
 		// Don't scan because you are already specifying files
 		return nil
@@ -36,7 +36,7 @@ func (s *Store) scanFilesOverBucket() error {
 	return nil
 }
 
-func (s *Store) streamAndPublish(ctx context.Context, writer kafkalib.BatchWriter) error {
+func (s *SnapshotStore) streamAndPublish(ctx context.Context, writer kafkalib.BatchWriter) error {
 	keys, err := s.retrievePrimaryKeys()
 	if err != nil {
 		return fmt.Errorf("failed to retrieve primary keys: %w", err)
