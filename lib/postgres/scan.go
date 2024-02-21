@@ -227,7 +227,6 @@ func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
 	}
 
 	var rowsData []map[string]ValueWrapper
-	var lastRow map[string]ValueWrapper
 	for rows.Next() {
 		err = rows.Scan(scanArgs...)
 		if err != nil {
@@ -249,12 +248,15 @@ func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
 
 			row[col.Name] = value
 		}
-
 		rowsData = append(rowsData, row)
-		lastRow = row
+	}
+
+	if len(rowsData) == 0 {
+		return make([]map[string]interface{}, 0), nil
 	}
 
 	// Update the starting key so that the next scan will pick off where we last left off.
+	lastRow := rowsData[len(rowsData)-1]
 	for _, pk := range s.primaryKeys.Keys() {
 		col, err := s.table.GetColumnByName(pk)
 		if err != nil {
