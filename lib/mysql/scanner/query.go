@@ -50,6 +50,7 @@ func buildScanTableQuery(args buildScanTableQueryArgs) (string, []interface{}, e
 		upperBoundComparsion = ">"
 	}
 
+	// TODO: use slices.Concat when we upgrade to Go 1.22
 	var parameters = make([]interface{}, 0)
 	parameters = append(parameters, startingValues...)
 	parameters = append(parameters, endingValues...)
