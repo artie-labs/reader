@@ -17,14 +17,12 @@ func sqlPlaceholders(count int) []string {
 }
 
 type buildScanTableQueryArgs struct {
-	TableName   string
-	PrimaryKeys *primary_key.Keys
-	Columns     []schema.Column
-
+	TableName           string
+	PrimaryKeys         *primary_key.Keys
+	Columns             []schema.Column
 	InclusiveLowerBound bool
 	InclusiveUpperBound bool
-
-	Limit uint
+	Limit               uint
 }
 
 func buildScanTableQuery(args buildScanTableQueryArgs) (string, []interface{}, error) {
