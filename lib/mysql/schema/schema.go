@@ -45,10 +45,6 @@ const (
 	Set
 )
 
-func QuoteIdentifier(s string) string {
-	return fmt.Sprintf("`%s`", strings.ReplaceAll(s, "`", "``"))
-}
-
 type Opts struct {
 	Scale     *int
 	Precision *int
@@ -59,6 +55,18 @@ type Column struct {
 	Name string
 	Type DataType
 	Opts *Opts
+}
+
+func QuoteIdentifier(s string) string {
+	return fmt.Sprintf("`%s`", strings.ReplaceAll(s, "`", "``"))
+}
+
+func QuotedIdentifiers(values []string) []string {
+	result := make([]string, len(values))
+	for i, value := range values {
+		result[i] = QuoteIdentifier(value)
+	}
+	return result
 }
 
 func DescribeTable(db *sql.DB, table string) ([]Column, error) {
@@ -225,11 +233,15 @@ func buildPkValuesQuery(keys []Column, tableName string, descending bool) string
 		}
 		orderByFragments = append(orderByFragments, fragment)
 	}
-	// We're using `LIMIT ?` instead of `LIMIT 1` as a hack to force the MySQL driver to use a prepared statement.
-	// This is necessary because otherwise the values returned will be []uint8.
-	// See https://github.com/go-sql-driver/mysql/issues/861
-	return fmt.Sprintf(`SELECT %s FROM %s ORDER BY %s LIMIT ?`, strings.Join(quotedColumns, ","),
-		QuoteIdentifier(tableName), strings.Join(orderByFragments, ","))
+	return fmt.Sprintf(`SELECT %s FROM %s ORDER BY %s LIMIT 1`,
+		// SELECT
+		strings.Join(quotedColumns, ","),
+		// FROM
+		QuoteIdentifier(tableName),
+		// ORDER BY
+		strings.Join(orderByFragments, ","),
+		// LIMIT 1
+	)
 }
 
 func getPrimaryKeyValues(db *sql.DB, table string, primaryKeys []Column, descending bool) ([]interface{}, error) {
@@ -246,7 +258,16 @@ func getPrimaryKeyValues(db *sql.DB, table string, primaryKeys []Column, descend
 		slog.Info("Find min pk query", slog.String("query", query))
 	}
 
-	if err := db.QueryRow(query, 1).Scan(resultPtrs...); err != nil {
+	// We're using a prepared statement to force the driver to return native types.
+	// This is necessary because otherwise the values returned will be []uint8.
+	// See https://github.com/go-sql-driver/mysql/issues/861
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	if err := stmt.QueryRow(query, 1).Scan(resultPtrs...); err != nil {
 		return nil, err
 	}
 	return result, nil
