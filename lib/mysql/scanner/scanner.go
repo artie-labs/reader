@@ -1,9 +1,10 @@
-package mysql
+package scanner
 
 import (
 	"database/sql"
 	"fmt"
 
+	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 	"github.com/artie-labs/transfer/lib/retry"
 )
@@ -16,7 +17,7 @@ const (
 type scanner struct {
 	// immutable
 	db        *sql.DB
-	table     *Table
+	table     mysql.Table
 	batchSize uint
 	retryCfg  retry.RetryConfig
 
@@ -24,7 +25,7 @@ type scanner struct {
 	primaryKeys *primary_key.Keys
 }
 
-func (t *Table) NewScanner(db *sql.DB, batchSize uint, errorRetries int) (scanner, error) {
+func NewScanner(db *sql.DB, table mysql.Table, batchSize uint, errorRetries int) (scanner, error) {
 	retryCfg, err := retry.NewJitterRetryConfig(jitterBaseMs, jitterMaxMs, errorRetries, retry.AlwaysRetry)
 	if err != nil {
 		return scanner{}, fmt.Errorf("failed to build retry config: %w", err)
@@ -32,10 +33,10 @@ func (t *Table) NewScanner(db *sql.DB, batchSize uint, errorRetries int) (scanne
 
 	return scanner{
 		db:          db,
-		table:       t,
+		table:       table,
 		batchSize:   batchSize,
 		retryCfg:    retryCfg,
-		primaryKeys: t.PrimaryKeys.Clone(),
+		primaryKeys: table.PrimaryKeys.Clone(),
 	}, nil
 }
 
