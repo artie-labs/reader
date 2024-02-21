@@ -2,7 +2,6 @@ package scanner
 
 import (
 	"fmt"
-	"slices"
 	"strings"
 
 	"github.com/artie-labs/reader/lib/mysql/schema"
@@ -51,6 +50,10 @@ func buildScanTableQuery(args buildScanTableQueryArgs) (string, []interface{}, e
 		upperBoundComparsion = ">"
 	}
 
+	var parameters = make([]interface{}, 0)
+	parameters = append(parameters, startingValues...)
+	parameters = append(parameters, endingValues...)
+
 	return fmt.Sprintf(`SELECT %s FROM %s WHERE (%s) %s (%s) AND NOT (%s) %s (%s) ORDER BY %s LIMIT %d`,
 		// SELECT
 		strings.Join(colNames, ","),
@@ -64,5 +67,5 @@ func buildScanTableQuery(args buildScanTableQueryArgs) (string, []interface{}, e
 		strings.Join(schema.QuoteIdentifiers(args.PrimaryKeys.Keys()), ","),
 		// LIMIT
 		args.Limit,
-	), slices.Concat(startingValues, endingValues), nil
+	), parameters, nil
 }
