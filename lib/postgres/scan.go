@@ -6,14 +6,13 @@ import (
 	"log/slog"
 	"slices"
 	"strings"
-	"time"
 
-	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/jackc/pgx/v5"
 
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
+	"github.com/artie-labs/reader/lib/utils"
 )
 
 const (
@@ -167,7 +166,7 @@ func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) ([]
 	return valuesToReturn, nil
 }
 
-func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
+func (s *scanner) scan() ([]map[string]interface{}, error) {
 	firstWhereClause := GreaterThan
 	if s.isFirstRow {
 		firstWhereClause = GreaterThanEqualTo
@@ -195,15 +194,10 @@ func (s *scanner) scan(errorAttempts int) ([]map[string]interface{}, error) {
 	}
 
 	slog.Info(fmt.Sprintf("Query looks like: %v", query))
-	rows, err := s.db.Query(query)
+	rows, err := utils.WithJitteredRetries(jitterBaseMs, jitterMaxMs, s.errorRetries, func(attempt int) (*sql.Rows, error) {
+		return s.db.Query(query)
+	})
 	if err != nil {
-		if attemptsLeft := s.errorRetries - errorAttempts; attemptsLeft > 0 {
-			sleepDuration := jitter.Jitter(jitterBaseMs, jitterMaxMs, errorAttempts)
-			slog.Info(fmt.Sprintf("We still have %v attempts", attemptsLeft), slog.Duration("sleep", sleepDuration), slog.Any("err", err))
-			time.Sleep(sleepDuration)
-			return s.scan(errorAttempts + 1)
-		}
-
 		return nil, err
 	}
 
@@ -293,7 +287,7 @@ func (s *scanner) Next() ([]map[string]interface{}, error) {
 	if !s.HasNext() {
 		return nil, fmt.Errorf("no more rows to scan")
 	}
-	rows, err := s.scan(0)
+	rows, err := s.scan()
 	if err != nil {
 		s.done = true
 		return nil, err
