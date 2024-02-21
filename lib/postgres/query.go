@@ -24,7 +24,7 @@ func QuoteIdentifiers(ids []string) []string {
 // Any single quotes in name will be escaped. Any backslashes (i.e. "\") will be
 // replaced by two backslashes (i.e. "\\") and the C-style escape identifier
 // that PostgreSQL provides ('E') will be prepended to the string.
-// FROM: https://github.com/lib/pq/blob/3d613208bca2e74f2a20e04126ed30bcb5c4cc27/conn.go#L1687
+// Copied from: https://github.com/lib/pq/blob/3d613208bca2e74f2a20e04126ed30bcb5c4cc27/conn.go#L1687
 func QuoteLiteral(literal string) string {
 	// This follows the PostgreSQL internal algorithm for handling quoted literals
 	// from libpq, which can be found in the "PQEscapeStringInternal" function,
