@@ -14,7 +14,7 @@ func castColumn(col schema.Column) string {
 	switch col.Type {
 	case schema.InvalidDataType:
 		return colName
-	case schema.Money, schema.TextThatRequiresEscaping:
+	case schema.TextThatRequiresEscaping:
 		return fmt.Sprintf("%s::text", colName)
 	case schema.Time, schema.Interval:
 		// We want to extract(epoch from interval) will emit this in ms
@@ -30,8 +30,11 @@ func castColumn(col schema.Column) string {
 		return fmt.Sprintf(`cast(extract(epoch from %s)*%d as bigint) as "%s"`, colName, multiplier, col.Name)
 	case schema.Array:
 		return fmt.Sprintf(`ARRAY_TO_JSON(%s)::TEXT as "%s"`, colName, col.Name)
-	case schema.Int16, schema.Int32, schema.Int64, schema.UUID, schema.UserDefinedText,
-		schema.VariableNumeric, schema.Numeric, schema.Text, schema.Boolean, schema.Date, schema.Timestamp, schema.HStore, schema.JSON, schema.Bit:
+	case schema.Int16, schema.Int32, schema.Int64, schema.UUID,
+		schema.UserDefinedText, schema.Text,
+		schema.Money, schema.VariableNumeric, schema.Numeric,
+		schema.Boolean, schema.Bit,
+		schema.Date, schema.Timestamp, schema.HStore, schema.JSON:
 		// These are all the columns that do not need to be escaped.
 		return colName
 	default:
