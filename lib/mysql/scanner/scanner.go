@@ -23,10 +23,10 @@ type scanner struct {
 	retryCfg  retry.RetryConfig
 
 	// mutable
-	primaryKeys *primary_key.Keys
-	isFirstRow  bool
-	isLastRow   bool
-	done        bool
+	primaryKeys  *primary_key.Keys
+	isFirstBatch bool
+	isLastBatch  bool
+	done         bool
 }
 
 func NewScanner(db *sql.DB, table mysql.Table, batchSize uint, errorRetries int) (scanner, error) {
@@ -36,14 +36,14 @@ func NewScanner(db *sql.DB, table mysql.Table, batchSize uint, errorRetries int)
 	}
 
 	return scanner{
-		db:          db,
-		table:       table,
-		batchSize:   batchSize,
-		retryCfg:    retryCfg,
-		primaryKeys: table.PrimaryKeys.Clone(),
-		isFirstRow:  true,
-		isLastRow:   false,
-		done:        false,
+		db:           db,
+		table:        table,
+		batchSize:    batchSize,
+		retryCfg:     retryCfg,
+		primaryKeys:  table.PrimaryKeys.Clone(),
+		isFirstBatch: true,
+		isLastBatch:  false,
+		done:         false,
 	}, nil
 }
 
@@ -68,9 +68,9 @@ func (s *scanner) Next() ([]map[string]interface{}, error) {
 		return nil, nil
 	}
 
-	s.isFirstRow = false
+	s.isFirstBatch = false
 	// The reason why lastRow exists is because in the past, we had queries only return partial results but it wasn't fully done
-	s.isLastRow = s.batchSize > uint(len(rows))
+	s.isLastBatch = s.batchSize > uint(len(rows))
 
 	return rows, nil
 }
@@ -81,8 +81,8 @@ func (s *scanner) scan() ([]map[string]interface{}, error) {
 		PrimaryKeys: s.primaryKeys,
 		Columns:     s.table.Columns,
 
-		InclusiveLowerBound: s.isFirstRow,
-		InclusiveUpperBound: !s.isLastRow,
+		InclusiveLowerBound: s.isFirstBatch,
+		InclusiveUpperBound: !s.isLastBatch,
 
 		Limit: s.batchSize,
 	})
