@@ -68,6 +68,10 @@ func (s *scanner) Next() ([]map[string]interface{}, error) {
 		return nil, nil
 	}
 
+	s.isFirstRow = false
+	// The reason why lastRow exists is because in the past, we had queries only return partial results but it wasn't fully done
+	s.isLastRow = s.batchSize > uint(len(rows))
+
 	return rows, nil
 }
 
