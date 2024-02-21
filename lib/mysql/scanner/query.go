@@ -49,7 +49,7 @@ func buildScanTableQuery(args buildScanTableQueryArgs) (string, []interface{}, e
 	}
 
 	// TODO: use slices.Concat when we upgrade to Go 1.22
-	var parameters = make([]interface{}, 0)
+	var parameters []interface{}
 	parameters = append(parameters, startingValues...)
 	parameters = append(parameters, endingValues...)
 
