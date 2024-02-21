@@ -194,7 +194,7 @@ func (s *scanner) scan() ([]map[string]interface{}, error) {
 	}
 
 	slog.Info(fmt.Sprintf("Query looks like: %v", query))
-	rows, err := utils.WithJitteredRetries(jitterBaseMs, jitterMaxMs, s.errorRetries, func(attempt int) (*sql.Rows, error) {
+	rows, err := utils.WithJitteredRetries(jitterBaseMs, jitterMaxMs, s.errorRetries, func(_ int) (*sql.Rows, error) {
 		return s.db.Query(query)
 	})
 	if err != nil {
