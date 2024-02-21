@@ -20,7 +20,7 @@ func TestWithJitteredRetries(t *testing.T) {
 		assert.Equal(t, calls, 1)
 	}
 	{
-		// 1 max attempts - succeedes
+		// 1 max attempts - succeeds
 		calls := 0
 		value, err := WithJitteredRetries(0, 0, 1, func(attempt int) (int, error) {
 			calls++
@@ -41,7 +41,7 @@ func TestWithJitteredRetries(t *testing.T) {
 		assert.Equal(t, calls, 1)
 	}
 	{
-		// 2 max attempts - first fails and second succeedes
+		// 2 max attempts - first fails and second succeeds
 		calls := 0
 		value, err := WithJitteredRetries(1, 1, 2, func(attempt int) (int, error) {
 			calls++
