@@ -69,7 +69,7 @@ func (s *scanner) Next() ([]map[string]interface{}, error) {
 	}
 
 	s.isFirstBatch = false
-	// The reason why lastRow exists is because in the past, we had queries only return partial results but it wasn't fully done
+	// The reason why `isLastBatch`` exists is because in the past, we had queries only return partial results but it wasn't fully done
 	s.isLastBatch = s.batchSize > uint(len(rows))
 
 	return rows, nil
