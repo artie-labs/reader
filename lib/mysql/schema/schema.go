@@ -267,7 +267,7 @@ func getPrimaryKeyValues(db *sql.DB, table string, primaryKeys []Column, descend
 	}
 	defer stmt.Close()
 
-	if err := db.QueryRow(query, 1).Scan(resultPtrs...); err != nil {
+	if err := stmt.QueryRow(query, 1).Scan(resultPtrs...); err != nil {
 		return nil, err
 	}
 	return result, nil
