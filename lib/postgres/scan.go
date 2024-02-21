@@ -203,7 +203,7 @@ func (s *scanner) scan() ([]map[string]interface{}, error) {
 		return s.db.Query(query)
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to scan table: %w", err)
 	}
 
 	columns, err := rows.Columns()
