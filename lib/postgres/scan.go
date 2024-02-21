@@ -22,10 +22,10 @@ const (
 
 type scanner struct {
 	// immutable
-	db           *sql.DB
-	table        *Table
-	batchSize    uint
-	errorRetries int
+	db        *sql.DB
+	table     *Table
+	batchSize uint
+	retryCfg  retry.RetryConfig
 
 	// mutable
 	primaryKeys *primary_key.Keys
@@ -34,17 +34,22 @@ type scanner struct {
 	done        bool
 }
 
-func (t *Table) NewScanner(db *sql.DB, batchSize uint, errorRetries int) scanner {
-	return scanner{
-		db:           db,
-		table:        t,
-		batchSize:    batchSize,
-		errorRetries: errorRetries,
-		primaryKeys:  t.PrimaryKeys.Clone(),
-		isFirstRow:   true,
-		isLastRow:    false,
-		done:         false,
+func (t *Table) NewScanner(db *sql.DB, batchSize uint, errorRetries int) (scanner, error) {
+	retryCfg, err := retry.NewJitterRetryConfig(jitterBaseMs, jitterMaxMs, errorRetries, retry.AlwaysRetry)
+	if err != nil {
+		return scanner{}, fmt.Errorf("failed to build retry config: %w", err)
 	}
+
+	return scanner{
+		db:          db,
+		table:       t,
+		batchSize:   batchSize,
+		retryCfg:    retryCfg,
+		primaryKeys: t.PrimaryKeys.Clone(),
+		isFirstRow:  true,
+		isLastRow:   false,
+		done:        false,
+	}, nil
 }
 
 type Comparison string
@@ -194,12 +199,7 @@ func (s *scanner) scan() ([]map[string]interface{}, error) {
 	}
 	slog.Info(fmt.Sprintf("Query looks like: %v", query))
 
-	retryCfg, err := retry.NewJitterRetryConfig(jitterBaseMs, jitterMaxMs, s.errorRetries, retry.AlwaysRetry)
-	if err != nil {
-		return nil, fmt.Errorf("failed to build retry config: %w", err)
-	}
-
-	rows, err := retry.WithRetriesAndResult(retryCfg, func(_ int, _ error) (*sql.Rows, error) {
+	rows, err := retry.WithRetriesAndResult(s.retryCfg, func(_ int, _ error) (*sql.Rows, error) {
 		return s.db.Query(query)
 	})
 	if err != nil {
