@@ -8,8 +8,12 @@ import (
 )
 
 func TestQuoteIdentifier(t *testing.T) {
-	assert.Equal(t, QuoteIdentifier("foo"), "`foo`")
-	assert.Equal(t, QuoteIdentifier("fo`o"), "`fo``o`")
+	assert.Equal(t, "`foo`", QuoteIdentifier("foo"))
+	assert.Equal(t, "`fo``o`", QuoteIdentifier("fo`o"))
+}
+
+func TestQuoteIdentifiers(t *testing.T) {
+	assert.Equal(t, []string{"`fo``o`", "`a`", "`b`"}, QuoteIdentifiers([]string{"fo`o", "a", "b"}))
 }
 
 func TestParseColumnDataType(t *testing.T) {
@@ -48,5 +52,22 @@ func TestParseColumnDataType(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, test.expectedType, colType, test.input)
 		assert.Equal(t, test.expectedOpts, opts, test.input)
+	}
+}
+
+func TestBuildPkValuesQuery(t *testing.T) {
+	keys := []Column{
+		{Name: "a", Type: Int, Opts: nil},
+		{Name: "b", Type: Int, Opts: nil},
+		{Name: "c", Type: Int, Opts: nil},
+	}
+
+	{
+		query := buildPkValuesQuery(keys, "my-table", true)
+		assert.Equal(t, "SELECT `a`,`b`,`c` FROM `my-table` ORDER BY `a` DESC,`b` DESC,`c` DESC LIMIT 1", query)
+	}
+	{
+		query := buildPkValuesQuery(keys, "my-table", false)
+		assert.Equal(t, "SELECT `a`,`b`,`c` FROM `my-table` ORDER BY `a`,`b`,`c` LIMIT 1", query)
 	}
 }
