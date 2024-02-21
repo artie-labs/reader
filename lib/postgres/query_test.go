@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestQuoteIdentifiers(t *testing.T) {
-	assert.Equal(t, []string{`"a"`, `"bb""bb"`, `"c"`}, QuoteIdentifiers([]string{"a", `bb"bb`, "c"}))
+func TestQuotedIdentifiers(t *testing.T) {
+	assert.Equal(t, []string{`"a"`, `"bb""bb"`, `"c"`}, QuotedIdentifiers([]string{"a", `bb"bb`, "c"}))
 }
 
 func TestQuoteLiteral(t *testing.T) {

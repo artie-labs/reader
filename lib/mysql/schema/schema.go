@@ -61,7 +61,7 @@ func QuoteIdentifier(s string) string {
 	return fmt.Sprintf("`%s`", strings.ReplaceAll(s, "`", "``"))
 }
 
-func QuoteIdentifiers(values []string) []string {
+func QuotedIdentifiers(values []string) []string {
 	result := make([]string, len(values))
 	for i, value := range values {
 		result[i] = QuoteIdentifier(value)

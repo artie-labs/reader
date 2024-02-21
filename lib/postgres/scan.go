@@ -99,10 +99,10 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 		strings.Join(castedColumns, ","),
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
 		// WHERE row(pk) > row(123)
-		strings.Join(QuoteIdentifiers(args.PrimaryKeys.Keys()), ","), args.FirstWhere.SQLString(), strings.Join(startingValues, ","),
+		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), args.FirstWhere.SQLString(), strings.Join(startingValues, ","),
 		// AND NOT row(pk) < row(123)
-		strings.Join(QuoteIdentifiers(args.PrimaryKeys.Keys()), ","), args.SecondWhere.SQLString(), strings.Join(endingValues, ","),
-		strings.Join(QuoteIdentifiers(args.PrimaryKeys.Keys()), ","),
+		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), args.SecondWhere.SQLString(), strings.Join(endingValues, ","),
+		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","),
 		args.Limit,
 	), nil
 }
