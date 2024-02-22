@@ -79,14 +79,14 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 		lowerBoundComparison = ">="
 	}
 
-	return fmt.Sprintf(`SELECT %s FROM %s WHERE row(%s) %s row(%s) AND NOT row(%s) > row(%s) ORDER BY %s LIMIT %d`,
+	return fmt.Sprintf(`SELECT %s FROM %s WHERE row(%s) %s row(%s) AND row(%s) <= row(%s) ORDER BY %s LIMIT %d`,
 		// SELECT
 		strings.Join(castedColumns, ","),
 		// FROM
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
 		// WHERE row(pk) > row(123)
 		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), lowerBoundComparison, strings.Join(startingValues, ","),
-		// AND NOT row(pk) > row(123)
+		// AND row(pk) <= row(123)
 		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), strings.Join(endingValues, ","),
 		// ORDER BY
 		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","),
