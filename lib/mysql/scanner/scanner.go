@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/artie-labs/reader/lib/mysql"
+	"github.com/artie-labs/reader/lib/mysql/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 	"github.com/artie-labs/transfer/lib/retry"
 )
@@ -92,5 +93,71 @@ func (s *scanner) scan() ([]map[string]interface{}, error) {
 
 	slog.Info("Scan query", slog.String("query", query), slog.Any("parameters", parameters))
 
-	panic("not implemented")
+	rows, err := retry.WithRetriesAndResult(s.retryCfg, func(_ int, _ error) (*sql.Rows, error) {
+		return s.db.Query(query, parameters...)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan table: %w", err)
+	}
+
+	values := make([]interface{}, len(s.table.Columns))
+	valuePtrs := make([]interface{}, len(values))
+	for i := range values {
+		valuePtrs[i] = &values[i]
+	}
+
+	var rowsData []map[string]interface{}
+	for rows.Next() {
+		err = rows.Scan(valuePtrs...)
+		if err != nil {
+			return nil, err
+		}
+
+		row := make(map[string]interface{})
+		for idx, value := range values {
+			col := s.table.Columns[idx]
+			row[col.Name], err = convertValue(col.Type, value)
+			if err != nil {
+				return nil, fmt.Errorf("faild to convert value for column %s: %w", col.Name, err)
+			}
+		}
+		rowsData = append(rowsData, row)
+	}
+
+	if len(rowsData) == 0 {
+		return rowsData, nil
+	}
+
+	// Update the starting key so that the next scan will pick off where we last left off.
+	lastRow := rowsData[len(rowsData)-1]
+	for _, pk := range s.primaryKeys.Keys() {
+		value := lastRow[pk]
+		valueStr := fmt.Sprint(value)
+		s.primaryKeys.Upsert(pk, &valueStr, nil)
+	}
+
+	return rowsData, nil
+}
+
+func convertValue(colType schema.DataType, value interface{}) (interface{}, error) {
+	// TODO: test this function with all mysql data types
+
+	if value == nil {
+		return nil, nil
+	}
+
+	switch colType {
+	case schema.Varchar,
+		schema.Text:
+		switch castValue := value.(type) {
+		case []byte:
+			return string(castValue), nil
+		case string:
+			return castValue, nil
+		default:
+			return nil, fmt.Errorf("could not cast value to string: %v", value)
+		}
+	}
+
+	return value, nil
 }
