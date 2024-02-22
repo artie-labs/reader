@@ -92,7 +92,6 @@ func TestScanTableQuery(t *testing.T) {
 		TableName:           "table",
 		PrimaryKeys:         primaryKeys,
 		InclusiveLowerBound: true,
-		InclusiveUpperBound: true,
 		Limit:               1,
 		Columns: []schema.Column{
 			{Name: "a", Type: schema.Int64},
