@@ -86,7 +86,7 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
 		// WHERE row(pk) > row(123)
 		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), lowerBoundComparison, strings.Join(startingValues, ","),
-		// AND NOT row(pk) < row(123)
+		// AND NOT row(pk) > row(123)
 		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), strings.Join(endingValues, ","),
 		// ORDER BY
 		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","),
