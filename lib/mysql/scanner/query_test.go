@@ -19,7 +19,7 @@ func TestBuildScanTableQuery(t *testing.T) {
 	keys := primary_key.NewKeys()
 	keys.Upsert("foo", ptr.ToString("a"), ptr.ToString("b"))
 	{
-		// not inclusive upper and lower bounds
+		// exclusive lower bound
 		query, parameters, err := buildScanTableQuery(buildScanTableQueryArgs{
 			TableName:   "table",
 			PrimaryKeys: keys,
@@ -27,10 +27,11 @@ func TestBuildScanTableQuery(t *testing.T) {
 				{Name: "foo"},
 				{Name: "bar"},
 			},
-			Limit: 12,
+			InclusiveLowerBound: false,
+			Limit:               12,
 		})
 		assert.NoError(t, err)
-		assert.Equal(t, "SELECT `foo`,`bar` FROM `table` WHERE (`foo`) > (?) AND (`foo`) < (?) ORDER BY `foo` LIMIT 12", query)
+		assert.Equal(t, "SELECT `foo`,`bar` FROM `table` WHERE (`foo`) > (?) AND (`foo`) <= (?) ORDER BY `foo` LIMIT 12", query)
 		assert.Equal(t, []interface{}{"a", "b"}, parameters)
 	}
 	{
@@ -43,7 +44,6 @@ func TestBuildScanTableQuery(t *testing.T) {
 				{Name: "bar"},
 			},
 			InclusiveLowerBound: true,
-			InclusiveUpperBound: true,
 			Limit:               12,
 		})
 		assert.NoError(t, err)
