@@ -26,7 +26,6 @@ type scanner struct {
 	// mutable
 	primaryKeys  *primary_key.Keys
 	isFirstBatch bool
-	isLastBatch  bool
 	done         bool
 }
 
@@ -43,7 +42,6 @@ func NewScanner(db *sql.DB, table mysql.Table, batchSize uint, errorRetries int)
 		retryCfg:     retryCfg,
 		primaryKeys:  table.PrimaryKeys.Clone(),
 		isFirstBatch: true,
-		isLastBatch:  false,
 		done:         false,
 	}, nil
 }
@@ -70,22 +68,17 @@ func (s *scanner) Next() ([]map[string]interface{}, error) {
 	}
 
 	s.isFirstBatch = false
-	// The reason why `isLastBatch` exists is because in the past, we had queries only return partial results but it wasn't fully done
-	s.isLastBatch = s.batchSize > uint(len(rows))
 
 	return rows, nil
 }
 
 func (s *scanner) scan() ([]map[string]interface{}, error) {
 	query, parameters, err := buildScanTableQuery(buildScanTableQueryArgs{
-		TableName:   s.table.Name,
-		PrimaryKeys: s.primaryKeys,
-		Columns:     s.table.Columns,
-
+		TableName:           s.table.Name,
+		PrimaryKeys:         s.primaryKeys,
+		Columns:             s.table.Columns,
 		InclusiveLowerBound: s.isFirstBatch,
-		InclusiveUpperBound: !s.isLastBatch,
-
-		Limit: s.batchSize,
+		Limit:               s.batchSize,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate query: %w", err)
