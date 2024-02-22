@@ -100,7 +100,7 @@ func TestScanTableQuery(t *testing.T) {
 			{Name: "c", Type: schema.Int64},
 			{Name: "e", Type: schema.Text},
 			{Name: "f", Type: schema.Int64},
-			{Name: "g", Type: schema.Money}, // money will be cast
+			{Name: "g", Type: schema.TextThatRequiresEscaping}, // Requires casting
 		},
 	})
 	assert.NoError(t, err)
