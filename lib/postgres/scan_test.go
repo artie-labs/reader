@@ -88,12 +88,12 @@ func TestScanTableQuery(t *testing.T) {
 	primaryKeys.Upsert("c", ptr.ToString("3"), ptr.ToString("6"))
 
 	query, err := scanTableQuery(scanTableQueryArgs{
-		Schema:      "schema",
-		TableName:   "table",
-		PrimaryKeys: primaryKeys,
-		FirstWhere:  GreaterThanEqualTo,
-		SecondWhere: GreaterThan,
-		Limit:       1,
+		Schema:              "schema",
+		TableName:           "table",
+		PrimaryKeys:         primaryKeys,
+		InclusiveLowerBound: true,
+		InclusiveUpperBound: true,
+		Limit:               1,
 		Columns: []schema.Column{
 			{Name: "a", Type: schema.Int64},
 			{Name: "b", Type: schema.Int64},

@@ -52,32 +52,14 @@ func (t *Table) NewScanner(db *sql.DB, batchSize uint, errorRetries int) (scanne
 	}, nil
 }
 
-type Comparison string
-
-const (
-	GreaterThan        Comparison = ">"
-	GreaterThanEqualTo Comparison = ">="
-)
-
-func (c Comparison) SQLString() string {
-	if (c == GreaterThan) || (c == GreaterThanEqualTo) {
-		return string(c)
-	}
-	panic(fmt.Sprintf("invalid comparison: '%v'", c))
-}
-
 type scanTableQueryArgs struct {
-	Schema      string
-	TableName   string
-	PrimaryKeys *primary_key.Keys
-	Columns     []schema.Column
-
-	// First where clause
-	FirstWhere Comparison
-	// Second where clause
-	SecondWhere Comparison
-
-	Limit uint
+	Schema              string
+	TableName           string
+	PrimaryKeys         *primary_key.Keys
+	Columns             []schema.Column
+	InclusiveLowerBound bool
+	InclusiveUpperBound bool
+	Limit               uint
 }
 
 func scanTableQuery(args scanTableQueryArgs) (string, error) {
@@ -95,14 +77,28 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 		return "", err
 	}
 
+	lowerBoundComparison := ">"
+	if args.InclusiveLowerBound {
+		lowerBoundComparison = ">="
+	}
+
+	upperBoundComparsion := ">="
+	if args.InclusiveUpperBound {
+		upperBoundComparsion = ">"
+	}
+
 	return fmt.Sprintf(`SELECT %s FROM %s WHERE row(%s) %s row(%s) AND NOT row(%s) %s row(%s) ORDER BY %s LIMIT %d`,
+		// SELECT
 		strings.Join(castedColumns, ","),
+		// FROM
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
 		// WHERE row(pk) > row(123)
-		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), args.FirstWhere.SQLString(), strings.Join(startingValues, ","),
+		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), lowerBoundComparison, strings.Join(startingValues, ","),
 		// AND NOT row(pk) < row(123)
-		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), args.SecondWhere.SQLString(), strings.Join(endingValues, ","),
+		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), upperBoundComparsion, strings.Join(endingValues, ","),
+		// ORDER BY
 		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","),
+		// LIMIT
 		args.Limit,
 	), nil
 }
@@ -172,27 +168,14 @@ func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) ([]
 }
 
 func (s *scanner) scan() ([]map[string]interface{}, error) {
-	firstWhereClause := GreaterThan
-	if s.isFirstRow {
-		firstWhereClause = GreaterThanEqualTo
-	}
-
-	secondWhereClause := GreaterThan
-	if s.isLastRow {
-		secondWhereClause = GreaterThanEqualTo
-	}
-
 	query, err := scanTableQuery(scanTableQueryArgs{
-		Schema:      s.table.Schema,
-		TableName:   s.table.Name,
-		PrimaryKeys: s.primaryKeys,
-		Columns:     s.table.Columns,
-
-		FirstWhere: firstWhereClause,
-
-		SecondWhere: secondWhereClause,
-
-		Limit: s.batchSize,
+		Schema:              s.table.Schema,
+		TableName:           s.table.Name,
+		PrimaryKeys:         s.primaryKeys,
+		Columns:             s.table.Columns,
+		InclusiveLowerBound: s.isFirstRow,
+		InclusiveUpperBound: !s.isLastRow,
+		Limit:               s.batchSize,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate query: %w", err)
