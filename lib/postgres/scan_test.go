@@ -87,22 +87,42 @@ func TestScanTableQuery(t *testing.T) {
 	primaryKeys.Upsert("b", ptr.ToString("2"), ptr.ToString("5"))
 	primaryKeys.Upsert("c", ptr.ToString("3"), ptr.ToString("6"))
 
-	query, err := scanTableQuery(scanTableQueryArgs{
-		Schema:              "schema",
-		TableName:           "table",
-		PrimaryKeys:         primaryKeys,
-		InclusiveLowerBound: true,
-		InclusiveUpperBound: true,
-		Limit:               1,
-		Columns: []schema.Column{
-			{Name: "a", Type: schema.Int64},
-			{Name: "b", Type: schema.Int64},
-			{Name: "c", Type: schema.Int64},
-			{Name: "e", Type: schema.Text},
-			{Name: "f", Type: schema.Int64},
-			{Name: "g", Type: schema.Money}, // money will be cast
-		},
-	})
-	assert.NoError(t, err)
-	assert.Equal(t, `SELECT "a","b","c","e","f","g"::text FROM "schema"."table" WHERE row("a","b","c") >= row(1,2,3) AND NOT row("a","b","c") > row(4,5,6) ORDER BY "a","b","c" LIMIT 1`, query)
+	cols := []schema.Column{
+		{Name: "a", Type: schema.Int64},
+		{Name: "b", Type: schema.Int64},
+		{Name: "c", Type: schema.Int64},
+		{Name: "e", Type: schema.Text},
+		{Name: "f", Type: schema.Int64},
+		{Name: "g", Type: schema.TextThatRequiresEscaping}, // money will be cast
+	}
+
+	{
+		// inclusive upper and lower bounds
+		query, err := scanTableQuery(scanTableQueryArgs{
+			Schema:              "schema",
+			TableName:           "table",
+			PrimaryKeys:         primaryKeys,
+			InclusiveLowerBound: true,
+			InclusiveUpperBound: true,
+			Limit:               1,
+			Columns:             cols,
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, `SELECT "a","b","c","e","f","g"::text FROM "schema"."table" WHERE row("a","b","c") >= row(1,2,3) AND NOT row("a","b","c") > row(4,5,6) ORDER BY "a","b","c" LIMIT 1`, query)
+	}
+
+	{
+		// not inclusive upper and lower bounds
+		query, err := scanTableQuery(scanTableQueryArgs{
+			Schema:              "schema",
+			TableName:           "table",
+			PrimaryKeys:         primaryKeys,
+			InclusiveLowerBound: false,
+			InclusiveUpperBound: false,
+			Limit:               1,
+			Columns:             cols,
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, `SELECT "a","b","c","e","f","g"::text FROM "schema"."table" WHERE row("a","b","c") > row(1,2,3) AND NOT row("a","b","c") >= row(4,5,6) ORDER BY "a","b","c" LIMIT 1`, query)
+	}
 }

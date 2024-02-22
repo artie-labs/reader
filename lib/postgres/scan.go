@@ -52,6 +52,131 @@ func (t *Table) NewScanner(db *sql.DB, batchSize uint, errorRetries int) (scanne
 	}, nil
 }
 
+func (s *scanner) HasNext() bool {
+	return !s.done
+}
+
+func (s *scanner) Next() ([]map[string]interface{}, error) {
+	if !s.HasNext() {
+		return nil, fmt.Errorf("no more rows to scan")
+	}
+	rows, err := s.scan()
+	if err != nil {
+		s.done = true
+		return nil, err
+	} else if len(rows) == 0 {
+		slog.Info("Finished scanning", slog.String("table", s.table.Name))
+		s.done = true
+		return nil, nil
+	}
+	s.isFirstRow = false
+	// The reason why lastRow exists is because in the past, we had queries only return partial results but it wasn't fully done
+	s.isLastRow = s.batchSize > uint(len(rows))
+	return rows, nil
+}
+
+func (s *scanner) scan() ([]map[string]interface{}, error) {
+	query, err := scanTableQuery(scanTableQueryArgs{
+		Schema:              s.table.Schema,
+		TableName:           s.table.Name,
+		PrimaryKeys:         s.primaryKeys,
+		Columns:             s.table.Columns,
+		InclusiveLowerBound: s.isFirstRow,
+		InclusiveUpperBound: !s.isLastRow,
+		Limit:               s.batchSize,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate query: %w", err)
+	}
+	slog.Info(fmt.Sprintf("Query looks like: %v", query))
+
+	rows, err := retry.WithRetriesAndResult(s.retryCfg, func(_ int, _ error) (*sql.Rows, error) {
+		return s.db.Query(query)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan table: %w", err)
+	}
+
+	columns, err := rows.Columns()
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: Remove this check once we're confident columns isn't different from s.table.Columns
+	for idx, col := range columns {
+		if col != s.table.Columns[idx].Name {
+			return nil, fmt.Errorf("column mismatch: expected %v, got %v", s.table.Columns[idx].Name, col)
+		}
+	}
+
+	count := len(columns)
+	values := make([]interface{}, count)
+	scanArgs := make([]interface{}, count)
+	for i := range values {
+		scanArgs[i] = &values[i]
+	}
+
+	var rowsData []map[string]ValueWrapper
+	for rows.Next() {
+		err = rows.Scan(scanArgs...)
+		if err != nil {
+			return nil, err
+		}
+
+		row := make(map[string]ValueWrapper)
+		for idx, v := range values {
+			col := s.table.Columns[idx]
+
+			value, err := ParseValue(col.Type, ParseValueArgs{
+				ValueWrapper: ValueWrapper{
+					Value: v,
+				},
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			row[col.Name] = value
+		}
+		rowsData = append(rowsData, row)
+	}
+
+	if len(rowsData) == 0 {
+		return make([]map[string]interface{}, 0), nil
+	}
+
+	// Update the starting key so that the next scan will pick off where we last left off.
+	lastRow := rowsData[len(rowsData)-1]
+	for _, pk := range s.primaryKeys.Keys() {
+		col, err := s.table.GetColumnByName(pk)
+		if err != nil {
+			return nil, err
+		}
+
+		val, err := ParseValue(col.Type, ParseValueArgs{
+			ValueWrapper: lastRow[pk],
+			ParseTime:    true,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		s.primaryKeys.Upsert(pk, ptr.ToString(val.String()), nil)
+	}
+
+	var parsedRows []map[string]interface{}
+	for _, row := range rowsData {
+		parsedRow := make(map[string]interface{})
+		for key, value := range row {
+			parsedRow[key] = value.Value
+		}
+
+		parsedRows = append(parsedRows, parsedRow)
+	}
+
+	return parsedRows, nil
+}
+
 type scanTableQueryArgs struct {
 	Schema              string
 	TableName           string
@@ -165,129 +290,4 @@ func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) ([]
 		}
 	}
 	return valuesToReturn, nil
-}
-
-func (s *scanner) scan() ([]map[string]interface{}, error) {
-	query, err := scanTableQuery(scanTableQueryArgs{
-		Schema:              s.table.Schema,
-		TableName:           s.table.Name,
-		PrimaryKeys:         s.primaryKeys,
-		Columns:             s.table.Columns,
-		InclusiveLowerBound: s.isFirstRow,
-		InclusiveUpperBound: !s.isLastRow,
-		Limit:               s.batchSize,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate query: %w", err)
-	}
-	slog.Info(fmt.Sprintf("Query looks like: %v", query))
-
-	rows, err := retry.WithRetriesAndResult(s.retryCfg, func(_ int, _ error) (*sql.Rows, error) {
-		return s.db.Query(query)
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to scan table: %w", err)
-	}
-
-	columns, err := rows.Columns()
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: Remove this check once we're confident columns isn't different from s.table.Columns
-	for idx, col := range columns {
-		if col != s.table.Columns[idx].Name {
-			return nil, fmt.Errorf("column mismatch: expected %v, got %v", s.table.Columns[idx].Name, col)
-		}
-	}
-
-	count := len(columns)
-	values := make([]interface{}, count)
-	scanArgs := make([]interface{}, count)
-	for i := range values {
-		scanArgs[i] = &values[i]
-	}
-
-	var rowsData []map[string]ValueWrapper
-	for rows.Next() {
-		err = rows.Scan(scanArgs...)
-		if err != nil {
-			return nil, err
-		}
-
-		row := make(map[string]ValueWrapper)
-		for idx, v := range values {
-			col := s.table.Columns[idx]
-
-			value, err := ParseValue(col.Type, ParseValueArgs{
-				ValueWrapper: ValueWrapper{
-					Value: v,
-				},
-			})
-			if err != nil {
-				return nil, err
-			}
-
-			row[col.Name] = value
-		}
-		rowsData = append(rowsData, row)
-	}
-
-	if len(rowsData) == 0 {
-		return make([]map[string]interface{}, 0), nil
-	}
-
-	// Update the starting key so that the next scan will pick off where we last left off.
-	lastRow := rowsData[len(rowsData)-1]
-	for _, pk := range s.primaryKeys.Keys() {
-		col, err := s.table.GetColumnByName(pk)
-		if err != nil {
-			return nil, err
-		}
-
-		val, err := ParseValue(col.Type, ParseValueArgs{
-			ValueWrapper: lastRow[pk],
-			ParseTime:    true,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		s.primaryKeys.Upsert(pk, ptr.ToString(val.String()), nil)
-	}
-
-	var parsedRows []map[string]interface{}
-	for _, row := range rowsData {
-		parsedRow := make(map[string]interface{})
-		for key, value := range row {
-			parsedRow[key] = value.Value
-		}
-
-		parsedRows = append(parsedRows, parsedRow)
-	}
-
-	return parsedRows, nil
-}
-
-func (s *scanner) HasNext() bool {
-	return !s.done
-}
-
-func (s *scanner) Next() ([]map[string]interface{}, error) {
-	if !s.HasNext() {
-		return nil, fmt.Errorf("no more rows to scan")
-	}
-	rows, err := s.scan()
-	if err != nil {
-		s.done = true
-		return nil, err
-	} else if len(rows) == 0 {
-		slog.Info("Finished scanning", slog.String("table", s.table.Name))
-		s.done = true
-		return nil, nil
-	}
-	s.isFirstRow = false
-	// The reason why lastRow exists is because in the past, we had queries only return partial results but it wasn't fully done
-	s.isLastRow = s.batchSize > uint(len(rows))
-	return rows, nil
 }
