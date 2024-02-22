@@ -100,9 +100,9 @@ func TestScanTableQuery(t *testing.T) {
 			{Name: "c", Type: schema.Int64},
 			{Name: "e", Type: schema.Text},
 			{Name: "f", Type: schema.Int64},
-			{Name: "g", Type: schema.Money}, // money will be cast
+			{Name: "g", Type: schema.Money},
 		},
 	})
 	assert.NoError(t, err)
-	assert.Equal(t, `SELECT "a","b","c","e","f","g"::text FROM "schema"."table" WHERE row("a","b","c") >= row(1,2,3) AND NOT row("a","b","c") > row(4,5,6) ORDER BY "a","b","c" LIMIT 1`, query)
+	assert.Equal(t, `SELECT "a","b","c","e","f","g" FROM "schema"."table" WHERE row("a","b","c") >= row(1,2,3) AND NOT row("a","b","c") > row(4,5,6) ORDER BY "a","b","c" LIMIT 1`, query)
 }
