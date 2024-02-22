@@ -3,6 +3,7 @@ package primary_key
 import (
 	"testing"
 
+	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -230,5 +231,39 @@ func TestKeys_Clone(t *testing.T) {
 		assert.Equal(t, keys.keyMap, keys2.keyMap)
 		assert.Equal(t, []Key{{"foo", "a", "b"}}, keys2.keys)
 		assert.Equal(t, map[string]bool{"foo": true}, keys2.keyMap)
+	}
+}
+
+func TestKeys_IsExausted(t *testing.T) {
+	// empty keys
+	{
+		keys := NewKeys()
+		assert.True(t, keys.IsExhausted())
+	}
+	// one key, different starting and ending values
+	{
+		keys := NewKeys()
+		keys.Upsert("foo", ptr.ToString("a"), ptr.ToString("b"))
+		assert.False(t, keys.IsExhausted())
+	}
+	// one key, same starting and ending values
+	{
+		keys := NewKeys()
+		keys.Upsert("foo", ptr.ToString("a"), ptr.ToString("a"))
+		assert.True(t, keys.IsExhausted())
+	}
+	// two keys, different starting and ending values for one
+	{
+		keys := NewKeys()
+		keys.Upsert("foo", ptr.ToString("a"), ptr.ToString("a"))
+		keys.Upsert("bar", ptr.ToString(""), ptr.ToString("b"))
+		assert.False(t, keys.IsExhausted())
+	}
+	// two keys, same starting and ending values for both
+	{
+		keys := NewKeys()
+		keys.Upsert("foo", ptr.ToString("a"), ptr.ToString("a"))
+		keys.Upsert("bar", ptr.ToString(""), ptr.ToString(""))
+		assert.True(t, keys.IsExhausted())
 	}
 }
