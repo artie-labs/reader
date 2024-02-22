@@ -61,10 +61,9 @@ func (s *scanner) Next() ([]map[string]interface{}, error) {
 		return nil, err
 	}
 
-	if len(rows) == 0 {
+	if len(rows) == 0 || s.primaryKeys.IsExhausted() {
 		slog.Info("Finished scanning", slog.String("table", s.table.Name))
 		s.done = true
-		return nil, nil
 	}
 
 	s.isFirstBatch = false
