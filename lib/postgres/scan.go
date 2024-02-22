@@ -30,7 +30,6 @@ type scanner struct {
 	// mutable
 	primaryKeys *primary_key.Keys
 	isFirstRow  bool
-	isLastRow   bool
 	done        bool
 }
 
@@ -47,7 +46,6 @@ func (t *Table) NewScanner(db *sql.DB, batchSize uint, errorRetries int) (scanne
 		retryCfg:    retryCfg,
 		primaryKeys: t.PrimaryKeys.Clone(),
 		isFirstRow:  true,
-		isLastRow:   false,
 		done:        false,
 	}, nil
 }
@@ -58,7 +56,6 @@ type scanTableQueryArgs struct {
 	PrimaryKeys         *primary_key.Keys
 	Columns             []schema.Column
 	InclusiveLowerBound bool
-	InclusiveUpperBound bool
 	Limit               uint
 }
 
@@ -82,20 +79,15 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 		lowerBoundComparison = ">="
 	}
 
-	upperBoundComparsion := ">="
-	if args.InclusiveUpperBound {
-		upperBoundComparsion = ">"
-	}
-
-	return fmt.Sprintf(`SELECT %s FROM %s WHERE row(%s) %s row(%s) AND NOT row(%s) %s row(%s) ORDER BY %s LIMIT %d`,
+	return fmt.Sprintf(`SELECT %s FROM %s WHERE row(%s) %s row(%s) AND row(%s) <= row(%s) ORDER BY %s LIMIT %d`,
 		// SELECT
 		strings.Join(castedColumns, ","),
 		// FROM
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
 		// WHERE row(pk) > row(123)
 		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), lowerBoundComparison, strings.Join(startingValues, ","),
-		// AND NOT row(pk) < row(123)
-		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), upperBoundComparsion, strings.Join(endingValues, ","),
+		// AND row(pk) <= row(123)
+		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), strings.Join(endingValues, ","),
 		// ORDER BY
 		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","),
 		// LIMIT
@@ -174,7 +166,6 @@ func (s *scanner) scan() ([]map[string]interface{}, error) {
 		PrimaryKeys:         s.primaryKeys,
 		Columns:             s.table.Columns,
 		InclusiveLowerBound: s.isFirstRow,
-		InclusiveUpperBound: !s.isLastRow,
 		Limit:               s.batchSize,
 	})
 	if err != nil {
@@ -287,7 +278,5 @@ func (s *scanner) Next() ([]map[string]interface{}, error) {
 		return nil, nil
 	}
 	s.isFirstRow = false
-	// The reason why lastRow exists is because in the past, we had queries only return partial results but it wasn't fully done
-	s.isLastRow = s.batchSize > uint(len(rows))
 	return rows, nil
 }
