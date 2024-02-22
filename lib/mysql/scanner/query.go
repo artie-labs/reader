@@ -43,9 +43,9 @@ func buildScanTableQuery(args buildScanTableQueryArgs) (string, []interface{}, e
 		lowerBoundComparison = ">="
 	}
 
-	upperBoundComparsion := ">="
+	upperBoundComparsion := "<"
 	if args.InclusiveUpperBound {
-		upperBoundComparsion = ">"
+		upperBoundComparsion = "<="
 	}
 
 	// TODO: use slices.Concat when we upgrade to Go 1.22
@@ -53,7 +53,7 @@ func buildScanTableQuery(args buildScanTableQueryArgs) (string, []interface{}, e
 	parameters = append(parameters, startingValues...)
 	parameters = append(parameters, endingValues...)
 
-	return fmt.Sprintf(`SELECT %s FROM %s WHERE (%s) %s (%s) AND NOT (%s) %s (%s) ORDER BY %s LIMIT %d`,
+	return fmt.Sprintf(`SELECT %s FROM %s WHERE (%s) %s (%s) AND (%s) %s (%s) ORDER BY %s LIMIT %d`,
 		// SELECT
 		strings.Join(colNames, ","),
 		// FROM
