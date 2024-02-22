@@ -123,7 +123,7 @@ func (k *Keys) KeysList() []Key {
 	return k.keys
 }
 
-// IsExausted returns true if the starting values and ending values are the same for all keys
+// IsExhausted returns true if the starting values and ending values are the same for all keys
 func (k *Keys) IsExhausted() bool {
 	for _, key := range k.keys {
 		if key.StartingValue != key.EndingValue {
