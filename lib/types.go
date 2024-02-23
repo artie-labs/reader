@@ -7,14 +7,14 @@ import (
 
 type RawMessage struct {
 	TopicSuffix  string
-	PartitionKey map[string]interface{}
+	PartitionKey map[string]any
 	payload      util.SchemaEventPayload
 	mongoPayload mongo.SchemaEventPayload
 
 	mongo bool
 }
 
-func NewRawMessage(topicSuffix string, partitionKey map[string]interface{}, payload util.SchemaEventPayload) RawMessage {
+func NewRawMessage(topicSuffix string, partitionKey map[string]any, payload util.SchemaEventPayload) RawMessage {
 	return RawMessage{
 		TopicSuffix:  topicSuffix,
 		PartitionKey: partitionKey,
@@ -22,7 +22,7 @@ func NewRawMessage(topicSuffix string, partitionKey map[string]interface{}, payl
 	}
 }
 
-func NewMongoMessage(topicSuffix string, partitionKey map[string]interface{}, payload mongo.SchemaEventPayload) RawMessage {
+func NewMongoMessage(topicSuffix string, partitionKey map[string]any, payload mongo.SchemaEventPayload) RawMessage {
 	return RawMessage{
 		TopicSuffix:  topicSuffix,
 		PartitionKey: partitionKey,
@@ -31,7 +31,7 @@ func NewMongoMessage(topicSuffix string, partitionKey map[string]interface{}, pa
 	}
 }
 
-func (r RawMessage) GetPayload() interface{} {
+func (r RawMessage) GetPayload() any {
 	if r.mongo {
 		return r.mongoPayload
 	}

@@ -64,8 +64,8 @@ func TestNewMessage(t *testing.T) {
 				op:            "c",
 				tableName:     "testTable",
 				executionTime: time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC),
-				rowData:       map[string]interface{}{},
-				primaryKey: map[string]interface{}{
+				rowData:       map[string]any{},
+				primaryKey: map[string]any{
 					"user_id": "123",
 				},
 			},
@@ -89,8 +89,8 @@ func TestNewMessage(t *testing.T) {
 				op:            "u",
 				executionTime: time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC),
 				tableName:     "testTable",
-				rowData:       map[string]interface{}{},
-				primaryKey: map[string]interface{}{
+				rowData:       map[string]any{},
+				primaryKey: map[string]any{
 					"user_id": "123",
 				},
 			},
@@ -114,8 +114,8 @@ func TestNewMessage(t *testing.T) {
 				op:            "d",
 				tableName:     "testTable",
 				executionTime: time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC),
-				rowData:       map[string]interface{}{},
-				primaryKey: map[string]interface{}{
+				rowData:       map[string]any{},
+				primaryKey: map[string]any{
 					"user_id": "123",
 				},
 			},
@@ -137,8 +137,8 @@ func TestNewMessage(t *testing.T) {
 				op:            "c",
 				tableName:     "testTable",
 				executionTime: time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC),
-				rowData:       map[string]interface{}{},
-				primaryKey:    map[string]interface{}{"key": "value"},
+				rowData:       map[string]any{},
+				primaryKey:    map[string]any{"key": "value"},
 			},
 		},
 	}
@@ -158,7 +158,7 @@ func TestTransformAttributeValue(t *testing.T) {
 	type _tc struct {
 		name          string
 		attr          *dynamodb.AttributeValue
-		expectedValue interface{}
+		expectedValue any
 	}
 
 	tcs := []_tc{
@@ -202,10 +202,10 @@ func TestTransformAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			expectedValue: map[string]interface{}{
+			expectedValue: map[string]any{
 				"foo": "bar",
 				"bar": float64(123),
-				"nested_map": map[string]interface{}{
+				"nested_map": map[string]any{
 					"foo": "bar",
 				},
 			},
@@ -229,10 +229,10 @@ func TestTransformAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			expectedValue: []interface{}{
+			expectedValue: []any{
 				"foo",
 				float64(123),
-				map[string]interface{}{
+				map[string]any{
 					"foo": "bar",
 				},
 			},

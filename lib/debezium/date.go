@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func ToDebeziumDate(_time interface{}) (int, error) {
+func ToDebeziumDate(_time any) (int, error) {
 	ts, isOk := _time.(time.Time)
 	if !isOk {
 		return 0, fmt.Errorf("object is not a time.Time object")

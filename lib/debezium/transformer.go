@@ -14,9 +14,9 @@ import (
 type Adapter interface {
 	TableName() string
 	TopicSuffix() string
-	PartitionKey(row map[string]interface{}) map[string]interface{}
+	PartitionKey(row map[string]any) map[string]any
 	Fields() []debezium.Field
-	ConvertRowToDebezium(row map[string]interface{}) (map[string]interface{}, error)
+	ConvertRowToDebezium(row map[string]any) (map[string]any, error)
 }
 
 type DebeziumTransformer struct {
@@ -33,7 +33,7 @@ func NewDebeziumTransformer(adapter Adapter, iter batchRowIterator) *DebeziumTra
 
 type batchRowIterator interface {
 	HasNext() bool
-	Next() ([]map[string]interface{}, error)
+	Next() ([]map[string]any, error)
 }
 
 func (d *DebeziumTransformer) HasNext() bool {
@@ -62,7 +62,7 @@ func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 	return result, nil
 }
 
-func (d *DebeziumTransformer) createPayload(row map[string]interface{}) (util.SchemaEventPayload, error) {
+func (d *DebeziumTransformer) createPayload(row map[string]any) (util.SchemaEventPayload, error) {
 	dbzRow, err := d.adapter.ConvertRowToDebezium(row)
 	if err != nil {
 		return util.SchemaEventPayload{}, fmt.Errorf("failed to convert row to debezium: %w", err)

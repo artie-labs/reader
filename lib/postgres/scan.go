@@ -158,7 +158,7 @@ func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) ([]
 	return valuesToReturn, nil
 }
 
-func (s *scanner) scan() ([]map[string]interface{}, error) {
+func (s *scanner) scan() ([]map[string]any, error) {
 	query, err := scanTableQuery(scanTableQueryArgs{
 		Schema:              s.table.Schema,
 		TableName:           s.table.Name,
@@ -192,8 +192,8 @@ func (s *scanner) scan() ([]map[string]interface{}, error) {
 	}
 
 	count := len(columns)
-	values := make([]interface{}, count)
-	scanArgs := make([]interface{}, count)
+	values := make([]any, count)
+	scanArgs := make([]any, count)
 	for i := range values {
 		scanArgs[i] = &values[i]
 	}
@@ -224,7 +224,7 @@ func (s *scanner) scan() ([]map[string]interface{}, error) {
 	}
 
 	if len(rowsData) == 0 {
-		return make([]map[string]interface{}, 0), nil
+		return make([]map[string]any, 0), nil
 	}
 
 	// Update the starting key so that the next scan will pick off where we last left off.
@@ -248,9 +248,9 @@ func (s *scanner) scan() ([]map[string]interface{}, error) {
 		}
 	}
 
-	var parsedRows []map[string]interface{}
+	var parsedRows []map[string]any
 	for _, row := range rowsData {
-		parsedRow := make(map[string]interface{})
+		parsedRow := make(map[string]any)
 		for key, value := range row {
 			parsedRow[key] = value.Value
 		}
@@ -265,7 +265,7 @@ func (s *scanner) HasNext() bool {
 	return !s.done
 }
 
-func (s *scanner) Next() ([]map[string]interface{}, error) {
+func (s *scanner) Next() ([]map[string]any, error) {
 	if !s.HasNext() {
 		return nil, fmt.Errorf("no more rows to scan")
 	}

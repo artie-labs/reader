@@ -13,7 +13,7 @@ import (
 	"github.com/artie-labs/reader/lib/stringutil"
 )
 
-func ConvertValueToDebezium(col schema.Column, value interface{}) (interface{}, error) {
+func ConvertValueToDebezium(col schema.Column, value any) (any, error) {
 	if value == nil {
 		return value, nil
 	}

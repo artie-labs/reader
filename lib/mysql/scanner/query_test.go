@@ -32,7 +32,7 @@ func TestBuildScanTableQuery(t *testing.T) {
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, "SELECT `foo`,`bar` FROM `table` WHERE (`foo`) > (?) AND (`foo`) <= (?) ORDER BY `foo` LIMIT 12", query)
-		assert.Equal(t, []interface{}{"a", "b"}, parameters)
+		assert.Equal(t, []any{"a", "b"}, parameters)
 	}
 	{
 		// inclusive upper and lower bounds
@@ -48,6 +48,6 @@ func TestBuildScanTableQuery(t *testing.T) {
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, "SELECT `foo`,`bar` FROM `table` WHERE (`foo`) >= (?) AND (`foo`) <= (?) ORDER BY `foo` LIMIT 12", query)
-		assert.Equal(t, []interface{}{"a", "b"}, parameters)
+		assert.Equal(t, []any{"a", "b"}, parameters)
 	}
 }

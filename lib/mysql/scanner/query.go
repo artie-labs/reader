@@ -24,14 +24,14 @@ type buildScanTableQueryArgs struct {
 	Limit               uint
 }
 
-func buildScanTableQuery(args buildScanTableQueryArgs) (string, []interface{}, error) {
+func buildScanTableQuery(args buildScanTableQueryArgs) (string, []any, error) {
 	colNames := make([]string, len(args.Columns))
 	for idx, col := range args.Columns {
 		colNames[idx] = schema.QuoteIdentifier(col.Name)
 	}
 
-	var startingValues = make([]interface{}, len(args.PrimaryKeys.Keys()))
-	var endingValues = make([]interface{}, len(startingValues))
+	var startingValues = make([]any, len(args.PrimaryKeys.Keys()))
+	var endingValues = make([]any, len(startingValues))
 	for i, pk := range args.PrimaryKeys.KeysList() {
 		startingValues[i] = pk.StartingValue
 		endingValues[i] = pk.EndingValue
@@ -43,7 +43,7 @@ func buildScanTableQuery(args buildScanTableQueryArgs) (string, []interface{}, e
 	}
 
 	// TODO: use slices.Concat when we upgrade to Go 1.22
-	var parameters []interface{}
+	var parameters []any
 	parameters = append(parameters, startingValues...)
 	parameters = append(parameters, endingValues...)
 
