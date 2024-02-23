@@ -16,20 +16,13 @@ func NewScanner(db *sql.DB, table mysql.Table, cfg scan.ScannerConfig) (scan.Sca
 	return scan.NewScanner(db, &table, cfg, _scan)
 }
 
-func _scan(
-	db *sql.DB,
-	table *mysql.Table,
-	primaryKeys *primary_key.Keys,
-	isFirstBatch bool,
-	batchSize uint,
-	retryCfg retry.RetryConfig,
-) ([]map[string]any, error) {
+func _scan(scanner *scan.Scanner[*mysql.Table], primaryKeys *primary_key.Keys, isFirstBatch bool) ([]map[string]any, error) {
 	query, parameters, err := buildScanTableQuery(buildScanTableQueryArgs{
-		TableName:           table.Name,
+		TableName:           scanner.Table().Name,
 		PrimaryKeys:         primaryKeys,
-		Columns:             table.Columns,
+		Columns:             scanner.Table().Columns,
 		InclusiveLowerBound: isFirstBatch,
-		Limit:               batchSize,
+		Limit:               scanner.BatchSize(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate query: %w", err)
@@ -37,14 +30,14 @@ func _scan(
 
 	slog.Info("Scan query", slog.String("query", query), slog.Any("parameters", parameters))
 
-	rows, err := retry.WithRetriesAndResult(retryCfg, func(_ int, _ error) (*sql.Rows, error) {
-		return db.Query(query, parameters...)
+	rows, err := retry.WithRetriesAndResult(scanner.RetryConfig(), func(_ int, _ error) (*sql.Rows, error) {
+		return scanner.DB().Query(query, parameters...)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan table: %w", err)
 	}
 
-	values := make([]any, len(table.Columns))
+	values := make([]any, len(scanner.Table().Columns))
 	valuePtrs := make([]any, len(values))
 	for i := range values {
 		valuePtrs[i] = &values[i]
@@ -57,14 +50,14 @@ func _scan(
 			return nil, err
 		}
 
-		convertedValues, err := schema.ConvertValues(values, table.Columns)
+		convertedValues, err := schema.ConvertValues(values, scanner.Table().Columns)
 		if err != nil {
 			return nil, err
 		}
 
 		row := make(map[string]any)
 		for idx, value := range convertedValues {
-			row[table.Columns[idx].Name] = value
+			row[scanner.Table().Columns[idx].Name] = value
 		}
 		rowsData = append(rowsData, row)
 	}

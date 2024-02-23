@@ -130,29 +130,22 @@ func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) ([]
 	return valuesToReturn, nil
 }
 
-func _scan(
-	db *sql.DB,
-	table *Table,
-	primaryKeys *primary_key.Keys,
-	isFirstRow bool,
-	batchSize uint,
-	retryCfg retry.RetryConfig,
-) ([]map[string]any, error) {
+func _scan(scanner *scan.Scanner[*Table], primaryKeys *primary_key.Keys, isFirstRow bool) ([]map[string]any, error) {
 	query, err := scanTableQuery(scanTableQueryArgs{
-		Schema:              table.Schema,
-		TableName:           table.Name,
+		Schema:              scanner.Table().Schema,
+		TableName:           scanner.Table().Name,
 		PrimaryKeys:         primaryKeys,
-		Columns:             table.Columns,
+		Columns:             scanner.Table().Columns,
 		InclusiveLowerBound: isFirstRow,
-		Limit:               batchSize,
+		Limit:               scanner.BatchSize(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate query: %w", err)
 	}
 	slog.Info(fmt.Sprintf("Query looks like: %v", query))
 
-	rows, err := retry.WithRetriesAndResult(retryCfg, func(_ int, _ error) (*sql.Rows, error) {
-		return db.Query(query)
+	rows, err := retry.WithRetriesAndResult(scanner.RetryConfig(), func(_ int, _ error) (*sql.Rows, error) {
+		return scanner.DB().Query(query)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan table: %w", err)
@@ -165,8 +158,8 @@ func _scan(
 
 	// TODO: Remove this check once we're confident columns isn't different from table.Columns
 	for idx, col := range columns {
-		if col != table.Columns[idx].Name {
-			return nil, fmt.Errorf("column mismatch: expected %v, got %v", table.Columns[idx].Name, col)
+		if col != scanner.Table().Columns[idx].Name {
+			return nil, fmt.Errorf("column mismatch: expected %v, got %v", scanner.Table().Columns[idx].Name, col)
 		}
 	}
 
@@ -186,7 +179,7 @@ func _scan(
 
 		row := make(map[string]ValueWrapper)
 		for idx, v := range values {
-			col := table.Columns[idx]
+			col := scanner.Table().Columns[idx]
 
 			value, err := ParseValue(col.Type, ParseValueArgs{
 				ValueWrapper: ValueWrapper{
@@ -209,7 +202,7 @@ func _scan(
 	// Update the starting key so that the next scan will pick off where we last left off.
 	lastRow := rowsData[len(rowsData)-1]
 	for _, pk := range primaryKeys.Keys() {
-		col, err := table.GetColumnByName(pk.Name)
+		col, err := scanner.Table().GetColumnByName(pk.Name)
 		if err != nil {
 			return nil, err
 		}

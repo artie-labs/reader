@@ -33,13 +33,7 @@ type Scanner[T Table] struct {
 	table     T
 	batchSize uint
 	retryCfg  retry.RetryConfig
-	scan      func(
-		db *sql.DB, table T,
-		primaryKeys *primary_key.Keys,
-		isFirstRow bool,
-		batchSize uint,
-		retryCfg retry.RetryConfig,
-	) ([]map[string]any, error)
+	scan      func(scanner *Scanner[T], primaryKeys *primary_key.Keys, isFirstRow bool) ([]map[string]any, error)
 
 	// mutable
 	primaryKeys  *primary_key.Keys
@@ -51,7 +45,7 @@ func NewScanner[T Table](
 	db *sql.DB,
 	table T,
 	cfg ScannerConfig,
-	scan func(db *sql.DB, table T, primaryKeys *primary_key.Keys, isFirstRow bool, batchSize uint, retryCfg retry.RetryConfig) ([]map[string]any, error),
+	scan func(scanner *Scanner[T], primaryKeys *primary_key.Keys, isFirstRow bool) ([]map[string]any, error),
 ) (Scanner[T], error) {
 	primaryKeys := primary_key.NewKeys(table.GetPrimaryKeys())
 	if err := primaryKeys.LoadValues(cfg.OptionalStartingValues, cfg.OptionalEndingValues); err != nil {
@@ -75,6 +69,22 @@ func NewScanner[T Table](
 	}, nil
 }
 
+func (s *Scanner[T]) DB() *sql.DB {
+	return s.db
+}
+
+func (s *Scanner[T]) BatchSize() uint {
+	return s.batchSize
+}
+
+func (s *Scanner[T]) Table() T {
+	return s.table
+}
+
+func (s *Scanner[T]) RetryConfig() retry.RetryConfig {
+	return s.retryCfg
+}
+
 func (s *Scanner[T]) HasNext() bool {
 	return !s.done
 }
@@ -84,14 +94,7 @@ func (s *Scanner[T]) Next() ([]map[string]any, error) {
 		return nil, fmt.Errorf("no more rows to scan")
 	}
 
-	rows, err := s.scan(
-		s.db,
-		s.table,
-		s.primaryKeys,
-		s.isFirstBatch,
-		s.batchSize,
-		s.retryCfg,
-	)
+	rows, err := s.scan(s, s.primaryKeys, s.isFirstBatch)
 	if err != nil {
 		s.done = true
 		return nil, err
