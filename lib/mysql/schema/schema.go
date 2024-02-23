@@ -22,7 +22,6 @@ const (
 	BigInt
 	// Fixed-Point Types (Exact Value)
 	Decimal
-	Numeric
 	// Floating-Point Types (Approximate Value)
 	Float
 	Double
@@ -43,6 +42,7 @@ const (
 	Text
 	Enum
 	Set
+	JSON
 )
 
 type Opts struct {
@@ -143,12 +143,7 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 		if err != nil {
 			return InvalidDataType, nil, fmt.Errorf("failed to parse %s scale: %w", s, err)
 		}
-
-		if s == "decimal" {
-			return Decimal, &Opts{Precision: ptr.ToInt(precision), Scale: ptr.ToInt(scale)}, nil
-		} else {
-			return Numeric, &Opts{Precision: ptr.ToInt(precision), Scale: ptr.ToInt(scale)}, nil
-		}
+		return Decimal, &Opts{Precision: ptr.ToInt(precision), Scale: ptr.ToInt(scale)}, nil
 	case "float":
 		return Float, nil, nil
 	case "double":
@@ -185,6 +180,8 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 		return Enum, nil, nil
 	case "set":
 		return Set, nil, nil
+	case "json":
+		return JSON, nil, nil
 	default:
 		return InvalidDataType, nil, nil
 	}
@@ -270,7 +267,8 @@ func getPrimaryKeyValues(db *sql.DB, table string, primaryKeys []Column, descend
 	if err := stmt.QueryRow().Scan(resultPtrs...); err != nil {
 		return nil, err
 	}
-	return result, nil
+
+	return ConvertValues(result, primaryKeys)
 }
 
 type Bounds struct {

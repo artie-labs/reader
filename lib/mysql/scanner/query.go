@@ -32,10 +32,12 @@ func buildScanTableQuery(args buildScanTableQueryArgs) (string, []any, error) {
 
 	var startingValues = make([]any, len(args.PrimaryKeys.Keys()))
 	var endingValues = make([]any, len(startingValues))
-	for i, pk := range args.PrimaryKeys.KeysList() {
+	for i, pk := range args.PrimaryKeys.Keys() {
 		startingValues[i] = pk.StartingValue
 		endingValues[i] = pk.EndingValue
 	}
+
+	quotedKeyNames := schema.QuotedIdentifiers(args.PrimaryKeys.KeyNames())
 
 	lowerBoundComparison := ">"
 	if args.InclusiveLowerBound {
@@ -53,11 +55,11 @@ func buildScanTableQuery(args buildScanTableQueryArgs) (string, []any, error) {
 		// FROM
 		schema.QuoteIdentifier(args.TableName),
 		// WHERE (pk) > (123)
-		strings.Join(schema.QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), lowerBoundComparison, strings.Join(sqlPlaceholders(len(startingValues)), ","),
+		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(sqlPlaceholders(len(startingValues)), ","),
 		// AND NOT (pk) <= (123)
-		strings.Join(schema.QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), strings.Join(sqlPlaceholders(len(endingValues)), ","),
+		strings.Join(quotedKeyNames, ","), strings.Join(sqlPlaceholders(len(endingValues)), ","),
 		// ORDER BY
-		strings.Join(schema.QuotedIdentifiers(args.PrimaryKeys.Keys()), ","),
+		strings.Join(quotedKeyNames, ","),
 		// LIMIT
 		args.Limit,
 	), parameters, nil

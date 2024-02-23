@@ -37,11 +37,6 @@ func TestParseColumnDataType(t *testing.T) {
 			expectedOpts: &Opts{Precision: ptr.ToInt(5), Scale: ptr.ToInt(2)},
 		},
 		{
-			input:        "numeric(3,4)",
-			expectedType: Numeric,
-			expectedOpts: &Opts{Precision: ptr.ToInt(3), Scale: ptr.ToInt(4)},
-		},
-		{
 			input:        "foo",
 			expectedType: InvalidDataType,
 		},
