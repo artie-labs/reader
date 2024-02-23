@@ -18,7 +18,7 @@ import (
 	"github.com/artie-labs/reader/sources/mysql/adapter"
 )
 
-const defaultErrorRetries = 10
+const defaultErrorRetries = 1
 
 type Source struct {
 	cfg config.MySQL
