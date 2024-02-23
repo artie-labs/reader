@@ -71,7 +71,6 @@ func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, 
 
 	slog.Info("Scanning table",
 		slog.String("table", table.Name),
-		slog.Any("primaryKeyColumns", primaryKeys.Keys()),
 		slog.Any("batchSize", tableCfg.BatchSize),
 	)
 
