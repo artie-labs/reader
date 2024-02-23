@@ -21,22 +21,28 @@ func TestConvertValue(t *testing.T) {
 			expected: nil,
 		},
 		{
-			name:     "bit - 0",
+			name:     "bit - 0 value",
 			dataType: Bit,
 			value:    []byte{byte(0)},
 			expected: false,
 		},
 		{
-			name:     "bit - 1",
+			name:     "bit - 1 value",
 			dataType: Bit,
 			value:    []byte{byte(1)},
 			expected: true,
 		},
 		{
-			name:        "bit - 2",
+			name:        "bit - 2 value",
 			dataType:    Bit,
 			value:       []byte{byte(2)},
-			expectedErr: "bit value is > 1",
+			expectedErr: "bit value is invalid",
+		},
+		{
+			name:        "bit - 2 bytes",
+			dataType:    Bit,
+			value:       []byte{byte(1), byte(1)},
+			expectedErr: "bit value is invalid",
 		},
 		{
 			name:     "tiny int",

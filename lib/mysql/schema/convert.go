@@ -15,16 +15,10 @@ func ConvertValue(value any, colType DataType) (any, error) {
 		if !ok {
 			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
 		}
-		if len(castValue) == 0 {
-			return nil, fmt.Errorf("bit value is zero bytes: %v", value)
+		if len(castValue) != 1 || castValue[0] > 1 {
+			return nil, fmt.Errorf("bit value is invalid: %v", value)
 		}
-		if castValue[0] == 0 {
-			return false, nil
-		} else if castValue[0] == 1 {
-			return true, nil
-		} else {
-			return nil, fmt.Errorf("bit value is > 1: %v", value)
-		}
+		return castValue[0] == 1, nil
 	case TinyInt,
 		SmallInt,
 		MediumInt,
