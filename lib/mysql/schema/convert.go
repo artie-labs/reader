@@ -58,8 +58,7 @@ func ConvertValue(value any, colType DataType) (any, error) {
 			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
 		}
 		return value, nil
-	case
-		Decimal,
+	case Decimal,
 		Date,
 		DateTime,
 		Time,
