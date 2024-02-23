@@ -5,10 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/artie-labs/transfer/lib/typing"
-
 	transferMongo "github.com/artie-labs/transfer/lib/cdc/mongo"
 	"github.com/artie-labs/transfer/lib/kafkalib"
+	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
