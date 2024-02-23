@@ -66,7 +66,7 @@ func (k *Keys) Clone() *Keys {
 func (k *Keys) UpdateStartingValue(keyName string, startingVal any) error {
 	idx := slices.IndexFunc(k.keys, func(x Key) bool { return x.Name == keyName })
 	if idx < 0 {
-		return fmt.Errorf("could not find key named %s", keyName)
+		return fmt.Errorf("no key named %s", keyName)
 	}
 
 	k.keys[idx].StartingValue = startingVal
