@@ -14,7 +14,6 @@ import (
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/rdbms"
-	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 	"github.com/artie-labs/reader/sources/postgres/adapter"
 )
 
@@ -56,18 +55,13 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 			}
 		}
 
-		primaryKeys := primary_key.NewKeys(table.PrimaryKeys)
-		if err := primaryKeys.LoadValues(tableCfg.GetOptionalPrimaryKeyValStart(), tableCfg.GetOptionalPrimaryKeyValEnd()); err != nil {
-			return fmt.Errorf("failed to override primary key values: %w", err)
-		}
-
-		slog.Info("Scanning table",
-			slog.String("table", table.Name),
-			slog.String("schema", table.Schema),
-			slog.Any("batchSize", tableCfg.GetBatchSize()),
+		scanner, err := table.NewScanner(
+			s.db,
+			tableCfg.GetBatchSize(),
+			tableCfg.GetOptionalPrimaryKeyValStart(),
+			tableCfg.GetOptionalPrimaryKeyValEnd(),
+			defaultErrorRetries,
 		)
-
-		scanner, err := table.NewScanner(s.db, primaryKeys, tableCfg.GetBatchSize(), defaultErrorRetries)
 		if err != nil {
 			return fmt.Errorf("failed to build scanner for table %s: %w", table.Name, err)
 		}

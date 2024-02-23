@@ -15,7 +15,6 @@ import (
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/mysql/scanner"
 	"github.com/artie-labs/reader/lib/rdbms"
-	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 	"github.com/artie-labs/reader/sources/mysql/adapter"
 )
 
@@ -64,17 +63,19 @@ func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, 
 		}
 	}
 
-	primaryKeys := primary_key.NewKeys(table.PrimaryKeys)
-	if err := primaryKeys.LoadValues(tableCfg.GetOptionalPrimaryKeyValStart(), tableCfg.GetOptionalPrimaryKeyValEnd()); err != nil {
-		return fmt.Errorf("failed to override primary key values: %w", err)
-	}
-
 	slog.Info("Scanning table",
 		slog.String("table", table.Name),
 		slog.Any("batchSize", tableCfg.BatchSize),
 	)
 
-	scanner, err := scanner.NewScanner(s.db, *table, primaryKeys, tableCfg.GetBatchSize(), defaultErrorRetries)
+	scanner, err := scanner.NewScanner(
+		s.db,
+		*table,
+		tableCfg.GetBatchSize(),
+		tableCfg.GetOptionalPrimaryKeyValStart(),
+		tableCfg.GetOptionalPrimaryKeyValEnd(),
+		defaultErrorRetries,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to build scanner for table %s: %w", table.Name, err)
 	}
