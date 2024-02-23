@@ -11,7 +11,7 @@ func TestNewKeys(t *testing.T) {
 	{
 		keysArray := []Key{{Name: "foo", StartingValue: 20}, {Name: "bar"}}
 		keys := NewKeys(keysArray)
-		keys.UpdateStartingValue("foo", "new starting value")
+		assert.NoError(t, keys.UpdateStartingValue("foo", "new starting value"))
 		assert.Equal(t, "foo", keys.keys[0].Name)
 		assert.Equal(t, "new starting value", keys.keys[0].StartingValue)
 		assert.Equal(t, "foo", keysArray[0].Name)
@@ -114,7 +114,7 @@ func TestKeys_UpdateStartingValue(t *testing.T) {
 			},
 			keyName:     "Key2",
 			startingVal: startVal2,
-			expectedErr: "boo",
+			expectedErr: "no key named Key2",
 		},
 		{
 			name: "Update existing key",
@@ -134,7 +134,7 @@ func TestKeys_UpdateStartingValue(t *testing.T) {
 	for _, tc := range tcs {
 		err := tc.keys.UpdateStartingValue(tc.keyName, tc.startingVal)
 		if tc.expectedErr != "" {
-			assert.Error(t, err, tc.expectedErr)
+			assert.ErrorContains(t, err, tc.expectedErr, tc.name)
 		} else {
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expectedKeys, tc.keys.keys, tc.name)
