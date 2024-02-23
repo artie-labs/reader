@@ -84,11 +84,11 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 		// FROM
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
 		// WHERE row(pk) > row(123)
-		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), lowerBoundComparison, strings.Join(startingValues, ","),
+		strings.Join(QuotedIdentifiers(args.PrimaryKeys.KeyNames()), ","), lowerBoundComparison, strings.Join(startingValues, ","),
 		// AND row(pk) <= row(123)
-		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), strings.Join(endingValues, ","),
+		strings.Join(QuotedIdentifiers(args.PrimaryKeys.KeyNames()), ","), strings.Join(endingValues, ","),
 		// ORDER BY
-		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","),
+		strings.Join(QuotedIdentifiers(args.PrimaryKeys.KeyNames()), ","),
 		// LIMIT
 		args.Limit,
 	), nil
@@ -130,7 +130,7 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 
 func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) ([]string, error) {
 	var valuesToReturn []string
-	for _, pk := range k.KeysList() {
+	for _, pk := range k.Keys() {
 		val := pk.StartingValue
 		if end {
 			val = pk.EndingValue
@@ -229,7 +229,7 @@ func (s *scanner) scan() ([]map[string]any, error) {
 
 	// Update the starting key so that the next scan will pick off where we last left off.
 	lastRow := rowsData[len(rowsData)-1]
-	for _, pk := range s.primaryKeys.Keys() {
+	for _, pk := range s.primaryKeys.KeyNames() {
 		col, err := s.table.GetColumnByName(pk)
 		if err != nil {
 			return nil, err

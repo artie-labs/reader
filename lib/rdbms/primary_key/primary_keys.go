@@ -21,7 +21,7 @@ func (k *Keys) LoadValues(startingValues, endingValues []string) error {
 	if len(startingValues) != 0 {
 		if len(startingValues) != length {
 			return fmt.Errorf("keys (%v), and passed in values (%v) length does not match, keys: %v, values: %s",
-				length, len(startingValues), k.Keys(), startingValues)
+				length, len(startingValues), k.KeyNames(), startingValues)
 		}
 
 		for idx := range k.keys {
@@ -40,7 +40,7 @@ func (k *Keys) LoadValues(startingValues, endingValues []string) error {
 	if len(endingValues) != 0 {
 		if len(endingValues) != length {
 			return fmt.Errorf("keys (%v), and passed in values (%v) length does not match, keys: %v, values: %s",
-				length, len(endingValues), k.Keys(), endingValues)
+				length, len(endingValues), k.KeyNames(), endingValues)
 		}
 
 		for idx := range k.keys {
@@ -73,7 +73,7 @@ func (k *Keys) UpdateStartingValue(keyName string, startingVal any) error {
 	return nil
 }
 
-func (k *Keys) Keys() []string {
+func (k *Keys) KeyNames() []string {
 	var keysToReturn []string
 	for _, key := range k.keys {
 		keysToReturn = append(keysToReturn, key.Name)
@@ -81,7 +81,7 @@ func (k *Keys) Keys() []string {
 	return keysToReturn
 }
 
-func (k *Keys) KeysList() []Key {
+func (k *Keys) Keys() []Key {
 	return k.keys
 }
 

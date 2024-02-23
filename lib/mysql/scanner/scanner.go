@@ -122,7 +122,7 @@ func (s *scanner) scan() ([]map[string]any, error) {
 
 	// Update the starting key so that the next scan will pick off where we last left off.
 	lastRow := rowsData[len(rowsData)-1]
-	for _, pk := range s.primaryKeys.Keys() {
+	for _, pk := range s.primaryKeys.KeyNames() {
 		if err := s.primaryKeys.UpdateStartingValue(pk, lastRow[pk]); err != nil {
 			return nil, err
 		}
