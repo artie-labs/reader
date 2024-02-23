@@ -229,21 +229,21 @@ func (s *scanner) scan() ([]map[string]any, error) {
 
 	// Update the starting key so that the next scan will pick off where we last left off.
 	lastRow := rowsData[len(rowsData)-1]
-	for _, pk := range s.primaryKeys.KeyNames() {
-		col, err := s.table.GetColumnByName(pk)
+	for _, pk := range s.primaryKeys.Keys() {
+		col, err := s.table.GetColumnByName(pk.Name)
 		if err != nil {
 			return nil, err
 		}
 
 		val, err := ParseValue(col.Type, ParseValueArgs{
-			ValueWrapper: lastRow[pk],
+			ValueWrapper: lastRow[pk.Name],
 			ParseTime:    true,
 		})
 		if err != nil {
 			return nil, err
 		}
 
-		if err := s.primaryKeys.UpdateStartingValue(pk, val.String()); err != nil {
+		if err := s.primaryKeys.UpdateStartingValue(pk.Name, val.String()); err != nil {
 			return nil, err
 		}
 	}
