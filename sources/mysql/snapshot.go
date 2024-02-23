@@ -15,6 +15,7 @@ import (
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/mysql/scanner"
 	"github.com/artie-labs/reader/lib/rdbms"
+	"github.com/artie-labs/reader/lib/rdbms/scan"
 	"github.com/artie-labs/reader/sources/mysql/adapter"
 )
 
@@ -71,10 +72,12 @@ func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, 
 	scanner, err := scanner.NewScanner(
 		s.db,
 		*table,
-		tableCfg.GetBatchSize(),
-		tableCfg.GetOptionalPrimaryKeyValStart(),
-		tableCfg.GetOptionalPrimaryKeyValEnd(),
-		defaultErrorRetries,
+		scan.ScannerConfig{
+			BatchSize:              tableCfg.GetBatchSize(),
+			OptionalStartingValues: tableCfg.GetOptionalPrimaryKeyValStart(),
+			OptionalEndingValues:   tableCfg.GetOptionalPrimaryKeyValEnd(),
+			ErrorRetries:           defaultErrorRetries,
+		},
 	)
 	if err != nil {
 		return fmt.Errorf("failed to build scanner for table %s: %w", table.Name, err)

@@ -12,22 +12,8 @@ import (
 	"github.com/artie-labs/transfer/lib/retry"
 )
 
-func NewScanner(db *sql.DB,
-	table mysql.Table,
-	batchSize uint,
-	optionalStartingValues []string,
-	optionalEndingValues []string,
-	errorRetries int,
-) (scan.Scanner[*mysql.Table], error) {
-	return scan.NewScanner(
-		db,
-		&table,
-		batchSize,
-		optionalStartingValues,
-		optionalEndingValues,
-		errorRetries,
-		_scan,
-	)
+func NewScanner(db *sql.DB, table mysql.Table, cfg scan.ScannerConfig) (scan.Scanner[*mysql.Table], error) {
+	return scan.NewScanner(db, &table, cfg, _scan)
 }
 
 func _scan(

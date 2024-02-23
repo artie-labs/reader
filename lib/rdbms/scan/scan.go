@@ -19,6 +19,14 @@ type Table interface {
 	GetPrimaryKeys() []primary_key.Key
 }
 
+type ScannerConfig struct {
+	BatchSize uint
+	// TODO: These two should be []any
+	OptionalStartingValues []string
+	OptionalEndingValues   []string
+	ErrorRetries           int
+}
+
 type Scanner[T Table] struct {
 	// immutable
 	db        *sql.DB
@@ -42,18 +50,15 @@ type Scanner[T Table] struct {
 func NewScanner[T Table](
 	db *sql.DB,
 	table T,
-	batchSize uint,
-	optionalStartingValues []string,
-	optionalEndingValues []string,
-	errorRetries int,
+	cfg ScannerConfig,
 	scan func(db *sql.DB, table T, primaryKeys *primary_key.Keys, isFirstRow bool, batchSize uint, retryCfg retry.RetryConfig) ([]map[string]any, error),
 ) (Scanner[T], error) {
 	primaryKeys := primary_key.NewKeys(table.GetPrimaryKeys())
-	if err := primaryKeys.LoadValues(optionalStartingValues, optionalEndingValues); err != nil {
+	if err := primaryKeys.LoadValues(cfg.OptionalStartingValues, cfg.OptionalEndingValues); err != nil {
 		return Scanner[T]{}, fmt.Errorf("failed to override primary key values: %w", err)
 	}
 
-	retryCfg, err := retry.NewJitterRetryConfig(jitterBaseMs, jitterMaxMs, errorRetries, retry.AlwaysRetry)
+	retryCfg, err := retry.NewJitterRetryConfig(jitterBaseMs, jitterMaxMs, cfg.ErrorRetries, retry.AlwaysRetry)
 	if err != nil {
 		return Scanner[T]{}, fmt.Errorf("failed to build retry config: %w", err)
 	}
@@ -61,7 +66,7 @@ func NewScanner[T Table](
 	return Scanner[T]{
 		db:           db,
 		table:        table,
-		batchSize:    batchSize,
+		batchSize:    cfg.BatchSize,
 		retryCfg:     retryCfg,
 		scan:         scan,
 		primaryKeys:  primaryKeys.Clone(),

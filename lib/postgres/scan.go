@@ -15,22 +15,8 @@ import (
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
-func (t *Table) NewScanner(
-	db *sql.DB,
-	batchSize uint,
-	optionalStartingValues []string,
-	optionalEndingValues []string,
-	errorRetries int,
-) (scan.Scanner[*Table], error) {
-	return scan.NewScanner(
-		db,
-		t,
-		batchSize,
-		optionalStartingValues,
-		optionalEndingValues,
-		errorRetries,
-		_scan,
-	)
+func (t *Table) NewScanner(db *sql.DB, cfg scan.ScannerConfig) (scan.Scanner[*Table], error) {
+	return scan.NewScanner(db, t, cfg, _scan)
 }
 
 type scanTableQueryArgs struct {
