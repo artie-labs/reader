@@ -187,41 +187,6 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 	}
 }
 
-func ConvertValue(colType DataType, value any) (any, error) {
-	// TODO: test this function with all mysql data types
-	if value == nil {
-		return nil, nil
-	}
-
-	switch colType {
-	case Varchar,
-		Text:
-		switch castValue := value.(type) {
-		case []byte:
-			return string(castValue), nil
-		case string:
-			return castValue, nil
-		default:
-			return nil, fmt.Errorf("could not cast value to string: %v", value)
-		}
-	}
-
-	return value, nil
-}
-
-func ConvertValues(values []any, cols []Column) ([]any, error) {
-	result := make([]any, len(values))
-	for idx, value := range values {
-		col := cols[idx]
-		convertedVal, err := ConvertValue(col.Type, value)
-		if err != nil {
-			return nil, fmt.Errorf("faild to convert value for column %s: %w", col.Name, err)
-		}
-		result[idx] = convertedVal
-	}
-	return result, nil
-}
-
 const primaryKeysQuery = `
 SELECT key_column_usage.column_name
 FROM information_schema.table_constraints
