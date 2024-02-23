@@ -8,6 +8,7 @@ import (
 	"github.com/artie-labs/transfer/lib/stringutil"
 
 	"github.com/artie-labs/reader/constants"
+	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
 type PostgreSQL struct {
@@ -47,18 +48,27 @@ func (p *PostgreSQLTable) GetBatchSize() uint {
 	}
 }
 
-func (m *PostgreSQLTable) GetOptionalPrimaryKeyValStart() []string {
-	if m.OptionalPrimaryKeyValStart == "" {
+func (p *PostgreSQLTable) GetOptionalPrimaryKeyValStart() []string {
+	if p.OptionalPrimaryKeyValStart == "" {
 		return []string{}
 	}
-	return strings.Split(m.OptionalPrimaryKeyValStart, ",")
+	return strings.Split(p.OptionalPrimaryKeyValStart, ",")
 }
 
-func (m *PostgreSQLTable) GetOptionalPrimaryKeyValEnd() []string {
-	if m.OptionalPrimaryKeyValEnd == "" {
+func (p *PostgreSQLTable) GetOptionalPrimaryKeyValEnd() []string {
+	if p.OptionalPrimaryKeyValEnd == "" {
 		return []string{}
 	}
-	return strings.Split(m.OptionalPrimaryKeyValEnd, ",")
+	return strings.Split(p.OptionalPrimaryKeyValEnd, ",")
+}
+
+func (p *PostgreSQLTable) ToScannerConfig(errorRetries int) scan.ScannerConfig {
+	return scan.ScannerConfig{
+		BatchSize:              p.GetBatchSize(),
+		OptionalStartingValues: p.GetOptionalPrimaryKeyValStart(),
+		OptionalEndingValues:   p.GetOptionalPrimaryKeyValEnd(),
+		ErrorRetries:           errorRetries,
+	}
 }
 
 func (p *PostgreSQL) Validate() error {
