@@ -8,13 +8,14 @@ import (
 )
 
 func TestNewKeys(t *testing.T) {
-	// ensure upsert doesn't mutate original arguments to `NewKeys``
+	// ensure upsert doesn't mutate original arguments to `NewKeys`
 	{
 		keysArray := []Key{{Name: "foo", StartingValue: 20}, {Name: "bar"}}
 		keys := NewKeys(keysArray)
 		keys.Upsert("foo", ptr.ToString("new starting value"), nil)
 		assert.Equal(t, "foo", keys.keys[0].Name)
 		assert.Equal(t, "new starting value", keys.keys[0].StartingValue)
+		assert.Equal(t, "foo", keysArray[0].Name)
 		assert.Equal(t, 20, keysArray[0].StartingValue)
 	}
 }
@@ -244,15 +245,19 @@ func TestKeys_Clone(t *testing.T) {
 		assert.Equal(t, []Key{{"foo", "a", "b"}}, keys2.keys)
 		assert.Equal(t, map[string]bool{"foo": true}, keys2.keyMap)
 	}
-	// mutation
+	// cloning actually makes a clone and doesn't reuse pointers to keys
 	{
 		keys := NewKeys([]Key{{Name: "foo", StartingValue: 20}, {Name: "bar", StartingValue: 0}})
-		keys2 := keys.Clone()
-		keys2.Upsert("foo", ptr.ToString("new starting value"), nil)
+		clonedKeys := keys.Clone()
+		clonedKeys.Upsert("foo", ptr.ToString("new starting value"), nil)
 		assert.Equal(t, "foo", keys.keys[0].Name)
 		assert.Equal(t, 20, keys.keys[0].StartingValue)
-		assert.Equal(t, "foo", keys2.keys[0].Name)
-		assert.Equal(t, "new starting value", keys2.keys[0].StartingValue)
+		assert.Equal(t, "foo", clonedKeys.keys[0].Name)
+		assert.Equal(t, "new starting value", clonedKeys.keys[0].StartingValue)
+
+		keys.Upsert("foo", nil, ptr.ToString("new ending value"))
+		assert.Equal(t, "new ending value", keys.keys[0].EndingValue)
+		assert.Nil(t, clonedKeys.keys[0].EndingValue)
 	}
 }
 

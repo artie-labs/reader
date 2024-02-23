@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/artie-labs/transfer/lib/cdc/util"
-	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/lib/debezium"
@@ -45,7 +44,7 @@ func TestDebeziumTransformer(t *testing.T) {
 		{Name: "a", Type: schema.Int16},
 		{Name: "b", Type: schema.Text},
 	}
-	table.PrimaryKeys = []primary_key.Key{{Name: "a", StartingValue: ptr.ToString("1"), EndingValue: ptr.ToString("4")}}
+	table.PrimaryKeys = []primary_key.Key{{Name: "a", StartingValue: "1", EndingValue: "4"}}
 
 	// test zero batches
 	{

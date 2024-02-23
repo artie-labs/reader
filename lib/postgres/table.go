@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/artie-labs/transfer/lib/ptr"
-
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
@@ -94,8 +92,8 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 
 		t.PrimaryKeys[idx] = primary_key.Key{
 			Name:          col.Name,
-			StartingValue: ptr.ToString(minVal.String()),
-			EndingValue:   ptr.ToString(maxVal.String()),
+			StartingValue: minVal.String(),
+			EndingValue:   maxVal.String(),
 		}
 	}
 

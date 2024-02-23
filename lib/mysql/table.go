@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/artie-labs/transfer/lib/ptr"
-
 	"github.com/artie-labs/reader/lib/mysql/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
@@ -77,8 +75,8 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 		maxValue := fmt.Sprint(bounds.Max)
 		t.PrimaryKeys[idx] = primary_key.Key{
 			Name:          col.Name,
-			StartingValue: ptr.ToString(minValue),
-			EndingValue:   ptr.ToString(maxValue),
+			StartingValue: minValue,
+			EndingValue:   maxValue,
 		}
 	}
 
