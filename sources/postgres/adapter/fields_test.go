@@ -61,7 +61,7 @@ func TestColumnToField(t *testing.T) {
 				Type:         "",
 				FieldName:    "numeric_col",
 				DebeziumType: string(debezium.KafkaDecimalType),
-				Parameters:   map[string]interface{}{"scale": "2", "connect.decimal.precision": "10"},
+				Parameters:   map[string]any{"scale": "2", "connect.decimal.precision": "10"},
 			},
 		},
 		{

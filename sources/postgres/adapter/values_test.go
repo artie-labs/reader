@@ -15,9 +15,9 @@ func TestConvertValueToDebezium(t *testing.T) {
 	type _tc struct {
 		name          string
 		col           schema.Column
-		value         interface{}
+		value         any
 		numericValue  bool
-		expectedValue interface{}
+		expectedValue any
 		expectErr     bool
 	}
 

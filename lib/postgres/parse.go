@@ -18,12 +18,12 @@ type ParseValueArgs struct {
 	ValueWrapper ValueWrapper
 }
 
-func (p *ParseValueArgs) Value() interface{} {
+func (p *ParseValueArgs) Value() any {
 	return p.ValueWrapper.Value
 }
 
 type ValueWrapper struct {
-	Value  interface{}
+	Value  any
 	parsed bool
 }
 
@@ -31,7 +31,7 @@ func (v *ValueWrapper) String() string {
 	return fmt.Sprint(v.Value)
 }
 
-func NewValueWrapper(value interface{}) ValueWrapper {
+func NewValueWrapper(value any) ValueWrapper {
 	return ValueWrapper{
 		Value:  value,
 		parsed: true,
@@ -93,7 +93,7 @@ func ParseValue(colKind schema.DataType, args ParseValueArgs) (ValueWrapper, err
 
 		return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type for Numeric or VariableNumeric", args.Value())
 	case schema.Array:
-		var arr []interface{}
+		var arr []any
 		if reflect.TypeOf(args.Value()).Kind() == reflect.Slice {
 			// If it's already a slice, don't modify it further.
 			return NewValueWrapper(args.Value()), nil
@@ -123,7 +123,7 @@ func ParseValue(colKind schema.DataType, args ParseValueArgs) (ValueWrapper, err
 			return NewValueWrapper(nil), fmt.Errorf("failed to unmarshal hstore: %w", err)
 		}
 
-		jsonMap := make(map[string]interface{})
+		jsonMap := make(map[string]any)
 		for key, value := range val.Map {
 			if value.Status == pgtype.Present {
 				jsonMap[key] = value.String

@@ -115,7 +115,7 @@ func ColumnToField(col schema.Column) debezium.Field {
 	}
 
 	if col.Opts != nil {
-		field.Parameters = make(map[string]interface{})
+		field.Parameters = make(map[string]any)
 
 		if col.Opts.Scale != nil {
 			field.Parameters["scale"] = *col.Opts.Scale

@@ -2,9 +2,10 @@ package mongo
 
 import (
 	"encoding/json"
-	"github.com/artie-labs/transfer/lib/typing"
 	"testing"
 	"time"
+
+	"github.com/artie-labs/transfer/lib/typing"
 
 	transferMongo "github.com/artie-labs/transfer/lib/cdc/mongo"
 	"github.com/artie-labs/transfer/lib/kafkalib"
@@ -52,7 +53,7 @@ func TestParseMessage(t *testing.T) {
 			"subDocument": bson.M{
 				"nestedString": "Nested value",
 			},
-			"array": []interface{}{"apple", "banana", "cherry"},
+			"array": []any{"apple", "banana", "cherry"},
 			"timestamp": primitive.Timestamp{
 				T: uint32(1707856668), // Seconds since Unix epoch
 				I: 123,                // Increment value
@@ -79,7 +80,7 @@ func TestParseMessage(t *testing.T) {
 	kvMap, err := dbz.GetEventFromBytes(typing.Settings{}, rawMsgBytes)
 	assert.NoError(t, err)
 
-	expectedMap := map[string]interface{}{
+	expectedMap := map[string]any{
 		"_id":         "507f1f77bcf86cd799439011",
 		"string":      "Hello, world!",
 		"int32":       float64(42),
@@ -87,7 +88,7 @@ func TestParseMessage(t *testing.T) {
 		"double":      3.14159,
 		"decimal":     1234.5,
 		"subDocument": `{"nestedString":"Nested value"}`,
-		"array":       []interface{}{"apple", "banana", "cherry"},
+		"array":       []any{"apple", "banana", "cherry"},
 		"datetime":    "2024-02-13T20:37:48+00:00",
 		"trueValue":   true,
 		"falseValue":  false,

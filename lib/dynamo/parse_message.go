@@ -22,7 +22,7 @@ func NewMessageFromExport(item dynamodb.ItemResponse, keys []string, tableName s
 	executionTime := time.Now()
 
 	rowData := transformNewImage(item.Item)
-	primaryKeys := make(map[string]interface{})
+	primaryKeys := make(map[string]any)
 	for _, key := range keys {
 		val, isOk := rowData[key]
 		if !isOk {

@@ -47,27 +47,27 @@ func TestMySQLAdapter_PartitionKey(t *testing.T) {
 	type _tc struct {
 		name     string
 		keys     []primary_key.Key
-		row      map[string]interface{}
-		expected map[string]interface{}
+		row      map[string]any
+		expected map[string]any
 	}
 
 	tcs := []_tc{
 		{
 			name:     "no primary keys",
-			row:      map[string]interface{}{},
-			expected: map[string]interface{}{},
+			row:      map[string]any{},
+			expected: map[string]any{},
 		},
 		{
 			name:     "primary keys - empty row",
 			keys:     []primary_key.Key{{Name: "foo"}, {Name: "bar"}},
-			row:      map[string]interface{}{},
-			expected: map[string]interface{}{"foo": nil, "bar": nil},
+			row:      map[string]any{},
+			expected: map[string]any{"foo": nil, "bar": nil},
 		},
 		{
 			name:     "primary keys - row has data",
 			keys:     []primary_key.Key{{Name: "foo"}, {Name: "bar"}},
-			row:      map[string]interface{}{"foo": "a", "bar": 2, "baz": 3},
-			expected: map[string]interface{}{"foo": "a", "bar": 2},
+			row:      map[string]any{"foo": "a", "bar": 2, "baz": 3},
+			expected: map[string]any{"foo": "a", "bar": 2},
 		},
 	}
 

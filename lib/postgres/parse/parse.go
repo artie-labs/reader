@@ -12,8 +12,8 @@ type Point struct {
 	X, Y float64
 }
 
-func (p *Point) ToMap() map[string]interface{} {
-	return map[string]interface{}{
+func (p *Point) ToMap() map[string]any {
+	return map[string]any{
 		"x": p.X,
 		"y": p.Y,
 	}
@@ -49,14 +49,14 @@ func ToPoint(data string) (*Point, error) {
 
 // ToGeography will take in a byte array (encoded in hex), decode it then b64 encode it and return it.
 // Inspired by: https://github.com/twpayne/go-geom/issues/122#issuecomment-915170454
-func ToGeography(data []byte) (map[string]interface{}, error) {
+func ToGeography(data []byte) (map[string]any, error) {
 	decodedBytes := make([]byte, hex.DecodedLen(len(data)))
 	_, err := hex.Decode(decodedBytes, data)
 	if err != nil {
 		return nil, err
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"wkb":  base64.StdEncoding.EncodeToString(decodedBytes),
 		"srid": nil,
 	}, nil

@@ -50,7 +50,7 @@ func (s *scanner) HasNext() bool {
 	return !s.done
 }
 
-func (s *scanner) Next() ([]map[string]interface{}, error) {
+func (s *scanner) Next() ([]map[string]any, error) {
 	if !s.HasNext() {
 		return nil, fmt.Errorf("no more rows to scan")
 	}
@@ -71,7 +71,7 @@ func (s *scanner) Next() ([]map[string]interface{}, error) {
 	return rows, nil
 }
 
-func (s *scanner) scan() ([]map[string]interface{}, error) {
+func (s *scanner) scan() ([]map[string]any, error) {
 	query, parameters, err := buildScanTableQuery(buildScanTableQueryArgs{
 		TableName:           s.table.Name,
 		PrimaryKeys:         s.primaryKeys,
@@ -92,20 +92,20 @@ func (s *scanner) scan() ([]map[string]interface{}, error) {
 		return nil, fmt.Errorf("failed to scan table: %w", err)
 	}
 
-	values := make([]interface{}, len(s.table.Columns))
-	valuePtrs := make([]interface{}, len(values))
+	values := make([]any, len(s.table.Columns))
+	valuePtrs := make([]any, len(values))
 	for i := range values {
 		valuePtrs[i] = &values[i]
 	}
 
-	var rowsData []map[string]interface{}
+	var rowsData []map[string]any
 	for rows.Next() {
 		err = rows.Scan(valuePtrs...)
 		if err != nil {
 			return nil, err
 		}
 
-		row := make(map[string]interface{})
+		row := make(map[string]any)
 		for idx, value := range values {
 			col := s.table.Columns[idx]
 			row[col.Name], err = convertValue(col.Type, value)
@@ -131,7 +131,7 @@ func (s *scanner) scan() ([]map[string]interface{}, error) {
 	return rowsData, nil
 }
 
-func convertValue(colType schema.DataType, value interface{}) (interface{}, error) {
+func convertValue(colType schema.DataType, value any) (any, error) {
 	// TODO: test this function with all mysql data types
 
 	if value == nil {

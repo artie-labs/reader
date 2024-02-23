@@ -244,9 +244,9 @@ func buildPkValuesQuery(keys []Column, tableName string, descending bool) string
 	)
 }
 
-func getPrimaryKeyValues(db *sql.DB, table string, primaryKeys []Column, descending bool) ([]interface{}, error) {
-	result := make([]interface{}, len(primaryKeys))
-	resultPtrs := make([]interface{}, len(primaryKeys))
+func getPrimaryKeyValues(db *sql.DB, table string, primaryKeys []Column, descending bool) ([]any, error) {
+	result := make([]any, len(primaryKeys))
+	resultPtrs := make([]any, len(primaryKeys))
 	for i := range result {
 		resultPtrs[i] = &result[i]
 	}
