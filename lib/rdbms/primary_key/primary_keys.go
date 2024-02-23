@@ -7,19 +7,13 @@ import (
 )
 
 type Keys struct {
-	keys   []Key
-	keyMap map[string]bool
+	keys []Key
 }
 
 func NewKeys(keys []Key) *Keys {
-	result := &Keys{
-		keyMap: make(map[string]bool),
-		keys:   slices.Clone(keys),
+	return &Keys{
+		keys: slices.Clone(keys),
 	}
-	for _, key := range result.keys {
-		result.keyMap[key.Name] = true
-	}
-	return result
 }
 
 func (k *Keys) LoadValues(startingValues, endingValues []string) error {
@@ -65,49 +59,18 @@ func (k *Keys) LoadValues(startingValues, endingValues []string) error {
 	return nil
 }
 
-func (k *Keys) Length() int {
-	if k == nil {
-		return 0
-	}
-
-	return len(k.keys)
-}
-
 func (k *Keys) Clone() *Keys {
 	return NewKeys(k.keys)
 }
 
-func (k *Keys) Upsert(keyName string, startingVal *string, endingVal *string) {
-	_, isOk := k.keyMap[keyName]
-	if isOk {
-		for index := range k.keys {
-			if k.keys[index].Name == keyName {
-				if startingVal != nil {
-					k.keys[index].StartingValue = *startingVal
-				}
-
-				if endingVal != nil {
-					k.keys[index].EndingValue = *endingVal
-				}
-				break
-			}
-		}
-	} else {
-		key := Key{
-			Name: keyName,
-		}
-
-		if startingVal != nil {
-			key.StartingValue = *startingVal
-		}
-
-		if endingVal != nil {
-			key.EndingValue = *endingVal
-		}
-
-		k.keys = append(k.keys, key)
-		k.keyMap[key.Name] = true
+func (k *Keys) UpdateStartingValue(keyName string, startingVal any) error {
+	idx := slices.IndexFunc(k.keys, func(x Key) bool { return x.Name == keyName })
+	if idx < 0 {
+		return fmt.Errorf("could not find key named %s", keyName)
 	}
+
+	k.keys[idx].StartingValue = startingVal
+	return nil
 }
 
 func (k *Keys) Keys() []string {

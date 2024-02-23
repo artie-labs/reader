@@ -3,7 +3,6 @@ package postgres
 import (
 	"testing"
 
-	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/lib/postgres/schema"
@@ -76,7 +75,9 @@ func TestKeysToValueList(t *testing.T) {
 		assert.Equal(t, []string{"4", "'z'", "'2001-01-02 03:04:05'"}, values)
 	}
 	{
-		primaryKeys.Upsert("d", ptr.ToString("1"), ptr.ToString("4"))
+		primaryKeys := primary_key.NewKeys(
+			append(primaryKeys.KeysList(), primary_key.Key{Name: "d", StartingValue: "1", EndingValue: "4"}),
+		)
 		_, err := keysToValueList(primaryKeys, cols, true)
 		assert.ErrorContains(t, err, "primary key d not found in columns")
 	}

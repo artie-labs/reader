@@ -7,7 +7,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/artie-labs/transfer/lib/retry"
 	"github.com/jackc/pgx/v5"
 
@@ -244,7 +243,9 @@ func (s *scanner) scan() ([]map[string]interface{}, error) {
 			return nil, err
 		}
 
-		s.primaryKeys.Upsert(pk, ptr.ToString(val.String()), nil)
+		if err := s.primaryKeys.UpdateStartingValue(pk, val.String()); err != nil {
+			return nil, err
+		}
 	}
 
 	var parsedRows []map[string]interface{}
