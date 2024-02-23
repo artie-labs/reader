@@ -5,7 +5,6 @@ import (
 
 	"github.com/artie-labs/reader/lib/mysql/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
-	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,10 +15,11 @@ func TestSqlPlaceholders(t *testing.T) {
 }
 
 func TestBuildScanTableQuery(t *testing.T) {
-	keys := primary_key.NewKeys()
-	keys.Upsert("foo", ptr.ToString("a"), ptr.ToString("b"))
+	keys := primary_key.NewKeys([]primary_key.Key{
+		{Name: "foo", StartingValue: "a", EndingValue: "b"},
+	})
 	{
-		// uninclusive upper and lower bounds
+		// exclusive lower bound
 		query, parameters, err := buildScanTableQuery(buildScanTableQueryArgs{
 			TableName:   "table",
 			PrimaryKeys: keys,
@@ -27,11 +27,12 @@ func TestBuildScanTableQuery(t *testing.T) {
 				{Name: "foo"},
 				{Name: "bar"},
 			},
-			Limit: 12,
+			InclusiveLowerBound: false,
+			Limit:               12,
 		})
 		assert.NoError(t, err)
-		assert.Equal(t, "SELECT `foo`,`bar` FROM `table` WHERE (`foo`) > (?) AND NOT (`foo`) >= (?) ORDER BY `foo` LIMIT 12", query)
-		assert.Equal(t, []interface{}{"a", "b"}, parameters)
+		assert.Equal(t, "SELECT `foo`,`bar` FROM `table` WHERE (`foo`) > (?) AND (`foo`) <= (?) ORDER BY `foo` LIMIT 12", query)
+		assert.Equal(t, []any{"a", "b"}, parameters)
 	}
 	{
 		// inclusive upper and lower bounds
@@ -43,11 +44,10 @@ func TestBuildScanTableQuery(t *testing.T) {
 				{Name: "bar"},
 			},
 			InclusiveLowerBound: true,
-			InclusiveUpperBound: true,
 			Limit:               12,
 		})
 		assert.NoError(t, err)
-		assert.Equal(t, "SELECT `foo`,`bar` FROM `table` WHERE (`foo`) >= (?) AND NOT (`foo`) > (?) ORDER BY `foo` LIMIT 12", query)
-		assert.Equal(t, []interface{}{"a", "b"}, parameters)
+		assert.Equal(t, "SELECT `foo`,`bar` FROM `table` WHERE (`foo`) >= (?) AND (`foo`) <= (?) ORDER BY `foo` LIMIT 12", query)
+		assert.Equal(t, []any{"a", "b"}, parameters)
 	}
 }

@@ -7,7 +7,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/artie-labs/transfer/lib/retry"
 	"github.com/jackc/pgx/v5"
 
@@ -30,11 +29,10 @@ type scanner struct {
 	// mutable
 	primaryKeys *primary_key.Keys
 	isFirstRow  bool
-	isLastRow   bool
 	done        bool
 }
 
-func (t *Table) NewScanner(db *sql.DB, batchSize uint, errorRetries int) (scanner, error) {
+func (t *Table) NewScanner(db *sql.DB, primaryKeys *primary_key.Keys, batchSize uint, errorRetries int) (scanner, error) {
 	retryCfg, err := retry.NewJitterRetryConfig(jitterBaseMs, jitterMaxMs, errorRetries, retry.AlwaysRetry)
 	if err != nil {
 		return scanner{}, fmt.Errorf("failed to build retry config: %w", err)
@@ -45,39 +43,19 @@ func (t *Table) NewScanner(db *sql.DB, batchSize uint, errorRetries int) (scanne
 		table:       t,
 		batchSize:   batchSize,
 		retryCfg:    retryCfg,
-		primaryKeys: t.PrimaryKeys.Clone(),
+		primaryKeys: primaryKeys.Clone(),
 		isFirstRow:  true,
-		isLastRow:   false,
 		done:        false,
 	}, nil
 }
 
-type Comparison string
-
-const (
-	GreaterThan        Comparison = ">"
-	GreaterThanEqualTo Comparison = ">="
-)
-
-func (c Comparison) SQLString() string {
-	if (c == GreaterThan) || (c == GreaterThanEqualTo) {
-		return string(c)
-	}
-	panic(fmt.Sprintf("invalid comparison: '%v'", c))
-}
-
 type scanTableQueryArgs struct {
-	Schema      string
-	TableName   string
-	PrimaryKeys *primary_key.Keys
-	Columns     []schema.Column
-
-	// First where clause
-	FirstWhere Comparison
-	// Second where clause
-	SecondWhere Comparison
-
-	Limit uint
+	Schema              string
+	TableName           string
+	PrimaryKeys         *primary_key.Keys
+	Columns             []schema.Column
+	InclusiveLowerBound bool
+	Limit               uint
 }
 
 func scanTableQuery(args scanTableQueryArgs) (string, error) {
@@ -95,14 +73,23 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 		return "", err
 	}
 
-	return fmt.Sprintf(`SELECT %s FROM %s WHERE row(%s) %s row(%s) AND NOT row(%s) %s row(%s) ORDER BY %s LIMIT %d`,
+	lowerBoundComparison := ">"
+	if args.InclusiveLowerBound {
+		lowerBoundComparison = ">="
+	}
+
+	return fmt.Sprintf(`SELECT %s FROM %s WHERE row(%s) %s row(%s) AND row(%s) <= row(%s) ORDER BY %s LIMIT %d`,
+		// SELECT
 		strings.Join(castedColumns, ","),
+		// FROM
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
 		// WHERE row(pk) > row(123)
-		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), args.FirstWhere.SQLString(), strings.Join(startingValues, ","),
-		// AND NOT row(pk) < row(123)
-		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), args.SecondWhere.SQLString(), strings.Join(endingValues, ","),
+		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), lowerBoundComparison, strings.Join(startingValues, ","),
+		// AND row(pk) <= row(123)
+		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","), strings.Join(endingValues, ","),
+		// ORDER BY
 		strings.Join(QuotedIdentifiers(args.PrimaryKeys.Keys()), ","),
+		// LIMIT
 		args.Limit,
 	), nil
 }
@@ -171,28 +158,14 @@ func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) ([]
 	return valuesToReturn, nil
 }
 
-func (s *scanner) scan() ([]map[string]interface{}, error) {
-	firstWhereClause := GreaterThan
-	if s.isFirstRow {
-		firstWhereClause = GreaterThanEqualTo
-	}
-
-	secondWhereClause := GreaterThan
-	if s.isLastRow {
-		secondWhereClause = GreaterThanEqualTo
-	}
-
+func (s *scanner) scan() ([]map[string]any, error) {
 	query, err := scanTableQuery(scanTableQueryArgs{
-		Schema:      s.table.Schema,
-		TableName:   s.table.Name,
-		PrimaryKeys: s.primaryKeys,
-		Columns:     s.table.Columns,
-
-		FirstWhere: firstWhereClause,
-
-		SecondWhere: secondWhereClause,
-
-		Limit: s.batchSize,
+		Schema:              s.table.Schema,
+		TableName:           s.table.Name,
+		PrimaryKeys:         s.primaryKeys,
+		Columns:             s.table.Columns,
+		InclusiveLowerBound: s.isFirstRow,
+		Limit:               s.batchSize,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate query: %w", err)
@@ -219,8 +192,8 @@ func (s *scanner) scan() ([]map[string]interface{}, error) {
 	}
 
 	count := len(columns)
-	values := make([]interface{}, count)
-	scanArgs := make([]interface{}, count)
+	values := make([]any, count)
+	scanArgs := make([]any, count)
 	for i := range values {
 		scanArgs[i] = &values[i]
 	}
@@ -251,7 +224,7 @@ func (s *scanner) scan() ([]map[string]interface{}, error) {
 	}
 
 	if len(rowsData) == 0 {
-		return make([]map[string]interface{}, 0), nil
+		return make([]map[string]any, 0), nil
 	}
 
 	// Update the starting key so that the next scan will pick off where we last left off.
@@ -270,12 +243,14 @@ func (s *scanner) scan() ([]map[string]interface{}, error) {
 			return nil, err
 		}
 
-		s.primaryKeys.Upsert(pk, ptr.ToString(val.String()), nil)
+		if err := s.primaryKeys.UpdateStartingValue(pk, val.String()); err != nil {
+			return nil, err
+		}
 	}
 
-	var parsedRows []map[string]interface{}
+	var parsedRows []map[string]any
 	for _, row := range rowsData {
-		parsedRow := make(map[string]interface{})
+		parsedRow := make(map[string]any)
 		for key, value := range row {
 			parsedRow[key] = value.Value
 		}
@@ -290,21 +265,23 @@ func (s *scanner) HasNext() bool {
 	return !s.done
 }
 
-func (s *scanner) Next() ([]map[string]interface{}, error) {
+func (s *scanner) Next() ([]map[string]any, error) {
 	if !s.HasNext() {
 		return nil, fmt.Errorf("no more rows to scan")
 	}
+
 	rows, err := s.scan()
 	if err != nil {
 		s.done = true
 		return nil, err
-	} else if len(rows) == 0 {
+	}
+
+	if len(rows) == 0 || s.primaryKeys.IsExhausted() {
 		slog.Info("Finished scanning", slog.String("table", s.table.Name))
 		s.done = true
-		return nil, nil
 	}
+
 	s.isFirstRow = false
-	// The reason why lastRow exists is because in the past, we had queries only return partial results but it wasn't fully done
-	s.isLastRow = s.batchSize > uint(len(rows))
+
 	return rows, nil
 }

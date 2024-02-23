@@ -19,9 +19,9 @@ const (
 )
 
 type ItemWrapper struct {
-	Value            interface{} `yaml:"value"`
-	Expiration       int64       `yaml:"expiration"`
-	DoNotFlushToDisk bool        `yaml:"-"`
+	Value            any   `yaml:"value"`
+	Expiration       int64 `yaml:"expiration"`
+	DoNotFlushToDisk bool  `yaml:"-"`
 }
 
 type TTLMap struct {
@@ -55,7 +55,7 @@ func NewMap(filePath string, cleanupInterval, flushInterval time.Duration) *TTLM
 
 type SetArgs struct {
 	Key              string
-	Value            interface{}
+	Value            any
 	DoNotFlushToDisk bool
 }
 
@@ -73,7 +73,7 @@ func (t *TTLMap) Set(setArgs SetArgs, ttl time.Duration) {
 	t.shouldSave = true
 }
 
-func (t *TTLMap) Get(key string) (interface{}, bool) {
+func (t *TTLMap) Get(key string) (any, bool) {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 

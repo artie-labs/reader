@@ -6,7 +6,7 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-func NewMessage(topic string, partitionKey map[string]interface{}, value interface{}) (kafka.Message, error) {
+func NewMessage(topic string, partitionKey map[string]any, value any) (kafka.Message, error) {
 	valueBytes, err := json.Marshal(value)
 	if err != nil {
 		return kafka.Message{}, err

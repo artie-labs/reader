@@ -26,11 +26,10 @@ type scanner struct {
 	// mutable
 	primaryKeys  *primary_key.Keys
 	isFirstBatch bool
-	isLastBatch  bool
 	done         bool
 }
 
-func NewScanner(db *sql.DB, table mysql.Table, batchSize uint, errorRetries int) (scanner, error) {
+func NewScanner(db *sql.DB, table mysql.Table, primaryKeys *primary_key.Keys, batchSize uint, errorRetries int) (scanner, error) {
 	retryCfg, err := retry.NewJitterRetryConfig(jitterBaseMs, jitterMaxMs, errorRetries, retry.AlwaysRetry)
 	if err != nil {
 		return scanner{}, fmt.Errorf("failed to build retry config: %w", err)
@@ -41,9 +40,8 @@ func NewScanner(db *sql.DB, table mysql.Table, batchSize uint, errorRetries int)
 		table:        table,
 		batchSize:    batchSize,
 		retryCfg:     retryCfg,
-		primaryKeys:  table.PrimaryKeys.Clone(),
+		primaryKeys:  primaryKeys.Clone(),
 		isFirstBatch: true,
-		isLastBatch:  false,
 		done:         false,
 	}, nil
 }
@@ -52,7 +50,7 @@ func (s *scanner) HasNext() bool {
 	return !s.done
 }
 
-func (s *scanner) Next() ([]map[string]interface{}, error) {
+func (s *scanner) Next() ([]map[string]any, error) {
 	if !s.HasNext() {
 		return nil, fmt.Errorf("no more rows to scan")
 	}
@@ -63,29 +61,23 @@ func (s *scanner) Next() ([]map[string]interface{}, error) {
 		return nil, err
 	}
 
-	if len(rows) == 0 {
+	if len(rows) == 0 || s.primaryKeys.IsExhausted() {
 		slog.Info("Finished scanning", slog.String("table", s.table.Name))
 		s.done = true
-		return nil, nil
 	}
 
 	s.isFirstBatch = false
-	// The reason why `isLastBatch`` exists is because in the past, we had queries only return partial results but it wasn't fully done
-	s.isLastBatch = s.batchSize > uint(len(rows))
 
 	return rows, nil
 }
 
-func (s *scanner) scan() ([]map[string]interface{}, error) {
+func (s *scanner) scan() ([]map[string]any, error) {
 	query, parameters, err := buildScanTableQuery(buildScanTableQueryArgs{
-		TableName:   s.table.Name,
-		PrimaryKeys: s.primaryKeys,
-		Columns:     s.table.Columns,
-
+		TableName:           s.table.Name,
+		PrimaryKeys:         s.primaryKeys,
+		Columns:             s.table.Columns,
 		InclusiveLowerBound: s.isFirstBatch,
-		InclusiveUpperBound: !s.isLastBatch,
-
-		Limit: s.batchSize,
+		Limit:               s.batchSize,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate query: %w", err)
@@ -100,20 +92,20 @@ func (s *scanner) scan() ([]map[string]interface{}, error) {
 		return nil, fmt.Errorf("failed to scan table: %w", err)
 	}
 
-	values := make([]interface{}, len(s.table.Columns))
-	valuePtrs := make([]interface{}, len(values))
+	values := make([]any, len(s.table.Columns))
+	valuePtrs := make([]any, len(values))
 	for i := range values {
 		valuePtrs[i] = &values[i]
 	}
 
-	var rowsData []map[string]interface{}
+	var rowsData []map[string]any
 	for rows.Next() {
 		err = rows.Scan(valuePtrs...)
 		if err != nil {
 			return nil, err
 		}
 
-		row := make(map[string]interface{})
+		row := make(map[string]any)
 		for idx, value := range values {
 			col := s.table.Columns[idx]
 			row[col.Name], err = convertValue(col.Type, value)
@@ -131,15 +123,15 @@ func (s *scanner) scan() ([]map[string]interface{}, error) {
 	// Update the starting key so that the next scan will pick off where we last left off.
 	lastRow := rowsData[len(rowsData)-1]
 	for _, pk := range s.primaryKeys.Keys() {
-		value := lastRow[pk]
-		valueStr := fmt.Sprint(value)
-		s.primaryKeys.Upsert(pk, &valueStr, nil)
+		if err := s.primaryKeys.UpdateStartingValue(pk, lastRow[pk]); err != nil {
+			return nil, err
+		}
 	}
 
 	return rowsData, nil
 }
 
-func convertValue(colType schema.DataType, value interface{}) (interface{}, error) {
+func convertValue(colType schema.DataType, value any) (any, error) {
 	// TODO: test this function with all mysql data types
 
 	if value == nil {

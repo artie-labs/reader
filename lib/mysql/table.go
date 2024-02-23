@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/artie-labs/transfer/lib/ptr"
-
 	"github.com/artie-labs/reader/lib/mysql/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
@@ -15,13 +13,12 @@ type Table struct {
 	Name string
 
 	Columns     []schema.Column
-	PrimaryKeys *primary_key.Keys
+	PrimaryKeys []primary_key.Key
 }
 
 func NewTable(name string) *Table {
 	return &Table{
-		Name:        name,
-		PrimaryKeys: primary_key.NewKeys(),
+		Name: name,
 	}
 }
 
@@ -71,11 +68,16 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 		return fmt.Errorf("failed to retrieve bounds for primary keys: %w", err)
 	}
 
+	t.PrimaryKeys = make([]primary_key.Key, len(primaryKeysBounds))
 	for idx, bounds := range primaryKeysBounds {
 		col := keyColumns[idx]
 		minValue := fmt.Sprint(bounds.Min)
 		maxValue := fmt.Sprint(bounds.Max)
-		t.PrimaryKeys.Upsert(col.Name, ptr.ToString(minValue), ptr.ToString(maxValue))
+		t.PrimaryKeys[idx] = primary_key.Key{
+			Name:          col.Name,
+			StartingValue: minValue,
+			EndingValue:   maxValue,
+		}
 	}
 
 	return nil

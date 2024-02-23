@@ -18,7 +18,7 @@ func TestParse(t *testing.T) {
 		parseTime     bool
 		value         ValueWrapper
 		expectErr     bool
-		expectedValue interface{}
+		expectedValue any
 	}
 
 	tcs := []_testCase{
@@ -44,7 +44,7 @@ func TestParse(t *testing.T) {
 			value: ValueWrapper{
 				Value: `["foo", "bar", "abc"]`,
 			},
-			expectedValue: []interface{}{"foo", "bar", "abc"},
+			expectedValue: []any{"foo", "bar", "abc"},
 		},
 		{
 			colName: "group",
@@ -87,7 +87,7 @@ func TestParse(t *testing.T) {
 			value: ValueWrapper{
 				Value: "0101000020E61000000000000000804B4000000000008040C0",
 			},
-			expectedValue: map[string]interface{}{
+			expectedValue: map[string]any{
 				"srid": nil,
 				"wkb":  "AQEAACDmEAAAAAAAAACAS0AAAAAAAIBAwA==",
 			},

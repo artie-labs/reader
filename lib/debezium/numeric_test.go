@@ -104,7 +104,7 @@ func TestEncodeDecimalToBase64(t *testing.T) {
 		actualEncodedValue, err := EncodeDecimalToBase64(tc.value, tc.scale)
 		assert.NoError(t, err, tc.name)
 		field := debezium.Field{
-			Parameters: map[string]interface{}{
+			Parameters: map[string]any{
 				"scale": tc.scale,
 			},
 		}

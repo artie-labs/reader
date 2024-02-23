@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/lib/mysql"
+	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
 
 func TestMySQLAdapter_TableName(t *testing.T) {
@@ -45,37 +46,34 @@ func TestMySQLAdapter_TopicSuffix(t *testing.T) {
 func TestMySQLAdapter_PartitionKey(t *testing.T) {
 	type _tc struct {
 		name     string
-		keys     []string
-		row      map[string]interface{}
-		expected map[string]interface{}
+		keys     []primary_key.Key
+		row      map[string]any
+		expected map[string]any
 	}
 
 	tcs := []_tc{
 		{
 			name:     "no primary keys",
-			keys:     []string{},
-			row:      map[string]interface{}{},
-			expected: map[string]interface{}{},
+			row:      map[string]any{},
+			expected: map[string]any{},
 		},
 		{
 			name:     "primary keys - empty row",
-			keys:     []string{"foo", "bar"},
-			row:      map[string]interface{}{},
-			expected: map[string]interface{}{"foo": nil, "bar": nil},
+			keys:     []primary_key.Key{{Name: "foo"}, {Name: "bar"}},
+			row:      map[string]any{},
+			expected: map[string]any{"foo": nil, "bar": nil},
 		},
 		{
 			name:     "primary keys - row has data",
-			keys:     []string{"foo", "bar"},
-			row:      map[string]interface{}{"foo": "a", "bar": 2, "baz": 3},
-			expected: map[string]interface{}{"foo": "a", "bar": 2},
+			keys:     []primary_key.Key{{Name: "foo"}, {Name: "bar"}},
+			row:      map[string]any{"foo": "a", "bar": 2, "baz": 3},
+			expected: map[string]any{"foo": "a", "bar": 2},
 		},
 	}
 
 	for _, tc := range tcs {
 		table := mysql.NewTable("tbl1")
-		for _, key := range tc.keys {
-			table.PrimaryKeys.Upsert(key, nil, nil)
-		}
+		table.PrimaryKeys = tc.keys
 		adapter := NewMySQLAdapter(*table)
 		assert.Equal(t, tc.expected, adapter.PartitionKey(tc.row), tc.name)
 	}

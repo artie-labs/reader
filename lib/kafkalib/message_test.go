@@ -10,7 +10,7 @@ import (
 func TestNewMessage(t *testing.T) {
 	payload := util.SchemaEventPayload{
 		Payload: util.Payload{
-			After: map[string]interface{}{"a": "b"},
+			After: map[string]any{"a": "b"},
 			Source: util.Source{
 				TsMs:  1000,
 				Table: "table",
@@ -19,7 +19,7 @@ func TestNewMessage(t *testing.T) {
 		},
 	}
 
-	msg, err := NewMessage("topic", map[string]interface{}{"key": "value"}, payload)
+	msg, err := NewMessage("topic", map[string]any{"key": "value"}, payload)
 	assert.NoError(t, err)
 	assert.Equal(t, "topic", msg.Topic)
 	assert.Equal(t, `{"key":"value"}`, string(msg.Key))

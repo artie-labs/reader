@@ -3,7 +3,6 @@ package postgres
 import (
 	"testing"
 
-	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/lib/postgres/schema"
@@ -53,10 +52,11 @@ func TestShouldQuoteValue(t *testing.T) {
 }
 
 func TestKeysToValueList(t *testing.T) {
-	primaryKeys := primary_key.NewKeys()
-	primaryKeys.Upsert("a", ptr.ToString("1"), ptr.ToString("4"))
-	primaryKeys.Upsert("b", ptr.ToString("a"), ptr.ToString("z"))
-	primaryKeys.Upsert("c", ptr.ToString("2000-01-02 03:04:05"), ptr.ToString("2001-01-02 03:04:05"))
+	primaryKeys := primary_key.NewKeys([]primary_key.Key{
+		{Name: "a", StartingValue: "1", EndingValue: "4"},
+		{Name: "b", StartingValue: "a", EndingValue: "z"},
+		{Name: "c", StartingValue: "2000-01-02 03:04:05", EndingValue: "2001-01-02 03:04:05"},
+	})
 
 	cols := []schema.Column{
 		{Name: "a", Type: schema.Int64},
@@ -75,34 +75,53 @@ func TestKeysToValueList(t *testing.T) {
 		assert.Equal(t, []string{"4", "'z'", "'2001-01-02 03:04:05'"}, values)
 	}
 	{
-		primaryKeys.Upsert("d", ptr.ToString("1"), ptr.ToString("4"))
+		primaryKeys := primary_key.NewKeys(
+			append(primaryKeys.KeysList(), primary_key.Key{Name: "d", StartingValue: "1", EndingValue: "4"}),
+		)
 		_, err := keysToValueList(primaryKeys, cols, true)
 		assert.ErrorContains(t, err, "primary key d not found in columns")
 	}
 }
 
 func TestScanTableQuery(t *testing.T) {
-	primaryKeys := primary_key.NewKeys()
-	primaryKeys.Upsert("a", ptr.ToString("1"), ptr.ToString("4"))
-	primaryKeys.Upsert("b", ptr.ToString("2"), ptr.ToString("5"))
-	primaryKeys.Upsert("c", ptr.ToString("3"), ptr.ToString("6"))
-
-	query, err := scanTableQuery(scanTableQueryArgs{
-		Schema:      "schema",
-		TableName:   "table",
-		PrimaryKeys: primaryKeys,
-		FirstWhere:  GreaterThanEqualTo,
-		SecondWhere: GreaterThan,
-		Limit:       1,
-		Columns: []schema.Column{
-			{Name: "a", Type: schema.Int64},
-			{Name: "b", Type: schema.Int64},
-			{Name: "c", Type: schema.Int64},
-			{Name: "e", Type: schema.Text},
-			{Name: "f", Type: schema.Int64},
-			{Name: "g", Type: schema.Money}, // money will be cast
-		},
+	primaryKeys := primary_key.NewKeys([]primary_key.Key{
+		{Name: "a", StartingValue: "1", EndingValue: "4"},
+		{Name: "b", StartingValue: "2", EndingValue: "5"},
+		{Name: "c", StartingValue: "3", EndingValue: "6"},
 	})
-	assert.NoError(t, err)
-	assert.Equal(t, `SELECT "a","b","c","e","f","g"::text FROM "schema"."table" WHERE row("a","b","c") >= row(1,2,3) AND NOT row("a","b","c") > row(4,5,6) ORDER BY "a","b","c" LIMIT 1`, query)
+	cols := []schema.Column{
+		{Name: "a", Type: schema.Int64},
+		{Name: "b", Type: schema.Int64},
+		{Name: "c", Type: schema.Int64},
+		{Name: "e", Type: schema.Text},
+		{Name: "f", Type: schema.Int64},
+		{Name: "g", Type: schema.TextThatRequiresEscaping}, // Requires casting
+	}
+
+	{
+		// inclusive lower bound
+		query, err := scanTableQuery(scanTableQueryArgs{
+			Schema:              "schema",
+			TableName:           "table",
+			PrimaryKeys:         primaryKeys,
+			InclusiveLowerBound: true,
+			Limit:               1,
+			Columns:             cols,
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, `SELECT "a","b","c","e","f","g"::text FROM "schema"."table" WHERE row("a","b","c") >= row(1,2,3) AND row("a","b","c") <= row(4,5,6) ORDER BY "a","b","c" LIMIT 1`, query)
+	}
+	{
+		// exclusive lower bound
+		query, err := scanTableQuery(scanTableQueryArgs{
+			Schema:              "schema",
+			TableName:           "table",
+			PrimaryKeys:         primaryKeys,
+			InclusiveLowerBound: false,
+			Limit:               1,
+			Columns:             cols,
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, `SELECT "a","b","c","e","f","g"::text FROM "schema"."table" WHERE row("a","b","c") > row(1,2,3) AND row("a","b","c") <= row(4,5,6) ORDER BY "a","b","c" LIMIT 1`, query)
+	}
 }

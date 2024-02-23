@@ -11,8 +11,8 @@ import (
 )
 
 type Message struct {
-	rowData       map[string]interface{}
-	primaryKey    map[string]interface{}
+	rowData       map[string]any
+	primaryKey    map[string]any
 	op            string
 	tableName     string
 	executionTime time.Time
@@ -24,7 +24,7 @@ func stringToFloat64(s string) (float64, error) {
 
 // transformAttributeValue converts a DynamoDB AttributeValue to a Go type.
 // References: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html
-func transformAttributeValue(attr *dynamodb.AttributeValue) interface{} {
+func transformAttributeValue(attr *dynamodb.AttributeValue) any {
 	switch {
 	case attr.S != nil:
 		return *attr.S
@@ -39,13 +39,13 @@ func transformAttributeValue(attr *dynamodb.AttributeValue) interface{} {
 	case attr.BOOL != nil:
 		return *attr.BOOL
 	case attr.M != nil:
-		result := make(map[string]interface{})
+		result := make(map[string]any)
 		for k, v := range attr.M {
 			result[k] = transformAttributeValue(v)
 		}
 		return result
 	case attr.L != nil:
-		list := make([]interface{}, len(attr.L))
+		list := make([]any, len(attr.L))
 		for i, item := range attr.L {
 			list[i] = transformAttributeValue(item)
 		}
@@ -76,8 +76,8 @@ func transformAttributeValue(attr *dynamodb.AttributeValue) interface{} {
 	return nil
 }
 
-func transformNewImage(data map[string]*dynamodb.AttributeValue) map[string]interface{} {
-	transformed := make(map[string]interface{})
+func transformNewImage(data map[string]*dynamodb.AttributeValue) map[string]any {
+	transformed := make(map[string]any)
 	for key, attrValue := range data {
 		transformed[key] = transformAttributeValue(attrValue)
 	}

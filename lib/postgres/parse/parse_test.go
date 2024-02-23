@@ -60,7 +60,7 @@ func TestToGeography(t *testing.T) {
 		assert.NoError(t, err)
 
 		// This is Point (0,0)
-		assert.Equal(t, map[string]interface{}{
+		assert.Equal(t, map[string]any{
 			"wkb":  "AQEAAAAAAAAAAAAAAAAAAAAAAAAA",
 			"srid": nil,
 		}, expected)
@@ -72,7 +72,7 @@ func TestToGeography(t *testing.T) {
 		assert.NoError(t, err)
 
 		// This is Point (1,1)
-		assert.Equal(t, map[string]interface{}{
+		assert.Equal(t, map[string]any{
 			"wkb":  "AQEAAAAAAAAAAADwPwAAAAAAAPA/",
 			"srid": nil,
 		}, expected)

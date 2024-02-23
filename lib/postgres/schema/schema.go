@@ -231,9 +231,9 @@ func buildPkValuesQuery(args buildPkValuesQueryArgs) string {
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(), strings.Join(fragments, ","))
 }
 
-func getPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column, cast func(c Column) string, descending bool) ([]interface{}, error) {
-	result := make([]interface{}, len(primaryKeys))
-	resultPtrs := make([]interface{}, len(primaryKeys))
+func getPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column, cast func(c Column) string, descending bool) ([]any, error) {
+	result := make([]any, len(primaryKeys))
+	resultPtrs := make([]any, len(primaryKeys))
 	for i := range result {
 		resultPtrs[i] = &result[i]
 	}
@@ -258,8 +258,8 @@ func getPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column,
 }
 
 type Bounds struct {
-	Min interface{}
-	Max interface{}
+	Min any
+	Max any
 }
 
 func GetPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []Column, cast func(c Column) string) ([]Bounds, error) {
