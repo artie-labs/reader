@@ -8,6 +8,7 @@ import (
 
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/postgres/schema"
+	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
 
 func TestPostgresAdapter_TableName(t *testing.T) {
@@ -70,7 +71,7 @@ func TestPostgresAdapter_Fields(t *testing.T) {
 func TestPostgresAdapter_PartitionKey(t *testing.T) {
 	type _tc struct {
 		name     string
-		keys     []string
+		keys     []primary_key.Key
 		row      map[string]interface{}
 		expected map[string]interface{}
 	}
@@ -78,19 +79,18 @@ func TestPostgresAdapter_PartitionKey(t *testing.T) {
 	tcs := []_tc{
 		{
 			name:     "no primary keys",
-			keys:     []string{},
 			row:      map[string]interface{}{},
 			expected: map[string]interface{}{},
 		},
 		{
 			name:     "primary keys - empty row",
-			keys:     []string{"foo", "bar"},
+			keys:     []primary_key.Key{{Name: "foo"}, {Name: "bar"}},
 			row:      map[string]interface{}{},
 			expected: map[string]interface{}{"foo": nil, "bar": nil},
 		},
 		{
 			name:     "primary keys - row has data",
-			keys:     []string{"foo", "bar"},
+			keys:     []primary_key.Key{{Name: "foo"}, {Name: "bar"}},
 			row:      map[string]interface{}{"foo": "a", "bar": 2, "baz": 3},
 			expected: map[string]interface{}{"foo": "a", "bar": 2},
 		},
@@ -98,9 +98,7 @@ func TestPostgresAdapter_PartitionKey(t *testing.T) {
 
 	for _, tc := range tcs {
 		table := postgres.NewTable("schema", "tbl1")
-		for _, key := range tc.keys {
-			table.PrimaryKeys.Upsert(key, nil, nil)
-		}
+		table.PrimaryKeys = tc.keys
 		adapter := NewPostgresAdapter(*table)
 		assert.Equal(t, tc.expected, adapter.PartitionKey(tc.row), tc.name)
 	}

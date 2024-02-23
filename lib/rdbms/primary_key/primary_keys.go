@@ -3,6 +3,7 @@ package primary_key
 import (
 	"fmt"
 	"log/slog"
+	"slices"
 )
 
 type Keys struct {
@@ -10,10 +11,15 @@ type Keys struct {
 	keyMap map[string]bool
 }
 
-func NewKeys() *Keys {
-	return &Keys{
+func NewKeys(keys []Key) *Keys {
+	result := &Keys{
 		keyMap: make(map[string]bool),
+		keys:   slices.Clone(keys),
 	}
+	for _, key := range result.keys {
+		result.keyMap[key.Name] = true
+	}
+	return result
 }
 
 func (k *Keys) LoadValues(startingValues, endingValues []string) error {
@@ -68,14 +74,7 @@ func (k *Keys) Length() int {
 }
 
 func (k *Keys) Clone() *Keys {
-	newKeys := NewKeys()
-	for _, key := range k.keys {
-		newKeys.keys = append(newKeys.keys, Key{key.Name, key.StartingValue, key.EndingValue})
-	}
-	for key, value := range k.keyMap {
-		newKeys.keyMap[key] = value
-	}
-	return newKeys
+	return NewKeys(k.keys)
 }
 
 func (k *Keys) Upsert(keyName string, startingVal *string, endingVal *string) {

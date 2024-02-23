@@ -29,7 +29,7 @@ type scanner struct {
 	done         bool
 }
 
-func NewScanner(db *sql.DB, table mysql.Table, batchSize uint, errorRetries int) (scanner, error) {
+func NewScanner(db *sql.DB, table mysql.Table, primaryKeys *primary_key.Keys, batchSize uint, errorRetries int) (scanner, error) {
 	retryCfg, err := retry.NewJitterRetryConfig(jitterBaseMs, jitterMaxMs, errorRetries, retry.AlwaysRetry)
 	if err != nil {
 		return scanner{}, fmt.Errorf("failed to build retry config: %w", err)
@@ -40,7 +40,7 @@ func NewScanner(db *sql.DB, table mysql.Table, batchSize uint, errorRetries int)
 		table:        table,
 		batchSize:    batchSize,
 		retryCfg:     retryCfg,
-		primaryKeys:  table.PrimaryKeys.Clone(),
+		primaryKeys:  primaryKeys.Clone(),
 		isFirstBatch: true,
 		done:         false,
 	}, nil

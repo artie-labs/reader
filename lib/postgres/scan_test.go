@@ -53,10 +53,11 @@ func TestShouldQuoteValue(t *testing.T) {
 }
 
 func TestKeysToValueList(t *testing.T) {
-	primaryKeys := primary_key.NewKeys()
-	primaryKeys.Upsert("a", ptr.ToString("1"), ptr.ToString("4"))
-	primaryKeys.Upsert("b", ptr.ToString("a"), ptr.ToString("z"))
-	primaryKeys.Upsert("c", ptr.ToString("2000-01-02 03:04:05"), ptr.ToString("2001-01-02 03:04:05"))
+	primaryKeys := primary_key.NewKeys([]primary_key.Key{
+		{Name: "a", StartingValue: "1", EndingValue: "4"},
+		{Name: "b", StartingValue: "a", EndingValue: "z"},
+		{Name: "c", StartingValue: "2000-01-02 03:04:05", EndingValue: "2001-01-02 03:04:05"},
+	})
 
 	cols := []schema.Column{
 		{Name: "a", Type: schema.Int64},
@@ -82,10 +83,11 @@ func TestKeysToValueList(t *testing.T) {
 }
 
 func TestScanTableQuery(t *testing.T) {
-	primaryKeys := primary_key.NewKeys()
-	primaryKeys.Upsert("a", ptr.ToString("1"), ptr.ToString("4"))
-	primaryKeys.Upsert("b", ptr.ToString("2"), ptr.ToString("5"))
-	primaryKeys.Upsert("c", ptr.ToString("3"), ptr.ToString("6"))
+	primaryKeys := primary_key.NewKeys([]primary_key.Key{
+		{Name: "a", StartingValue: "1", EndingValue: "4"},
+		{Name: "b", StartingValue: "2", EndingValue: "5"},
+		{Name: "c", StartingValue: "3", EndingValue: "6"},
+	})
 	cols := []schema.Column{
 		{Name: "a", Type: schema.Int64},
 		{Name: "b", Type: schema.Int64},
