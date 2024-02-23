@@ -82,11 +82,11 @@ func TestKeysToValueList(t *testing.T) {
 }
 
 func TestScanTableQuery(t *testing.T) {
-	primaryKeys := primary_key.NewKeys([]primary_key.Key{
+	primaryKeys := []primary_key.Key{
 		{Name: "a", StartingValue: "1", EndingValue: "4"},
 		{Name: "b", StartingValue: "2", EndingValue: "5"},
 		{Name: "c", StartingValue: "3", EndingValue: "6"},
-	})
+	}
 	cols := []schema.Column{
 		{Name: "a", Type: schema.Int64},
 		{Name: "b", Type: schema.Int64},

@@ -52,7 +52,7 @@ func (t *Table) NewScanner(db *sql.DB, primaryKeys *primary_key.Keys, batchSize 
 type scanTableQueryArgs struct {
 	Schema              string
 	TableName           string
-	PrimaryKeys         *primary_key.Keys
+	PrimaryKeys         []primary_key.Key
 	Columns             []schema.Column
 	InclusiveLowerBound bool
 	Limit               uint
@@ -64,16 +64,20 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 		castedColumns[idx] = castColumn(col)
 	}
 
-	startingValues, err := keysToValueList(args.PrimaryKeys.Keys(), args.Columns, false)
+	startingValues, err := keysToValueList(args.PrimaryKeys, args.Columns, false)
 	if err != nil {
 		return "", err
 	}
-	endingValues, err := keysToValueList(args.PrimaryKeys.Keys(), args.Columns, true)
+	endingValues, err := keysToValueList(args.PrimaryKeys, args.Columns, true)
 	if err != nil {
 		return "", err
 	}
 
-	quotedKeyNames := QuotedIdentifiers(args.PrimaryKeys.KeyNames())
+	keyNames := make([]string, len(args.PrimaryKeys))
+	for i, key := range args.PrimaryKeys {
+		keyNames[i] = key.Name
+	}
+	quotedKeyNames := QuotedIdentifiers(keyNames)
 
 	lowerBoundComparison := ">"
 	if args.InclusiveLowerBound {
@@ -164,7 +168,7 @@ func (s *scanner) scan() ([]map[string]any, error) {
 	query, err := scanTableQuery(scanTableQueryArgs{
 		Schema:              s.table.Schema,
 		TableName:           s.table.Name,
-		PrimaryKeys:         s.primaryKeys,
+		PrimaryKeys:         s.primaryKeys.Keys(),
 		Columns:             s.table.Columns,
 		InclusiveLowerBound: s.isFirstRow,
 		Limit:               s.batchSize,
