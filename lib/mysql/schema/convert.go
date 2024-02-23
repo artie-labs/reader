@@ -18,7 +18,13 @@ func ConvertValue(value any, colType DataType) (any, error) {
 		if len(castValue) == 0 {
 			return nil, fmt.Errorf("bit value is zero bytes: %v", value)
 		}
-		return castValue[0] == 1, nil
+		if castValue[0] == 0 {
+			return false, nil
+		} else if castValue[0] == 1 {
+			return true, nil
+		} else {
+			return nil, fmt.Errorf("bit value is > 1: %v", value)
+		}
 	case TinyInt,
 		SmallInt,
 		MediumInt,
@@ -35,7 +41,7 @@ func ConvertValue(value any, colType DataType) (any, error) {
 		// Types we expect as float32
 		_, ok := value.(float32)
 		if !ok {
-			return nil, fmt.Errorf("expected float64 got %T for value: %v", value, value)
+			return nil, fmt.Errorf("expected float32 got %T for value: %v", value, value)
 		}
 		return value, nil
 	case Double:
@@ -64,7 +70,7 @@ func ConvertValue(value any, colType DataType) (any, error) {
 		Enum,
 		Set,
 		JSON:
-		// Types that will be converted to strings
+		// Types that we expect as a byte array that will be converted to strings
 		switch castValue := value.(type) {
 		case []byte:
 			return string(castValue), nil
