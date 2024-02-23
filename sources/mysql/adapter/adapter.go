@@ -25,8 +25,16 @@ func (m mysqlAdapter) TopicSuffix() string {
 	return strings.ReplaceAll(m.table.Name, `"`, ``)
 }
 
-func (m mysqlAdapter) Fields() []debezium.Field {
-	panic("not implemented")
+func (p mysqlAdapter) Fields() []debezium.Field {
+	fields := make([]debezium.Field, len(p.table.Columns))
+	for i, col := range p.table.Columns {
+		fields[i] = debezium.Field{
+			FieldName:    col.Name,
+			Type:         "blah",
+			DebeziumType: "blah",
+		}
+	}
+	return fields
 }
 
 // PartitionKey returns a map of primary keys and their values for a given row.

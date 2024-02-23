@@ -9,5 +9,6 @@ func ConvertValueToDebezium(col schema.Column, value any) (any, error) {
 		return value, nil
 	}
 
-	panic("not implemented")
+	// TODO: Build this out
+	return value, nil
 }

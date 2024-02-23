@@ -1,0 +1,14 @@
+source: mysql
+
+mysql:
+  host: localhost
+  port: 3306
+  username: mysql-user
+  password: mysql-pass
+  database: mysql-db
+  tables:
+    - name: customers
+
+kafka:
+  bootstrapServers: localhost:29092
+  topicPrefix: dbserver1

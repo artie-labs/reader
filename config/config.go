@@ -65,6 +65,7 @@ const (
 	SourceInvalid    Source = "invalid"
 	SourceDynamo     Source = "dynamodb"
 	SourceMongoDB    Source = "mongodb"
+	SourceMySQL      Source = "mysql"
 	SourcePostgreSQL Source = "postgresql"
 )
 
@@ -72,6 +73,7 @@ type Settings struct {
 	Source     Source      `yaml:"source"`
 	DynamoDB   *DynamoDB   `yaml:"dynamodb,omitempty"`
 	MongoDB    *MongoDB    `yaml:"mongodb,omitempty"`
+	MySQL      *MySQL      `yaml:"mysql,omitempty"`
 	PostgreSQL *PostgreSQL `yaml:"postgresql,omitempty"`
 
 	Reporting *Reporting `yaml:"reporting"`
@@ -109,6 +111,14 @@ func (s *Settings) Validate() error {
 
 		if err := s.MongoDB.Validate(); err != nil {
 			return fmt.Errorf("mongodb validation failed: %w", err)
+		}
+	case SourceMySQL:
+		if s.MySQL == nil {
+			return fmt.Errorf("mysql config is nil")
+		}
+
+		if err := s.MySQL.Validate(); err != nil {
+			return fmt.Errorf("mysql validation failed: %w", err)
 		}
 	case SourcePostgreSQL:
 		if s.PostgreSQL == nil {
