@@ -4,7 +4,6 @@ import "fmt"
 
 // ConvertValue takes a value returned from the MySQL driver and converts it to a native Go type.
 func ConvertValue(value any, colType DataType) (any, error) {
-	// TODO: test this function with all mysql data types
 	if value == nil {
 		return nil, nil
 	}
@@ -82,6 +81,10 @@ func ConvertValue(value any, colType DataType) (any, error) {
 
 // ConvertValues takes values returned from the MySQL driver and converts them to a native Go types.
 func ConvertValues(values []any, cols []Column) ([]any, error) {
+	if len(values) != len(cols) {
+		return nil, fmt.Errorf("values and cols are not the same length")
+	}
+
 	result := make([]any, len(values))
 	for idx, value := range values {
 		col := cols[idx]

@@ -115,7 +115,6 @@ func (s *scanner) scan() ([]map[string]any, error) {
 			row[s.table.Columns[idx].Name] = value
 		}
 		rowsData = append(rowsData, row)
-		slog.Info("row", "v", row)
 	}
 
 	if len(rowsData) == 0 {
