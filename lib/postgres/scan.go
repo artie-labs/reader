@@ -22,7 +22,7 @@ func (t *Table) NewScanner(db *sql.DB, cfg scan.ScannerConfig) (scan.Scanner[*Ta
 type scanTableQueryArgs struct {
 	Schema              string
 	TableName           string
-	PrimaryKeys         *primary_key.Keys
+	PrimaryKeys         []primary_key.Key
 	Columns             []schema.Column
 	InclusiveLowerBound bool
 	Limit               uint
@@ -43,7 +43,10 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 		return "", err
 	}
 
-	quotedKeyNames := QuotedIdentifiers(args.PrimaryKeys.KeyNames())
+	quotedKeyNames := make([]string, len(args.PrimaryKeys))
+	for i, key := range args.PrimaryKeys {
+		quotedKeyNames[i] = pgx.Identifier{key.Name}.Sanitize()
+	}
 
 	lowerBoundComparison := ">"
 	if args.InclusiveLowerBound {
@@ -100,9 +103,9 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 	}
 }
 
-func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) ([]string, error) {
+func keysToValueList(keys []primary_key.Key, columns []schema.Column, end bool) ([]string, error) {
 	var valuesToReturn []string
-	for _, pk := range k.Keys() {
+	for _, pk := range keys {
 		val := pk.StartingValue
 		if end {
 			val = pk.EndingValue
@@ -134,7 +137,7 @@ func _scan(s *scan.Scanner[*Table], primaryKeys *primary_key.Keys, isFirstRow bo
 	query, err := scanTableQuery(scanTableQueryArgs{
 		Schema:              s.Table.Schema,
 		TableName:           s.Table.Name,
-		PrimaryKeys:         primaryKeys,
+		PrimaryKeys:         primaryKeys.Keys(),
 		Columns:             s.Table.Columns,
 		InclusiveLowerBound: isFirstRow,
 		Limit:               s.BatchSize,
@@ -215,7 +218,7 @@ func _scan(s *scan.Scanner[*Table], primaryKeys *primary_key.Keys, isFirstRow bo
 			return nil, err
 		}
 
-		if err := primaryKeys.UpdateStartingValue(pk.Name, val.String()); err != nil {
+		if err := primaryKeys.UpdateStartingValue(pk.Name, val.Value); err != nil {
 			return nil, err
 		}
 	}
