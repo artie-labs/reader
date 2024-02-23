@@ -76,7 +76,7 @@ func TestKeysToValueList(t *testing.T) {
 	}
 	{
 		primaryKeys := primary_key.NewKeys(
-			append(primaryKeys.KeysList(), primary_key.Key{Name: "d", StartingValue: "1", EndingValue: "4"}),
+			append(primaryKeys.Keys(), primary_key.Key{Name: "d", StartingValue: "1", EndingValue: "4"}),
 		)
 		_, err := keysToValueList(primaryKeys, cols, true)
 		assert.ErrorContains(t, err, "primary key d not found in columns")
