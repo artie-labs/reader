@@ -258,8 +258,8 @@ func getPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column,
 }
 
 type Bounds struct {
-	Min interface{}
-	Max interface{}
+	Min any
+	Max any
 }
 
 func GetPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []Column, cast func(c Column) string) ([]Bounds, error) {
