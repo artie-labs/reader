@@ -55,6 +55,12 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 			}
 		}
 
+		slog.Info("Scanning table",
+			slog.String("table", table.Name),
+			slog.String("schema", table.Schema),
+			slog.Any("batchSize", tableCfg.GetBatchSize()),
+		)
+
 		scanner, err := table.NewScanner(s.db, tableCfg.ToScannerConfig(defaultErrorRetries))
 		if err != nil {
 			return fmt.Errorf("failed to build scanner for table %s: %w", table.Name, err)
