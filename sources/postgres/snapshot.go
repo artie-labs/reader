@@ -14,7 +14,6 @@ import (
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/rdbms"
-	"github.com/artie-labs/reader/lib/rdbms/scan"
 	"github.com/artie-labs/reader/sources/postgres/adapter"
 )
 
@@ -56,15 +55,7 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 			}
 		}
 
-		scanner, err := table.NewScanner(
-			s.db,
-			scan.ScannerConfig{
-				BatchSize:              tableCfg.GetBatchSize(),
-				OptionalStartingValues: tableCfg.GetOptionalPrimaryKeyValStart(),
-				OptionalEndingValues:   tableCfg.GetOptionalPrimaryKeyValEnd(),
-				ErrorRetries:           defaultErrorRetries,
-			},
-		)
+		scanner, err := table.NewScanner(s.db, tableCfg.ToScannerConfig(defaultErrorRetries))
 		if err != nil {
 			return fmt.Errorf("failed to build scanner for table %s: %w", table.Name, err)
 		}

@@ -9,6 +9,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 
 	"github.com/artie-labs/reader/constants"
+	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
 type MySQL struct {
@@ -57,6 +58,15 @@ func (m *MySQLTable) GetOptionalPrimaryKeyValEnd() []string {
 		return []string{}
 	}
 	return strings.Split(m.OptionalPrimaryKeyValEnd, ",")
+}
+
+func (m *MySQLTable) ToScannerConfig(errorRetries int) scan.ScannerConfig {
+	return scan.ScannerConfig{
+		BatchSize:              m.GetBatchSize(),
+		OptionalStartingValues: m.GetOptionalPrimaryKeyValStart(),
+		OptionalEndingValues:   m.GetOptionalPrimaryKeyValEnd(),
+		ErrorRetries:           errorRetries,
+	}
 }
 
 func (m *MySQL) Validate() error {
