@@ -85,7 +85,7 @@ func TestPrimaryKeys_LoadValues(t *testing.T) {
 			assert.Error(t, err, testCase.name)
 		} else {
 			assert.NoError(t, err, testCase.name)
-			assert.Equal(t, testCase.expectedKeys, testCase.keys, testCase.name)
+			assert.Equal(t, testCase.expectedKeys, pk.KeysList(), testCase.name)
 		}
 
 	}
