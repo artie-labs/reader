@@ -205,20 +205,7 @@ func _scan(s *scan.Scanner[*Table], primaryKeys *primary_key.Keys, isFirstRow bo
 	// Update the starting key so that the next scan will pick off where we last left off.
 	lastRow := rowsData[len(rowsData)-1]
 	for _, pk := range primaryKeys.Keys() {
-		col, err := s.Table.GetColumnByName(pk.Name)
-		if err != nil {
-			return nil, err
-		}
-
-		val, err := ParseValue(col.Type, ParseValueArgs{
-			ValueWrapper: lastRow[pk.Name],
-			ParseTime:    true,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		if err := primaryKeys.UpdateStartingValue(pk.Name, val.Value); err != nil {
+		if err := primaryKeys.UpdateStartingValue(pk.Name, lastRow[pk.Name].Value); err != nil {
 			return nil, err
 		}
 	}
