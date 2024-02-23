@@ -24,6 +24,14 @@ func NewTable(schema string, name string) *Table {
 	}
 }
 
+func (t *Table) GetName() string {
+	return t.Name
+}
+
+func (t *Table) GetPrimaryKeys() []primary_key.Key {
+	return t.PrimaryKeys
+}
+
 func (t *Table) GetColumnByName(colName string) (*schema.Column, error) {
 	index := slices.IndexFunc(t.Columns, func(c schema.Column) bool { return c.Name == colName })
 	if index < 0 {

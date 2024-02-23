@@ -12,41 +12,11 @@ import (
 
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
+	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
-const (
-	jitterBaseMs = 300
-	jitterMaxMs  = 5000
-)
-
-type scanner struct {
-	// immutable
-	db        *sql.DB
-	table     *Table
-	batchSize uint
-	retryCfg  retry.RetryConfig
-
-	// mutable
-	primaryKeys *primary_key.Keys
-	isFirstRow  bool
-	done        bool
-}
-
-func (t *Table) NewScanner(db *sql.DB, primaryKeys *primary_key.Keys, batchSize uint, errorRetries int) (scanner, error) {
-	retryCfg, err := retry.NewJitterRetryConfig(jitterBaseMs, jitterMaxMs, errorRetries, retry.AlwaysRetry)
-	if err != nil {
-		return scanner{}, fmt.Errorf("failed to build retry config: %w", err)
-	}
-
-	return scanner{
-		db:          db,
-		table:       t,
-		batchSize:   batchSize,
-		retryCfg:    retryCfg,
-		primaryKeys: primaryKeys.Clone(),
-		isFirstRow:  true,
-		done:        false,
-	}, nil
+func (t *Table) NewScanner(db *sql.DB, cfg scan.ScannerConfig) (scan.Scanner[*Table], error) {
+	return scan.NewScanner(db, t, cfg, _scan)
 }
 
 type scanTableQueryArgs struct {
@@ -163,22 +133,22 @@ func keysToValueList(keys []primary_key.Key, columns []schema.Column, end bool) 
 	return valuesToReturn, nil
 }
 
-func (s *scanner) scan() ([]map[string]any, error) {
+func _scan(s *scan.Scanner[*Table], primaryKeys *primary_key.Keys, isFirstRow bool) ([]map[string]any, error) {
 	query, err := scanTableQuery(scanTableQueryArgs{
-		Schema:              s.table.Schema,
-		TableName:           s.table.Name,
-		PrimaryKeys:         s.primaryKeys.Keys(),
-		Columns:             s.table.Columns,
-		InclusiveLowerBound: s.isFirstRow,
-		Limit:               s.batchSize,
+		Schema:              s.Table.Schema,
+		TableName:           s.Table.Name,
+    PrimaryKeys:         primaryKeys.Keys(),
+		Columns:             s.Table.Columns,
+		InclusiveLowerBound: isFirstRow,
+		Limit:               s.BatchSize,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate query: %w", err)
 	}
 	slog.Info(fmt.Sprintf("Query looks like: %v", query))
 
-	rows, err := retry.WithRetriesAndResult(s.retryCfg, func(_ int, _ error) (*sql.Rows, error) {
-		return s.db.Query(query)
+	rows, err := retry.WithRetriesAndResult(s.RetryCfg, func(_ int, _ error) (*sql.Rows, error) {
+		return s.DB.Query(query)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan table: %w", err)
@@ -189,10 +159,10 @@ func (s *scanner) scan() ([]map[string]any, error) {
 		return nil, err
 	}
 
-	// TODO: Remove this check once we're confident columns isn't different from s.table.Columns
+	// TODO: Remove this check once we're confident columns isn't different from table.Columns
 	for idx, col := range columns {
-		if col != s.table.Columns[idx].Name {
-			return nil, fmt.Errorf("column mismatch: expected %v, got %v", s.table.Columns[idx].Name, col)
+		if col != s.Table.Columns[idx].Name {
+			return nil, fmt.Errorf("column mismatch: expected %v, got %v", s.Table.Columns[idx].Name, col)
 		}
 	}
 
@@ -212,7 +182,7 @@ func (s *scanner) scan() ([]map[string]any, error) {
 
 		row := make(map[string]ValueWrapper)
 		for idx, v := range values {
-			col := s.table.Columns[idx]
+			col := s.Table.Columns[idx]
 
 			value, err := ParseValue(col.Type, ParseValueArgs{
 				ValueWrapper: ValueWrapper{
@@ -234,8 +204,8 @@ func (s *scanner) scan() ([]map[string]any, error) {
 
 	// Update the starting key so that the next scan will pick off where we last left off.
 	lastRow := rowsData[len(rowsData)-1]
-	for _, pk := range s.primaryKeys.Keys() {
-		col, err := s.table.GetColumnByName(pk.Name)
+	for _, pk := range primaryKeys.Keys() {
+		col, err := s.Table.GetColumnByName(pk.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -248,7 +218,7 @@ func (s *scanner) scan() ([]map[string]any, error) {
 			return nil, err
 		}
 
-		if err := s.primaryKeys.UpdateStartingValue(pk.Name, val.Value); err != nil {
+		if err := primaryKeys.UpdateStartingValue(pk.Name, val.Value); err != nil {
 			return nil, err
 		}
 	}
@@ -264,29 +234,4 @@ func (s *scanner) scan() ([]map[string]any, error) {
 	}
 
 	return parsedRows, nil
-}
-
-func (s *scanner) HasNext() bool {
-	return !s.done
-}
-
-func (s *scanner) Next() ([]map[string]any, error) {
-	if !s.HasNext() {
-		return nil, fmt.Errorf("no more rows to scan")
-	}
-
-	rows, err := s.scan()
-	if err != nil {
-		s.done = true
-		return nil, err
-	}
-
-	if len(rows) == 0 || s.primaryKeys.IsExhausted() {
-		slog.Info("Finished scanning", slog.String("table", s.table.Name))
-		s.done = true
-	}
-
-	s.isFirstRow = false
-
-	return rows, nil
 }
