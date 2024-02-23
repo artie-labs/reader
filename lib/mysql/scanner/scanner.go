@@ -12,11 +12,6 @@ import (
 	"github.com/artie-labs/transfer/lib/retry"
 )
 
-const (
-	jitterBaseMs = 300
-	jitterMaxMs  = 5000
-)
-
 func NewScanner(db *sql.DB,
 	table mysql.Table,
 	batchSize uint,
