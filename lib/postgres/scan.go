@@ -73,11 +73,10 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 		return "", err
 	}
 
-	keyNames := make([]string, len(args.PrimaryKeys))
+	quotedKeyNames := make([]string, len(args.PrimaryKeys))
 	for i, key := range args.PrimaryKeys {
-		keyNames[i] = key.Name
+		quotedKeyNames[i] = pgx.Identifier{key.Name}.Sanitize()
 	}
-	quotedKeyNames := QuotedIdentifiers(keyNames)
 
 	lowerBoundComparison := ">"
 	if args.InclusiveLowerBound {
