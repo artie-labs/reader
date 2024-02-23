@@ -137,7 +137,7 @@ func _scan(s *scan.Scanner[*Table], primaryKeys *primary_key.Keys, isFirstRow bo
 	query, err := scanTableQuery(scanTableQueryArgs{
 		Schema:              s.Table.Schema,
 		TableName:           s.Table.Name,
-    PrimaryKeys:         primaryKeys.Keys(),
+		PrimaryKeys:         primaryKeys.Keys(),
 		Columns:             s.Table.Columns,
 		InclusiveLowerBound: isFirstRow,
 		Limit:               s.BatchSize,
