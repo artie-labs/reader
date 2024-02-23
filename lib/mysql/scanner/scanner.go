@@ -16,13 +16,13 @@ func NewScanner(db *sql.DB, table mysql.Table, cfg scan.ScannerConfig) (scan.Sca
 	return scan.NewScanner(db, &table, cfg, _scan)
 }
 
-func _scan(scanner *scan.Scanner[*mysql.Table], primaryKeys *primary_key.Keys, isFirstBatch bool) ([]map[string]any, error) {
+func _scan(s *scan.Scanner[*mysql.Table], primaryKeys *primary_key.Keys, isFirstBatch bool) ([]map[string]any, error) {
 	query, parameters, err := buildScanTableQuery(buildScanTableQueryArgs{
-		TableName:           scanner.Table().Name,
+		TableName:           s.Table.Name,
 		PrimaryKeys:         primaryKeys,
-		Columns:             scanner.Table().Columns,
+		Columns:             s.Table.Columns,
 		InclusiveLowerBound: isFirstBatch,
-		Limit:               scanner.BatchSize(),
+		Limit:               s.BatchSize,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate query: %w", err)
@@ -30,14 +30,14 @@ func _scan(scanner *scan.Scanner[*mysql.Table], primaryKeys *primary_key.Keys, i
 
 	slog.Info("Scan query", slog.String("query", query), slog.Any("parameters", parameters))
 
-	rows, err := retry.WithRetriesAndResult(scanner.RetryConfig(), func(_ int, _ error) (*sql.Rows, error) {
-		return scanner.DB().Query(query, parameters...)
+	rows, err := retry.WithRetriesAndResult(s.RetryCfg, func(_ int, _ error) (*sql.Rows, error) {
+		return s.DB.Query(query, parameters...)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan table: %w", err)
 	}
 
-	values := make([]any, len(scanner.Table().Columns))
+	values := make([]any, len(s.Table.Columns))
 	valuePtrs := make([]any, len(values))
 	for i := range values {
 		valuePtrs[i] = &values[i]
@@ -50,14 +50,14 @@ func _scan(scanner *scan.Scanner[*mysql.Table], primaryKeys *primary_key.Keys, i
 			return nil, err
 		}
 
-		convertedValues, err := schema.ConvertValues(values, scanner.Table().Columns)
+		convertedValues, err := schema.ConvertValues(values, s.Table.Columns)
 		if err != nil {
 			return nil, err
 		}
 
 		row := make(map[string]any)
 		for idx, value := range convertedValues {
-			row[scanner.Table().Columns[idx].Name] = value
+			row[s.Table.Columns[idx].Name] = value
 		}
 		rowsData = append(rowsData, row)
 	}

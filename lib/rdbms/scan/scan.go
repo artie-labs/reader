@@ -29,10 +29,10 @@ type ScannerConfig struct {
 
 type Scanner[T Table] struct {
 	// immutable
-	db        *sql.DB
-	table     T
-	batchSize uint
-	retryCfg  retry.RetryConfig
+	DB        *sql.DB
+	Table     T
+	BatchSize uint
+	RetryCfg  retry.RetryConfig
 	scan      func(scanner *Scanner[T], primaryKeys *primary_key.Keys, isFirstRow bool) ([]map[string]any, error)
 
 	// mutable
@@ -58,31 +58,15 @@ func NewScanner[T Table](
 	}
 
 	return Scanner[T]{
-		db:           db,
-		table:        table,
-		batchSize:    cfg.BatchSize,
-		retryCfg:     retryCfg,
+		DB:           db,
+		Table:        table,
+		BatchSize:    cfg.BatchSize,
+		RetryCfg:     retryCfg,
 		scan:         scan,
 		primaryKeys:  primaryKeys.Clone(),
 		isFirstBatch: true,
 		done:         false,
 	}, nil
-}
-
-func (s *Scanner[T]) DB() *sql.DB {
-	return s.db
-}
-
-func (s *Scanner[T]) BatchSize() uint {
-	return s.batchSize
-}
-
-func (s *Scanner[T]) Table() T {
-	return s.table
-}
-
-func (s *Scanner[T]) RetryConfig() retry.RetryConfig {
-	return s.retryCfg
 }
 
 func (s *Scanner[T]) HasNext() bool {
@@ -101,7 +85,7 @@ func (s *Scanner[T]) Next() ([]map[string]any, error) {
 	}
 
 	if len(rows) == 0 || s.primaryKeys.IsExhausted() {
-		slog.Info("Finished scanning", slog.String("table", s.table.GetName()))
+		slog.Info("Finished scanning", slog.String("table", s.Table.GetName()))
 		s.done = true
 	}
 
