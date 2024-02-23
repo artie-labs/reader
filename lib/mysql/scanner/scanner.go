@@ -105,13 +105,14 @@ func (s *scanner) scan() ([]map[string]any, error) {
 			return nil, err
 		}
 
+		convertedValues, err := schema.ConvertValues(values, s.table.Columns)
+		if err != nil {
+			return nil, err
+		}
+
 		row := make(map[string]any)
-		for idx, value := range values {
-			col := s.table.Columns[idx]
-			row[col.Name], err = convertValue(col.Type, value)
-			if err != nil {
-				return nil, fmt.Errorf("faild to convert value for column %s: %w", col.Name, err)
-			}
+		for idx, value := range convertedValues {
+			row[s.table.Columns[idx].Name] = value
 		}
 		rowsData = append(rowsData, row)
 		slog.Info("row", "v", row)
@@ -130,27 +131,4 @@ func (s *scanner) scan() ([]map[string]any, error) {
 	}
 
 	return rowsData, nil
-}
-
-func convertValue(colType schema.DataType, value any) (any, error) {
-	// TODO: test this function with all mysql data types
-
-	if value == nil {
-		return nil, nil
-	}
-
-	switch colType {
-	case schema.Varchar,
-		schema.Text:
-		switch castValue := value.(type) {
-		case []byte:
-			return string(castValue), nil
-		case string:
-			return castValue, nil
-		default:
-			return nil, fmt.Errorf("could not cast value to string: %v", value)
-		}
-	}
-
-	return value, nil
 }

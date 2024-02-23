@@ -70,9 +70,8 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 
 	t.PrimaryKeys = make([]primary_key.Key, len(primaryKeysBounds))
 	for idx, bounds := range primaryKeysBounds {
-		col := keyColumns[idx]
 		t.PrimaryKeys[idx] = primary_key.Key{
-			Name:          col.Name,
+			Name:          keyColumns[idx].Name,
 			StartingValue: bounds.Min,
 			EndingValue:   bounds.Max,
 		}
