@@ -32,8 +32,8 @@ func (m mysqlAdapter) Fields() []debezium.Field {
 // PartitionKey returns a map of primary keys and their values for a given row.
 func (m mysqlAdapter) PartitionKey(row map[string]interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
-	for _, key := range m.table.PrimaryKeys.Keys() {
-		result[key] = row[key]
+	for _, key := range m.table.PrimaryKeys {
+		result[key.Name] = row[key.Name]
 	}
 	return result
 }

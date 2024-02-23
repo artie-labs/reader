@@ -5,7 +5,6 @@ import (
 
 	"github.com/artie-labs/reader/lib/mysql/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
-	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,8 +15,9 @@ func TestSqlPlaceholders(t *testing.T) {
 }
 
 func TestBuildScanTableQuery(t *testing.T) {
-	keys := primary_key.NewKeys()
-	keys.Upsert("foo", ptr.ToString("a"), ptr.ToString("b"))
+	keys := primary_key.NewKeys([]primary_key.Key{
+		{Name: "foo", StartingValue: "a", EndingValue: "b"},
+	})
 	{
 		// exclusive lower bound
 		query, parameters, err := buildScanTableQuery(buildScanTableQueryArgs{

@@ -7,6 +7,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestNewKeys(t *testing.T) {
+	// ensure upsert doesn't mutate original arguments to `NewKeys``
+	{
+		keysArray := []Key{{Name: "foo", StartingValue: 20}, {Name: "bar"}}
+		keys := NewKeys(keysArray)
+		keys.Upsert("foo", ptr.ToString("new starting value"), nil)
+		assert.Equal(t, "foo", keys.keys[0].Name)
+		assert.Equal(t, "new starting value", keys.keys[0].StartingValue)
+		assert.Equal(t, 20, keysArray[0].StartingValue)
+	}
+}
+
 func TestPrimaryKeys_Length(t *testing.T) {
 	type _tc struct {
 		name           string
@@ -122,7 +134,7 @@ func TestPrimaryKeys_LoadValues(t *testing.T) {
 
 	for _, testCase := range testCases {
 
-		pk := NewKeys()
+		pk := NewKeys([]Key{})
 		pk.keys = testCase.keys
 		for _, key := range testCase.keys {
 			pk.keyMap[key.Name] = true
@@ -215,14 +227,14 @@ func TestKeys_Upsert(t *testing.T) {
 func TestKeys_Clone(t *testing.T) {
 	// empty keys
 	{
-		keys := NewKeys()
+		keys := NewKeys([]Key{})
 		keys2 := keys.Clone()
 		assert.Equal(t, keys.keys, keys2.keys)
 		assert.Equal(t, keys.keyMap, keys2.keyMap)
 	}
 	// non-empty keys
 	{
-		keys := NewKeys()
+		keys := NewKeys([]Key{})
 		a := "a"
 		b := "b"
 		keys.Upsert("foo", &a, &b)
@@ -232,36 +244,46 @@ func TestKeys_Clone(t *testing.T) {
 		assert.Equal(t, []Key{{"foo", "a", "b"}}, keys2.keys)
 		assert.Equal(t, map[string]bool{"foo": true}, keys2.keyMap)
 	}
+	// mutation
+	{
+		keys := NewKeys([]Key{{Name: "foo", StartingValue: 20}, {Name: "bar", StartingValue: 0}})
+		keys2 := keys.Clone()
+		keys2.Upsert("foo", ptr.ToString("new starting value"), nil)
+		assert.Equal(t, "foo", keys.keys[0].Name)
+		assert.Equal(t, 20, keys.keys[0].StartingValue)
+		assert.Equal(t, "foo", keys2.keys[0].Name)
+		assert.Equal(t, "new starting value", keys2.keys[0].StartingValue)
+	}
 }
 
 func TestKeys_IsExausted(t *testing.T) {
 	// empty keys
 	{
-		keys := NewKeys()
+		keys := NewKeys([]Key{})
 		assert.True(t, keys.IsExhausted())
 	}
 	// one key, different starting and ending values
 	{
-		keys := NewKeys()
+		keys := NewKeys([]Key{})
 		keys.Upsert("foo", ptr.ToString("a"), ptr.ToString("b"))
 		assert.False(t, keys.IsExhausted())
 	}
 	// one key, same starting and ending values
 	{
-		keys := NewKeys()
+		keys := NewKeys([]Key{})
 		keys.Upsert("foo", ptr.ToString("a"), ptr.ToString("a"))
 		assert.True(t, keys.IsExhausted())
 	}
 	// two keys, different starting and ending values for one
 	{
-		keys := NewKeys()
+		keys := NewKeys([]Key{})
 		keys.Upsert("foo", ptr.ToString("a"), ptr.ToString("a"))
 		keys.Upsert("bar", ptr.ToString(""), ptr.ToString("b"))
 		assert.False(t, keys.IsExhausted())
 	}
 	// two keys, same starting and ending values for both
 	{
-		keys := NewKeys()
+		keys := NewKeys([]Key{})
 		keys.Upsert("foo", ptr.ToString("a"), ptr.ToString("a"))
 		keys.Upsert("bar", ptr.ToString(""), ptr.ToString(""))
 		assert.True(t, keys.IsExhausted())

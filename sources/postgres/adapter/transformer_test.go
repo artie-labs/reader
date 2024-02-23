@@ -11,6 +11,7 @@ import (
 	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/postgres/schema"
+	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
 
 type ErrorRowIterator struct{}
@@ -44,7 +45,7 @@ func TestDebeziumTransformer(t *testing.T) {
 		{Name: "a", Type: schema.Int16},
 		{Name: "b", Type: schema.Text},
 	}
-	table.PrimaryKeys.Upsert("a", ptr.ToString("1"), ptr.ToString("4"))
+	table.PrimaryKeys = []primary_key.Key{{Name: "a", StartingValue: ptr.ToString("1"), EndingValue: ptr.ToString("4")}}
 
 	// test zero batches
 	{

@@ -36,8 +36,8 @@ func (p postgresAdapter) Fields() []debezium.Field {
 // PartitionKey returns a map of primary keys and their values for a given row.
 func (p postgresAdapter) PartitionKey(row map[string]interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
-	for _, key := range p.table.PrimaryKeys.Keys() {
-		result[key] = row[key]
+	for _, key := range p.table.PrimaryKeys {
+		result[key.Name] = row[key.Name]
 	}
 	return result
 }
