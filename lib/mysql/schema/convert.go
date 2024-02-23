@@ -47,7 +47,7 @@ func ConvertValue(value any, colType DataType) (any, error) {
 		return value, nil
 	case Binary, Varbinary, Blob:
 		// Types we expect as a byte array
-		value, ok := value.([]byte)
+		_, ok := value.([]byte)
 		if !ok {
 			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
 		}
