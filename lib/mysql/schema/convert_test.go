@@ -51,6 +51,12 @@ func TestConvertValue(t *testing.T) {
 			expectedErr: "expected int64 got string for value",
 		},
 		{
+			name:     "small int",
+			dataType: SmallInt,
+			value:    int64(100),
+			expected: int64(100),
+		},
+		{
 			name:     "medium int",
 			dataType: MediumInt,
 			value:    int64(100),
