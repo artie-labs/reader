@@ -75,8 +75,8 @@ func TestConvertValue(t *testing.T) {
 			expected: int64(100),
 		},
 		{
-			name:     "medium int",
-			dataType: MediumInt,
+			name:     "int",
+			dataType: Int,
 			value:    int64(100),
 			expected: int64(100),
 		},
