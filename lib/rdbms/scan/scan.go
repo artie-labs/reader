@@ -33,7 +33,7 @@ type Scanner[T Table] struct {
 	Table     T
 	BatchSize uint
 	RetryCfg  retry.RetryConfig
-	scan      func(scanner *Scanner[T], primaryKeys *primary_key.Keys, isFirstRow bool) ([]map[string]any, error)
+	scan      func(scanner *Scanner[T], primaryKeys *primary_key.Keys, isFirstBatch bool) ([]map[string]any, error)
 
 	// mutable
 	primaryKeys  *primary_key.Keys
@@ -45,7 +45,7 @@ func NewScanner[T Table](
 	db *sql.DB,
 	table T,
 	cfg ScannerConfig,
-	scan func(scanner *Scanner[T], primaryKeys *primary_key.Keys, isFirstRow bool) ([]map[string]any, error),
+	scan func(scanner *Scanner[T], primaryKeys *primary_key.Keys, isFirstBatch bool) ([]map[string]any, error),
 ) (Scanner[T], error) {
 	primaryKeys := primary_key.NewKeys(table.GetPrimaryKeys())
 	if err := primaryKeys.LoadValues(cfg.OptionalStartingValues, cfg.OptionalEndingValues); err != nil {
