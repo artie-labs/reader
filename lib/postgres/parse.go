@@ -27,10 +27,6 @@ type ValueWrapper struct {
 	parsed bool
 }
 
-func (v *ValueWrapper) String() string {
-	return fmt.Sprint(v.Value)
-}
-
 func NewValueWrapper(value any) ValueWrapper {
 	return ValueWrapper{
 		Value:  value,

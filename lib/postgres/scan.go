@@ -64,11 +64,11 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 		castedColumns[idx] = castColumn(col)
 	}
 
-	startingValues, err := keysToValueList(args.PrimaryKeys, args.Columns, false)
+	startingValues, err := keysToValueList(args.PrimaryKeys.Keys(), args.Columns, false)
 	if err != nil {
 		return "", err
 	}
-	endingValues, err := keysToValueList(args.PrimaryKeys, args.Columns, true)
+	endingValues, err := keysToValueList(args.PrimaryKeys.Keys(), args.Columns, true)
 	if err != nil {
 		return "", err
 	}
@@ -130,9 +130,9 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 	}
 }
 
-func keysToValueList(k *primary_key.Keys, columns []schema.Column, end bool) ([]string, error) {
+func keysToValueList(keys []primary_key.Key, columns []schema.Column, end bool) ([]string, error) {
 	var valuesToReturn []string
-	for _, pk := range k.Keys() {
+	for _, pk := range keys {
 		val := pk.StartingValue
 		if end {
 			val = pk.EndingValue
@@ -245,7 +245,7 @@ func (s *scanner) scan() ([]map[string]any, error) {
 			return nil, err
 		}
 
-		if err := s.primaryKeys.UpdateStartingValue(pk.Name, val.String()); err != nil {
+		if err := s.primaryKeys.UpdateStartingValue(pk.Name, val.Value); err != nil {
 			return nil, err
 		}
 	}

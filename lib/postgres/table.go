@@ -92,8 +92,8 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 
 		t.PrimaryKeys[idx] = primary_key.Key{
 			Name:          col.Name,
-			StartingValue: minVal.String(),
-			EndingValue:   maxVal.String(),
+			StartingValue: minVal.Value,
+			EndingValue:   maxVal.Value,
 		}
 	}
 

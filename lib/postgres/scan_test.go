@@ -52,11 +52,11 @@ func TestShouldQuoteValue(t *testing.T) {
 }
 
 func TestKeysToValueList(t *testing.T) {
-	primaryKeys := primary_key.NewKeys([]primary_key.Key{
+	primaryKeys := []primary_key.Key{
 		{Name: "a", StartingValue: "1", EndingValue: "4"},
 		{Name: "b", StartingValue: "a", EndingValue: "z"},
 		{Name: "c", StartingValue: "2000-01-02 03:04:05", EndingValue: "2001-01-02 03:04:05"},
-	})
+	}
 
 	cols := []schema.Column{
 		{Name: "a", Type: schema.Int64},
@@ -75,9 +75,7 @@ func TestKeysToValueList(t *testing.T) {
 		assert.Equal(t, []string{"4", "'z'", "'2001-01-02 03:04:05'"}, values)
 	}
 	{
-		primaryKeys := primary_key.NewKeys(
-			append(primaryKeys.Keys(), primary_key.Key{Name: "d", StartingValue: "1", EndingValue: "4"}),
-		)
+		primaryKeys := append(primaryKeys, primary_key.Key{Name: "d", StartingValue: "1", EndingValue: "4"})
 		_, err := keysToValueList(primaryKeys, cols, true)
 		assert.ErrorContains(t, err, "primary key d not found in columns")
 	}
