@@ -73,6 +73,8 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 		return "", err
 	}
 
+	quotedKeyNames := QuotedIdentifiers(args.PrimaryKeys.KeyNames())
+
 	lowerBoundComparison := ">"
 	if args.InclusiveLowerBound {
 		lowerBoundComparison = ">="
@@ -84,11 +86,11 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 		// FROM
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
 		// WHERE row(pk) > row(123)
-		strings.Join(QuotedIdentifiers(args.PrimaryKeys.KeyNames()), ","), lowerBoundComparison, strings.Join(startingValues, ","),
+		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(startingValues, ","),
 		// AND row(pk) <= row(123)
-		strings.Join(QuotedIdentifiers(args.PrimaryKeys.KeyNames()), ","), strings.Join(endingValues, ","),
+		strings.Join(quotedKeyNames, ","), strings.Join(endingValues, ","),
 		// ORDER BY
-		strings.Join(QuotedIdentifiers(args.PrimaryKeys.KeyNames()), ","),
+		strings.Join(quotedKeyNames, ","),
 		// LIMIT
 		args.Limit,
 	), nil
