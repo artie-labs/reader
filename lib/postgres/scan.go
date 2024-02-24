@@ -34,11 +34,7 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 		castedColumns[idx] = castColumn(col)
 	}
 
-	startingValues, err := keysToValueList(args.PrimaryKeys, args.Columns, false)
-	if err != nil {
-		return "", err
-	}
-	endingValues, err := keysToValueList(args.PrimaryKeys, args.Columns, true)
+	startingValues, endingValues, err := keysToValueList(args.PrimaryKeys, args.Columns)
 	if err != nil {
 		return "", err
 	}
@@ -103,34 +99,32 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 	}
 }
 
-func keysToValueList(keys []primary_key.Key, columns []schema.Column, end bool) ([]string, error) {
-	var valuesToReturn []string
+func keysToValueList(keys []primary_key.Key, columns []schema.Column) ([]string, []string, error) {
+	var startValues []string
+	var endValues []string
 	for _, pk := range keys {
-		val := pk.StartingValue
-		if end {
-			val = pk.EndingValue
-		}
-
 		colIndex := slices.IndexFunc(columns, func(col schema.Column) bool { return col.Name == pk.Name })
 		if colIndex == -1 {
-			return nil, fmt.Errorf("primary key %v not found in columns", pk.Name)
+			return nil, nil, fmt.Errorf("primary key %v not found in columns", pk.Name)
 		}
 
 		shouldQuote, err := shouldQuoteValue(columns[colIndex].Type)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
-		// TODO: look into storing primary key values as their raw types instead of converting them to strings
-		strVal := fmt.Sprint(val)
+		startVal := fmt.Sprint(pk.StartingValue)
+		endVal := fmt.Sprint(pk.EndingValue)
 
 		if shouldQuote {
-			valuesToReturn = append(valuesToReturn, QuoteLiteral(strVal))
-		} else {
-			valuesToReturn = append(valuesToReturn, strVal)
+			startVal = QuoteLiteral(startVal)
+			endVal = QuoteLiteral(endVal)
 		}
+
+		startValues = append(startValues, startVal)
+		endValues = append(endValues, endVal)
 	}
-	return valuesToReturn, nil
+	return startValues, endValues, nil
 }
 
 func _scan(s *scan.Scanner[*Table], primaryKeys *primary_key.Keys, isFirstRow bool) ([]map[string]any, error) {
