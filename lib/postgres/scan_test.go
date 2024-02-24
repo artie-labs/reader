@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -56,24 +57,26 @@ func TestKeysToValueList(t *testing.T) {
 		{Name: "a", StartingValue: "1", EndingValue: "4"},
 		{Name: "b", StartingValue: "a", EndingValue: "z"},
 		{Name: "c", StartingValue: "2000-01-02 03:04:05", EndingValue: "2001-01-02 03:04:05"},
+		{Name: "d", StartingValue: time.Date(1993, 1, 1, 0, 0, 0, 0, time.UTC), EndingValue: time.Date(1994, 1, 1, 0, 0, 0, 0, time.UTC)},
 	}
 
 	cols := []schema.Column{
 		{Name: "a", Type: schema.Int64},
 		{Name: "b", Type: schema.Text},
 		{Name: "c", Type: schema.Timestamp},
+		{Name: "d", Type: schema.Timestamp},
 	}
 
 	{
 		startValues, endValues, err := keysToValueList(primaryKeys, cols)
 		assert.NoError(t, err)
-		assert.Equal(t, []string{"1", "'a'", "'2000-01-02 03:04:05'"}, startValues)
-		assert.Equal(t, []string{"4", "'z'", "'2001-01-02 03:04:05'"}, endValues)
+		assert.Equal(t, []string{"1", "'a'", "'2000-01-02 03:04:05'", "'1993-01-01T00:00:00Z'"}, startValues)
+		assert.Equal(t, []string{"4", "'z'", "'2001-01-02 03:04:05'", "'1994-01-01T00:00:00Z'"}, endValues)
 	}
 	{
-		primaryKeys := append(primaryKeys, primary_key.Key{Name: "d", StartingValue: "1", EndingValue: "4"})
+		primaryKeys := append(primaryKeys, primary_key.Key{Name: "foo", StartingValue: "1", EndingValue: "4"})
 		_, _, err := keysToValueList(primaryKeys, cols)
-		assert.ErrorContains(t, err, "primary key d not found in columns")
+		assert.ErrorContains(t, err, "primary key foo not found in columns")
 	}
 }
 

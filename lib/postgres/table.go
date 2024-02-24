@@ -84,7 +84,6 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 
 		minVal, err := ParseValue(col.Type, ParseValueArgs{
 			ValueWrapper: ValueWrapper{Value: bounds.Min},
-			ParseTime:    true,
 		})
 		if err != nil {
 			return err
@@ -92,7 +91,6 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 
 		maxVal, err := ParseValue(col.Type, ParseValueArgs{
 			ValueWrapper: ValueWrapper{Value: bounds.Max},
-			ParseTime:    true,
 		})
 		if err != nil {
 			return err
