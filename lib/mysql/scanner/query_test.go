@@ -15,9 +15,9 @@ func TestSqlPlaceholders(t *testing.T) {
 }
 
 func TestBuildScanTableQuery(t *testing.T) {
-	keys := primary_key.NewKeys([]primary_key.Key{
+	keys := []primary_key.Key{
 		{Name: "foo", StartingValue: "a", EndingValue: "b"},
-	})
+	}
 	{
 		// exclusive lower bound
 		query, parameters, err := buildScanTableQuery(buildScanTableQueryArgs{

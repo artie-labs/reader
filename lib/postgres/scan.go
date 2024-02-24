@@ -133,11 +133,11 @@ func keysToValueList(keys []primary_key.Key, columns []schema.Column) ([]string,
 	return startValues, endValues, nil
 }
 
-func _scan(s *scan.Scanner[*Table], primaryKeys *primary_key.Keys, isFirstRow bool) ([]map[string]any, error) {
+func _scan(s *scan.Scanner[*Table], primaryKeys []primary_key.Key, isFirstRow bool) ([]map[string]any, error) {
 	query, err := scanTableQuery(scanTableQueryArgs{
 		Schema:              s.Table.Schema,
 		TableName:           s.Table.Name,
-		PrimaryKeys:         primaryKeys.Keys(),
+		PrimaryKeys:         primaryKeys,
 		Columns:             s.Table.Columns,
 		InclusiveLowerBound: isFirstRow,
 		Limit:               s.BatchSize,

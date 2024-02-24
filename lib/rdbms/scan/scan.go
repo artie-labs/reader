@@ -33,7 +33,7 @@ type Scanner[T Table] struct {
 	Table     T
 	BatchSize uint
 	RetryCfg  retry.RetryConfig
-	scan      func(scanner *Scanner[T], primaryKeys *primary_key.Keys, isFirstBatch bool) ([]map[string]any, error)
+	scan      func(scanner *Scanner[T], primaryKeys []primary_key.Key, isFirstBatch bool) ([]map[string]any, error)
 
 	// mutable
 	primaryKeys  *primary_key.Keys
@@ -45,7 +45,7 @@ func NewScanner[T Table](
 	db *sql.DB,
 	table T,
 	cfg ScannerConfig,
-	scan func(scanner *Scanner[T], primaryKeys *primary_key.Keys, isFirstBatch bool) ([]map[string]any, error),
+	scan func(scanner *Scanner[T], primaryKeys []primary_key.Key, isFirstBatch bool) ([]map[string]any, error),
 ) (Scanner[T], error) {
 	primaryKeys := primary_key.NewKeys(table.GetPrimaryKeys())
 	if err := primaryKeys.LoadValues(cfg.OptionalStartingValues, cfg.OptionalEndingValues); err != nil {
@@ -78,7 +78,7 @@ func (s *Scanner[T]) Next() ([]map[string]any, error) {
 		return nil, fmt.Errorf("no more rows to scan")
 	}
 
-	rows, err := s.scan(s, s.primaryKeys, s.isFirstBatch)
+	rows, err := s.scan(s, s.primaryKeys.Keys(), s.isFirstBatch)
 	if err != nil {
 		s.done = true
 		return nil, err
@@ -90,7 +90,7 @@ func (s *Scanner[T]) Next() ([]map[string]any, error) {
 		slog.Info("Finished scanning", slog.String("table", s.Table.GetName()))
 		s.done = true
 	} else {
-		// Update the starting key so that the next scan will pick off where we last left off.
+		// Update the starting keys so that the next scan will pick off where we last left off.
 		lastRow := rows[len(rows)-1]
 		for _, pk := range s.primaryKeys.Keys() {
 			if err := s.primaryKeys.UpdateStartingValue(pk.Name, lastRow[pk.Name]); err != nil {

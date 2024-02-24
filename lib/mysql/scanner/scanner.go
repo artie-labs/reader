@@ -16,7 +16,7 @@ func NewScanner(db *sql.DB, table mysql.Table, cfg scan.ScannerConfig) (scan.Sca
 	return scan.NewScanner(db, &table, cfg, _scan)
 }
 
-func _scan(s *scan.Scanner[*mysql.Table], primaryKeys *primary_key.Keys, isFirstBatch bool) ([]map[string]any, error) {
+func _scan(s *scan.Scanner[*mysql.Table], primaryKeys []primary_key.Key, isFirstBatch bool) ([]map[string]any, error) {
 	query, parameters, err := buildScanTableQuery(buildScanTableQueryArgs{
 		TableName:           s.Table.Name,
 		PrimaryKeys:         primaryKeys,
