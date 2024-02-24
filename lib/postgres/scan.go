@@ -13,6 +13,7 @@ import (
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
+	"github.com/artie-labs/reader/lib/timeutil"
 )
 
 func (t *Table) NewScanner(db *sql.DB, cfg scan.ScannerConfig) (scan.Scanner[*Table], error) {
@@ -100,6 +101,10 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 }
 
 func keysToValueList(keys []primary_key.Key, columns []schema.Column) ([]string, []string, error) {
+	convertToString := func(value any) string {
+		return fmt.Sprint(timeutil.ParseValue(value))
+	}
+
 	var startValues []string
 	var endValues []string
 	for _, pk := range keys {
@@ -113,8 +118,8 @@ func keysToValueList(keys []primary_key.Key, columns []schema.Column) ([]string,
 			return nil, nil, err
 		}
 
-		startVal := fmt.Sprint(pk.StartingValue)
-		endVal := fmt.Sprint(pk.EndingValue)
+		startVal := convertToString(pk.StartingValue)
+		endVal := convertToString(pk.EndingValue)
 
 		if shouldQuote {
 			startVal = QuoteLiteral(startVal)
@@ -206,7 +211,6 @@ func _scan(s *scan.Scanner[*Table], primaryKeys *primary_key.Keys, isFirstRow bo
 
 		val, err := ParseValue(col.Type, ParseValueArgs{
 			ValueWrapper: lastRow[pk.Name],
-			ParseTime:    true,
 		})
 		if err != nil {
 			return nil, err

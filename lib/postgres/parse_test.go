@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"testing"
-	"time"
 
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
@@ -15,7 +14,6 @@ func TestParse(t *testing.T) {
 		colName       string
 		colKind       string
 		udtName       *string
-		parseTime     bool
 		value         ValueWrapper
 		expectErr     bool
 		expectedValue any
@@ -64,15 +62,6 @@ func TestParse(t *testing.T) {
 			expectedValue: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
 		},
 		{
-			colName: "parse time",
-			colKind: "timestamp without time zone",
-			value: ValueWrapper{
-				Value: time.Date(1993, 1, 1, 0, 0, 0, 0, time.UTC),
-			},
-			parseTime:     true,
-			expectedValue: "1993-01-01T00:00:00Z",
-		},
-		{
 			colName: "json",
 			colKind: "json",
 			value: ValueWrapper{
@@ -99,7 +88,6 @@ func TestParse(t *testing.T) {
 
 		value, err := ParseValue(dataType, ParseValueArgs{
 			ValueWrapper: tc.value,
-			ParseTime:    tc.parseTime,
 		})
 
 		if tc.expectErr {
@@ -112,7 +100,6 @@ func TestParse(t *testing.T) {
 			for i := 0; i < 5; i++ {
 				value, err = ParseValue(dataType, ParseValueArgs{
 					ValueWrapper: value,
-					ParseTime:    tc.parseTime,
 				})
 
 				assert.NoError(t, err, tc.colName)
