@@ -173,14 +173,14 @@ func _scan(s *scan.Scanner[*Table], primaryKeys *primary_key.Keys, isFirstRow bo
 		scanArgs[i] = &values[i]
 	}
 
-	var rowsData []map[string]ValueWrapper
+	var rowsData []map[string]any
 	for rows.Next() {
 		err = rows.Scan(scanArgs...)
 		if err != nil {
 			return nil, err
 		}
 
-		row := make(map[string]ValueWrapper)
+		row := make(map[string]any)
 		for idx, v := range values {
 			col := s.Table.Columns[idx]
 
@@ -193,7 +193,7 @@ func _scan(s *scan.Scanner[*Table], primaryKeys *primary_key.Keys, isFirstRow bo
 				return nil, err
 			}
 
-			row[col.Name] = value
+			row[col.Name] = value.Value
 		}
 		rowsData = append(rowsData, row)
 	}
@@ -205,32 +205,10 @@ func _scan(s *scan.Scanner[*Table], primaryKeys *primary_key.Keys, isFirstRow bo
 	// Update the starting key so that the next scan will pick off where we last left off.
 	lastRow := rowsData[len(rowsData)-1]
 	for _, pk := range primaryKeys.Keys() {
-		col, err := s.Table.GetColumnByName(pk.Name)
-		if err != nil {
-			return nil, err
-		}
-
-		val, err := ParseValue(col.Type, ParseValueArgs{
-			ValueWrapper: lastRow[pk.Name],
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		if err := primaryKeys.UpdateStartingValue(pk.Name, val.Value); err != nil {
+		if err := primaryKeys.UpdateStartingValue(pk.Name, lastRow[pk.Name]); err != nil {
 			return nil, err
 		}
 	}
 
-	var parsedRows []map[string]any
-	for _, row := range rowsData {
-		parsedRow := make(map[string]any)
-		for key, value := range row {
-			parsedRow[key] = value.Value
-		}
-
-		parsedRows = append(parsedRows, parsedRow)
-	}
-
-	return parsedRows, nil
+	return rowsData, nil
 }
