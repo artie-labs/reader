@@ -84,12 +84,20 @@ func (s *Scanner[T]) Next() ([]map[string]any, error) {
 		return nil, err
 	}
 
+	s.isFirstBatch = false
+
 	if len(rows) == 0 || s.primaryKeys.IsExhausted() {
 		slog.Info("Finished scanning", slog.String("table", s.Table.GetName()))
 		s.done = true
+	} else {
+		// Update the starting key so that the next scan will pick off where we last left off.
+		lastRow := rows[len(rows)-1]
+		for _, pk := range s.primaryKeys.Keys() {
+			if err := s.primaryKeys.UpdateStartingValue(pk.Name, lastRow[pk.Name]); err != nil {
+				return nil, err
+			}
+		}
 	}
-
-	s.isFirstBatch = false
 
 	return rows, nil
 }
