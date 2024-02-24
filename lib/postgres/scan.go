@@ -102,6 +102,7 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 
 func keysToValueList(keys []primary_key.Key, columns []schema.Column) ([]string, []string, error) {
 	convertToString := func(value any) string {
+		// This is needed because we need to cast the time.Time object into a string for pagination.
 		return fmt.Sprint(timeutil.ParseValue(value))
 	}
 
