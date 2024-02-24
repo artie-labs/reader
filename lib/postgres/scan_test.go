@@ -65,18 +65,14 @@ func TestKeysToValueList(t *testing.T) {
 	}
 
 	{
-		values, err := keysToValueList(primaryKeys, cols, false)
+		startValues, endValues, err := keysToValueList(primaryKeys, cols)
 		assert.NoError(t, err)
-		assert.Equal(t, []string{"1", "'a'", "'2000-01-02 03:04:05'"}, values)
-	}
-	{
-		values, err := keysToValueList(primaryKeys, cols, true)
-		assert.NoError(t, err)
-		assert.Equal(t, []string{"4", "'z'", "'2001-01-02 03:04:05'"}, values)
+		assert.Equal(t, []string{"1", "'a'", "'2000-01-02 03:04:05'"}, startValues)
+		assert.Equal(t, []string{"4", "'z'", "'2001-01-02 03:04:05'"}, endValues)
 	}
 	{
 		primaryKeys := append(primaryKeys, primary_key.Key{Name: "d", StartingValue: "1", EndingValue: "4"})
-		_, err := keysToValueList(primaryKeys, cols, true)
+		_, _, err := keysToValueList(primaryKeys, cols)
 		assert.ErrorContains(t, err, "primary key d not found in columns")
 	}
 }
