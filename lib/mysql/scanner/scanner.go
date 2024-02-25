@@ -16,7 +16,7 @@ func NewScanner(db *sql.DB, table mysql.Table, cfg scan.ScannerConfig) (scan.Sca
 	return scan.NewScanner(db, &table, cfg, _scan)
 }
 
-func _scan(s *scan.Scanner[*mysql.Table], primaryKeys *primary_key.Keys, isFirstBatch bool) ([]map[string]any, error) {
+func _scan(s *scan.Scanner[*mysql.Table], primaryKeys []primary_key.Key, isFirstBatch bool) ([]map[string]any, error) {
 	query, parameters, err := buildScanTableQuery(buildScanTableQueryArgs{
 		TableName:           s.Table.Name,
 		PrimaryKeys:         primaryKeys,
@@ -61,18 +61,5 @@ func _scan(s *scan.Scanner[*mysql.Table], primaryKeys *primary_key.Keys, isFirst
 		}
 		rowsData = append(rowsData, row)
 	}
-
-	if len(rowsData) == 0 {
-		return rowsData, nil
-	}
-
-	// Update the starting key so that the next scan will pick off where we last left off.
-	lastRow := rowsData[len(rowsData)-1]
-	for _, pk := range primaryKeys.Keys() {
-		if err := primaryKeys.UpdateStartingValue(pk.Name, lastRow[pk.Name]); err != nil {
-			return nil, err
-		}
-	}
-
 	return rowsData, nil
 }
