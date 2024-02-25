@@ -113,7 +113,6 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 
 		return stringSlice, nil
 	default:
-		// We don't care about anything other than arrays.
 		return value, nil
 	}
 }

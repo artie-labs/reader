@@ -12,7 +12,7 @@ import (
 func TestParse(t *testing.T) {
 	type _testCase struct {
 		colName       string
-		colKind       string
+		dataType      schema.DataType
 		udtName       *string
 		value         any
 		expectErr     bool
@@ -22,39 +22,45 @@ func TestParse(t *testing.T) {
 	tcs := []_testCase{
 		{
 			colName:       "bit_test (true)",
-			colKind:       "bit",
+			dataType:      schema.Bit,
 			value:         "1",
 			expectedValue: true,
 		},
 		{
 			colName:       "bit_test (false)",
-			colKind:       "bit",
+			dataType:      schema.Bit,
 			value:         "0",
 			expectedValue: false,
 		},
 		{
 			colName:       "foo",
-			colKind:       "ARRAY",
+			dataType:      schema.Array,
 			value:         `["foo", "bar", "abc"]`,
 			expectedValue: []any{"foo", "bar", "abc"},
 		},
 		{
 			colName:       "group",
-			colKind:       "character varying",
+			dataType:      schema.Text,
 			value:         "hello",
 			expectedValue: "hello",
 		},
 		{
+			colName:       "uuid",
+			dataType:      schema.UUID,
+			value:         "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+			expectedValue: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+		},
+		{
 			colName:       "json",
-			colKind:       "json",
+			dataType:      schema.JSON,
 			value:         []byte(`{"foo":"bar"}`),
 			expectedValue: `{"foo":"bar"}`,
 		},
 		{
-			colName: "geography",
-			colKind: "user-defined",
-			udtName: ptr.ToString("geography"),
-			value:   "0101000020E61000000000000000804B4000000000008040C0",
+			colName:  "geography",
+			dataType: schema.Geometry,
+			udtName:  ptr.ToString("geography"),
+			value:    "0101000020E61000000000000000804B4000000000008040C0",
 			expectedValue: map[string]any{
 				"srid": nil,
 				"wkb":  "AQEAACDmEAAAAAAAAACAS0AAAAAAAIBAwA==",
@@ -63,9 +69,7 @@ func TestParse(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		dataType, _ := schema.ParseColumnDataType(tc.colKind, nil, nil, tc.udtName)
-
-		value, err := ParseValue(dataType, tc.value)
+		value, err := ParseValue(tc.dataType, tc.value)
 
 		if tc.expectErr {
 			assert.Error(t, err, tc.colName)
