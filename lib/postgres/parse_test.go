@@ -68,6 +68,7 @@ func TestParse(t *testing.T) {
 	for _, tc := range tcs {
 		value, err := ParseValue(tc.dataType, tc.value)
 		if tc.expectErr {
+			// TODO: Add some tests for error cases
 			assert.Error(t, err, tc.colName)
 		} else {
 			assert.NoError(t, err, tc.colName)
