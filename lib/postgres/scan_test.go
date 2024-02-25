@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -52,43 +53,39 @@ func TestShouldQuoteValue(t *testing.T) {
 }
 
 func TestKeysToValueList(t *testing.T) {
-	primaryKeys := primary_key.NewKeys([]primary_key.Key{
+	primaryKeys := []primary_key.Key{
 		{Name: "a", StartingValue: "1", EndingValue: "4"},
 		{Name: "b", StartingValue: "a", EndingValue: "z"},
 		{Name: "c", StartingValue: "2000-01-02 03:04:05", EndingValue: "2001-01-02 03:04:05"},
-	})
+		{Name: "d", StartingValue: time.Date(1993, 1, 1, 0, 0, 0, 0, time.UTC), EndingValue: time.Date(1994, 1, 1, 0, 0, 0, 0, time.UTC)},
+	}
 
 	cols := []schema.Column{
 		{Name: "a", Type: schema.Int64},
 		{Name: "b", Type: schema.Text},
 		{Name: "c", Type: schema.Timestamp},
+		{Name: "d", Type: schema.Timestamp},
 	}
 
 	{
-		values, err := keysToValueList(primaryKeys, cols, false)
+		startValues, endValues, err := keysToValueList(primaryKeys, cols)
 		assert.NoError(t, err)
-		assert.Equal(t, []string{"1", "'a'", "'2000-01-02 03:04:05'"}, values)
+		assert.Equal(t, []string{"1", "'a'", "'2000-01-02 03:04:05'", "'1993-01-01T00:00:00Z'"}, startValues)
+		assert.Equal(t, []string{"4", "'z'", "'2001-01-02 03:04:05'", "'1994-01-01T00:00:00Z'"}, endValues)
 	}
 	{
-		values, err := keysToValueList(primaryKeys, cols, true)
-		assert.NoError(t, err)
-		assert.Equal(t, []string{"4", "'z'", "'2001-01-02 03:04:05'"}, values)
-	}
-	{
-		primaryKeys := primary_key.NewKeys(
-			append(primaryKeys.Keys(), primary_key.Key{Name: "d", StartingValue: "1", EndingValue: "4"}),
-		)
-		_, err := keysToValueList(primaryKeys, cols, true)
-		assert.ErrorContains(t, err, "primary key d not found in columns")
+		primaryKeys := append(primaryKeys, primary_key.Key{Name: "foo", StartingValue: "1", EndingValue: "4"})
+		_, _, err := keysToValueList(primaryKeys, cols)
+		assert.ErrorContains(t, err, "primary key foo not found in columns")
 	}
 }
 
 func TestScanTableQuery(t *testing.T) {
-	primaryKeys := primary_key.NewKeys([]primary_key.Key{
+	primaryKeys := []primary_key.Key{
 		{Name: "a", StartingValue: "1", EndingValue: "4"},
 		{Name: "b", StartingValue: "2", EndingValue: "5"},
 		{Name: "c", StartingValue: "3", EndingValue: "6"},
-	})
+	}
 	cols := []schema.Column{
 		{Name: "a", Type: schema.Int64},
 		{Name: "b", Type: schema.Int64},

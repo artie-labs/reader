@@ -24,6 +24,14 @@ func NewTable(schema string, name string) *Table {
 	}
 }
 
+func (t *Table) GetName() string {
+	return t.Name
+}
+
+func (t *Table) GetPrimaryKeys() []primary_key.Key {
+	return t.PrimaryKeys
+}
+
 func (t *Table) GetColumnByName(colName string) (*schema.Column, error) {
 	index := slices.IndexFunc(t.Columns, func(c schema.Column) bool { return c.Name == colName })
 	if index < 0 {
@@ -76,7 +84,6 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 
 		minVal, err := ParseValue(col.Type, ParseValueArgs{
 			ValueWrapper: ValueWrapper{Value: bounds.Min},
-			ParseTime:    true,
 		})
 		if err != nil {
 			return err
@@ -84,7 +91,6 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 
 		maxVal, err := ParseValue(col.Type, ParseValueArgs{
 			ValueWrapper: ValueWrapper{Value: bounds.Max},
-			ParseTime:    true,
 		})
 		if err != nil {
 			return err
@@ -92,8 +98,8 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 
 		t.PrimaryKeys[idx] = primary_key.Key{
 			Name:          col.Name,
-			StartingValue: minVal.String(),
-			EndingValue:   maxVal.String(),
+			StartingValue: minVal.Value,
+			EndingValue:   maxVal.Value,
 		}
 	}
 

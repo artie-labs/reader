@@ -18,7 +18,7 @@ func sqlPlaceholders(count int) []string {
 
 type buildScanTableQueryArgs struct {
 	TableName           string
-	PrimaryKeys         *primary_key.Keys
+	PrimaryKeys         []primary_key.Key
 	Columns             []schema.Column
 	InclusiveLowerBound bool
 	Limit               uint
@@ -30,14 +30,17 @@ func buildScanTableQuery(args buildScanTableQueryArgs) (string, []any, error) {
 		colNames[idx] = schema.QuoteIdentifier(col.Name)
 	}
 
-	var startingValues = make([]any, len(args.PrimaryKeys.Keys()))
+	var startingValues = make([]any, len(args.PrimaryKeys))
 	var endingValues = make([]any, len(startingValues))
-	for i, pk := range args.PrimaryKeys.Keys() {
+	for i, pk := range args.PrimaryKeys {
 		startingValues[i] = pk.StartingValue
 		endingValues[i] = pk.EndingValue
 	}
 
-	quotedKeyNames := schema.QuotedIdentifiers(args.PrimaryKeys.KeyNames())
+	quotedKeyNames := make([]string, len(args.PrimaryKeys))
+	for i, key := range args.PrimaryKeys {
+		quotedKeyNames[i] = schema.QuoteIdentifier(key.Name)
+	}
 
 	lowerBoundComparison := ">"
 	if args.InclusiveLowerBound {

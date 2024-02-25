@@ -10,11 +10,9 @@ import (
 
 	"github.com/artie-labs/reader/lib/postgres/parse"
 	"github.com/artie-labs/reader/lib/postgres/schema"
-	"github.com/artie-labs/reader/lib/timeutil"
 )
 
 type ParseValueArgs struct {
-	ParseTime    bool
 	ValueWrapper ValueWrapper
 }
 
@@ -25,10 +23,6 @@ func (p *ParseValueArgs) Value() any {
 type ValueWrapper struct {
 	Value  any
 	parsed bool
-}
-
-func (v *ValueWrapper) String() string {
-	return fmt.Sprint(v.Value)
 }
 
 func NewValueWrapper(value any) ValueWrapper {
@@ -139,11 +133,6 @@ func ParseValue(colKind schema.DataType, args ParseValueArgs) (ValueWrapper, err
 
 		return NewValueWrapper(stringSlice), nil
 	default:
-		// This is needed because we need to cast the time.Time object into a string for pagination.
-		if args.ParseTime {
-			return NewValueWrapper(timeutil.ParseValue(args.Value())), nil
-		}
-
 		// We don't care about anything other than arrays.
 		// Return parsed = false since we didn't actually parse it.
 		return ValueWrapper{
