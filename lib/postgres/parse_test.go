@@ -3,7 +3,6 @@ package postgres
 import (
 	"testing"
 
-	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/lib/postgres/schema"
@@ -13,7 +12,6 @@ func TestParse(t *testing.T) {
 	type _testCase struct {
 		colName       string
 		dataType      schema.DataType
-		udtName       *string
 		value         any
 		expectErr     bool
 		expectedValue any
@@ -59,7 +57,6 @@ func TestParse(t *testing.T) {
 		{
 			colName:  "geography",
 			dataType: schema.Geography,
-			udtName:  ptr.ToString("geography"),
 			value:    "0101000020E61000000000000000804B4000000000008040C0",
 			expectedValue: map[string]any{
 				"srid": nil,
