@@ -184,16 +184,12 @@ func _scan(s *scan.Scanner[*Table], primaryKeys []primary_key.Key, isFirstRow bo
 		for idx, v := range values {
 			col := s.Table.Columns[idx]
 
-			value, err := ParseValue(col.Type, ParseValueArgs{
-				ValueWrapper: ValueWrapper{
-					Value: v,
-				},
-			})
+			value, err := ParseValue(col.Type, v)
 			if err != nil {
 				return nil, err
 			}
 
-			row[col.Name] = value.Value
+			row[col.Name] = value
 		}
 		rowsData = append(rowsData, row)
 	}
