@@ -58,7 +58,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			colName:  "geography",
-			dataType: schema.Geometry,
+			dataType: schema.Geography,
 			udtName:  ptr.ToString("geography"),
 			value:    "0101000020E61000000000000000804B4000000000008040C0",
 			expectedValue: map[string]any{
