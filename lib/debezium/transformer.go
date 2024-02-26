@@ -47,14 +47,14 @@ func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 
 	rows, err := d.iter.Next()
 	if err != nil {
-		return nil, fmt.Errorf("failed to scan postgres: %w", err)
+		return nil, fmt.Errorf("failed to scan: %w", err)
 	}
 
 	var result []lib.RawMessage
 	for _, row := range rows {
 		payload, err := d.createPayload(row)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create debezium payload: %w", err)
+			return nil, fmt.Errorf("failed to create Debezium payload: %w", err)
 		}
 
 		result = append(result, lib.NewRawMessage(d.adapter.TopicSuffix(), d.adapter.PartitionKey(row), payload))
@@ -65,7 +65,7 @@ func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 func (d *DebeziumTransformer) createPayload(row map[string]any) (util.SchemaEventPayload, error) {
 	dbzRow, err := d.adapter.ConvertRowToDebezium(row)
 	if err != nil {
-		return util.SchemaEventPayload{}, fmt.Errorf("failed to convert row to debezium: %w", err)
+		return util.SchemaEventPayload{}, fmt.Errorf("failed to convert row to Debezium: %w", err)
 	}
 
 	schema := debezium.Schema{
