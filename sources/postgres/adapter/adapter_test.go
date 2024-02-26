@@ -59,6 +59,7 @@ func TestPostgresAdapter_Fields(t *testing.T) {
 		},
 	}
 	adapter := NewPostgresAdapter(table)
+
 	expected := []debezium.Field{
 		{Type: "string", FieldName: "col1"},
 		{Type: "boolean", FieldName: "col2"},

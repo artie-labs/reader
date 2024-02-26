@@ -21,7 +21,7 @@ func (d decimalConverter) ToField(name string) debezium.Field {
 		DebeziumType: string(debezium.KafkaDecimalType),
 	}
 
-	if d.scale != nil && d.precision != nil {
+	if d.scale != nil || d.precision != nil {
 		field.Parameters = make(map[string]any)
 
 		if d.scale != nil {
