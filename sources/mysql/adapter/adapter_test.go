@@ -50,25 +50,24 @@ func TestMySQLAdapter_TopicSuffix(t *testing.T) {
 }
 
 func TestMySQLAdapter_Fields(t *testing.T) {
-	{
-		// Happy path
-		table := mysql.Table{
-			Name: "table1",
-			Columns: []schema.Column{
-				{Name: "col1", Type: schema.Text},
-				{Name: "col2", Type: schema.BigInt},
-				{Name: "col3", Type: schema.JSON},
-			},
-		}
-		adapter, err := NewMySQLAdapter(table)
-		assert.NoError(t, err)
-		expected := []debezium.Field{
-			{FieldName: "col1", Type: "string"},
-			{FieldName: "col2", Type: "int64"},
-			{FieldName: "col3", Type: "string", DebeziumType: "io.debezium.data.Json"},
-		}
-		assert.Equal(t, expected, adapter.Fields())
+
+	table := mysql.Table{
+		Name: "table1",
+		Columns: []schema.Column{
+			{Name: "col1", Type: schema.Text},
+			{Name: "col2", Type: schema.BigInt},
+			{Name: "col3", Type: schema.JSON},
+		},
 	}
+	adapter, err := NewMySQLAdapter(table)
+	assert.NoError(t, err)
+	expected := []debezium.Field{
+		{FieldName: "col1", Type: "string"},
+		{FieldName: "col2", Type: "int64"},
+		{FieldName: "col3", Type: "string", DebeziumType: "io.debezium.data.Json"},
+	}
+	assert.Equal(t, expected, adapter.Fields())
+
 }
 
 func TestMySQLAdapter_PartitionKey(t *testing.T) {

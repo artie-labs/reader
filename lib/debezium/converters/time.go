@@ -15,8 +15,7 @@ func (MicroTimeConverter) ToField(name string) debezium.Field {
 }
 
 func (MicroTimeConverter) Convert(value any) (any, error) {
-	// TODO: Implement
-	return value, nil
+	panic("not implemented")
 }
 
 type DateConverter struct{}
@@ -30,8 +29,7 @@ func (DateConverter) ToField(name string) debezium.Field {
 }
 
 func (DateConverter) Convert(value any) (any, error) {
-	// TODO: Implement
-	return value, nil
+	panic("not implemented")
 }
 
 type TimestampConverter struct{}
@@ -45,8 +43,7 @@ func (TimestampConverter) ToField(name string) debezium.Field {
 }
 
 func (TimestampConverter) Convert(value any) (any, error) {
-	// TODO: Implement
-	return value, nil
+	panic("not implemented")
 }
 
 type DateTimeWithTimezoneConverter struct{}
@@ -60,8 +57,7 @@ func (DateTimeWithTimezoneConverter) ToField(name string) debezium.Field {
 }
 
 func (DateTimeWithTimezoneConverter) Convert(value any) (any, error) {
-	// TODO: Implement
-	return value, nil
+	panic("not implemented")
 }
 
 type YearConverter struct{}
@@ -75,6 +71,5 @@ func (YearConverter) ToField(name string) debezium.Field {
 }
 
 func (YearConverter) Convert(value any) (any, error) {
-	// TODO: Implement
-	return value, nil
+	panic("not implemented")
 }
