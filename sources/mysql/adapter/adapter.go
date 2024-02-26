@@ -13,21 +13,25 @@ import (
 
 type mysqlAdapter struct {
 	table        mysql.Table
+	fields       []debezium.Field
 	rowConverter converters.RowConverter
 }
 
 func NewMySQLAdapter(table mysql.Table) (mysqlAdapter, error) {
+	fields := make([]debezium.Field, len(table.Columns))
 	valueConverters := map[string]converters.ValueConverter{}
-	for _, col := range table.Columns {
+	for i, col := range table.Columns {
 		converter, err := valueConverterForType(col.Type, col.Opts)
 		if err != nil {
 			return mysqlAdapter{}, err
 		}
+		fields[i] = converter.ToField(col.Name)
 		valueConverters[col.Name] = converter
 	}
 
 	return mysqlAdapter{
 		table:        table,
+		fields:       fields,
 		rowConverter: converters.NewRowConverter(valueConverters),
 	}, nil
 }
@@ -40,12 +44,8 @@ func (m mysqlAdapter) TopicSuffix() string {
 	return strings.ReplaceAll(m.table.Name, `"`, ``)
 }
 
-func (p mysqlAdapter) Fields() []debezium.Field {
-	fields := make([]debezium.Field, len(p.table.Columns))
-	for i, col := range p.table.Columns {
-		fields[i] = p.rowConverter.ValueConverters[col.Name].ToField(col.Name)
-	}
-	return fields
+func (m mysqlAdapter) Fields() []debezium.Field {
+	return m.fields
 }
 
 // PartitionKey returns a map of primary keys and their values for a given row.
