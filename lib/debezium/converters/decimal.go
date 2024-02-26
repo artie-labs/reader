@@ -41,6 +41,5 @@ func (decimalConverter) Convert(value any) (any, error) {
 	if isOk {
 		return castValue, nil
 	}
-
 	return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
 }
