@@ -42,6 +42,7 @@ const (
 	Text
 	Enum
 	Set
+	// JSON
 	JSON
 )
 

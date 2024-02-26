@@ -72,7 +72,11 @@ func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, 
 	if err != nil {
 		return fmt.Errorf("failed to build scanner for table %s: %w", table.Name, err)
 	}
-	dbzTransformer := debezium.NewDebeziumTransformer(adapter.NewMySQLAdapter(*table), &scanner)
+	adapter, err := adapter.NewMySQLAdapter(*table)
+	if err != nil {
+		return fmt.Errorf("failed to create MySQL adapter: %w", err)
+	}
+	dbzTransformer := debezium.NewDebeziumTransformer(adapter, &scanner)
 	count, err := writer.WriteIterator(ctx, dbzTransformer)
 	if err != nil {
 		return fmt.Errorf("failed to snapshot for table %s: %w", table.Name, err)
