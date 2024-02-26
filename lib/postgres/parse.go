@@ -12,109 +12,89 @@ import (
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
 
-type ParseValueArgs struct {
-	ValueWrapper ValueWrapper
-}
-
-func (p *ParseValueArgs) Value() any {
-	return p.ValueWrapper.Value
-}
-
-type ValueWrapper struct {
-	Value  any
-	parsed bool
-}
-
-func NewValueWrapper(value any) ValueWrapper {
-	return ValueWrapper{
-		Value:  value,
-		parsed: true,
-	}
-}
-
-func ParseValue(colKind schema.DataType, args ParseValueArgs) (ValueWrapper, error) {
-	// If the value is nil, or already parsed - just return.
-	if args.Value() == nil || args.ValueWrapper.parsed {
-		return args.ValueWrapper, nil
+func ParseValue(colKind schema.DataType, value any) (any, error) {
+	// If the value is nil - just return.
+	if value == nil {
+		return nil, nil
 	}
 
 	switch colKind {
 	case schema.Geometry, schema.Geography:
-		valString, isOk := args.Value().(string)
+		valString, isOk := value.(string)
 		if !isOk {
-			return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type for geometry / geography", args.Value())
+			return nil, fmt.Errorf("value: %v not of string type for geometry / geography", value)
 		}
 
 		geometry, err := parse.ToGeography([]byte(valString))
 		if err != nil {
-			return NewValueWrapper(nil), fmt.Errorf("failed to parse geometry / geography: %w", err)
+			return nil, fmt.Errorf("failed to parse geometry / geography: %w", err)
 		}
 
-		return NewValueWrapper(geometry), nil
+		return geometry, nil
 	case schema.Point:
-		valString, isOk := args.Value().(string)
+		valString, isOk := value.(string)
 		if !isOk {
-			return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type for POINT", args.Value())
+			return nil, fmt.Errorf("value: %v not of string type for POINT", value)
 		}
 
 		point, err := parse.ToPoint(valString)
 		if err != nil {
-			return NewValueWrapper(nil), fmt.Errorf("failed to parse POINT: %w", err)
+			return nil, fmt.Errorf("failed to parse POINT: %w", err)
 		}
 
-		return NewValueWrapper(point.ToMap()), nil
+		return point.ToMap(), nil
 
 	case schema.Bit:
 		// This will be 0 (false) or 1 (true)
-		valString, isOk := args.Value().(string)
+		valString, isOk := value.(string)
 		if isOk {
-			return NewValueWrapper(valString == "1"), nil
+			return valString == "1", nil
 		}
-		return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type for bit", args.Value())
+		return nil, fmt.Errorf("value: %v not of string type for bit", value)
 	case schema.JSON:
 		// Debezium sends JSON as a JSON string
-		byteSlice, isByteSlice := args.Value().([]byte)
+		byteSlice, isByteSlice := value.([]byte)
 		if !isByteSlice {
-			return NewValueWrapper(nil), fmt.Errorf("value: %v not of []byte type for JSON", args.Value())
+			return nil, fmt.Errorf("value: %v not of []byte type for JSON", value)
 		}
 
-		return NewValueWrapper(string(byteSlice)), nil
+		return string(byteSlice), nil
 	case schema.Numeric, schema.VariableNumeric:
-		stringVal, isStringVal := args.Value().(string)
+		stringVal, isStringVal := value.(string)
 		if isStringVal {
-			return NewValueWrapper(stringVal), nil
+			return stringVal, nil
 		}
 
-		return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type for Numeric or VariableNumeric", args.Value())
+		return nil, fmt.Errorf("value: %v not of string type for Numeric or VariableNumeric", value)
 	case schema.Array:
 		var arr []any
-		if reflect.TypeOf(args.Value()).Kind() == reflect.Slice {
+		if reflect.TypeOf(value).Kind() == reflect.Slice {
 			// If it's already a slice, don't modify it further.
-			return NewValueWrapper(args.Value()), nil
+			return value, nil
 		}
 
-		err := json.Unmarshal([]byte(fmt.Sprint(args.Value())), &arr)
+		err := json.Unmarshal([]byte(fmt.Sprint(value)), &arr)
 		if err != nil {
-			return NewValueWrapper(nil), fmt.Errorf("failed to parse array value %v: %w", args.Value(), err)
+			return nil, fmt.Errorf("failed to parse array value %v: %w", value, err)
 		}
-		return NewValueWrapper(arr), nil
+		return arr, nil
 	case schema.UUID:
-		stringVal, isOk := args.Value().(string)
+		stringVal, isOk := value.(string)
 		if !isOk {
-			return NewValueWrapper(nil), fmt.Errorf("value: %v not of string type", args.Value())
+			return nil, fmt.Errorf("value: %v not of string type", value)
 		}
 
 		_uuid, err := uuid.Parse(stringVal)
 		if err != nil {
-			return NewValueWrapper(nil), fmt.Errorf("failed to cast uuid into *uuid.UUID: %w", err)
+			return nil, fmt.Errorf("failed to cast uuid into *uuid.UUID: %w", err)
 		}
 
-		return NewValueWrapper(_uuid.String()), nil
+		return _uuid.String(), nil
 	case schema.HStore:
 		var val pgtype.Hstore
-		err := val.Scan(args.Value())
+		err := val.Scan(value)
 		if err != nil {
-			return NewValueWrapper(nil), fmt.Errorf("failed to unmarshal hstore: %w", err)
+			return nil, fmt.Errorf("failed to unmarshal hstore: %w", err)
 		}
 
 		jsonMap := make(map[string]any)
@@ -124,20 +104,15 @@ func ParseValue(colKind schema.DataType, args ParseValueArgs) (ValueWrapper, err
 			}
 		}
 
-		return NewValueWrapper(jsonMap), nil
+		return jsonMap, nil
 	case schema.UserDefinedText:
-		stringSlice, isOk := args.Value().(string)
+		stringSlice, isOk := value.(string)
 		if !isOk {
-			return NewValueWrapper(nil), fmt.Errorf("value: %v not of slice type", args.Value())
+			return nil, fmt.Errorf("value: %v not of slice type", value)
 		}
 
-		return NewValueWrapper(stringSlice), nil
+		return stringSlice, nil
 	default:
-		// We don't care about anything other than arrays.
-		// Return parsed = false since we didn't actually parse it.
-		return ValueWrapper{
-			Value:  args.Value(),
-			parsed: false,
-		}, nil
+		return value, nil
 	}
 }
