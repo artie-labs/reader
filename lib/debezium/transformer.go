@@ -21,12 +21,22 @@ type Adapter interface {
 
 type DebeziumTransformer struct {
 	adapter Adapter
+	schema  debezium.Schema
 	iter    batchRowIterator
 }
 
 func NewDebeziumTransformer(adapter Adapter, iter batchRowIterator) *DebeziumTransformer {
+	schema := debezium.Schema{
+		FieldsObject: []debezium.FieldsObject{{
+			Fields:     adapter.Fields(),
+			Optional:   false,
+			FieldLabel: cdc.After,
+		}},
+	}
+
 	return &DebeziumTransformer{
 		adapter: adapter,
+		schema:  schema,
 		iter:    iter,
 	}
 }
@@ -68,14 +78,6 @@ func (d *DebeziumTransformer) createPayload(row map[string]any) (util.SchemaEven
 		return util.SchemaEventPayload{}, fmt.Errorf("failed to convert row to Debezium: %w", err)
 	}
 
-	schema := debezium.Schema{
-		FieldsObject: []debezium.FieldsObject{{
-			Fields:     d.adapter.Fields(),
-			Optional:   false,
-			FieldLabel: cdc.After,
-		}},
-	}
-
 	payload := util.Payload{
 		After: dbzRow,
 		Source: util.Source{
@@ -86,7 +88,7 @@ func (d *DebeziumTransformer) createPayload(row map[string]any) (util.SchemaEven
 	}
 
 	return util.SchemaEventPayload{
-		Schema:  schema,
+		Schema:  d.schema,
 		Payload: payload,
 	}, nil
 }
