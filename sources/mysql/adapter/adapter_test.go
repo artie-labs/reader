@@ -50,7 +50,6 @@ func TestMySQLAdapter_TopicSuffix(t *testing.T) {
 }
 
 func TestMySQLAdapter_Fields(t *testing.T) {
-
 	table := mysql.Table{
 		Name: "table1",
 		Columns: []schema.Column{
@@ -67,7 +66,6 @@ func TestMySQLAdapter_Fields(t *testing.T) {
 		{FieldName: "col3", Type: "string", DebeziumType: "io.debezium.data.Json"},
 	}
 	assert.Equal(t, expected, adapter.Fields())
-
 }
 
 func TestMySQLAdapter_PartitionKey(t *testing.T) {
