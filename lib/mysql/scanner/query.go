@@ -10,7 +10,7 @@ import (
 
 func sqlPlaceholders(count int) []string {
 	result := make([]string, count)
-	for i := 0; i < count; i++ {
+	for i := range count {
 		result[i] = "?"
 	}
 	return result

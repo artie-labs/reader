@@ -1,6 +1,6 @@
 module github.com/artie-labs/reader
 
-go 1.21
+go 1.22
 
 require (
 	github.com/DataDog/datadog-go v4.8.3+incompatible
