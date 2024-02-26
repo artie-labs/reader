@@ -43,12 +43,12 @@ func (Int16Passthrough) Convert(value any) (any, error) {
 		if castValue <= math.MaxInt16 {
 			return int16(castValue), nil
 		}
-		return nil, fmt.Errorf("value is > than %d", math.MaxInt16)
+		return nil, fmt.Errorf("value is > %d", math.MaxInt16)
 	case int64:
 		if castValue <= math.MaxInt16 {
 			return int16(castValue), nil
 		}
-		return nil, fmt.Errorf("value is > than %d", math.MaxInt16)
+		return nil, fmt.Errorf("value is > %d", math.MaxInt16)
 	}
 	return nil, fmt.Errorf("expected int16/int32/int64 got %T with value: %v", value, value)
 }
@@ -73,7 +73,7 @@ func (Int32Passthrough) Convert(value any) (any, error) {
 		if castValue <= math.MaxInt32 {
 			return int32(castValue), nil
 		}
-		return nil, fmt.Errorf("value is > than %d", math.MaxInt32)
+		return nil, fmt.Errorf("value is > %d", math.MaxInt32)
 	}
 	return nil, fmt.Errorf("expected int16/int32/int64 got %T with value: %v", value, value)
 }
@@ -135,7 +135,6 @@ func (DoublePassthrough) Convert(value any) (any, error) {
 	case float64:
 		return castValue, nil
 	}
-
 	return nil, fmt.Errorf("expected float32/float64 got %T with value: %v", value, value)
 }
 
@@ -154,7 +153,7 @@ func (StringPassthrough) Convert(value any) (any, error) {
 	if isOk {
 		return castValue, nil
 	}
-	return fmt.Sprint(value), nil
+	return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
 }
 
 // bytes -> bytes
@@ -172,6 +171,5 @@ func (BytesPassthrough) Convert(value any) (any, error) {
 	if isOk {
 		return castValue, nil
 	}
-
 	return nil, fmt.Errorf("expected []byte got %T with value: %v", value, value)
 }
