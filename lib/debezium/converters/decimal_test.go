@@ -43,13 +43,7 @@ func TestDecimalConverter_Convert(t *testing.T) {
 		converted, err := converter.Convert("1.23")
 		assert.NoError(t, err)
 
-		field := debezium.Field{
-			Parameters: map[string]any{
-				"scale": converter.scale,
-			},
-		}
-
-		actualValue, err := field.DecodeDecimal(fmt.Sprint(converted))
+		actualValue, err := converter.ToField("").DecodeDecimal(fmt.Sprint(converted))
 		assert.NoError(t, err)
 		assert.Equal(t, "1.23", fmt.Sprint(actualValue))
 	}
