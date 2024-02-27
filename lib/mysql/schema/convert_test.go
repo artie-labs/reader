@@ -2,6 +2,7 @@ package schema
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -138,13 +139,31 @@ func TestConvertValue(t *testing.T) {
 			name:     "date",
 			dataType: Date,
 			value:    []byte("2021-01-02"),
-			expected: "2021-01-02",
+			expected: time.Date(2021, 1, 2, 0, 0, 0, 0, time.UTC),
 		},
 		{
 			name:     "datetime",
 			dataType: DateTime,
-			value:    []byte("2021-01-02 10:10:10"),
-			expected: "2021-01-02 10:10:10",
+			value:    []byte("2021-01-02 03:04:05"),
+			expected: time.Date(2021, 1, 2, 3, 4, 5, 0, time.UTC),
+		},
+		{
+			name:        "datetime - malformed",
+			dataType:    DateTime,
+			value:       []byte("not a datetime"),
+			expectedErr: `cannot parse "not a datetime" as "2006"`,
+		},
+		{
+			name:     "timestamp",
+			dataType: Timestamp,
+			value:    []byte("2021-01-02 03:04:05"),
+			expected: time.Date(2021, 1, 2, 3, 4, 5, 0, time.UTC),
+		},
+		{
+			name:        "timestamp - malformed",
+			dataType:    Timestamp,
+			value:       []byte("not a timestamp"),
+			expectedErr: `cannot parse "not a timestamp" as "2006"`,
 		},
 		{
 			name:     "time",
