@@ -18,7 +18,7 @@ func TestAsInt16(t *testing.T) {
 		assert.Equal(t, int16(1234), value)
 	}
 	{
-		// int 32
+		// int32
 		value, err := asInt16(int32(1234))
 		assert.NoError(t, err)
 		assert.Equal(t, int16(1234), value)
@@ -35,7 +35,7 @@ func TestAsInt16(t *testing.T) {
 		assert.ErrorContains(t, err, "value is too large for int16")
 	}
 	{
-		// int 64
+		// int64
 		value, err := asInt16(int64(1234))
 		assert.NoError(t, err)
 		assert.Equal(t, int16(1234), value)
