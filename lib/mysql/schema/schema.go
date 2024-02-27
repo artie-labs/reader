@@ -94,8 +94,6 @@ func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 			return nil, fmt.Errorf("failed to scan: %w", err)
 		}
 
-		fmt.Println("colName", colName, "colType", colType)
-
 		dataType, opts, err := parseColumnDataType(colType)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse data type: %w", err)
@@ -123,9 +121,7 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 		metadata = s[parenIndex+1 : len(s)-1]
 		s = s[:parenIndex]
 	}
-
-	fmt.Println("###", s, "metadata", metadata)
-
+	
 	switch s {
 	case "tinyint":
 		// Boolean, bool are aliases for tinyint(1)
