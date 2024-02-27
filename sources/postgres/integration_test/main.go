@@ -33,7 +33,6 @@ var pgConfig = config.PostgreSQL{
 
 func main() {
 	db, err := sql.Open("pgx", pgConfig.ToDSN())
-	// db, err := sql.Open("pgx", postgres.NewConnection(pgConfig).String())
 	if err != nil {
 		logger.Fatal("Could not connect to Postgres", slog.Any("err", err))
 	}
@@ -110,36 +109,6 @@ func scan(db *sql.DB, tableName string) ([]lib.RawMessage, error) {
 
 	return rows, nil
 }
-
-// func run(db *sql.DB, tableName string) ([]lib.RawMessage, error) {
-// 	tableCfg := &config.PostgreSQLTable{
-// 		Schema: "public",
-// 		Name:   tableName,
-// 	}
-// 	slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name))
-// 	table := postgres.NewTable(tableCfg)
-// 	if err := table.RetrieveColumns(db); err != nil {
-// 		return nil, fmt.Errorf("failed to load configuration for table %s: %w", table.Name, err)
-// 	}
-
-// 	scanner := table.NewScanner(db, tableCfg.GetBatchSize(), 1)
-// 	messageBuilder := postgres.NewMessageBuilder(table, &scanner, &metrics.NullMetricsProvider{})
-// 	rows := []lib.RawMessage{}
-// 	for messageBuilder.HasNext() {
-// 		batch, err := messageBuilder.Next()
-// 		if err != nil {
-// 			logger.Fatal("Failed to get batch", slog.Any("err", err))
-// 		}
-// 		rows = append(rows, batch...)
-// 	}
-
-// 	err := cleanRawMessages(tableName, rows)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return rows, nil
-// }
 
 const createTableQuery = `
 CREATE TABLE %s (
