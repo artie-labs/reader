@@ -27,6 +27,7 @@ const (
 	Double
 	// Bit-Value Type
 	Bit
+	Boolean
 	// Date and Time Data Types
 	Date
 	DateTime
@@ -40,6 +41,9 @@ const (
 	Varbinary
 	Blob
 	Text
+	TinyText
+	MediumText
+	LongText
 	Enum
 	Set
 	// JSON
@@ -90,6 +94,8 @@ func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 			return nil, fmt.Errorf("failed to scan: %w", err)
 		}
 
+		fmt.Println("colName", colName, "colType", colType)
+
 		dataType, opts, err := parseColumnDataType(colType)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse data type: %w", err)
@@ -118,8 +124,15 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 		s = s[:parenIndex]
 	}
 
+	fmt.Println("###", s, "metadata", metadata)
+
 	switch s {
 	case "tinyint":
+		// Boolean, bool are aliases for tinyint(1)
+		if metadata == "1" {
+			return Boolean, nil, nil
+		}
+
 		return TinyInt, nil, nil
 	case "smallint":
 		return SmallInt, nil, nil
@@ -177,6 +190,12 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 		return Blob, nil, nil
 	case "text":
 		return Text, nil, nil
+	case "tinytext":
+		return TinyText, nil, nil
+	case "mediumtext":
+		return MediumText, nil, nil
+	case "longtext":
+		return LongText, nil, nil
 	case "enum":
 		return Enum, nil, nil
 	case "set":
@@ -184,6 +203,7 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 	case "json":
 		return JSON, nil, nil
 	default:
+		slog.Warn("Unknown data type", slog.String("type", s))
 		return InvalidDataType, nil, nil
 	}
 }
