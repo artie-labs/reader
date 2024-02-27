@@ -78,7 +78,7 @@ func checkDifference(name, expected, actual string) bool {
 	return false
 }
 
-func scan(db *sql.DB, tableName string) ([]lib.RawMessage, error) {
+func read(db *sql.DB, tableName string) ([]lib.RawMessage, error) {
 	tableCfg := config.PostgreSQLTable{
 		Schema: "public",
 		Name:   tableName,
@@ -332,7 +332,7 @@ func testTypes(db *sql.DB) error {
 		return fmt.Errorf("unable to insert data: %w", err)
 	}
 
-	rows, err := scan(db, tempTableName)
+	rows, err := read(db, tempTableName)
 	if err != nil {
 		return err
 	}
