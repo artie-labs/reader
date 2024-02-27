@@ -85,10 +85,8 @@ func valueConverterForType(d schema.DataType, opts *schema.Opts) (converters.Val
 		return converters.MicroTimeConverter{}, nil
 	case schema.Date:
 		return converters.DateConverter{}, nil
-	case schema.DateTime:
+	case schema.DateTime, schema.Timestamp:
 		return converters.TimestampConverter{}, nil
-	case schema.Timestamp:
-		return converters.DateTimeWithTimezoneConverter{}, nil
 	case schema.Year:
 		return converters.YearConverter{}, nil
 	case schema.Enum:

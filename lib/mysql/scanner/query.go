@@ -2,6 +2,7 @@ package scanner
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/artie-labs/reader/lib/mysql/schema"
@@ -47,11 +48,6 @@ func buildScanTableQuery(args buildScanTableQueryArgs) (string, []any, error) {
 		lowerBoundComparison = ">="
 	}
 
-	// TODO: use slices.Concat when we upgrade to Go 1.22
-	var parameters []any
-	parameters = append(parameters, startingValues...)
-	parameters = append(parameters, endingValues...)
-
 	return fmt.Sprintf(`SELECT %s FROM %s WHERE (%s) %s (%s) AND (%s) <= (%s) ORDER BY %s LIMIT %d`,
 		// SELECT
 		strings.Join(colNames, ","),
@@ -65,5 +61,5 @@ func buildScanTableQuery(args buildScanTableQueryArgs) (string, []any, error) {
 		strings.Join(quotedKeyNames, ","),
 		// LIMIT
 		args.Limit,
-	), parameters, nil
+	), slices.Concat(startingValues, endingValues), nil
 }

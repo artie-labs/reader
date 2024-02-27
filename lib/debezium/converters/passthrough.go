@@ -2,7 +2,6 @@ package converters
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/artie-labs/transfer/lib/debezium"
 )
@@ -36,21 +35,7 @@ func (Int16Passthrough) ToField(name string) debezium.Field {
 }
 
 func (Int16Passthrough) Convert(value any) (any, error) {
-	switch castValue := value.(type) {
-	case int16:
-		return castValue, nil
-	case int32:
-		if castValue <= math.MaxInt16 {
-			return int16(castValue), nil
-		}
-		return nil, fmt.Errorf("value is > %d", math.MaxInt16)
-	case int64:
-		if castValue <= math.MaxInt16 {
-			return int16(castValue), nil
-		}
-		return nil, fmt.Errorf("value is > %d", math.MaxInt16)
-	}
-	return nil, fmt.Errorf("expected int16/int32/int64 got %T with value: %v", value, value)
+	return asInt16(value)
 }
 
 // int16, int32, int64 -> int32
@@ -64,18 +49,7 @@ func (Int32Passthrough) ToField(name string) debezium.Field {
 }
 
 func (Int32Passthrough) Convert(value any) (any, error) {
-	switch castValue := value.(type) {
-	case int16:
-		return int32(castValue), nil
-	case int32:
-		return castValue, nil
-	case int64:
-		if castValue <= math.MaxInt32 {
-			return int32(castValue), nil
-		}
-		return nil, fmt.Errorf("value is > %d", math.MaxInt32)
-	}
-	return nil, fmt.Errorf("expected int16/int32/int64 got %T with value: %v", value, value)
+	return asInt32(value)
 }
 
 // int16, int32, int64 -> int64
@@ -89,15 +63,7 @@ func (Int64Passthrough) ToField(name string) debezium.Field {
 }
 
 func (Int64Passthrough) Convert(value any) (any, error) {
-	switch castValue := value.(type) {
-	case int16:
-		return int64(castValue), nil
-	case int32:
-		return int64(castValue), nil
-	case int64:
-		return castValue, nil
-	}
-	return nil, fmt.Errorf("expected int16/int32/int64 got %T with value: %v", value, value)
+	return asInt64(value)
 }
 
 // float32 -> float32
