@@ -24,6 +24,15 @@ func ConvertValue(value any, colType DataType) (any, error) {
 			return nil, fmt.Errorf("bit value is invalid: %v", value)
 		}
 		return castValue[0] == 1, nil
+	case Boolean:
+		castVal, ok := value.(int64)
+		if !ok {
+			return nil, fmt.Errorf("expected int64 got %T for value: %v", value, value)
+		}
+		if castVal > 1 || castVal < 0 {
+			return nil, fmt.Errorf("boolean value not in [0, 1]: %v", value)
+		}
+		return castVal == 1, nil
 	case TinyInt,
 		SmallInt,
 		MediumInt,
@@ -82,6 +91,9 @@ func ConvertValue(value any, colType DataType) (any, error) {
 		Char,
 		Varchar,
 		Text,
+		TinyText,
+		MediumText,
+		LongText,
 		Enum,
 		Set,
 		JSON:
