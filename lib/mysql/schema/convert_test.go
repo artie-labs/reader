@@ -46,6 +46,30 @@ func TestConvertValue(t *testing.T) {
 			expectedErr: "bit value is invalid",
 		},
 		{
+			name:     "boolean - 0",
+			dataType: Boolean,
+			value:    int64(0),
+			expected: false,
+		},
+		{
+			name:     "boolean - 1",
+			dataType: Boolean,
+			value:    int64(1),
+			expected: true,
+		},
+		{
+			name:        "boolean - -2",
+			dataType:    Boolean,
+			value:       int64(-2),
+			expectedErr: "boolean value not in [0, 1]: -2",
+		},
+		{
+			name:        "boolean - 2",
+			dataType:    Boolean,
+			value:       int64(2),
+			expectedErr: "boolean value not in [0, 1]: 2",
+		},
+		{
 			name:     "tiny int",
 			dataType: TinyInt,
 			value:    int64(100),

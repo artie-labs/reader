@@ -27,6 +27,7 @@ const (
 	Double
 	// Bit-Value Type
 	Bit
+	Boolean
 	// Date and Time Data Types
 	Date
 	DateTime
@@ -40,6 +41,9 @@ const (
 	Varbinary
 	Blob
 	Text
+	TinyText
+	MediumText
+	LongText
 	Enum
 	Set
 	// JSON
@@ -117,9 +121,14 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 		metadata = s[parenIndex+1 : len(s)-1]
 		s = s[:parenIndex]
 	}
-
+	
 	switch s {
 	case "tinyint":
+		// Boolean, bool are aliases for tinyint(1)
+		if metadata == "1" {
+			return Boolean, nil, nil
+		}
+
 		return TinyInt, nil, nil
 	case "smallint":
 		return SmallInt, nil, nil
@@ -177,6 +186,12 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 		return Blob, nil, nil
 	case "text":
 		return Text, nil, nil
+	case "tinytext":
+		return TinyText, nil, nil
+	case "mediumtext":
+		return MediumText, nil, nil
+	case "longtext":
+		return LongText, nil, nil
 	case "enum":
 		return Enum, nil, nil
 	case "set":
@@ -184,6 +199,7 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 	case "json":
 		return JSON, nil, nil
 	default:
+		slog.Warn("Unknown data type", slog.String("type", s))
 		return InvalidDataType, nil, nil
 	}
 }

@@ -27,6 +27,10 @@ func TestParseColumnDataType(t *testing.T) {
 			expectedType: Int,
 		},
 		{
+			input:        "tinyint(1)",
+			expectedType: Boolean,
+		},
+		{
 			input:        "varchar(255)",
 			expectedType: Varchar,
 			expectedOpts: &Opts{Size: ptr.ToInt(255)},

@@ -63,7 +63,7 @@ func (m mysqlAdapter) ConvertRowToDebezium(row map[string]any) (map[string]any, 
 
 func valueConverterForType(d schema.DataType, opts *schema.Opts) (converters.ValueConverter, error) {
 	switch d {
-	case schema.Bit:
+	case schema.Bit, schema.Boolean:
 		return converters.BooleanPassthrough{}, nil
 	case schema.TinyInt, schema.SmallInt:
 		return converters.Int16Passthrough{}, nil
@@ -76,8 +76,12 @@ func valueConverterForType(d schema.DataType, opts *schema.Opts) (converters.Val
 	case schema.Double:
 		return converters.DoublePassthrough{}, nil
 	case schema.Decimal:
-		return converters.NewDecimalConverter(opts.Scale, opts.Precision), nil
-	case schema.Char, schema.Text, schema.Varchar:
+		if opts.Scale == nil {
+			return nil, fmt.Errorf("scale is required for decimal type")
+		}
+
+		return converters.NewDecimalConverter(*opts.Scale, opts.Precision), nil
+	case schema.Char, schema.Text, schema.Varchar, schema.TinyText, schema.MediumText, schema.LongText:
 		return converters.StringPassthrough{}, nil
 	case schema.Binary, schema.Varbinary, schema.Blob:
 		return converters.BytesPassthrough{}, nil
