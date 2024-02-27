@@ -80,7 +80,7 @@ func valueConverterForType(d schema.DataType, opts *schema.Opts) (converters.Val
 			return nil, fmt.Errorf("scale is required for decimal type")
 		}
 
-		return converters.NewDecimalConverter(opts.Scale, opts.Precision), nil
+		return converters.NewDecimalConverter(*opts.Scale, opts.Precision), nil
 	case schema.Char, schema.Text, schema.Varchar, schema.TinyText, schema.MediumText, schema.LongText:
 		return converters.StringPassthrough{}, nil
 	case schema.Binary, schema.Varbinary, schema.Blob:
