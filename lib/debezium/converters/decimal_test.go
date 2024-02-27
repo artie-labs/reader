@@ -21,7 +21,6 @@ func TestDecimalConverter_ToField(t *testing.T) {
 			},
 		}
 		assert.Equal(t, expected, converter.ToField("col"))
-
 	}
 	{
 		// With precision
@@ -35,7 +34,6 @@ func TestDecimalConverter_ToField(t *testing.T) {
 			},
 		}
 		assert.Equal(t, expected, converter.ToField("col"))
-
 	}
 }
 
