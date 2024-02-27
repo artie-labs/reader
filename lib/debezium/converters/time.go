@@ -30,10 +30,10 @@ func (MicroTimeConverter) Convert(value any) (any, error) {
 		return nil, err
 	}
 
-	secToMicrosec := time.Second / time.Microsecond
-	totalSeconds := int64(timeValue.Hour()*60*60 + timeValue.Minute()*60 + timeValue.Second())
-
-	return totalSeconds * int64(secToMicrosec), nil
+	hours := time.Duration(timeValue.Hour()) * time.Hour
+	minutes := time.Duration(timeValue.Minute()) * time.Minute
+	seconds := time.Duration(timeValue.Second()) * time.Second
+	return int64((hours + minutes + seconds) / time.Microsecond), nil
 }
 
 type DateConverter struct{}
