@@ -7,7 +7,7 @@ test:
 	go test ./...
 
 .PHONY: integration-test
-integration-test:
+itest:
 	go run sources/postgres/integration_test/main.go
 
 .PHONY: race
