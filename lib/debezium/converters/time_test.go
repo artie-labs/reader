@@ -8,6 +8,39 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestMicroTimeConverter_Convert(t *testing.T) {
+	converter := MicroTimeConverter{}
+	{
+		// Invalid value
+		_, err := converter.Convert(1234)
+		assert.ErrorContains(t, err, "expected string got int with value: 1234")
+	}
+	{
+		// Valid value - 0 seconds
+		value, err := converter.Convert("00:00:00")
+		assert.NoError(t, err)
+		assert.Equal(t, int64(0), value)
+	}
+	{
+		// Valid value - 1 second
+		value, err := converter.Convert("00:00:01")
+		assert.NoError(t, err)
+		assert.Equal(t, int64(1000_000), value)
+	}
+	{
+		// Valid value - 1 minute
+		value, err := converter.Convert("00:01:00")
+		assert.NoError(t, err)
+		assert.Equal(t, int64(1000_000*60), value)
+	}
+	{
+		// Valid value - 1 hour
+		value, err := converter.Convert("01:00:00")
+		assert.NoError(t, err)
+		assert.Equal(t, int64(1000_000*60*60), value)
+	}
+}
+
 func TestDateConverter_Convert(t *testing.T) {
 	converter := DateConverter{}
 	{
@@ -19,7 +52,7 @@ func TestDateConverter_Convert(t *testing.T) {
 		// time.Time
 		value, err := converter.Convert(time.Date(1971, 1, 1, 0, 0, 0, 0, time.UTC))
 		assert.NoError(t, err)
-		assert.Equal(t, value, 365)
+		assert.Equal(t, 365, value)
 	}
 }
 
