@@ -30,7 +30,7 @@ func castColumn(col schema.Column) string {
 		return fmt.Sprintf(`cast(extract(epoch from %s)*%d as bigint) as "%s"`, colName, multiplier, col.Name)
 	case schema.Array:
 		return fmt.Sprintf(`ARRAY_TO_JSON(%s)::TEXT as "%s"`, colName, col.Name)
-	case schema.Int16, schema.Int32, schema.Int64, schema.UUID,
+	case schema.Int16, schema.Int32, schema.Int64, schema.Float, schema.UUID,
 		schema.UserDefinedText, schema.Text,
 		schema.Money, schema.VariableNumeric, schema.Numeric,
 		schema.Boolean, schema.Bit,
