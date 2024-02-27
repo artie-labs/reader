@@ -1,9 +1,14 @@
 .PHONY: static
 static:
 	staticcheck ./...
+
 .PHONY: test
 test:
 	go test ./...
+
+.PHONY: integration-test
+integration-test:
+	go run sources/postgres/integration_test/main.go
 
 .PHONY: race
 race:
