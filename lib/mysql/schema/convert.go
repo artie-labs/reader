@@ -29,7 +29,9 @@ func ConvertValue(value any, colType DataType) (any, error) {
 		if !ok {
 			return nil, fmt.Errorf("expected int64 got %T for value: %v", value, value)
 		}
-
+		if castVal > 1 {
+			return nil, fmt.Errorf("boolean value > 1: %v", value)
+		}
 		return castVal == 1, nil
 	case TinyInt,
 		SmallInt,
