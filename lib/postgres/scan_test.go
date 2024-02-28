@@ -21,7 +21,7 @@ func TestShouldQuoteValue(t *testing.T) {
 		{"Numeric", schema.Numeric, true},
 		{"Bit", schema.Bit, false},
 		{"Boolean", schema.Boolean, false},
-		{"TextThatRequiresEscaping", schema.TextThatRequiresCasting, true},
+		{"TextThatRequiresCasting", schema.TextThatRequiresCasting, true},
 		{"Text", schema.Text, true},
 		{"Interval", schema.Interval, false},
 		{"Array", schema.Array, false},
@@ -92,7 +92,7 @@ func TestScanTableQuery(t *testing.T) {
 		{Name: "c", Type: schema.Int64},
 		{Name: "e", Type: schema.Text},
 		{Name: "f", Type: schema.Int64},
-		{Name: "g", Type: schema.TextThatRequiresCasting}, // Requires casting
+		{Name: "g", Type: schema.TextThatRequiresCasting},
 	}
 
 	{

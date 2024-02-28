@@ -133,12 +133,12 @@ func ParseColumnDataType(colKind string, precision, scale, udtName *string) (Dat
 		}
 	case "character varying", "text", "character", "xml", "cidr", "macaddr", "macaddr8":
 		return Text, nil
+	case "inet", "int4range", "int8range", "numrange", "daterange", "tsrange", "tstzrange":
+		return TextThatRequiresCasting, nil
 	case "json", "jsonb":
 		return JSON, nil
 	case "timestamp without time zone", "timestamp with time zone":
 		return Timestamp, nil
-	case "inet", "int4range", "int8range", "numrange", "daterange", "tsrange", "tstzrange":
-		return TextThatRequiresCasting, nil
 	default:
 		if strings.Contains(colKind, "numeric") {
 			if precision == nil && scale == nil {
