@@ -3,30 +3,21 @@ run-name: Running integration tests 🚀
 on: [push]
 jobs:
   container-job:
-    # Containers must run in Linux based operating systems
     runs-on: ubuntu-latest
-    # Docker Hub image that `container-job` executes in
     container: golang:1.22
-
-    # Service containers to run with `container-job`
     services:
-      # Label used to access the service container
       postgres:
-        # Docker Hub image
         image: postgres
-        # Provide the password for postgres
         env:
           POSTGRES_PASSWORD: postgres
-        # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
-      - name: Set Go up
+      - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: 1.22
