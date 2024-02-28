@@ -7,10 +7,12 @@ import (
 	"log/slog"
 	"maps"
 	"math/rand/v2"
+	"os"
 	"strings"
 
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/lmittmann/tint"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
@@ -29,6 +31,8 @@ var pgConfig = config.PostgreSQL{
 }
 
 func main() {
+	slog.SetDefault(slog.New(tint.NewHandler(os.Stderr, &tint.Options{Level: slog.LevelInfo})))
+
 	db, err := sql.Open("pgx", pgConfig.ToDSN())
 	if err != nil {
 		logger.Fatal("Could not connect to Postgres", slog.Any("err", err))
