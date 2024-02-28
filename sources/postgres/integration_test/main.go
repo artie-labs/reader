@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"log/slog"
 	"maps"
@@ -26,9 +25,10 @@ import (
 func main() {
 	slog.SetDefault(slog.New(tint.NewHandler(os.Stderr, &tint.Options{Level: slog.LevelInfo})))
 
-	var pgHost string
-	flag.StringVar(&pgHost, "pg-host", "localhost", "PostgreSQL host")
-	flag.Parse()
+	var pgHost string = os.Getenv("PG_HOST")
+	if pgHost == "" {
+		pgHost = "localhost"
+	}
 
 	var pgConfig = config.PostgreSQL{
 		Host:     pgHost,
