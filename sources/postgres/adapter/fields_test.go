@@ -115,7 +115,7 @@ func TestColumnToField(t *testing.T) {
 		{
 			name:     "inet",
 			colName:  "inet_col",
-			dataType: schema.TextThatRequiresCasting,
+			dataType: schema.Inet,
 			expected: debezium.Field{
 				Type:      "string",
 				FieldName: "inet_col",

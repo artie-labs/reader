@@ -19,7 +19,7 @@ const (
 	Numeric
 	Bit
 	Boolean
-	TextThatRequiresCasting
+	Inet
 	Text
 	Interval
 	Array
@@ -131,10 +131,11 @@ func ParseColumnDataType(colKind string, precision, scale, udtName *string) (Dat
 		return Money, &Opts{
 			Scale: ptr.ToString("2"),
 		}
-	case "character varying", "text", "character", "xml", "cidr", "macaddr", "macaddr8":
+	case "character varying", "text", "character", "xml", "cidr", "macaddr", "macaddr8",
+		"int4range", "int8range", "numrange", "daterange", "tsrange", "tstzrange":
 		return Text, nil
-	case "inet", "int4range", "int8range", "numrange", "daterange", "tsrange", "tstzrange":
-		return TextThatRequiresCasting, nil
+	case "inet":
+		return Inet, nil
 	case "json", "jsonb":
 		return JSON, nil
 	case "timestamp without time zone", "timestamp with time zone":

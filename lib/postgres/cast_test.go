@@ -59,7 +59,7 @@ func TestCastColumn(t *testing.T) {
 		},
 		{
 			name:     "inet",
-			dataType: schema.TextThatRequiresCasting,
+			dataType: schema.Inet,
 			expected: `"foo"::text`,
 		},
 		{
