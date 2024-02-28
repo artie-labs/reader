@@ -14,7 +14,7 @@ func castColumn(col schema.Column) string {
 	switch col.Type {
 	case schema.InvalidDataType:
 		return colName
-	case schema.TextThatRequiresEscaping:
+	case schema.Inet:
 		return fmt.Sprintf("%s::text", colName)
 	case schema.Time, schema.Interval:
 		// We want to extract(epoch from interval) will emit this in ms

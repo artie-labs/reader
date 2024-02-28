@@ -64,7 +64,12 @@ func TestParseColumnDataType(t *testing.T) {
 		{
 			name:             "char_text",
 			colKind:          "character",
-			expectedDataType: TextThatRequiresEscaping,
+			expectedDataType: Text,
+		},
+		{
+			name:             "inet",
+			colKind:          "inet",
+			expectedDataType: Inet,
 		},
 		{
 			name:             "numeric",

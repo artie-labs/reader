@@ -82,7 +82,7 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 	case schema.VariableNumeric,
 		schema.Money,
 		schema.Numeric,
-		schema.TextThatRequiresEscaping,
+		schema.Inet,
 		schema.Text,
 		schema.HStore,
 		schema.UUID,
