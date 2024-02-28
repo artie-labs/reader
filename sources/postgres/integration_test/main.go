@@ -155,6 +155,13 @@ CREATE TABLE %s (
 	-- c_txid_snapshot txid_snapshot,
 	c_uuid uuid,
 	c_xml xml,
+	-- Range types from https://www.postgresql.org/docs/current/rangetypes.html
+	c_int4range int4range,
+	c_int8range int8range,
+	c_numrange numrange,
+	c_tsrange tsrange,
+	c_tstzrange tstzrange,
+	c_daterange daterange,
 	-- User defined
 	c_hstore hstore,
 	c_geometry geometry,
@@ -248,6 +255,18 @@ INSERT INTO %s VALUES (
 		'e7082e96-7190-4cc3-8ab4-bd27f1269f08',
 	-- c_xml
 		'<html><head>Hello</head><body>World</body></html>',
+	-- c_int4range
+		int4range(10, 20),
+	-- c_int8range
+		int8range(1009900990099009000, 9009900990099009000),
+	-- c_numrange
+		numrange(11.1, 22.2),
+	-- c_tsrange
+		'[2010-01-01 14:30, 2010-01-01 15:30)',
+	-- c_tstzrange
+		tstzrange('2001-02-16 20:38:40+12', '2001-03-20 20:38:40+12'),
+	-- c_daterange
+		'[2010-01-01, 2010-01-03)',
 	-- c_hstore
 		'"a" => "b", "c" => "d", "e" => "f"',
 	-- c_geometry
@@ -510,6 +529,54 @@ const expectedPayloadTemplate = `{
 						"parameters": null
 					},
 					{
+						"type": "string",
+						"optional": false,
+						"default": null,
+						"field": "c_int4range",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"default": null,
+						"field": "c_int8range",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"default": null,
+						"field": "c_numrange",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"default": null,
+						"field": "c_tsrange",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"default": null,
+						"field": "c_tstzrange",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"default": null,
+						"field": "c_daterange",
+						"name": "",
+						"parameters": null
+					},
+					{
 						"type": "map",
 						"optional": false,
 						"default": null,
@@ -550,6 +617,7 @@ const expectedPayloadTemplate = `{
 			"c_character_varying": "ASDFGHJKL",
 			"c_cidr": "192.168.100.128/25",
 			"c_date": 18263,
+			"c_daterange": "[2010-01-01,2010-01-03)",
 			"c_double_precision": 123.456,
 			"c_geography": {
 				"srid": null,
@@ -565,6 +633,8 @@ const expectedPayloadTemplate = `{
 				"e": "f"
 			},
 			"c_inet": "192.168.1.5/32",
+			"c_int4range": "[10,20)",
+			"c_int8range": "[1009900990099009000,9009900990099009000)",
 			"c_integer": 12345,
 			"c_interval": 7200000000,
 			"c_json": "{\"foo\": \"bar\", \"baz\": 1234}",
@@ -573,6 +643,7 @@ const expectedPayloadTemplate = `{
 			"c_macaddr8": "12:34:56:78:90:ab:cd:ef",
 			"c_money": "T30t",
 			"c_numeric": "AYHN",
+			"c_numrange": "[11.1,22.2)",
 			"c_point": {
 				"x": 12.34,
 				"y": 56.78
@@ -585,6 +656,8 @@ const expectedPayloadTemplate = `{
 			"c_time_without_timezone": 45296000,
 			"c_timestamp_with_timezone": "2001-02-16T05:38:40-08:00",
 			"c_timestamp_without_timezone": "2001-02-16T20:38:40Z",
+			"c_tsrange": "[\"2010-01-01 14:30:00\",\"2010-01-01 15:30:00\")",
+			"c_tstzrange": "[\"2001-02-16 08:38:40+00\",\"2001-03-20 08:38:40+00\")",
 			"c_uuid": "e7082e96-7190-4cc3-8ab4-bd27f1269f08",
 			"c_xml": "\u003chtml\u003e\u003chead\u003eHello\u003c/head\u003e\u003cbody\u003eWorld\u003c/body\u003e\u003c/html\u003e",
 			"pk": 1
