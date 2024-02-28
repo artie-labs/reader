@@ -76,8 +76,8 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 		schema.Int64,
 		schema.Bit,
 		schema.Boolean,
-		schema.Interval,
-		schema.Array: // TODO: This may be wrong, check using a real database
+		schema.Interval, // TODO: This may be wrong, check using a real database
+		schema.Array:    // TODO: This may be wrong, check using a real database
 		return false, nil
 	case schema.VariableNumeric,
 		schema.Money,

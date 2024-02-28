@@ -34,8 +34,8 @@ func castColumn(col schema.Column) string {
 		schema.UserDefinedText, schema.Text,
 		schema.Money, schema.VariableNumeric, schema.Numeric,
 		schema.Boolean, schema.Bit,
-		schema.Date, schema.Timestamp, schema.JSON,
-		schema.HStore, schema.Point, schema.Geography, schema.Geometry:
+		schema.Date, schema.Timestamp, schema.JSON, schema.HStore,
+		schema.Point, schema.Geography, schema.Geometry:
 		// These are all the columns that do not need to be escaped.
 		return colName
 	default:
