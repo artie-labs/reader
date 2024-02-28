@@ -23,7 +23,7 @@ import (
 )
 
 var pgConfig = config.PostgreSQL{
-	Host:     "127.0.0.1",
+	Host:     "postgres",
 	Port:     5432,
 	Username: "postgres",
 	Password: "postgres",
