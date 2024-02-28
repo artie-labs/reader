@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log/slog"
 	"maps"
@@ -22,16 +23,20 @@ import (
 	"github.com/artie-labs/reader/sources/postgres/adapter"
 )
 
-var pgConfig = config.PostgreSQL{
-	Host:     "postgres",
-	Port:     5432,
-	Username: "postgres",
-	Password: "postgres",
-	Database: "postgres",
-}
-
 func main() {
 	slog.SetDefault(slog.New(tint.NewHandler(os.Stderr, &tint.Options{Level: slog.LevelInfo})))
+
+	var pgHost string
+	flag.StringVar(&pgHost, "pg-host", "localhost", "PostgreSQL host")
+	flag.Parse()
+
+	var pgConfig = config.PostgreSQL{
+		Host:     pgHost,
+		Port:     5432,
+		Username: "postgres",
+		Password: "postgres",
+		Database: "postgres",
+	}
 
 	db, err := sql.Open("pgx", pgConfig.ToDSN())
 	if err != nil {
@@ -115,7 +120,7 @@ func readTable(db *sql.DB, tableName string, batchSize int) ([]lib.RawMessage, e
 }
 
 const testTypesCreateTableQuery = `
-CREATE EXTENTION IF NOT EXISTS hstore;
+CREATE EXTENSION IF NOT EXISTS hstore;
 CREATE TABLE %s (
 	pk integer PRIMARY KEY NOT NULL,
 	-- All the types from https://www.postgresql.org/docs/current/datatype.html#DATATYPE-TABLE

@@ -1,5 +1,5 @@
 name: Integration tests
-run-name: Running integration tests 🚀
+run-name: Running integration tests
 on: [push]
 jobs:
   container-job:
@@ -22,4 +22,4 @@ jobs:
         with:
           go-version: 1.22
       - name: Run test
-        run: make itest
+        run: make itest --pg-host postgres

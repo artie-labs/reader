@@ -1,5 +1,5 @@
 name: Go tests
-run-name: Running tests 🚀
+run-name: Running tests
 on: [push]
 jobs:
   build:
