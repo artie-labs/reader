@@ -266,7 +266,7 @@ INSERT INTO %s VALUES (
 	-- c_tstzrange
 		tstzrange('2001-02-16 20:38:40+12', '2001-03-20 20:38:40+12'),
 	-- c_daterange
-		'[2010-01-01, 2010-01-03)',
+		'[2010-01-01, 2010-01-03]',
 	-- c_hstore
 		'"a" => "b", "c" => "d", "e" => "f"',
 	-- c_geometry
@@ -617,7 +617,7 @@ const expectedPayloadTemplate = `{
 			"c_character_varying": "ASDFGHJKL",
 			"c_cidr": "192.168.100.128/25",
 			"c_date": 18263,
-			"c_daterange": "[2010-01-01,2010-01-03)",
+			"c_daterange": "[2010-01-01,2010-01-04)",
 			"c_double_precision": 123.456,
 			"c_geography": {
 				"srid": null,
