@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/artie-labs/transfer/lib/retry"
 	"github.com/jackc/pgx/v5"
@@ -13,7 +14,6 @@ import (
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
-	"github.com/artie-labs/reader/lib/timeutil"
 )
 
 func (t *Table) NewScanner(db *sql.DB, cfg scan.ScannerConfig) (scan.Scanner[*Table], error) {
@@ -76,8 +76,8 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 		schema.Int64,
 		schema.Bit,
 		schema.Boolean,
-		schema.Interval, // TODO: This may be wrong, check using a real database
-		schema.Array:    // TODO: This may be wrong, check using a real database
+		schema.Interval, // TODO: This doesn't work: operator does not exist: interval >= bigint (SQLSTATE 42883)
+		schema.Array:    // TODO: This doesn't work: need to serialize to Postgres array format "{1,2,3}"
 		return false, nil
 	case schema.VariableNumeric,
 		schema.Money,
@@ -102,8 +102,13 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 
 func keysToValueList(keys []primary_key.Key, columns []schema.Column) ([]string, []string, error) {
 	convertToString := func(value any) string {
-		// This is needed because we need to cast the time.Time object into a string for pagination.
-		return fmt.Sprint(timeutil.ConvertTimeToString(value))
+		switch castValue := value.(type) {
+		case time.Time:
+			// This is needed because we need to cast the time.Time object into a string for pagination.
+			return castValue.Format(time.RFC3339)
+		default:
+			return fmt.Sprint(value)
+		}
 	}
 
 	var startValues []string
