@@ -1,5 +1,6 @@
 name: Integration tests
 run-name: Running integration tests 🚀
+on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
