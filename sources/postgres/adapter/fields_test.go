@@ -113,12 +113,12 @@ func TestColumnToField(t *testing.T) {
 			},
 		},
 		{
-			name:     "char_text",
-			colName:  "char_text_col",
+			name:     "inet",
+			colName:  "inet_col",
 			dataType: schema.TextThatRequiresCasting,
 			expected: debezium.Field{
 				Type:      "string",
-				FieldName: "char_text_col",
+				FieldName: "inet_col",
 			},
 		},
 	}
