@@ -41,7 +41,7 @@ func toDebeziumType(d schema.DataType) Result {
 		return Result{
 			Type: "boolean",
 		}
-	case schema.Text, schema.UserDefinedText, schema.TextThatRequiresEscaping:
+	case schema.Text, schema.UserDefinedText, schema.TextThatRequiresCasting:
 		return Result{
 			Type: "string",
 		}

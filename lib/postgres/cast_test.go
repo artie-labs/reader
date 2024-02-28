@@ -59,7 +59,7 @@ func TestCastColumn(t *testing.T) {
 		},
 		{
 			name:     "char_text",
-			dataType: schema.TextThatRequiresEscaping,
+			dataType: schema.TextThatRequiresCasting,
 			expected: `"foo"::text`,
 		},
 		{

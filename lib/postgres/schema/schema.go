@@ -12,22 +12,6 @@ import (
 
 type DataType int
 
-var (
-	TextBasedColumns = []string{
-		"xml",
-		"cidr",
-		"macaddr",
-		"macaddr8",
-		"inet",
-		"int4range",
-		"int8range",
-		"numrange",
-		"daterange",
-		"tsrange",
-		"tstzrange",
-	}
-)
-
 const (
 	InvalidDataType DataType = iota
 	VariableNumeric
@@ -35,7 +19,7 @@ const (
 	Numeric
 	Bit
 	Boolean
-	TextThatRequiresEscaping
+	TextThatRequiresCasting
 	Text
 	Interval
 	Array
@@ -147,14 +131,14 @@ func ParseColumnDataType(colKind string, precision, scale, udtName *string) (Dat
 		return Money, &Opts{
 			Scale: ptr.ToString("2"),
 		}
-	case "character varying", "text":
+	case "character varying", "text", "character", "xml", "cidr", "macaddr", "macaddr8":
 		return Text, nil
-	case "character":
-		return TextThatRequiresEscaping, nil
 	case "json", "jsonb":
 		return JSON, nil
 	case "timestamp without time zone", "timestamp with time zone":
 		return Timestamp, nil
+	case "inet", "int4range", "int8range", "numrange", "daterange", "tsrange", "tstzrange":
+		return TextThatRequiresCasting, nil
 	default:
 		if strings.Contains(colKind, "numeric") {
 			if precision == nil && scale == nil {
@@ -164,13 +148,6 @@ func ParseColumnDataType(colKind string, precision, scale, udtName *string) (Dat
 					Scale:     scale,
 					Precision: precision,
 				}
-			}
-		}
-
-		for _, textBasedCol := range TextBasedColumns {
-			// char (m) or character
-			if strings.Contains(colKind, textBasedCol) {
-				return TextThatRequiresEscaping, nil
 			}
 		}
 	}
