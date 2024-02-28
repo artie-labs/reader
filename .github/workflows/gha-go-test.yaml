@@ -1,5 +1,6 @@
-name: Integration tests
-run-name: Running integration tests 🚀
+name: Go tests
+run-name: Running tests 🚀
+on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -8,10 +9,16 @@ jobs:
         go: [ '1.22' ]
     name: Go ${{ matrix.go }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4 # Checks out the code
       - name: Set Go up
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
+      - name: Run staticcheck
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          make static
       - name: Run test
-        run: make itest
+        run: make test
+      - name: Run test-race
+        run: make race

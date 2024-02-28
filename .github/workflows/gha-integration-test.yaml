@@ -1,0 +1,17 @@
+name: Integration tests
+run-name: Running integration tests 🚀
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: [ '1.22' ]
+    name: Go ${{ matrix.go }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set Go up
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Run test
+        run: make itest
