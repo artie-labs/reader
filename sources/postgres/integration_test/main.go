@@ -606,8 +606,7 @@ func testTypes(db *sql.DB) error {
 	}
 	defer func() {
 		slog.Info("Dropping temporary table...", slog.String("table", tempTableName))
-		_, err := db.Exec(fmt.Sprintf("DROP TABLE %s", tempTableName))
-		if err != nil {
+		if _, err := db.Exec(fmt.Sprintf("DROP TABLE %s", tempTableName)); err != nil {
 			slog.Error("Failed to drop table", slog.Any("err", err))
 		}
 	}()
