@@ -6,7 +6,7 @@ jobs:
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-latest
     # Docker Hub image that `container-job` executes in
-    container: golang:1.22.0-alpine3.19
+    container: golang:1.22
 
     # Service containers to run with `container-job`
     services:
