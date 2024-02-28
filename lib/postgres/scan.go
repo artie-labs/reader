@@ -77,7 +77,7 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 		schema.Bit,
 		schema.Boolean,
 		schema.Interval, // TODO: This doesn't work: operator does not exist: interval >= bigint (SQLSTATE 42883)
-		schema.Array:    // TODO: This doesn't work: need to serialize to Postgres array format "{1,2,3}""
+		schema.Array:    // TODO: This doesn't work: need to serialize to Postgres array format "{1,2,3}"
 		return false, nil
 	case schema.VariableNumeric,
 		schema.Money,
