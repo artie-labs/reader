@@ -21,7 +21,7 @@ func TestShouldQuoteValue(t *testing.T) {
 		{"Numeric", schema.Numeric, true},
 		{"Bit", schema.Bit, false},
 		{"Boolean", schema.Boolean, false},
-		{"TextThatRequiresCasting", schema.Inet, true},
+		{"Inet", schema.Inet, true},
 		{"Text", schema.Text, true},
 		{"Interval", schema.Interval, false},
 		{"Array", schema.Array, false},
@@ -92,7 +92,7 @@ func TestScanTableQuery(t *testing.T) {
 		{Name: "c", Type: schema.Int64},
 		{Name: "e", Type: schema.Text},
 		{Name: "f", Type: schema.Int64},
-		{Name: "g", Type: schema.Inet},
+		{Name: "127.0.0.1", Type: schema.Inet},
 	}
 
 	{
@@ -106,7 +106,7 @@ func TestScanTableQuery(t *testing.T) {
 			Columns:             cols,
 		})
 		assert.NoError(t, err)
-		assert.Equal(t, `SELECT "a","b","c","e","f","g"::text FROM "schema"."table" WHERE row("a","b","c") >= row(1,2,3) AND row("a","b","c") <= row(4,5,6) ORDER BY "a","b","c" LIMIT 1`, query)
+		assert.Equal(t, `SELECT "a","b","c","e","f","127.0.0.1"::text FROM "schema"."table" WHERE row("a","b","c") >= row(1,2,3) AND row("a","b","c") <= row(4,5,6) ORDER BY "a","b","c" LIMIT 1`, query)
 	}
 	{
 		// exclusive lower bound
@@ -119,6 +119,6 @@ func TestScanTableQuery(t *testing.T) {
 			Columns:             cols,
 		})
 		assert.NoError(t, err)
-		assert.Equal(t, `SELECT "a","b","c","e","f","g"::text FROM "schema"."table" WHERE row("a","b","c") > row(1,2,3) AND row("a","b","c") <= row(4,5,6) ORDER BY "a","b","c" LIMIT 1`, query)
+		assert.Equal(t, `SELECT "a","b","c","e","f","127.0.0.1"::text FROM "schema"."table" WHERE row("a","b","c") > row(1,2,3) AND row("a","b","c") <= row(4,5,6) ORDER BY "a","b","c" LIMIT 1`, query)
 	}
 }
