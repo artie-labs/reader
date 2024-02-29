@@ -104,7 +104,7 @@ func readTable(db *sql.DB, tableName string, batchSize int) ([]lib.RawMessage, e
 		return nil, fmt.Errorf("unable to load table metadata: %w", err)
 	}
 
-	scanner, err := table.NewScanner(db, tableCfg.ToScannerConfig(1))
+	scanner, err := postgres.NewScanner(db, table, tableCfg.ToScannerConfig(1))
 	if err != nil {
 		return nil, fmt.Errorf("failed to build scanner: %w", err)
 	}
