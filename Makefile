@@ -8,7 +8,6 @@ test:
 
 .PHONY: integration-test
 itest:
-	printenv
 	go run sources/postgres/integration_test/main.go
 
 .PHONY: race
