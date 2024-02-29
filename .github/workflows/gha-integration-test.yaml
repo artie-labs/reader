@@ -7,7 +7,7 @@ jobs:
     container: golang:1.22
     services:
       postgres:
-        image: postgis/postgis:15-3.4
+        image: quay.io/debezium/example-postgres:2.0
         env:
           POSTGRES_PASSWORD: postgres
         options: >-
