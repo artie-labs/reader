@@ -29,7 +29,11 @@ type scanTableQueryArgs struct {
 func scanTableQuery(args scanTableQueryArgs) (string, error) {
 	castedColumns := make([]string, len(args.Columns))
 	for idx, col := range args.Columns {
-		castedColumns[idx] = castColumn(col)
+		var err error
+		castedColumns[idx], err = castColumn(col)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	startingValues, endingValues, err := keysToValueList(args.PrimaryKeys, args.Columns)

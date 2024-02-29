@@ -134,12 +134,12 @@ func TestParseColumnDataType(t *testing.T) {
 }
 
 func TestBuildPkValuesQuery(t *testing.T) {
-	var cast = func(c Column) string {
-		return pgx.Identifier{c.Name}.Sanitize()
+	var cast = func(c Column) (string, error) {
+		return pgx.Identifier{c.Name}.Sanitize(), nil
 	}
 
 	{
-		query := buildPkValuesQuery(buildPkValuesQueryArgs{
+		query, err := buildPkValuesQuery(buildPkValuesQueryArgs{
 			Keys: []Column{
 				{Name: "a", Type: Text},
 				{Name: "b", Type: Text},
@@ -149,11 +149,12 @@ func TestBuildPkValuesQuery(t *testing.T) {
 			TableName: "table",
 			CastFunc:  cast,
 		})
+		assert.NoError(t, err)
 		assert.Equal(t, `SELECT "a","b","c" FROM "schema"."table" ORDER BY "a","b","c" LIMIT 1`, query)
 	}
 	// Descending
 	{
-		query := buildPkValuesQuery(buildPkValuesQueryArgs{
+		query, err := buildPkValuesQuery(buildPkValuesQueryArgs{
 			Keys: []Column{
 				{Name: "a", Type: Text},
 				{Name: "b", Type: Text},
@@ -164,6 +165,7 @@ func TestBuildPkValuesQuery(t *testing.T) {
 			CastFunc:   cast,
 			Descending: true,
 		})
+		assert.NoError(t, err)
 		assert.Equal(t, `SELECT "a","b","c" FROM "schema"."table" ORDER BY "a" DESC,"b" DESC,"c" DESC LIMIT 1`, query)
 	}
 }
