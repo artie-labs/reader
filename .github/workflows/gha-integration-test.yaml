@@ -7,7 +7,7 @@ jobs:
     container: golang:1.22
     services:
       postgres:
-        image: postgis/postgis:16-3.4
+        image: postgis/postgis:16-3.4-alpine
         env:
           POSTGRES_PASSWORD: postgres
         options: >-
