@@ -121,6 +121,7 @@ func readTable(db *sql.DB, tableName string, batchSize int) ([]lib.RawMessage, e
 
 const testTypesCreateTableQuery = `
 CREATE EXTENSION IF NOT EXISTS hstore;
+CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE TABLE %s (
 	pk integer PRIMARY KEY NOT NULL,
 	-- All the types from https://www.postgresql.org/docs/current/datatype.html#DATATYPE-TABLE
