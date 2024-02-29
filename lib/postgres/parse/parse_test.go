@@ -1,4 +1,4 @@
-package postgres
+package parse
 
 import (
 	"testing"

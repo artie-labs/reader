@@ -11,6 +11,7 @@ import (
 	"github.com/artie-labs/transfer/lib/retry"
 	"github.com/jackc/pgx/v5"
 
+	"github.com/artie-labs/reader/lib/postgres/parse"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
@@ -189,7 +190,7 @@ func _scan(s *scan.Scanner[*Table], primaryKeys []primary_key.Key, isFirstRow bo
 		for idx, v := range values {
 			col := s.Table.Columns[idx]
 
-			value, err := ParseValue(col.Type, v)
+			value, err := parse.ParseValue(col.Type, v)
 			if err != nil {
 				return nil, err
 			}

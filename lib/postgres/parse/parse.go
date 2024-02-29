@@ -1,4 +1,4 @@
-package postgres
+package parse
 
 import (
 	"encoding/json"
@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
 
-	"github.com/artie-labs/reader/lib/postgres/parse"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
 
@@ -25,7 +24,7 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 			return nil, fmt.Errorf("value: %v not of string type for geometry / geography", value)
 		}
 
-		geometry, err := parse.ToGeography([]byte(valString))
+		geometry, err := ToGeography([]byte(valString))
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse geometry / geography: %w", err)
 		}
@@ -37,7 +36,7 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 			return nil, fmt.Errorf("value: %v not of string type for POINT", value)
 		}
 
-		point, err := parse.ToPoint(valString)
+		point, err := ToPoint(valString)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse POINT: %w", err)
 		}

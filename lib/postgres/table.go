@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/artie-labs/reader/lib/postgres/parse"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
@@ -82,12 +83,12 @@ func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
 	for idx, bounds := range primaryKeysBounds {
 		col := keyColumns[idx]
 
-		minVal, err := ParseValue(col.Type, bounds.Min)
+		minVal, err := parse.ParseValue(col.Type, bounds.Min)
 		if err != nil {
 			return err
 		}
 
-		maxVal, err := ParseValue(col.Type, bounds.Max)
+		maxVal, err := parse.ParseValue(col.Type, bounds.Max)
 		if err != nil {
 			return err
 		}
