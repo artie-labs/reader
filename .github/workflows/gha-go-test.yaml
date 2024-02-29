@@ -1,5 +1,5 @@
 name: Go tests
-run-name: Running tests 🚀
+run-name: Running tests
 on: [push]
 jobs:
   build:
@@ -10,7 +10,7 @@ jobs:
     name: Go ${{ matrix.go }}
     steps:
       - uses: actions/checkout@v4 # Checks out the code
-      - name: Set Go up
+      - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
