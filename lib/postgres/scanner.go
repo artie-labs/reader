@@ -17,10 +17,6 @@ import (
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
-func (t *Table) NewScanner(db *sql.DB, cfg scan.ScannerConfig) (scan.Scanner[*Table], error) {
-	return scan.NewScanner(db, t, cfg, _scan)
-}
-
 type scanTableQueryArgs struct {
 	Schema              string
 	TableName           string
@@ -137,6 +133,10 @@ func keysToValueList(keys []primary_key.Key, columns []schema.Column) ([]string,
 		endValues = append(endValues, endVal)
 	}
 	return startValues, endValues, nil
+}
+
+func NewScanner(db *sql.DB, t *Table, cfg scan.ScannerConfig) (scan.Scanner[*Table], error) {
+	return scan.NewScanner(db, t, cfg, _scan)
 }
 
 func _scan(s *scan.Scanner[*Table], primaryKeys []primary_key.Key, isFirstRow bool) ([]map[string]any, error) {
