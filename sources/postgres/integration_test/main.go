@@ -256,7 +256,7 @@ INSERT INTO %s VALUES (
 	-- c_timestamp_without_timezone
 		'2001-02-16 20:38:40',
 	-- c_timestamp_with_timezone
-		'2001-02-16 20:38:40'::timestamp AT TIME ZONE 'UTC' AT TIME ZONE 'AMERICA/Denver',
+		'2001-02-16 20:38:40' AT TIME ZONE 'America/Denver',
 	-- c_tsquery
 		-- Not supported
 	-- c_tsvector
