@@ -181,7 +181,7 @@ CREATE TABLE %s (
 `
 
 const testTypesInsertQuery = `
-SET TIME ZONE 'UTC';
+SET TIME ZONE 'GMT';
 INSERT INTO %s VALUES (
 	-- pk
 		1,
