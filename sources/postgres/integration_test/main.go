@@ -120,7 +120,6 @@ func readTable(db *sql.DB, tableName string, batchSize int) ([]lib.RawMessage, e
 }
 
 const testTypesCreateTableQuery = `
-SET TIME ZONE 'UTC';
 CREATE EXTENSION IF NOT EXISTS hstore;
 CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE TABLE %s (
@@ -182,6 +181,7 @@ CREATE TABLE %s (
 `
 
 const testTypesInsertQuery = `
+SET TIME ZONE 'UTC';
 INSERT INTO %s VALUES (
 	-- pk
 		1,
