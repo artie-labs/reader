@@ -23,6 +23,7 @@ import (
 )
 
 func main() {
+	os.Setenv("TZ", "UTC")
 	slog.SetDefault(slog.New(tint.NewHandler(os.Stderr, &tint.Options{Level: slog.LevelInfo})))
 
 	var pgHost string = os.Getenv("PG_HOST")
@@ -120,8 +121,6 @@ func readTable(db *sql.DB, tableName string, batchSize int) ([]lib.RawMessage, e
 }
 
 const testTypesCreateTableQuery = `
-ALTER DATABASE postgres SET timezone TO 'America/Los_Angeles';
-SET timezone TO 'America/Los_Angeles';
 CREATE EXTENSION IF NOT EXISTS hstore;
 CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE TABLE %s (
@@ -667,7 +666,7 @@ const expectedPayloadTemplate = `{
 			"c_text": "QWERTYUIOP",
 			"c_time_with_timezone": 38057000,
 			"c_time_without_timezone": 45296000,
-			"c_timestamp_with_timezone": "2001-02-16T05:38:40-08:00",
+			"c_timestamp_with_timezone": "2001-02-16T13:38:40Z",
 			"c_timestamp_without_timezone": "2001-02-16T20:38:40Z",
 			"c_tsrange": "[\"2010-01-01 14:30:00\",\"2010-01-01 15:30:00\")",
 			"c_tstzrange": "[\"2001-02-16 08:38:40+00\",\"2001-03-20 08:38:40+00\")",
