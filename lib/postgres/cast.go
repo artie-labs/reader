@@ -2,20 +2,19 @@ package postgres
 
 import (
 	"fmt"
-	"log/slog"
 
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/jackc/pgx/v5"
 )
 
 // castColumn will take a colName and return the escaped version of what we should be using to call Postgres.
-func castColumn(col schema.Column) string {
+func castColumn(col schema.Column) (string, error) {
 	colName := pgx.Identifier{col.Name}.Sanitize()
 	switch col.Type {
 	case schema.InvalidDataType:
-		return colName
+		return colName, nil
 	case schema.Inet:
-		return fmt.Sprintf("%s::text", colName)
+		return fmt.Sprintf("%s::text", colName), nil
 	case schema.Time, schema.Interval:
 		// We want to extract(epoch from interval) will emit this in ms
 		// However, Debezium wants this in macro seconds, so we are multiplying this by 1000.
@@ -27,9 +26,9 @@ func castColumn(col schema.Column) string {
 			multiplier = 1000 * 1000
 		}
 
-		return fmt.Sprintf(`cast(extract(epoch from %s)*%d as bigint) as "%s"`, colName, multiplier, col.Name)
+		return fmt.Sprintf(`cast(extract(epoch from %s)*%d as bigint) as "%s"`, colName, multiplier, col.Name), nil
 	case schema.Array:
-		return fmt.Sprintf(`ARRAY_TO_JSON(%s)::TEXT as "%s"`, colName, col.Name)
+		return fmt.Sprintf(`ARRAY_TO_JSON(%s)::TEXT as "%s"`, colName, col.Name), nil
 	case schema.Int16, schema.Int32, schema.Int64, schema.Float, schema.UUID,
 		schema.UserDefinedText, schema.Text,
 		schema.Money, schema.VariableNumeric, schema.Numeric,
@@ -37,9 +36,8 @@ func castColumn(col schema.Column) string {
 		schema.Date, schema.Timestamp, schema.HStore, schema.JSON,
 		schema.Point, schema.Geography, schema.Geometry:
 		// These are all the columns that do not need to be escaped.
-		return colName
+		return colName, nil
 	default:
-		slog.Info("Unexpected column type", slog.String("colName", col.Name), slog.Any("colType", col.Type))
-		return colName
+		return "", fmt.Errorf("unsupported column type DataType[%d]", col.Type)
 	}
 }
