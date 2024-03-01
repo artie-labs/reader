@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"maps"
 	"os"
 
 	"github.com/lmittmann/tint"
@@ -46,10 +47,10 @@ func main() {
 		logger.Fatal("Types test failed", slog.Any("err", err))
 	}
 
-	// err = testScan(db)
-	// if err != nil {
-	// 	logger.Fatal("Scan test failed", slog.Any("err", err))
-	// }
+	err = testScan(db)
+	if err != nil {
+		logger.Fatal("Scan test failed", slog.Any("err", err))
+	}
 }
 
 func readTable(db *sql.DB, tableName string, batchSize int) ([]lib.RawMessage, error) {
@@ -162,7 +163,7 @@ INSERT INTO %s VALUES (
     -- c_enum
 		'medium',
     -- c_set
-		'one',
+		'one,two',
     -- c_json
 		'{"key1": "value1", "key2": "value2"}'
 )
@@ -405,7 +406,7 @@ const expectedPayloadTemplate = `{
 			"c_json": "{\"key1\": \"value1\", \"key2\": \"value2\"}",
 			"c_mediumint": 3,
 			"c_numeric": "AN3M",
-			"c_set": "one",
+			"c_set": "one,two",
 			"c_smallint": 2,
 			"c_text": "ZXCV",
 			"c_time": 14706000000,
@@ -475,6 +476,143 @@ func testTypes(db *sql.DB) error {
 	expectedPayload := fmt.Sprintf(expectedPayloadTemplate, utils.GetPayload(row).Payload.Source.TsMs, tempTableName)
 	if utils.CheckDifference("payload", expectedPayload, string(valueBytes)) {
 		return fmt.Errorf("payload does not match")
+	}
+
+	return nil
+}
+
+const testScanCreateTableQuery = `
+CREATE TABLE %s (
+	c_int_pk integer NOT NULL,
+	c_boolean_pk boolean NOT NULL,
+	c_text_pk VARCHAR(2) NOT NULL,
+	c_text_value text,
+	PRIMARY KEY(c_int_pk, c_boolean_pk, c_text_pk)
+)
+`
+
+const testScanInsertQuery = `
+INSERT INTO %s VALUES
+(46, false, 'dj', 'row 0'),
+(73, false, 'dr', 'row 1'),
+(35, false, 'dr', 'row 2'),
+(4, false, 'jn', 'row 3'),
+(60, true, 'rj', 'row 4'),
+(89, true, 'dn', 'row 5'),
+(62, false, 'nn', 'row 6'),
+(5, false, 'rn', 'row 7'),
+(87, false, 'nr', 'row 8'),
+(86, false, 'rn', 'row 9'),
+(7, true, 'rr', 'row 10'),
+(94, false, 'dn', 'row 11'),
+(27, false, 'jr', 'row 12'),
+(45, true, 'nr', 'row 13'),
+(41, true, 'nr', 'row 14'),
+(57, false, 'nj', 'row 15'),
+(13, true, 'rd', 'row 16'),
+(88, true, 'rj', 'row 17'),
+(54, true, 'rd', 'row 18'),
+(29, false, 'nr', 'row 19'),
+(91, false, 'nj', 'row 20'),
+(26, false, 'dr', 'row 21'),
+(15, false, 'jr', 'row 22'),
+(29, false, 'rj', 'row 23'),
+(88, false, 'rr', 'row 24')
+`
+
+// testScan checks that we're fetching all the data from MySQL.
+func testScan(db *sql.DB) error {
+	tempTableName := utils.TempTableName()
+	slog.Info("Creating temporary table...", slog.String("table", tempTableName))
+	_, err := db.Exec(fmt.Sprintf(testScanCreateTableQuery, tempTableName))
+	if err != nil {
+		return fmt.Errorf("unable to create temporary table: %w", err)
+	}
+	defer func() {
+		slog.Info("Dropping temporary table...", slog.String("table", tempTableName))
+		if _, err := db.Exec(fmt.Sprintf("DROP TABLE %s", tempTableName)); err != nil {
+			slog.Error("Failed to drop table", slog.Any("err", err))
+		}
+	}()
+
+	slog.Info("Inserting data...")
+	_, err = db.Exec(fmt.Sprintf(testScanInsertQuery, tempTableName))
+	if err != nil {
+		return fmt.Errorf("unable to insert data: %w", err)
+	}
+
+	expectedPartitionKeys := []map[string]any{
+		{"c_int_pk": int64(4), "c_boolean_pk": false, "c_text_pk": "jn"},
+		{"c_int_pk": int64(5), "c_boolean_pk": false, "c_text_pk": "rn"},
+		{"c_int_pk": int64(7), "c_boolean_pk": true, "c_text_pk": "rr"},
+		{"c_int_pk": int64(13), "c_boolean_pk": true, "c_text_pk": "rd"},
+		{"c_int_pk": int64(15), "c_boolean_pk": false, "c_text_pk": "jr"},
+		{"c_int_pk": int64(26), "c_boolean_pk": false, "c_text_pk": "dr"},
+		{"c_int_pk": int64(27), "c_boolean_pk": false, "c_text_pk": "jr"},
+		{"c_int_pk": int64(29), "c_boolean_pk": false, "c_text_pk": "nr"},
+		{"c_int_pk": int64(29), "c_boolean_pk": false, "c_text_pk": "rj"},
+		{"c_int_pk": int64(35), "c_boolean_pk": false, "c_text_pk": "dr"},
+		{"c_int_pk": int64(41), "c_boolean_pk": true, "c_text_pk": "nr"},
+		{"c_int_pk": int64(45), "c_boolean_pk": true, "c_text_pk": "nr"},
+		{"c_int_pk": int64(46), "c_boolean_pk": false, "c_text_pk": "dj"},
+		{"c_int_pk": int64(54), "c_boolean_pk": true, "c_text_pk": "rd"},
+		{"c_int_pk": int64(57), "c_boolean_pk": false, "c_text_pk": "nj"},
+		{"c_int_pk": int64(60), "c_boolean_pk": true, "c_text_pk": "rj"},
+		{"c_int_pk": int64(62), "c_boolean_pk": false, "c_text_pk": "nn"},
+		{"c_int_pk": int64(73), "c_boolean_pk": false, "c_text_pk": "dr"},
+		{"c_int_pk": int64(86), "c_boolean_pk": false, "c_text_pk": "rn"},
+		{"c_int_pk": int64(87), "c_boolean_pk": false, "c_text_pk": "nr"},
+		{"c_int_pk": int64(88), "c_boolean_pk": false, "c_text_pk": "rr"},
+		{"c_int_pk": int64(88), "c_boolean_pk": true, "c_text_pk": "rj"},
+		{"c_int_pk": int64(89), "c_boolean_pk": true, "c_text_pk": "dn"},
+		{"c_int_pk": int64(91), "c_boolean_pk": false, "c_text_pk": "nj"},
+		{"c_int_pk": int64(94), "c_boolean_pk": false, "c_text_pk": "dn"},
+	}
+	expectedValues := []string{
+		"row 3",
+		"row 7",
+		"row 10",
+		"row 16",
+		"row 22",
+		"row 21",
+		"row 12",
+		"row 19",
+		"row 23",
+		"row 2",
+		"row 14",
+		"row 13",
+		"row 0",
+		"row 18",
+		"row 15",
+		"row 4",
+		"row 6",
+		"row 1",
+		"row 9",
+		"row 8",
+		"row 24",
+		"row 17",
+		"row 5",
+		"row 20",
+		"row 11",
+	}
+
+	for _, batchSize := range []int{1, 2, 5, 6, 24, 25, 26} {
+		rows, err := readTable(db, tempTableName, batchSize)
+		if err != nil {
+			return err
+		}
+		if len(rows) != len(expectedPartitionKeys) {
+			return fmt.Errorf("expected %d rows, got %d, batch size %d", len(expectedPartitionKeys), len(rows), batchSize)
+		}
+		for i, row := range rows {
+			if !maps.Equal(row.PartitionKey, expectedPartitionKeys[i]) {
+				return fmt.Errorf("partition keys are different for row %d, batch size %d, %T != %T", i, batchSize, row.PartitionKey, expectedPartitionKeys[i])
+			}
+			textValue := utils.GetPayload(row).Payload.After["c_text_value"]
+			if textValue != expectedValues[i] {
+				return fmt.Errorf("row values are different for row %d, batch size %d, %T != %T", i, batchSize, textValue, expectedPartitionKeys[i])
+			}
+		}
 	}
 
 	return nil
