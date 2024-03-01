@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"database/sql"
 	"fmt"
+	"log/slog"
 	"math/rand/v2"
 	"strings"
 
@@ -9,8 +11,19 @@ import (
 	"github.com/artie-labs/transfer/lib/cdc/util"
 )
 
-func TempTableName() string {
-	return fmt.Sprintf("artie_reader_%d", 10_000+rand.Int32N(10_000))
+func CreateTemporaryTable(db *sql.DB, query string) (string, func()) {
+	tempTableName := fmt.Sprintf("artie_reader_%d", 10_000+rand.Int32N(10_000))
+	slog.Info("Creating temporary table...", slog.String("table", tempTableName))
+	_, err := db.Exec(fmt.Sprintf(query, tempTableName))
+	if err != nil {
+		panic(err)
+	}
+	return tempTableName, func() {
+		slog.Info("Dropping temporary table...", slog.String("table", tempTableName))
+		if _, err := db.Exec(fmt.Sprintf("DROP TABLE %s", tempTableName)); err != nil {
+			slog.Error("Failed to drop table", slog.Any("err", err))
+		}
+	}
 }
 
 func GetPayload(message lib.RawMessage) util.SchemaEventPayload {
