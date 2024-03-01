@@ -120,51 +120,51 @@ INSERT INTO %s VALUES (
 		1,
 	-- c_tinyint
 		1,
-    -- c_smallint
+	-- c_smallint
 		2,
-    -- c_mediumint
+	-- c_mediumint
 		3,
-    -- c_int
+	-- c_int
 		4,
-    -- c_bigint
+	-- c_bigint
 		5,
-    -- c_decimal
+	-- c_decimal
 		'12.34',
-    -- c_numeric
+	-- c_numeric
 		'56.78',
-    -- c_float
+	-- c_float
 		90.123,
-    -- c_double
+	-- c_double
 		45.678,
-    -- c_bit
+	-- c_bit
 		1,
-    -- c_date
+	-- c_date
 		'2020-01-02',
-    -- c_datetime
+	-- c_datetime
 		'2001-02-03 04:05:06',
-    -- c_timestamp
+	-- c_timestamp
 		'2001-02-03 04:05:06',
-    -- c_time
+	-- c_time
 		'04:05:06',
-    -- c_year
+	-- c_year
 		'2001',
-    -- c_char
+	-- c_char
 		'X',
-    -- c_varchar
+	-- c_varchar
 		'GHJKL',
-    -- c_binary
+	-- c_binary
 		'ASDF',
-    -- c_varbinary
+	-- c_varbinary
 		'BNM',
-    -- c_blob
+	-- c_blob
 		'QWER',
-    -- c_text
+	-- c_text
 		'ZXCV',
-    -- c_enum
+	-- c_enum
 		'medium',
-    -- c_set
+	-- c_set
 		'one,two',
-    -- c_json
+	-- c_json
 		'{"key1": "value1", "key2": "value2"}'
 )
 `
