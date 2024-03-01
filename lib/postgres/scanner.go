@@ -167,7 +167,7 @@ func convertToStringForQuery(value any, dataType schema.DataType) (string, error
 			slog.Any("dataType", dataType),
 		)
 	}
-	// fallback to legacy behavior
+	// legacy behavior
 	shouldQuote, err := shouldQuoteValue(dataType)
 	if err != nil {
 		return "", err
