@@ -10,11 +10,9 @@ test:
 mysql-itest:
 	go run integration_tests/mysql/main.go
 
-
 .PHONY: postgres-itest
 postgres-itest:
 	go run integration_tests/postgres/main.go
-
 
 .PHONY: race
 race:
