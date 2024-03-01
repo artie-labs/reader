@@ -39,24 +39,22 @@ func CheckDifference(name, expected, actual string) bool {
 	}
 	expectedLines := strings.Split(expected, "\n")
 	actualLines := strings.Split(actual, "\n")
-	fmt.Printf("Expected %s:\n", name)
 	fmt.Println("--------------------------------------------------------------------------------")
-	for i, line := range expectedLines {
-		prefix := " "
-		if i >= len(actualLines) || line != actualLines[i] {
-			prefix = ">"
+	for i := range max(len(expectedLines), len(actualLines)) {
+		if i < len(expectedLines) {
+			if i < len(actualLines) {
+				if expectedLines[i] == actualLines[i] {
+					fmt.Println(expectedLines[i])
+				} else {
+					fmt.Println("E" + expectedLines[i])
+					fmt.Println("A" + actualLines[i])
+				}
+			} else {
+				fmt.Println("E" + expectedLines[i])
+			}
+		} else {
+			fmt.Println("A" + actualLines[i])
 		}
-		fmt.Println(prefix + line)
-	}
-	fmt.Println("--------------------------------------------------------------------------------")
-	fmt.Printf("Actual %s:\n", name)
-	fmt.Println("--------------------------------------------------------------------------------")
-	for i, line := range actualLines {
-		prefix := " "
-		if i >= len(expectedLines) || line != expectedLines[i] {
-			prefix = ">"
-		}
-		fmt.Println(prefix + line)
 	}
 	fmt.Println("--------------------------------------------------------------------------------")
 	return true

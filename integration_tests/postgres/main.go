@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 	"maps"
-	"math/rand/v2"
 	"os"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -43,14 +42,16 @@ func main() {
 		logger.Fatal("Could not connect to Postgres", slog.Any("err", err))
 	}
 
-	err = testTypes(db)
-	if err != nil {
+	if err = testTypes(db); err != nil {
 		logger.Fatal("Types test failed", slog.Any("err", err))
 	}
 
-	err = testScan(db)
-	if err != nil {
+	if err = testScan(db); err != nil {
 		logger.Fatal("Scan test failed", slog.Any("err", err))
+	}
+
+	if err = testPrimaryKeyTypes(db); err != nil {
+		logger.Fatal("Primary key types test failed", slog.Any("err", err))
 	}
 }
 
@@ -138,7 +139,9 @@ CREATE TABLE %s (
 	-- User defined
 	c_hstore hstore,
 	c_geometry geometry,
-	c_geography geography(Point)
+	c_geography geography(Point),
+	-- Arrays
+	c_int_array int[]
 )
 `
 
@@ -245,7 +248,9 @@ INSERT INTO %s VALUES (
 	-- c_geometry
 		'POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))',
 	-- c_geography
-		'POINT(-118.4079 33.9434)'
+		'POINT(-118.4079 33.9434)',
+	-- c_int_array
+		'{0,2,4,6}'
 )
 `
 
@@ -572,6 +577,14 @@ const expectedPayloadTemplate = `{
 						"field": "c_geography",
 						"name": "io.debezium.data.geometry.Geography",
 						"parameters": null
+					},
+					{
+						"type": "array",
+						"optional": false,
+						"default": null,
+						"field": "c_int_array",
+						"name": "",
+						"parameters": null
 					}
 				],
 				"optional": false,
@@ -608,6 +621,12 @@ const expectedPayloadTemplate = `{
 			"c_inet": "192.168.1.5/32",
 			"c_int4range": "[10,20)",
 			"c_int8range": "[1009900990099009000,9009900990099009000)",
+			"c_int_array": [
+				0,
+				2,
+				4,
+				6
+			],
 			"c_integer": 12345,
 			"c_interval": 7200000000,
 			"c_json": "{\"foo\": \"bar\", \"baz\": 1234}",
@@ -648,22 +667,11 @@ const expectedPayloadTemplate = `{
 
 // testTypes checks that PostgreSQL data types are handled correctly.
 func testTypes(db *sql.DB) error {
-	tempTableName := fmt.Sprintf("artie_reader_%d", 10_000+rand.Int32N(5_000))
-	slog.Info("Creating temporary table...", slog.String("table", tempTableName))
-	_, err := db.Exec(fmt.Sprintf(testTypesCreateTableQuery, tempTableName))
-	if err != nil {
-		return fmt.Errorf("unable to create temporary table: %w", err)
-	}
-	defer func() {
-		slog.Info("Dropping temporary table...", slog.String("table", tempTableName))
-		if _, err := db.Exec(fmt.Sprintf("DROP TABLE %s", tempTableName)); err != nil {
-			slog.Error("Failed to drop table", slog.Any("err", err))
-		}
-	}()
+	tempTableName, dropTableFunc := utils.CreateTemporaryTable(db, testTypesCreateTableQuery)
+	defer dropTableFunc()
 
 	slog.Info("Inserting data...")
-	_, err = db.Exec(fmt.Sprintf(testTypesInsertQuery, tempTableName))
-	if err != nil {
+	if _, err := db.Exec(fmt.Sprintf(testTypesInsertQuery, tempTableName)); err != nil {
 		return fmt.Errorf("unable to insert data: %w", err)
 	}
 
@@ -677,18 +685,14 @@ func testTypes(db *sql.DB) error {
 	}
 	row := rows[0]
 
-	keyBytes, err := json.Marshal(row.PartitionKey)
-	if err != nil {
-		return fmt.Errorf("failed to marshal partition key: %w", err)
+	expectedPartitionKey := map[string]any{"pk": int64(1)}
+	if !maps.Equal(row.PartitionKey, expectedPartitionKey) {
+		return fmt.Errorf("partition key %v does not match %v", row.PartitionKey, expectedPartitionKey)
 	}
 
 	valueBytes, err := json.MarshalIndent(row.GetPayload(), "", "\t")
 	if err != nil {
 		return fmt.Errorf("failed to marshal payload")
-	}
-
-	if utils.CheckDifference("partition key", `{"pk":1}`, string(keyBytes)) {
-		return fmt.Errorf("partition key does not match")
 	}
 
 	expectedPayload := fmt.Sprintf(expectedPayloadTemplate, utils.GetPayload(row).Payload.Source.TsMs, tempTableName)
@@ -705,7 +709,7 @@ CREATE TABLE %s (
 	c_boolean_pk boolean NOT NULL,
 	c_text_pk text NOT NULL,
 	c_text_value text,
-	PRIMARY KEY(c_int_pk, c_boolean_pk, c_text_pk)
+	PRIMARY KEY (c_int_pk, c_boolean_pk, c_text_pk)
 )
 `
 
@@ -740,22 +744,11 @@ INSERT INTO %s VALUES
 
 // testScan checks that we're fetching all the data from PostgreSQL.
 func testScan(db *sql.DB) error {
-	tempTableName := fmt.Sprintf("artie_reader_%d", 10_000+rand.Int32N(5_000))
-	slog.Info("Creating temporary table...", slog.String("table", tempTableName))
-	_, err := db.Exec(fmt.Sprintf(testScanCreateTableQuery, tempTableName))
-	if err != nil {
-		return fmt.Errorf("unable to create temporary table: %w", err)
-	}
-	defer func() {
-		slog.Info("Dropping temporary table...", slog.String("table", tempTableName))
-		if _, err := db.Exec(fmt.Sprintf("DROP TABLE %s", tempTableName)); err != nil {
-			slog.Error("Failed to drop table", slog.Any("err", err))
-		}
-	}()
+	tempTableName, dropTableFunc := utils.CreateTemporaryTable(db, testScanCreateTableQuery)
+	defer dropTableFunc()
 
 	slog.Info("Inserting data...")
-	_, err = db.Exec(fmt.Sprintf(testScanInsertQuery, tempTableName))
-	if err != nil {
+	if _, err := db.Exec(fmt.Sprintf(testScanInsertQuery, tempTableName)); err != nil {
 		return fmt.Errorf("unable to insert data: %w", err)
 	}
 
@@ -815,6 +808,7 @@ func testScan(db *sql.DB) error {
 	}
 
 	for _, batchSize := range []int{1, 2, 5, 6, 24, 25, 26} {
+		slog.Info(fmt.Sprintf("Testing scan with batch size of %d...", batchSize))
 		rows, err := readTable(db, tempTableName, batchSize)
 		if err != nil {
 			return err
@@ -824,13 +818,137 @@ func testScan(db *sql.DB) error {
 		}
 		for i, row := range rows {
 			if !maps.Equal(row.PartitionKey, expectedPartitionKeys[i]) {
-				return fmt.Errorf("partition keys are different for row %d, batch size %d, %T != %T", i, batchSize, row.PartitionKey, expectedPartitionKeys[i])
+				return fmt.Errorf("partition keys are different for row %d, batch size %d, %v != %v", i, batchSize, row.PartitionKey, expectedPartitionKeys[i])
 			}
 			textValue := utils.GetPayload(row).Payload.After["c_text_value"]
 			if textValue != expectedValues[i] {
-				return fmt.Errorf("row values are different for row %d, batch size %d, %T != %T", i, batchSize, textValue, expectedPartitionKeys[i])
+				return fmt.Errorf("row values are different for row %d, batch size %d, %v != %v", i, batchSize, textValue, expectedValues[i])
 			}
 		}
+	}
+
+	return nil
+}
+
+const testPrimaryKeyTypesCreateTableQuery = `
+CREATE TABLE %s (
+	-- All the types from https://www.postgresql.org/docs/current/datatype.html#DATATYPE-TABLE
+	c_bigint bigint,
+	c_bigserial bigserial,
+	c_boolean boolean,
+	c_character character,
+	c_character_varying character varying,
+	c_cidr cidr,
+	c_date date,
+	c_double_precision double precision,
+	c_inet inet,
+	c_integer integer,
+	c_jsonb jsonb,
+	c_macaddr macaddr,
+	c_macaddr8 macaddr8,
+	c_money money,
+	c_numeric numeric(7, 2),
+	c_real real,
+	c_smallint smallserial,
+	c_serial serial,
+	c_text text,
+	c_timestamp_without_timezone timestamp WITHOUT TIME ZONE,
+	c_timestamp_with_timezone timestamp WITH TIME ZONE,
+	c_uuid uuid,
+	-- Range types from https://www.postgresql.org/docs/current/rangetypes.html
+	c_int4range int4range,
+	c_int8range int8range,
+	c_numrange numrange,
+	c_tsrange tsrange,
+	c_tstzrange tstzrange,
+	c_daterange daterange,
+	PRIMARY KEY (
+		c_bigint, c_bigserial, c_boolean, c_character, c_character_varying, c_cidr, c_date, c_double_precision,
+		c_inet, c_integer, c_jsonb, c_macaddr, c_macaddr8, c_money, c_numeric, c_real, c_smallint, c_serial, c_text,
+		c_timestamp_without_timezone, c_timestamp_with_timezone, c_uuid, c_int4range, c_int8range, c_numrange,
+		c_tsrange, c_tstzrange, c_daterange
+	)
+)
+`
+
+const testPrimaryKeyTypesInsertQuery = `
+INSERT INTO %s VALUES (
+	-- c_bigint
+		9009900990099009000,
+	-- c_bigserial
+		100000123100000123,
+	-- c_boolean
+		true,
+	-- c_character
+		'X',
+	-- c_character_varying
+		'ASDFGHJKL',
+	-- c_cidr
+		'192.168.100.128/25',
+	-- c_date
+		'2020-01-02',
+	-- c_double_precision
+		123.456,
+	-- c_inet
+		'192.168.1.5',
+	-- c_integer
+		12345,
+	-- c_jsonb
+		'{"foo": "bar", "baz": 4321}'::jsonb,
+	-- c_macaddr
+		'12:34:56:78:90:ab',
+	-- c_macaddr8
+		'12:34:56:78:90:ab:cd:ef',
+	-- c_money
+		'52093.89',
+	-- c_numeric
+		'987.654',
+	-- c_real
+		45.678,
+	-- c_smallint
+		32767,
+	-- c_serial
+		1000000123,
+	-- c_text
+		'QWERTYUIOP',
+	-- c_timestamp_without_timezone
+		'2001-02-16 20:38:40',
+	-- c_timestamp_with_timezone
+		'2001-02-16 20:38:40' AT TIME ZONE 'America/Denver',
+	-- c_uuid
+		'e7082e96-7190-4cc3-8ab4-bd27f1269f08',
+	-- c_int4range
+		int4range(10, 20),
+	-- c_int8range
+		int8range(1009900990099009000, 9009900990099009000),
+	-- c_numrange
+		numrange(11.1, 22.2),
+	-- c_tsrange
+		'[2010-01-01 14:30, 2010-01-01 15:30)',
+	-- c_tstzrange
+		tstzrange('2001-02-16 20:38:40+12', '2001-03-20 20:38:40+12'),
+	-- c_daterange
+		'[2010-01-01, 2010-01-03]'
+)
+`
+
+// testPrimaryKeyTypes checks that we're able to handle primary keys with different types.
+func testPrimaryKeyTypes(db *sql.DB) error {
+	tempTableName, dropTableFunc := utils.CreateTemporaryTable(db, testPrimaryKeyTypesCreateTableQuery)
+	defer dropTableFunc()
+
+	slog.Info("Inserting data...")
+	if _, err := db.Exec(fmt.Sprintf(testPrimaryKeyTypesInsertQuery, tempTableName)); err != nil {
+		return fmt.Errorf("unable to insert data: %w", err)
+	}
+
+	rows, err := readTable(db, tempTableName, 100)
+	if err != nil {
+		return err
+	}
+
+	if len(rows) != 1 {
+		return fmt.Errorf("expected one row, got %d", len(rows))
 	}
 
 	return nil

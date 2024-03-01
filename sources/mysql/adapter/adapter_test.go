@@ -121,7 +121,7 @@ func TestValueConverterForType(t *testing.T) {
 		{
 			name:        "invalid data type",
 			dataType:    -1,
-			expectedErr: "unable get value converter for DataType[-1]",
+			expectedErr: "unable get value converter for DataType(-1)",
 		},
 		{
 			name:     "bit",
