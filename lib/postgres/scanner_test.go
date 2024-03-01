@@ -68,13 +68,13 @@ func TestConvertToStringForQuery(t *testing.T) {
 		{
 			name:     "time - schema.Int64",
 			value:    time.Date(2001, 2, 3, 4, 5, 6, 0, time.UTC),
-			dataType: schema.Int64, // type is ignored for time.Time
+			dataType: schema.Int64, // isn't checked for time.Time
 			expected: "'2001-02-03T04:05:06Z'",
 		},
 		{
 			name:     "time - schema.Text",
 			value:    time.Date(2001, 2, 3, 4, 5, 6, 0, time.UTC),
-			dataType: schema.Text, // type is ignored for time.Time
+			dataType: schema.Text, // isn't checked for time.Time
 			expected: "'2001-02-03T04:05:06Z'",
 		},
 		{
@@ -90,19 +90,31 @@ func TestConvertToStringForQuery(t *testing.T) {
 			expected: "1234.1234",
 		},
 		{
+			name:     "boolean - true",
+			value:    true,
+			dataType: schema.Boolean,
+			expected: "true",
+		},
+		{
+			name:     "boolean - false",
+			value:    false,
+			dataType: schema.Boolean,
+			expected: "false",
+		},
+		{
 			name:     "text",
 			value:    "foo",
 			dataType: schema.Text,
 			expected: "'foo'",
 		},
 		{
-			name:        "text",
+			name:        "text - invalid data type",
 			value:       "foo",
 			dataType:    schema.InvalidDataType,
 			expectedErr: "invalid data type",
 		},
 		{
-			name:        "text",
+			name:        "text - unsupported data type",
 			value:       "foo",
 			dataType:    -1,
 			expectedErr: "unsupported data type",

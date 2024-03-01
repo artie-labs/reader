@@ -118,19 +118,67 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 
 // convertToStringForQuery returns a string value suitable for use directly in a query.
 func convertToStringForQuery(value any, dataType schema.DataType) (string, error) {
+	// TODO: Change logs to actual errors then remove legacy behavior
 	switch castValue := value.(type) {
 	case time.Time:
 		return QuoteLiteral(castValue.Format(time.RFC3339)), nil
-	default:
-		shouldQuote, err := shouldQuoteValue(dataType)
-		if err != nil {
-			return "", err
-		}
-		if shouldQuote {
-			return QuoteLiteral(fmt.Sprint(value)), nil
-		} else {
+	case int, int8, int16, int32, int64:
+		switch dataType {
+		case schema.Int16, schema.Int32, schema.Int64:
 			return fmt.Sprint(value), nil
+		default:
+			slog.Error("int8/16/32/64 value with non-int column type",
+				slog.Any("value", value),
+				slog.Any("dataType", dataType),
+			)
 		}
+	case float32, float64:
+		switch dataType {
+		case schema.Float:
+			return fmt.Sprint(value), nil
+		default:
+			slog.Error("float32/64 value with non-float column type",
+				slog.Any("value", value),
+				slog.Any("dataType", dataType),
+			)
+		}
+	case bool:
+		switch dataType {
+		case schema.Bit, schema.Boolean:
+			return fmt.Sprint(value), nil
+		default:
+			slog.Error("bool value with non-bool column type",
+				slog.Any("value", value),
+				slog.Any("dataType", dataType),
+			)
+		}
+	case string:
+		switch dataType {
+		case schema.Text, schema.UserDefinedText, schema.Inet, schema.UUID, schema.JSON, schema.VariableNumeric,
+			schema.Numeric, schema.Money:
+			return QuoteLiteral(fmt.Sprint(value)), nil
+		default:
+			slog.Error("string value with non-string column type",
+				slog.Any("value", value),
+				slog.Any("dataType", dataType),
+			)
+		}
+	default:
+		slog.Error("unexpected value for primary key",
+			slog.Any("value", value),
+			slog.String("type", fmt.Sprintf("%T", value)),
+			slog.Any("dataType", dataType),
+		)
+	}
+	// legacy behavior
+	shouldQuote, err := shouldQuoteValue(dataType)
+	if err != nil {
+		return "", err
+	}
+	if shouldQuote {
+		return QuoteLiteral(fmt.Sprint(value)), nil
+	} else {
+		return fmt.Sprint(value), nil
 	}
 }
 
