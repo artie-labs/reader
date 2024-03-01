@@ -93,19 +93,19 @@ func TestConvertToStringForQuery(t *testing.T) {
 			name:     "text",
 			value:    "foo",
 			dataType: schema.Text,
-			expected: `'foo'`,
+			expected: "'foo'",
 		},
 		{
 			name:        "text",
 			value:       "foo",
 			dataType:    schema.InvalidDataType,
-			expectedErr: `invalid data type`,
+			expectedErr: "invalid data type",
 		},
 		{
 			name:        "text",
 			value:       "foo",
 			dataType:    -1,
-			expectedErr: `unsupported data type`,
+			expectedErr: "unsupported data type",
 		},
 	}
 	for _, testCase := range testCases {
