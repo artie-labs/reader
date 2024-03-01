@@ -14,8 +14,7 @@ import (
 func CreateTemporaryTable(db *sql.DB, query string) (string, func()) {
 	tempTableName := fmt.Sprintf("artie_reader_%d", 10_000+rand.Int32N(10_000))
 	slog.Info("Creating temporary table...", slog.String("table", tempTableName))
-	_, err := db.Exec(fmt.Sprintf(query, tempTableName))
-	if err != nil {
+	if _, err := db.Exec(fmt.Sprintf(query, tempTableName)); err != nil {
 		panic(err)
 	}
 	return tempTableName, func() {
