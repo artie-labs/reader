@@ -824,11 +824,11 @@ func testScan(db *sql.DB) error {
 		}
 		for i, row := range rows {
 			if !maps.Equal(row.PartitionKey, expectedPartitionKeys[i]) {
-				return fmt.Errorf("partition keys are different for row %d, batch size %d, %T != %T", i, batchSize, row.PartitionKey, expectedPartitionKeys[i])
+				return fmt.Errorf("partition keys are different for row %d, batch size %d, %v != %v", i, batchSize, row.PartitionKey, expectedPartitionKeys[i])
 			}
 			textValue := utils.GetPayload(row).Payload.After["c_text_value"]
 			if textValue != expectedValues[i] {
-				return fmt.Errorf("row values are different for row %d, batch size %d, %T != %T", i, batchSize, textValue, expectedPartitionKeys[i])
+				return fmt.Errorf("row values are different for row %d, batch size %d, %v != %v", i, batchSize, textValue, expectedValues[i])
 			}
 		}
 	}
