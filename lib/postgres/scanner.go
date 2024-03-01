@@ -119,25 +119,23 @@ func convertToStringForQuery(value any, dataType schema.DataType) (string, error
 }
 
 func keysToValueList(keys []primary_key.Key, columns []schema.Column) ([]string, []string, error) {
-	var startValues []string
-	var endValues []string
-	for _, pk := range keys {
+	startValues := make([]string, len(keys))
+	endValues := make([]string, len(keys))
+	for i, pk := range keys {
 		colIndex := slices.IndexFunc(columns, func(col schema.Column) bool { return col.Name == pk.Name })
 		if colIndex == -1 {
 			return nil, nil, fmt.Errorf("primary key %v not found in columns", pk.Name)
 		}
 
-		startVal, err := convertToStringForQuery(pk.StartingValue, columns[colIndex].Type)
+		var err error
+		startValues[i], err = convertToStringForQuery(pk.StartingValue, columns[colIndex].Type)
 		if err != nil {
 			return nil, nil, err
 		}
-		endVal, err := convertToStringForQuery(pk.EndingValue, columns[colIndex].Type)
+		endValues[i], err = convertToStringForQuery(pk.EndingValue, columns[colIndex].Type)
 		if err != nil {
 			return nil, nil, err
 		}
-
-		startValues = append(startValues, startVal)
-		endValues = append(endValues, endVal)
 	}
 	return startValues, endValues, nil
 }
