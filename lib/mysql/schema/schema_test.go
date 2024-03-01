@@ -17,10 +17,11 @@ func TestQuotedIdentifiers(t *testing.T) {
 }
 
 func TestParseColumnDataType(t *testing.T) {
-	tests := []struct {
+	testCases := []struct {
 		input        string
 		expectedType DataType
 		expectedOpts *Opts
+		expectedErr  string
 	}{
 		{
 			input:        "int",
@@ -41,16 +42,24 @@ func TestParseColumnDataType(t *testing.T) {
 			expectedOpts: &Opts{Precision: ptr.ToInt(5), Scale: ptr.ToInt(2)},
 		},
 		{
-			input:        "foo",
-			expectedType: InvalidDataType,
+			input:       "foo",
+			expectedErr: "unknown data type: foo",
+		},
+		{
+			input:       "varchar(",
+			expectedErr: "malformed data type: varchar(",
 		},
 	}
 
-	for _, test := range tests {
-		colType, opts, err := parseColumnDataType(test.input)
-		assert.NoError(t, err)
-		assert.Equal(t, test.expectedType, colType, test.input)
-		assert.Equal(t, test.expectedOpts, opts, test.input)
+	for _, testCase := range testCases {
+		colType, opts, err := parseColumnDataType(testCase.input)
+		if testCase.expectedErr == "" {
+			assert.NoError(t, err)
+			assert.Equal(t, testCase.expectedType, colType, testCase.input)
+			assert.Equal(t, testCase.expectedOpts, opts, testCase.input)
+		} else {
+			assert.ErrorContains(t, err, testCase.expectedErr, testCase.input)
+		}
 	}
 }
 
