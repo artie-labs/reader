@@ -42,18 +42,15 @@ func main() {
 		logger.Fatal("Could not connect to Postgres", slog.Any("err", err))
 	}
 
-	err = testTypes(db)
-	if err != nil {
+	if err = testTypes(db); err != nil {
 		logger.Fatal("Types test failed", slog.Any("err", err))
 	}
 
-	err = testScan(db)
-	if err != nil {
+	if err = testScan(db); err != nil {
 		logger.Fatal("Scan test failed", slog.Any("err", err))
 	}
 
-	err = testPrimaryKeyTypes(db)
-	if err != nil {
+	if err = testPrimaryKeyTypes(db); err != nil {
 		logger.Fatal("Primary key types test failed", slog.Any("err", err))
 	}
 }
