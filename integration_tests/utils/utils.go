@@ -1,12 +1,29 @@
 package utils
 
 import (
+	"database/sql"
 	"fmt"
+	"log/slog"
+	"math/rand/v2"
 	"strings"
 
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/transfer/lib/cdc/util"
 )
+
+func CreateTemporaryTable(db *sql.DB, query string) (string, func()) {
+	tempTableName := fmt.Sprintf("artie_reader_%d", 10_000+rand.Int32N(10_000))
+	slog.Info("Creating temporary table...", slog.String("table", tempTableName))
+	if _, err := db.Exec(fmt.Sprintf(query, tempTableName)); err != nil {
+		panic(err)
+	}
+	return tempTableName, func() {
+		slog.Info("Dropping temporary table...", slog.String("table", tempTableName))
+		if _, err := db.Exec(fmt.Sprintf("DROP TABLE %s", tempTableName)); err != nil {
+			slog.Error("Failed to drop table", slog.Any("err", err))
+		}
+	}
+}
 
 func GetPayload(message lib.RawMessage) util.SchemaEventPayload {
 	payloadTyped, ok := message.GetPayload().(util.SchemaEventPayload)
@@ -22,24 +39,22 @@ func CheckDifference(name, expected, actual string) bool {
 	}
 	expectedLines := strings.Split(expected, "\n")
 	actualLines := strings.Split(actual, "\n")
-	fmt.Printf("Expected %s:\n", name)
 	fmt.Println("--------------------------------------------------------------------------------")
-	for i, line := range expectedLines {
-		prefix := " "
-		if i >= len(actualLines) || line != actualLines[i] {
-			prefix = ">"
+	for i := range max(len(expectedLines), len(actualLines)) {
+		if i < len(expectedLines) {
+			if i < len(actualLines) {
+				if expectedLines[i] == actualLines[i] {
+					fmt.Println(expectedLines[i])
+				} else {
+					fmt.Println("E" + expectedLines[i])
+					fmt.Println("A" + actualLines[i])
+				}
+			} else {
+				fmt.Println("E" + expectedLines[i])
+			}
+		} else {
+			fmt.Println("A" + actualLines[i])
 		}
-		fmt.Println(prefix + line)
-	}
-	fmt.Println("--------------------------------------------------------------------------------")
-	fmt.Printf("Actual %s:\n", name)
-	fmt.Println("--------------------------------------------------------------------------------")
-	for i, line := range actualLines {
-		prefix := " "
-		if i >= len(expectedLines) || line != expectedLines[i] {
-			prefix = ">"
-		}
-		fmt.Println(prefix + line)
 	}
 	fmt.Println("--------------------------------------------------------------------------------")
 	return true
