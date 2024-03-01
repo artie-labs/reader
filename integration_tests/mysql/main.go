@@ -1,14 +1,481 @@
 package main
 
 import (
+	"database/sql"
+	"encoding/json"
+	"fmt"
 	"log/slog"
 	"os"
 
 	"github.com/lmittmann/tint"
+
+	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/integration_tests/utils"
+	"github.com/artie-labs/reader/lib"
+	"github.com/artie-labs/reader/lib/debezium"
+	"github.com/artie-labs/reader/lib/logger"
+	"github.com/artie-labs/reader/lib/mysql"
+	"github.com/artie-labs/reader/lib/mysql/scanner"
+	"github.com/artie-labs/reader/sources/mysql/adapter"
 )
 
 func main() {
 	os.Setenv("TZ", "UTC")
 	slog.SetDefault(slog.New(tint.NewHandler(os.Stderr, &tint.Options{Level: slog.LevelInfo})))
 
+	var mysqlHost string = os.Getenv("MYSQL_HOST")
+	if mysqlHost == "" {
+		mysqlHost = "127.0.0.1"
+	}
+
+	var mysqlCfg = config.MySQL{
+		Host:     mysqlHost,
+		Port:     3306,
+		Username: "root",
+		Password: "mysql",
+		Database: "mysql",
+	}
+
+	db, err := sql.Open("mysql", mysqlCfg.ToDSN())
+	if err != nil {
+		logger.Fatal("Could not connect to MySQL", slog.Any("err", err))
+	}
+
+	err = testTypes(db)
+	if err != nil {
+		logger.Fatal("Types test failed", slog.Any("err", err))
+	}
+
+	// err = testScan(db)
+	// if err != nil {
+	// 	logger.Fatal("Scan test failed", slog.Any("err", err))
+	// }
+}
+
+func readTable(db *sql.DB, tableName string, batchSize int) ([]lib.RawMessage, error) {
+	tableCfg := config.MySQLTable{
+		Name:      tableName,
+		BatchSize: uint(batchSize),
+	}
+
+	table := mysql.NewTable(tableCfg.Name)
+	if err := table.PopulateColumns(db); err != nil {
+		return nil, fmt.Errorf("unable to load table metadata: %w", err)
+	}
+
+	scanner, err := scanner.NewScanner(db, *table, tableCfg.ToScannerConfig(1))
+	if err != nil {
+		return nil, fmt.Errorf("failed to build scanner: %w", err)
+	}
+	dbzAdapter, err := adapter.NewMySQLAdapter(*table)
+	if err != nil {
+		return nil, err
+	}
+	dbzTransformer := debezium.NewDebeziumTransformer(dbzAdapter, &scanner)
+	rows := []lib.RawMessage{}
+	for dbzTransformer.HasNext() {
+		batch, err := dbzTransformer.Next()
+		if err != nil {
+			logger.Fatal("Failed to get batch", slog.Any("err", err))
+		}
+		rows = append(rows, batch...)
+	}
+	return rows, nil
+}
+
+const testTypesCreateTableQuery = `
+CREATE TABLE %s (
+	pk INTEGER PRIMARY KEY NOT NULL,
+	c_tinyint TINYINT,
+    c_smallint SMALLINT,
+    c_mediumint MEDIUMINT,
+    c_int INT,
+    c_bigint BIGINT,
+    c_decimal DECIMAL(7, 5),
+    c_numeric NUMERIC(5, 3),
+    c_float FLOAT,
+    c_double DOUBLE,
+    c_bit BIT,
+    c_date DATE,
+    c_datetime DATETIME,
+    c_timestamp TIMESTAMP,
+    c_time TIME,
+    c_year YEAR,
+    c_char CHAR,
+    c_varchar VARCHAR(100),
+    c_binary BINARY(100),
+    c_varbinary VARBINARY(100),
+    c_blob BLOB,
+    c_text TEXT,
+    c_enum ENUM('x-small', 'small', 'medium', 'large', 'x-large'),
+    c_set SET('one', 'two', 'three'),
+    c_json JSON
+)
+`
+
+const testTypesInsertQuery = `
+INSERT INTO %s VALUES (
+	-- pk
+		1,
+	-- c_tinyint
+		1,
+    -- c_smallint
+		2,
+    -- c_mediumint
+		3,
+    -- c_int
+		4,
+    -- c_bigint
+		5,
+    -- c_decimal
+		'12.34',
+    -- c_numeric
+		'56.78',
+    -- c_float
+		90.123,
+    -- c_double
+		45.678,
+    -- c_bit
+		1,
+    -- c_date
+		'2020-01-02',
+    -- c_datetime
+		'2001-02-03 04:05:06',
+    -- c_timestamp
+		'2001-02-03 04:05:06',
+    -- c_time
+		'04:05:06',
+    -- c_year
+		'2001',
+    -- c_char
+		'X',
+    -- c_varchar
+		'GHJKL',
+    -- c_binary
+		'ASDF',
+    -- c_varbinary
+		'BNM',
+    -- c_blob
+		'QWER',
+    -- c_text
+		'ZXCV',
+    -- c_enum
+		'medium',
+    -- c_set
+		'one',
+    -- c_json
+		'{"key1": "value1", "key2": "value2"}'
+)
+`
+
+const expectedPayloadTemplate = `{
+	"schema": {
+		"type": "",
+		"fields": [
+			{
+				"type": "",
+				"fields": [
+					{
+						"type": "int32",
+						"optional": false,
+						"default": null,
+						"field": "pk",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "int16",
+						"optional": false,
+						"default": null,
+						"field": "c_tinyint",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "int16",
+						"optional": false,
+						"default": null,
+						"field": "c_smallint",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "int32",
+						"optional": false,
+						"default": null,
+						"field": "c_mediumint",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "int32",
+						"optional": false,
+						"default": null,
+						"field": "c_int",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "int64",
+						"optional": false,
+						"default": null,
+						"field": "c_bigint",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "",
+						"optional": false,
+						"default": null,
+						"field": "c_decimal",
+						"name": "org.apache.kafka.connect.data.Decimal",
+						"parameters": {
+							"connect.decimal.precision": "7",
+							"scale": "5"
+						}
+					},
+					{
+						"type": "",
+						"optional": false,
+						"default": null,
+						"field": "c_numeric",
+						"name": "org.apache.kafka.connect.data.Decimal",
+						"parameters": {
+							"connect.decimal.precision": "5",
+							"scale": "3"
+						}
+					},
+					{
+						"type": "float",
+						"optional": false,
+						"default": null,
+						"field": "c_float",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "double",
+						"optional": false,
+						"default": null,
+						"field": "c_double",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "boolean",
+						"optional": false,
+						"default": null,
+						"field": "c_bit",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "int32",
+						"optional": false,
+						"default": null,
+						"field": "c_date",
+						"name": "io.debezium.time.Date",
+						"parameters": null
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"default": null,
+						"field": "c_datetime",
+						"name": "io.debezium.time.Timestamp",
+						"parameters": null
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"default": null,
+						"field": "c_timestamp",
+						"name": "io.debezium.time.Timestamp",
+						"parameters": null
+					},
+					{
+						"type": "int64",
+						"optional": false,
+						"default": null,
+						"field": "c_time",
+						"name": "io.debezium.time.MicroTime",
+						"parameters": null
+					},
+					{
+						"type": "int32",
+						"optional": false,
+						"default": null,
+						"field": "c_year",
+						"name": "io.debezium.time.Year",
+						"parameters": null
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"default": null,
+						"field": "c_char",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"default": null,
+						"field": "c_varchar",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "bytes",
+						"optional": false,
+						"default": null,
+						"field": "c_binary",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "bytes",
+						"optional": false,
+						"default": null,
+						"field": "c_varbinary",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "bytes",
+						"optional": false,
+						"default": null,
+						"field": "c_blob",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"default": null,
+						"field": "c_text",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"default": null,
+						"field": "c_enum",
+						"name": "io.debezium.data.Enum",
+						"parameters": null
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"default": null,
+						"field": "c_set",
+						"name": "io.debezium.data.EnumSet",
+						"parameters": null
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"default": null,
+						"field": "c_json",
+						"name": "io.debezium.data.Json",
+						"parameters": null
+					}
+				],
+				"optional": false,
+				"field": "after"
+			}
+		]
+	},
+	"payload": {
+		"before": null,
+		"after": {
+			"c_bigint": 5,
+			"c_binary": "QVNERgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+			"c_bit": true,
+			"c_blob": "UVdFUg==",
+			"c_char": "X",
+			"c_date": 18263,
+			"c_datetime": "2001-02-03T04:05:06Z",
+			"c_decimal": "EtRQ",
+			"c_double": 45.678,
+			"c_enum": "medium",
+			"c_float": 90.123,
+			"c_int": 4,
+			"c_json": "{\"key1\": \"value1\", \"key2\": \"value2\"}",
+			"c_mediumint": 3,
+			"c_numeric": "AN3M",
+			"c_set": "one",
+			"c_smallint": 2,
+			"c_text": "ZXCV",
+			"c_time": 14706000000,
+			"c_timestamp": "2001-02-03T04:05:06Z",
+			"c_tinyint": 1,
+			"c_varbinary": "Qk5N",
+			"c_varchar": "GHJKL",
+			"c_year": 2001,
+			"pk": 1
+		},
+		"source": {
+			"connector": "",
+			"ts_ms": %d,
+			"db": "",
+			"schema": "",
+			"table": "%s"
+		},
+		"op": "r"
+	}
+}`
+
+// testTypes checks that MySQL data types are handled correctly.
+func testTypes(db *sql.DB) error {
+	tempTableName := utils.TempTableName()
+	slog.Info("Creating temporary table...", slog.String("table", tempTableName))
+	_, err := db.Exec(fmt.Sprintf(testTypesCreateTableQuery, tempTableName))
+	if err != nil {
+		return fmt.Errorf("unable to create temporary table: %w", err)
+	}
+	defer func() {
+		// slog.Info("Dropping temporary table...", slog.String("table", tempTableName))
+		// if _, err := db.Exec(fmt.Sprintf("DROP TABLE %s", tempTableName)); err != nil {
+		// 	slog.Error("Failed to drop table", slog.Any("err", err))
+		// }
+	}()
+
+	slog.Info("Inserting data...")
+	_, err = db.Exec(fmt.Sprintf(testTypesInsertQuery, tempTableName))
+	if err != nil {
+		return fmt.Errorf("unable to insert data: %w", err)
+	}
+
+	rows, err := readTable(db, tempTableName, 100)
+	if err != nil {
+		return err
+	}
+
+	if len(rows) != 1 {
+		return fmt.Errorf("expected one row, got %d", len(rows))
+	}
+	row := rows[0]
+
+	keyBytes, err := json.Marshal(row.PartitionKey)
+	if err != nil {
+		return fmt.Errorf("failed to marshal partition key: %w", err)
+	}
+
+	valueBytes, err := json.MarshalIndent(row.GetPayload(), "", "\t")
+	if err != nil {
+		return fmt.Errorf("failed to marshal payload")
+	}
+
+	if utils.CheckDifference("partition key", `{"pk":1}`, string(keyBytes)) {
+		return fmt.Errorf("partition key does not match")
+	}
+
+	expectedPayload := fmt.Sprintf(expectedPayloadTemplate, utils.GetPayload(row).Payload.Source.TsMs, tempTableName)
+	if utils.CheckDifference("payload", expectedPayload, string(valueBytes)) {
+		return fmt.Errorf("payload does not match")
+	}
+
+	return nil
 }

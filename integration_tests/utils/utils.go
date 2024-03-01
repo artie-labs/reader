@@ -2,11 +2,16 @@ package utils
 
 import (
 	"fmt"
+	"math/rand/v2"
 	"strings"
 
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/transfer/lib/cdc/util"
 )
+
+func TempTableName() string {
+	return fmt.Sprintf("artie_reader_%d", 10_000+rand.Int32N(5_000))
+}
 
 func GetPayload(message lib.RawMessage) util.SchemaEventPayload {
 	payloadTyped, ok := message.GetPayload().(util.SchemaEventPayload)

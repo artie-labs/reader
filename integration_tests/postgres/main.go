@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 	"maps"
-	"math/rand/v2"
 	"os"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -648,7 +647,7 @@ const expectedPayloadTemplate = `{
 
 // testTypes checks that PostgreSQL data types are handled correctly.
 func testTypes(db *sql.DB) error {
-	tempTableName := fmt.Sprintf("artie_reader_%d", 10_000+rand.Int32N(5_000))
+	tempTableName := utils.TempTableName()
 	slog.Info("Creating temporary table...", slog.String("table", tempTableName))
 	_, err := db.Exec(fmt.Sprintf(testTypesCreateTableQuery, tempTableName))
 	if err != nil {
@@ -740,7 +739,7 @@ INSERT INTO %s VALUES
 
 // testScan checks that we're fetching all the data from PostgreSQL.
 func testScan(db *sql.DB) error {
-	tempTableName := fmt.Sprintf("artie_reader_%d", 10_000+rand.Int32N(5_000))
+	tempTableName := utils.TempTableName()
 	slog.Info("Creating temporary table...", slog.String("table", tempTableName))
 	_, err := db.Exec(fmt.Sprintf(testScanCreateTableQuery, tempTableName))
 	if err != nil {
