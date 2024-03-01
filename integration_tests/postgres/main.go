@@ -8,13 +8,12 @@ import (
 	"maps"
 	"math/rand/v2"
 	"os"
-	"strings"
 
-	"github.com/artie-labs/transfer/lib/cdc/util"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/lmittmann/tint"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/integration_tests/utils"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/logger"
@@ -53,43 +52,6 @@ func main() {
 	if err != nil {
 		logger.Fatal("Scan test failed", slog.Any("err", err))
 	}
-}
-
-func getPayload(message lib.RawMessage) util.SchemaEventPayload {
-	payloadTyped, ok := message.GetPayload().(util.SchemaEventPayload)
-	if !ok {
-		panic("payload is not of type util.SchemaEventPayload")
-	}
-	return payloadTyped
-}
-
-func checkDifference(name, expected, actual string) bool {
-	if expected == actual {
-		return false
-	}
-	expectedLines := strings.Split(expected, "\n")
-	actualLines := strings.Split(actual, "\n")
-	fmt.Printf("Expected %s:\n", name)
-	fmt.Println("--------------------------------------------------------------------------------")
-	for i, line := range expectedLines {
-		prefix := " "
-		if i >= len(actualLines) || line != actualLines[i] {
-			prefix = ">"
-		}
-		fmt.Println(prefix + line)
-	}
-	fmt.Println("--------------------------------------------------------------------------------")
-	fmt.Printf("Actual %s:\n", name)
-	fmt.Println("--------------------------------------------------------------------------------")
-	for i, line := range actualLines {
-		prefix := " "
-		if i >= len(expectedLines) || line != expectedLines[i] {
-			prefix = ">"
-		}
-		fmt.Println(prefix + line)
-	}
-	fmt.Println("--------------------------------------------------------------------------------")
-	return true
 }
 
 func readTable(db *sql.DB, tableName string, batchSize int) ([]lib.RawMessage, error) {
@@ -725,12 +687,12 @@ func testTypes(db *sql.DB) error {
 		return fmt.Errorf("failed to marshal payload")
 	}
 
-	if checkDifference("partition key", `{"pk":1}`, string(keyBytes)) {
+	if utils.CheckDifference("partition key", `{"pk":1}`, string(keyBytes)) {
 		return fmt.Errorf("partition key does not match")
 	}
 
-	expectedPayload := fmt.Sprintf(expectedPayloadTemplate, getPayload(row).Payload.Source.TsMs, tempTableName)
-	if checkDifference("payload", expectedPayload, string(valueBytes)) {
+	expectedPayload := fmt.Sprintf(expectedPayloadTemplate, utils.GetPayload(row).Payload.Source.TsMs, tempTableName)
+	if utils.CheckDifference("payload", expectedPayload, string(valueBytes)) {
 		return fmt.Errorf("payload does not match")
 	}
 
@@ -864,7 +826,7 @@ func testScan(db *sql.DB) error {
 			if !maps.Equal(row.PartitionKey, expectedPartitionKeys[i]) {
 				return fmt.Errorf("partition keys are different for row %d, batch size %d, %T != %T", i, batchSize, row.PartitionKey, expectedPartitionKeys[i])
 			}
-			textValue := getPayload(row).Payload.After["c_text_value"]
+			textValue := utils.GetPayload(row).Payload.After["c_text_value"]
 			if textValue != expectedValues[i] {
 				return fmt.Errorf("row values are different for row %d, batch size %d, %T != %T", i, batchSize, textValue, expectedPartitionKeys[i])
 			}
