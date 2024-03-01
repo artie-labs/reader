@@ -43,13 +43,13 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 		if colIndex == -1 {
 			return "", fmt.Errorf("primary key %v not found in columns", pk.Name)
 		}
+		colType := args.Columns[colIndex].Type
+
 		var err error
-		startingValues[i], err = convertToStringForQuery(pk.StartingValue, args.Columns[i].Type)
-		if err != nil {
+		if startingValues[i], err = convertToStringForQuery(pk.StartingValue, colType); err != nil {
 			return "", err
 		}
-		endingValues[i], err = convertToStringForQuery(pk.EndingValue, args.Columns[i].Type)
-		if err != nil {
+		if endingValues[i], err = convertToStringForQuery(pk.EndingValue, colType); err != nil {
 			return "", err
 		}
 	}
