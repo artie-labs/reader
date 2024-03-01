@@ -687,12 +687,12 @@ func testTypes(db *sql.DB) error {
 		return fmt.Errorf("failed to marshal payload")
 	}
 
-	if utils.checkDifference("partition key", `{"pk":1}`, string(keyBytes)) {
+	if utils.CheckDifference("partition key", `{"pk":1}`, string(keyBytes)) {
 		return fmt.Errorf("partition key does not match")
 	}
 
-	expectedPayload := fmt.Sprintf(expectedPayloadTemplate, utils.getPayload(row).Payload.Source.TsMs, tempTableName)
-	if utils.checkDifference("payload", expectedPayload, string(valueBytes)) {
+	expectedPayload := fmt.Sprintf(expectedPayloadTemplate, utils.GetPayload(row).Payload.Source.TsMs, tempTableName)
+	if utils.CheckDifference("payload", expectedPayload, string(valueBytes)) {
 		return fmt.Errorf("payload does not match")
 	}
 
