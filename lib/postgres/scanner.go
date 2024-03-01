@@ -71,30 +71,31 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 	switch dataType {
 	case schema.InvalidDataType:
 		return false, fmt.Errorf("invalid data type")
+	case schema.Point, // Can't be used as a primqary key
+		schema.Bit,       // operator does not exist: bit >= boolean (SQLSTATE 42883)
+		schema.Time,      // invalid input syntax for type time: \"45296000\" (SQLSTATE 22007)
+		schema.Interval,  // operator does not exist: interval >= bigint (SQLSTATE 42883)
+		schema.Array,     // TODO: This doesn't work: need to serialize to Postgres array format "{1,2,3}"
+		schema.HStore,    // operator does not exist: hstore >= unknown (SQLSTATE 42883)
+		schema.Geometry,  // parse error - invalid geometry (SQLSTATE XX000)
+		schema.Geography: // parse error - invalid geometry (SQLSTATE XX000)
+		return false, fmt.Errorf("unsupported primary key type: DataType[%d]", dataType)
 	case schema.Float,
 		schema.Int16,
 		schema.Int32,
 		schema.Int64,
-		schema.Bit,
-		schema.Boolean,
-		schema.Interval, // TODO: This doesn't work: operator does not exist: interval >= bigint (SQLSTATE 42883)
-		schema.Array:    // TODO: This doesn't work: need to serialize to Postgres array format "{1,2,3}"
+		schema.Boolean:
 		return false, nil
 	case schema.VariableNumeric,
 		schema.Money,
 		schema.Numeric,
 		schema.Inet,
 		schema.Text,
-		schema.HStore,
 		schema.UUID,
 		schema.UserDefinedText,
 		schema.JSON,
 		schema.Timestamp,
-		schema.Time,
-		schema.Date,
-		schema.Point,
-		schema.Geometry,
-		schema.Geography:
+		schema.Date:
 		return true, nil
 	default:
 		return false, fmt.Errorf("unsupported data type: %v", dataType)
