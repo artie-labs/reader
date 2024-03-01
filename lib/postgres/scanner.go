@@ -131,11 +131,11 @@ func keysToValueList(keys []primary_key.Key, columns []schema.Column) ([]string,
 		}
 
 		var err error
-		startValues[i], err = coerceToStringForQuery(pk.StartingValue, columns[colIndex].Type)
+		startValues[i], err = convertToStringForQuery(pk.StartingValue, columns[colIndex].Type)
 		if err != nil {
 			return nil, nil, err
 		}
-		endValues[i], err = coerceToStringForQuery(pk.EndingValue, columns[colIndex].Type)
+		endValues[i], err = convertToStringForQuery(pk.EndingValue, columns[colIndex].Type)
 		if err != nil {
 			return nil, nil, err
 		}
