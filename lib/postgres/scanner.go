@@ -73,7 +73,7 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 		return false, fmt.Errorf("invalid data type")
 	case
 		schema.Bit,       // Fails: operator does not exist: bit >= boolean (SQLSTATE 42883)
-		schema.Time,      // Fails: invalid input syntax for type time: \"45296000\" (SQLSTATE 22007)
+		schema.Time,      // Fails: invalid input syntax for type time: "45296000" (SQLSTATE 22007)
 		schema.Interval,  // Fails: operator does not exist: interval >= bigint (SQLSTATE 42883)
 		schema.Array,     // Fails: This doesn't work: need to serialize to Postgres array format "{1,2,3}"
 		schema.HStore,    // Fails: operator does not exist: hstore >= unknown (SQLSTATE 42883)
