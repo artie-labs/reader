@@ -90,6 +90,18 @@ func TestCoerceToStringForQuery(t *testing.T) {
 			dataType: schema.Text,
 			expected: `'foo'`,
 		},
+		{
+			name:        "text",
+			value:       "foo",
+			dataType:    schema.InvalidDataType,
+			expectedErr: `invalid data type`,
+		},
+		{
+			name:        "text",
+			value:       "foo",
+			dataType:    -1,
+			expectedErr: `unsupported data type`,
+		},
 	}
 	for _, testCase := range testCases {
 		actual, err := coerceToStringForQuery(testCase.value, testCase.dataType)
