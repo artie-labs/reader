@@ -448,8 +448,9 @@ func testTypes(db *sql.DB) error {
 	}
 	row := rows[0]
 
-	if !maps.Equal(row.PartitionKey, map[string]any{"pk": 1}) {
-		return fmt.Errorf("partition key does not match: %v", row.PartitionKey)
+	expectedPartitionKey := map[string]any{"pk": int64(1)}
+	if !maps.Equal(row.PartitionKey, expectedPartitionKey) {
+		return fmt.Errorf("partition key %v does not match %v", row.PartitionKey, expectedPartitionKey)
 	}
 
 	valueBytes, err := json.MarshalIndent(row.GetPayload(), "", "\t")
