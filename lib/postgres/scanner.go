@@ -154,7 +154,8 @@ func convertToStringForQuery(value any, dataType schema.DataType) (string, error
 		}
 	case string:
 		switch dataType {
-		case schema.Text, schema.UserDefinedText, schema.Inet, schema.UUID:
+		case schema.Text, schema.UserDefinedText, schema.Inet, schema.UUID, schema.JSON, schema.VariableNumeric,
+			schema.Numeric, schema.Money:
 			return QuoteLiteral(fmt.Sprint(value)), nil
 		default:
 			slog.Error("string value with non-string column type",
