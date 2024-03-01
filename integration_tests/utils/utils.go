@@ -10,7 +10,7 @@ import (
 )
 
 func TempTableName() string {
-	return fmt.Sprintf("artie_reader_%d", 10_000+rand.Int32N(5_000))
+	return fmt.Sprintf("artie_reader_%d", 10_000+rand.Int32N(10_000))
 }
 
 func GetPayload(message lib.RawMessage) util.SchemaEventPayload {
