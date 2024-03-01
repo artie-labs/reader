@@ -207,19 +207,7 @@ func _scan(s *scan.Scanner[*Table], primaryKeys []primary_key.Key, isFirstRow bo
 		return nil, fmt.Errorf("failed to scan table: %w", err)
 	}
 
-	columns, err := rows.Columns()
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: Remove this check once we're confident columns isn't different from table.Columns
-	for idx, col := range columns {
-		if col != s.Table.Columns[idx].Name {
-			return nil, fmt.Errorf("column mismatch: expected %v, got %v", s.Table.Columns[idx].Name, col)
-		}
-	}
-
-	count := len(columns)
+	count := len(s.Table.Columns)
 	values := make([]any, count)
 	scanArgs := make([]any, count)
 	for i := range values {
