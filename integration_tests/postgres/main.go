@@ -860,7 +860,6 @@ func testScan(db *sql.DB) error {
 }
 
 const testPrimaryKeyTypesCreateTableQuery = `
-CREATE EXTENSION IF NOT EXISTS hstore;
 CREATE TABLE %s (
 	-- All the types from https://www.postgresql.org/docs/current/datatype.html#DATATYPE-TABLE
 	c_bigint bigint,
