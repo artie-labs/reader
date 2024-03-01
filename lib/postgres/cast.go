@@ -12,7 +12,7 @@ func castColumn(col schema.Column) (string, error) {
 	colName := pgx.Identifier{col.Name}.Sanitize()
 	switch col.Type {
 	case schema.InvalidDataType:
-		return colName, nil
+		return "", fmt.Errorf("invalid data type")
 	case schema.Inet:
 		return fmt.Sprintf("%s::text", colName), nil
 	case schema.Time, schema.Interval:

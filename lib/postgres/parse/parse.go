@@ -18,6 +18,8 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 	}
 
 	switch colKind {
+	case schema.InvalidDataType:
+		return nil, fmt.Errorf("invalid data type")
 	case schema.Geometry, schema.Geography:
 		valString, isOk := value.(string)
 		if !isOk {
