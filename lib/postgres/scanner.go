@@ -36,9 +36,21 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 		}
 	}
 
-	startingValues, endingValues, err := keysToValueList(args.PrimaryKeys, args.Columns)
-	if err != nil {
-		return "", err
+	startingValues := make([]string, len(args.PrimaryKeys))
+	endingValues := make([]string, len(args.PrimaryKeys))
+	for i, pk := range args.PrimaryKeys {
+		colIndex := slices.IndexFunc(args.Columns, func(col schema.Column) bool { return col.Name == pk.Name })
+		if colIndex == -1 {
+			return "", fmt.Errorf("primary key %v not found in columns", pk.Name)
+		}
+
+		var err error
+		if startingValues[i], err = convertToStringForQuery(pk.StartingValue, args.Columns[colIndex].Type); err != nil {
+			return "", err
+		}
+		if endingValues[i], err = convertToStringForQuery(pk.EndingValue, args.Columns[colIndex].Type); err != nil {
+			return "", err
+		}
 	}
 
 	quotedKeyNames := make([]string, len(args.PrimaryKeys))
@@ -119,28 +131,6 @@ func convertToStringForQuery(value any, dataType schema.DataType) (string, error
 			return fmt.Sprint(value), nil
 		}
 	}
-}
-
-func keysToValueList(keys []primary_key.Key, columns []schema.Column) ([]string, []string, error) {
-	startValues := make([]string, len(keys))
-	endValues := make([]string, len(keys))
-	for i, pk := range keys {
-		colIndex := slices.IndexFunc(columns, func(col schema.Column) bool { return col.Name == pk.Name })
-		if colIndex == -1 {
-			return nil, nil, fmt.Errorf("primary key %v not found in columns", pk.Name)
-		}
-
-		var err error
-		startValues[i], err = convertToStringForQuery(pk.StartingValue, columns[colIndex].Type)
-		if err != nil {
-			return nil, nil, err
-		}
-		endValues[i], err = convertToStringForQuery(pk.EndingValue, columns[colIndex].Type)
-		if err != nil {
-			return nil, nil, err
-		}
-	}
-	return startValues, endValues, nil
 }
 
 func NewScanner(db *sql.DB, t *Table, cfg scan.ScannerConfig) (scan.Scanner[*Table], error) {
