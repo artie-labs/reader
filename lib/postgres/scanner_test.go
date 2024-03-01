@@ -57,6 +57,68 @@ func TestShouldQuoteValue(t *testing.T) {
 	assert.ErrorContains(t, err, "invalid data type")
 }
 
+func TestConvertToStringForQuery(t *testing.T) {
+	testCases := []struct {
+		name        string
+		dataType    schema.DataType
+		value       any
+		expected    any
+		expectedErr string
+	}{
+		{
+			name:     "time - schema.Int64",
+			value:    time.Date(2001, 2, 3, 4, 5, 6, 0, time.UTC),
+			dataType: schema.Int64, // type is ignored for time.Time
+			expected: "'2001-02-03T04:05:06Z'",
+		},
+		{
+			name:     "time - schema.Text",
+			value:    time.Date(2001, 2, 3, 4, 5, 6, 0, time.UTC),
+			dataType: schema.Text, // type is ignored for time.Time
+			expected: "'2001-02-03T04:05:06Z'",
+		},
+		{
+			name:     "int64",
+			value:    int64(1234),
+			dataType: schema.Int64,
+			expected: "1234",
+		},
+		{
+			name:     "float64",
+			value:    float64(1234.1234),
+			dataType: schema.Float,
+			expected: "1234.1234",
+		},
+		{
+			name:     "text",
+			value:    "foo",
+			dataType: schema.Text,
+			expected: "'foo'",
+		},
+		{
+			name:        "text",
+			value:       "foo",
+			dataType:    schema.InvalidDataType,
+			expectedErr: "invalid data type",
+		},
+		{
+			name:        "text",
+			value:       "foo",
+			dataType:    -1,
+			expectedErr: "unsupported data type",
+		},
+	}
+	for _, testCase := range testCases {
+		actual, err := convertToStringForQuery(testCase.value, testCase.dataType)
+		if testCase.expectedErr == "" {
+			assert.NoError(t, err)
+			assert.Equal(t, testCase.expected, actual, testCase.name)
+		} else {
+			assert.ErrorContains(t, err, testCase.expectedErr, testCase.name)
+		}
+	}
+}
+
 func TestKeysToValueList(t *testing.T) {
 	primaryKeys := []primary_key.Key{
 		{Name: "a", StartingValue: "1", EndingValue: "4"},

@@ -103,40 +103,42 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 	}
 }
 
-func keysToValueList(keys []primary_key.Key, columns []schema.Column) ([]string, []string, error) {
-	convertToString := func(value any) string {
-		switch castValue := value.(type) {
-		case time.Time:
-			// This is needed because we need to cast the time.Time object into a string for pagination.
-			return castValue.Format(time.RFC3339)
-		default:
-			return fmt.Sprint(value)
+// convertToStringForQuery returns a string value suitable for use directly in a query.
+func convertToStringForQuery(value any, dataType schema.DataType) (string, error) {
+	switch castValue := value.(type) {
+	case time.Time:
+		return QuoteLiteral(castValue.Format(time.RFC3339)), nil
+	default:
+		shouldQuote, err := shouldQuoteValue(dataType)
+		if err != nil {
+			return "", err
+		}
+		if shouldQuote {
+			return QuoteLiteral(fmt.Sprint(value)), nil
+		} else {
+			return fmt.Sprint(value), nil
 		}
 	}
+}
 
-	var startValues []string
-	var endValues []string
-	for _, pk := range keys {
+func keysToValueList(keys []primary_key.Key, columns []schema.Column) ([]string, []string, error) {
+	startValues := make([]string, len(keys))
+	endValues := make([]string, len(keys))
+	for i, pk := range keys {
 		colIndex := slices.IndexFunc(columns, func(col schema.Column) bool { return col.Name == pk.Name })
 		if colIndex == -1 {
 			return nil, nil, fmt.Errorf("primary key %v not found in columns", pk.Name)
 		}
 
-		shouldQuote, err := shouldQuoteValue(columns[colIndex].Type)
+		var err error
+		startValues[i], err = convertToStringForQuery(pk.StartingValue, columns[colIndex].Type)
 		if err != nil {
 			return nil, nil, err
 		}
-
-		startVal := convertToString(pk.StartingValue)
-		endVal := convertToString(pk.EndingValue)
-
-		if shouldQuote {
-			startVal = QuoteLiteral(startVal)
-			endVal = QuoteLiteral(endVal)
+		endValues[i], err = convertToStringForQuery(pk.EndingValue, columns[colIndex].Type)
+		if err != nil {
+			return nil, nil, err
 		}
-
-		startValues = append(startValues, startVal)
-		endValues = append(endValues, endVal)
 	}
 	return startValues, endValues, nil
 }
