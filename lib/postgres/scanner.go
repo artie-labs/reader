@@ -71,7 +71,8 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 	switch dataType {
 	case schema.InvalidDataType:
 		return false, fmt.Errorf("invalid data type")
-	case schema.Point, // Can't be used as a primqary key
+	case
+		schema.Point,     // Can't be used as a primqary key
 		schema.Bit,       // operator does not exist: bit >= boolean (SQLSTATE 42883)
 		schema.Time,      // invalid input syntax for type time: \"45296000\" (SQLSTATE 22007)
 		schema.Interval,  // operator does not exist: interval >= bigint (SQLSTATE 42883)
@@ -79,7 +80,7 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 		schema.HStore,    // operator does not exist: hstore >= unknown (SQLSTATE 42883)
 		schema.Geometry,  // parse error - invalid geometry (SQLSTATE XX000)
 		schema.Geography: // parse error - invalid geometry (SQLSTATE XX000)
-		return false, fmt.Errorf("unsupported primary key type: DataType[%d]", dataType)
+		return false, fmt.Errorf("unsupported primary key type: DataType(%d)", dataType)
 	case schema.Float,
 		schema.Int16,
 		schema.Int32,

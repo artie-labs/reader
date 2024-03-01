@@ -11,41 +11,46 @@ import (
 )
 
 func TestShouldQuoteValue(t *testing.T) {
-	tests := []struct {
-		name     string
-		dataType schema.DataType
-		expected bool
+	testCases := []struct {
+		name        string
+		dataType    schema.DataType
+		expected    bool
+		expectedErr string
 	}{
-		{"VariableNumeric", schema.VariableNumeric, true},
-		{"Money", schema.Money, true},
-		{"Numeric", schema.Numeric, true},
-		{"Bit", schema.Bit, false},
-		{"Boolean", schema.Boolean, false},
-		{"Inet", schema.Inet, true},
-		{"Text", schema.Text, true},
-		{"Interval", schema.Interval, false},
-		{"Array", schema.Array, false},
-		{"HStore", schema.HStore, true},
-		{"Float", schema.Float, false},
-		{"Int16", schema.Int16, false},
-		{"Int32", schema.Int32, false},
-		{"Int64", schema.Int64, false},
-		{"UUID", schema.UUID, true},
-		{"UserDefinedText", schema.UserDefinedText, true},
-		{"JSON", schema.JSON, true},
-		{"Timestamp", schema.Timestamp, true},
-		{"Time", schema.Time, true},
-		{"Date", schema.Date, true},
+		{"VariableNumeric", schema.VariableNumeric, true, ""},
+		{"Money", schema.Money, true, ""},
+		{"Numeric", schema.Numeric, true, ""},
+		{"Bit", schema.Bit, false, "unsupported primary key type: DataType"},
+		{"Boolean", schema.Boolean, false, ""},
+		{"Inet", schema.Inet, true, ""},
+		{"Text", schema.Text, true, ""},
+		{"Interval", schema.Interval, false, "unsupported primary key type: DataType"},
+		{"Array", schema.Array, false, "unsupported primary key type: DataType"},
+		{"HStore", schema.HStore, true, "unsupported primary key type: DataType"},
+		{"Float", schema.Float, false, ""},
+		{"Int16", schema.Int16, false, ""},
+		{"Int32", schema.Int32, false, ""},
+		{"Int64", schema.Int64, false, ""},
+		{"UUID", schema.UUID, true, ""},
+		{"UserDefinedText", schema.UserDefinedText, true, ""},
+		{"JSON", schema.JSON, true, ""},
+		{"Timestamp", schema.Timestamp, true, ""},
+		{"Time", schema.Time, true, "unsupported primary key type: DataType"},
+		{"Date", schema.Date, true, ""},
 		// PostGIS
-		{"Point", schema.Point, true},
-		{"Geometry", schema.Geometry, true},
-		{"Geography", schema.Geography, true},
+		{"Point", schema.Point, true, "unsupported primary key type: DataType"},
+		{"Geometry", schema.Geometry, true, "unsupported primary key type: DataType"},
+		{"Geography", schema.Geography, true, "unsupported primary key type: DataType"},
 	}
 
-	for _, tc := range tests {
-		result, err := shouldQuoteValue(tc.dataType)
-		assert.NoError(t, err)
-		assert.Equal(t, tc.expected, result, tc.name)
+	for _, tc := range testCases {
+		actual, err := shouldQuoteValue(tc.dataType)
+		if tc.expectedErr == "" {
+			assert.NoError(t, err, tc.name)
+			assert.Equal(t, tc.expected, actual, tc.name)
+		} else {
+			assert.ErrorContains(t, err, tc.expectedErr, tc.name)
+		}
 	}
 
 	_, err := shouldQuoteValue(schema.InvalidDataType)
