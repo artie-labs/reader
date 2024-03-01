@@ -100,5 +100,5 @@ func valueConverterForType(d schema.DataType, opts *schema.Opts) (converters.Val
 	case schema.JSON:
 		return converters.JSONConverter{}, nil
 	}
-	return nil, fmt.Errorf("unable get value converter for DataType[%d]", d)
+	return nil, fmt.Errorf("unable get value converter for DataType(%d)", d)
 }
