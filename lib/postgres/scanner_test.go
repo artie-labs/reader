@@ -52,7 +52,7 @@ func TestShouldQuoteValue(t *testing.T) {
 	assert.ErrorContains(t, err, "invalid data type")
 }
 
-func TestConvertToStringForQuery(t *testing.T) {
+func TestCoerceToStringForQuery(t *testing.T) {
 	testCases := []struct {
 		name        string
 		dataType    schema.DataType
@@ -92,7 +92,7 @@ func TestConvertToStringForQuery(t *testing.T) {
 		},
 	}
 	for _, testCase := range testCases {
-		actual, err := convertToStringForQuery(testCase.value, testCase.dataType)
+		actual, err := coerceToStringForQuery(testCase.value, testCase.dataType)
 		if testCase.expectedErr == "" {
 			assert.NoError(t, err)
 			assert.Equal(t, testCase.expected, actual, testCase.name)

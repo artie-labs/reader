@@ -101,7 +101,7 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 	}
 }
 
-func convertToStringForQuery(value any, dataType schema.DataType) (string, error) {
+func coerceToStringForQuery(value any, dataType schema.DataType) (string, error) {
 	switch castValue := value.(type) {
 	case time.Time:
 		return QuoteLiteral(castValue.Format(time.RFC3339)), nil
@@ -128,11 +128,11 @@ func keysToValueList(keys []primary_key.Key, columns []schema.Column) ([]string,
 		}
 
 		var err error
-		startValues[i], err = convertToStringForQuery(pk.StartingValue, columns[colIndex].Type)
+		startValues[i], err = coerceToStringForQuery(pk.StartingValue, columns[colIndex].Type)
 		if err != nil {
 			return nil, nil, err
 		}
-		endValues[i], err = convertToStringForQuery(pk.EndingValue, columns[colIndex].Type)
+		endValues[i], err = coerceToStringForQuery(pk.EndingValue, columns[colIndex].Type)
 		if err != nil {
 			return nil, nil, err
 		}
