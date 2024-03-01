@@ -814,6 +814,7 @@ func testScan(db *sql.DB) error {
 	}
 
 	for _, batchSize := range []int{1, 2, 5, 6, 24, 25, 26} {
+		slog.Info(fmt.Sprintf("Testing scan with batchSize of %d...", batchSize))
 		rows, err := readTable(db, tempTableName, batchSize)
 		if err != nil {
 			return err
