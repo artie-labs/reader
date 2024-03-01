@@ -101,8 +101,8 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 	}
 }
 
-// coerceToStringForQuery returns a string value suitable for use directly in a query.
-func coerceToStringForQuery(value any, dataType schema.DataType) (string, error) {
+// convertToStringForQuery returns a string value suitable for use directly in a query.
+func convertToStringForQuery(value any, dataType schema.DataType) (string, error) {
 	switch castValue := value.(type) {
 	case time.Time:
 		return QuoteLiteral(castValue.Format(time.RFC3339)), nil
