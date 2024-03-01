@@ -99,7 +99,7 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 		schema.Date:
 		return true, nil
 	default:
-		return false, fmt.Errorf("unsupported data type: %v", dataType)
+		return false, fmt.Errorf("unsupported data type: DataType(%d)", dataType)
 	}
 }
 
