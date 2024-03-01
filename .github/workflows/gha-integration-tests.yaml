@@ -28,7 +28,7 @@ jobs:
     container: golang:1.22
     services:
       mysql:
-        image: mysql:8.0
+        image: mysql:8.3
         env:
           MYSQL_ROOT_PASSWORD: mysql
         options: >-
