@@ -6,9 +6,15 @@ static:
 test:
 	go test ./...
 
-.PHONY: integration-test
-itest:
-	go run sources/postgres/integration_test/main.go
+.PHONY: mysql-itest
+mysql-itest:
+	go run integration_tests/mysql/main.go
+
+
+.PHONY: postgres-itest
+postgres-itest:
+	go run integration_tests/postgres/main.go
+
 
 .PHONY: race
 race:
