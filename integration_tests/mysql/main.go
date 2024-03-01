@@ -95,6 +95,7 @@ CREATE TABLE %s (
 	c_float FLOAT,
 	c_double DOUBLE,
 	c_bit BIT,
+	c_boolean BOOLEAN,
 	c_date DATE,
 	c_datetime DATETIME,
 	c_timestamp TIMESTAMP,
@@ -136,6 +137,8 @@ INSERT INTO %s VALUES (
 		45.678,
 	-- c_bit
 		1,
+	-- c_boolean
+		false,
 	-- c_date
 		'2020-01-02',
 	-- c_datetime
@@ -269,6 +272,14 @@ const expectedPayloadTemplate = `{
 						"parameters": null
 					},
 					{
+						"type": "boolean",
+						"optional": false,
+						"default": null,
+						"field": "c_boolean",
+						"name": "",
+						"parameters": null
+					},
+					{
 						"type": "int32",
 						"optional": false,
 						"default": null,
@@ -393,6 +404,7 @@ const expectedPayloadTemplate = `{
 			"c_binary": "QVNERgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
 			"c_bit": true,
 			"c_blob": "UVdFUg==",
+			"c_boolean": false,
 			"c_char": "X",
 			"c_date": 18263,
 			"c_datetime": "2001-02-03T04:05:06Z",
