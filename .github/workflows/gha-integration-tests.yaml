@@ -2,7 +2,7 @@ name: Integration tests
 run-name: Running integration tests
 on: [push]
 jobs:
-  postgres-integration-test:
+  Postgres:
     runs-on: ubuntu-latest
     container: golang:1.22
     services:
@@ -23,7 +23,7 @@ jobs:
           go-version: 1.22
       - name: Run Postgres integration test
         run: PG_HOST=postgres make postgres-itest
-  mysql-integration-test:
+  MySQL:
     runs-on: ubuntu-latest
     container: golang:1.22
     steps:
