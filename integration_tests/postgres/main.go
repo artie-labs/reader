@@ -688,18 +688,14 @@ func testTypes(db *sql.DB) error {
 	}
 	row := rows[0]
 
-	keyBytes, err := json.Marshal(row.PartitionKey)
-	if err != nil {
-		return fmt.Errorf("failed to marshal partition key: %w", err)
+	expectedPartitionKey := map[string]any{"pk": int64(1)}
+	if !maps.Equal(row.PartitionKey, expectedPartitionKey) {
+		return fmt.Errorf("partition key %v does not match %v", row.PartitionKey, expectedPartitionKey)
 	}
 
 	valueBytes, err := json.MarshalIndent(row.GetPayload(), "", "\t")
 	if err != nil {
 		return fmt.Errorf("failed to marshal payload")
-	}
-
-	if utils.CheckDifference("partition key", `{"pk":1}`, string(keyBytes)) {
-		return fmt.Errorf("partition key does not match")
 	}
 
 	expectedPayload := fmt.Sprintf(expectedPayloadTemplate, utils.GetPayload(row).Payload.Source.TsMs, tempTableName)
