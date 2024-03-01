@@ -120,8 +120,8 @@ func TestValueConverterForType(t *testing.T) {
 	tcs := []_tc{
 		{
 			name:        "invalid data type",
-			dataType:    schema.InvalidDataType,
-			expectedErr: "unable get value converter for DataType[0]",
+			dataType:    -1,
+			expectedErr: "unable get value converter for DataType[-1]",
 		},
 		{
 			name:     "bit",

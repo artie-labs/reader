@@ -13,9 +13,8 @@ import (
 type DataType int
 
 const (
-	InvalidDataType DataType = iota
 	// Integer Types (Exact Value)
-	TinyInt
+	TinyInt DataType = iota
 	SmallInt
 	MediumInt
 	Int
@@ -98,9 +97,6 @@ func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse data type: %w", err)
 		}
-		if dataType == InvalidDataType {
-			return nil, fmt.Errorf("unable to identify type for column %s: %s", colName, colType)
-		}
 
 		result = append(result, Column{
 			Name: colName,
@@ -116,12 +112,12 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 	parenIndex := strings.Index(s, "(")
 	if parenIndex != -1 {
 		if s[len(s)-1] != ')' {
-			return InvalidDataType, nil, fmt.Errorf("invalid data type: %s", s)
+			return -1, nil, fmt.Errorf("malformed data type: %s", s)
 		}
 		metadata = s[parenIndex+1 : len(s)-1]
 		s = s[:parenIndex]
 	}
-	
+
 	switch s {
 	case "tinyint":
 		// Boolean, bool are aliases for tinyint(1)
@@ -141,17 +137,17 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 	case "decimal", "numeric":
 		parts := strings.Split(metadata, ",")
 		if len(parts) != 2 {
-			return InvalidDataType, nil, fmt.Errorf("invalid decimal metadata: %s", metadata)
+			return -1, nil, fmt.Errorf("invalid decimal metadata: %s", metadata)
 		}
 
 		precision, err := strconv.Atoi(parts[0])
 		if err != nil {
-			return InvalidDataType, nil, fmt.Errorf("failed to parse %s precision: %w", s, err)
+			return -1, nil, fmt.Errorf("failed to parse precision value %s: %w", s, err)
 		}
 
 		scale, err := strconv.Atoi(parts[1])
 		if err != nil {
-			return InvalidDataType, nil, fmt.Errorf("failed to parse %s scale: %w", s, err)
+			return -1, nil, fmt.Errorf("failed to parse scale value %s: %w", s, err)
 		}
 		return Decimal, &Opts{Precision: ptr.ToInt(precision), Scale: ptr.ToInt(scale)}, nil
 	case "float":
@@ -175,7 +171,7 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 	case "varchar":
 		size, err := strconv.Atoi(metadata)
 		if err != nil {
-			return InvalidDataType, nil, fmt.Errorf("failed to parse varchar size: %w", err)
+			return -1, nil, fmt.Errorf("failed to parse varchar size: %w", err)
 		}
 		return Varchar, &Opts{Size: ptr.ToInt(size)}, nil
 	case "binary":
@@ -199,8 +195,7 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 	case "json":
 		return JSON, nil, nil
 	default:
-		slog.Warn("Unknown data type", slog.String("type", s))
-		return InvalidDataType, nil, nil
+		return -1, nil, fmt.Errorf("unknown data type: %s", s)
 	}
 }
 
