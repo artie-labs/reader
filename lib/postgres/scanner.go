@@ -116,6 +116,7 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 	}
 }
 
+// convertToStringForQuery returns a string value suitable for use directly in a query.
 func convertToStringForQuery(value any, dataType schema.DataType) (string, error) {
 	// TODO: Change logs to actual errors then remove legacy behavior
 	switch castValue := value.(type) {
