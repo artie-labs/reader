@@ -109,7 +109,7 @@ func ConvertValue(value any, colType DataType) (any, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("could not convert DataType[%d] %T value: %v", colType, value, value)
+	return nil, fmt.Errorf("could not convert DataType(%d) %T value: %v", colType, value, value)
 }
 
 // ConvertValues takes values returned from the MySQL driver and converts them to a native Go types.

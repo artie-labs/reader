@@ -38,6 +38,6 @@ func castColumn(col schema.Column) (string, error) {
 		// These are all the columns that do not need to be escaped.
 		return colName, nil
 	default:
-		return "", fmt.Errorf("unsupported column type DataType[%d]", col.Type)
+		return "", fmt.Errorf("unsupported column type DataType(%d)", col.Type)
 	}
 }
