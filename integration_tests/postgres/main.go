@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"maps"
+	"math/rand/v2"
 	"os"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -647,7 +648,7 @@ const expectedPayloadTemplate = `{
 
 // testTypes checks that PostgreSQL data types are handled correctly.
 func testTypes(db *sql.DB) error {
-	tempTableName := utils.TempTableName()
+	tempTableName := fmt.Sprintf("artie_reader_%d", 10_000+rand.Int32N(5_000))
 	slog.Info("Creating temporary table...", slog.String("table", tempTableName))
 	_, err := db.Exec(fmt.Sprintf(testTypesCreateTableQuery, tempTableName))
 	if err != nil {
@@ -739,7 +740,7 @@ INSERT INTO %s VALUES
 
 // testScan checks that we're fetching all the data from PostgreSQL.
 func testScan(db *sql.DB) error {
-	tempTableName := utils.TempTableName()
+	tempTableName := fmt.Sprintf("artie_reader_%d", 10_000+rand.Int32N(5_000))
 	slog.Info("Creating temporary table...", slog.String("table", tempTableName))
 	_, err := db.Exec(fmt.Sprintf(testScanCreateTableQuery, tempTableName))
 	if err != nil {
@@ -814,7 +815,6 @@ func testScan(db *sql.DB) error {
 	}
 
 	for _, batchSize := range []int{1, 2, 5, 6, 24, 25, 26} {
-		slog.Info(fmt.Sprintf("Testing scan with batch size of %d...", batchSize))
 		rows, err := readTable(db, tempTableName, batchSize)
 		if err != nil {
 			return err
@@ -824,11 +824,11 @@ func testScan(db *sql.DB) error {
 		}
 		for i, row := range rows {
 			if !maps.Equal(row.PartitionKey, expectedPartitionKeys[i]) {
-				return fmt.Errorf("partition keys are different for row %d, batch size %d, %v != %v", i, batchSize, row.PartitionKey, expectedPartitionKeys[i])
+				return fmt.Errorf("partition keys are different for row %d, batch size %d, %T != %T", i, batchSize, row.PartitionKey, expectedPartitionKeys[i])
 			}
 			textValue := utils.GetPayload(row).Payload.After["c_text_value"]
 			if textValue != expectedValues[i] {
-				return fmt.Errorf("row values are different for row %d, batch size %d, %v != %v", i, batchSize, textValue, expectedValues[i])
+				return fmt.Errorf("row values are different for row %d, batch size %d, %T != %T", i, batchSize, textValue, expectedPartitionKeys[i])
 			}
 		}
 	}
