@@ -437,10 +437,10 @@ func testTypes(db *sql.DB) error {
 		return fmt.Errorf("unable to create temporary table: %w", err)
 	}
 	defer func() {
-		// slog.Info("Dropping temporary table...", slog.String("table", tempTableName))
-		// if _, err := db.Exec(fmt.Sprintf("DROP TABLE %s", tempTableName)); err != nil {
-		// 	slog.Error("Failed to drop table", slog.Any("err", err))
-		// }
+		slog.Info("Dropping temporary table...", slog.String("table", tempTableName))
+		if _, err := db.Exec(fmt.Sprintf("DROP TABLE %s", tempTableName)); err != nil {
+			slog.Error("Failed to drop table", slog.Any("err", err))
+		}
 	}()
 
 	slog.Info("Inserting data...")
