@@ -430,22 +430,11 @@ const expectedPayloadTemplate = `{
 
 // testTypes checks that MySQL data types are handled correctly.
 func testTypes(db *sql.DB) error {
-	tempTableName := utils.TempTableName()
-	slog.Info("Creating temporary table...", slog.String("table", tempTableName))
-	_, err := db.Exec(fmt.Sprintf(testTypesCreateTableQuery, tempTableName))
-	if err != nil {
-		return fmt.Errorf("unable to create temporary table: %w", err)
-	}
-	defer func() {
-		slog.Info("Dropping temporary table...", slog.String("table", tempTableName))
-		if _, err := db.Exec(fmt.Sprintf("DROP TABLE %s", tempTableName)); err != nil {
-			slog.Error("Failed to drop table", slog.Any("err", err))
-		}
-	}()
+	tempTableName, dropTableFunc := utils.CreateTemporaryTable(db, testTypesCreateTableQuery)
+	defer dropTableFunc()
 
 	slog.Info("Inserting data...")
-	_, err = db.Exec(fmt.Sprintf(testTypesInsertQuery, tempTableName))
-	if err != nil {
+	if _, err := db.Exec(fmt.Sprintf(testTypesInsertQuery, tempTableName)); err != nil {
 		return fmt.Errorf("unable to insert data: %w", err)
 	}
 
@@ -522,22 +511,11 @@ INSERT INTO %s VALUES
 
 // testScan checks that we're fetching all the data from MySQL.
 func testScan(db *sql.DB) error {
-	tempTableName := utils.TempTableName()
-	slog.Info("Creating temporary table...", slog.String("table", tempTableName))
-	_, err := db.Exec(fmt.Sprintf(testScanCreateTableQuery, tempTableName))
-	if err != nil {
-		return fmt.Errorf("unable to create temporary table: %w", err)
-	}
-	defer func() {
-		slog.Info("Dropping temporary table...", slog.String("table", tempTableName))
-		if _, err := db.Exec(fmt.Sprintf("DROP TABLE %s", tempTableName)); err != nil {
-			slog.Error("Failed to drop table", slog.Any("err", err))
-		}
-	}()
+	tempTableName, dropTableFunc := utils.CreateTemporaryTable(db, testScanCreateTableQuery)
+	defer dropTableFunc()
 
 	slog.Info("Inserting data...")
-	_, err = db.Exec(fmt.Sprintf(testScanInsertQuery, tempTableName))
-	if err != nil {
+	if _, err := db.Exec(fmt.Sprintf(testScanInsertQuery, tempTableName)); err != nil {
 		return fmt.Errorf("unable to insert data: %w", err)
 	}
 
