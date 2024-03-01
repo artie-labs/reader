@@ -11,72 +11,101 @@ import (
 )
 
 func TestShouldQuoteValue(t *testing.T) {
-	tests := []struct {
-		name     string
-		dataType schema.DataType
-		expected bool
+	testCases := []struct {
+		name        string
+		dataType    schema.DataType
+		expected    bool
+		expectedErr string
 	}{
-		{"VariableNumeric", schema.VariableNumeric, true},
-		{"Money", schema.Money, true},
-		{"Numeric", schema.Numeric, true},
-		{"Bit", schema.Bit, false},
-		{"Boolean", schema.Boolean, false},
-		{"Inet", schema.Inet, true},
-		{"Text", schema.Text, true},
-		{"Interval", schema.Interval, false},
-		{"Array", schema.Array, false},
-		{"HStore", schema.HStore, true},
-		{"Float", schema.Float, false},
-		{"Int16", schema.Int16, false},
-		{"Int32", schema.Int32, false},
-		{"Int64", schema.Int64, false},
-		{"UUID", schema.UUID, true},
-		{"UserDefinedText", schema.UserDefinedText, true},
-		{"JSON", schema.JSON, true},
-		{"Timestamp", schema.Timestamp, true},
-		{"Time", schema.Time, true},
-		{"Date", schema.Date, true},
+		{"Invalid", schema.InvalidDataType, false, "invalid data type"},
+		{"Unsupported", 100, false, "unsupported data type: DataType[100]"},
+		{"VariableNumeric", schema.VariableNumeric, true, ""},
+		{"Money", schema.Money, true, ""},
+		{"Numeric", schema.Numeric, true, ""},
+		{"Bit", schema.Bit, false, ""},
+		{"Boolean", schema.Boolean, false, ""},
+		{"Inet", schema.Inet, true, ""},
+		{"Text", schema.Text, true, ""},
+		{"Interval", schema.Interval, false, "unsupported primary key type: DataType[8]"},
+		{"Array", schema.Array, false, "unsupported primary key type: DataType[9]"},
+		{"HStore", schema.HStore, true, ""},
+		{"Float", schema.Float, false, ""},
+		{"Int16", schema.Int16, false, ""},
+		{"Int32", schema.Int32, false, ""},
+		{"Int64", schema.Int64, false, ""},
+		{"UUID", schema.UUID, true, ""},
+		{"UserDefinedText", schema.UserDefinedText, true, ""},
+		{"JSON", schema.JSON, true, ""},
+		{"Timestamp", schema.Timestamp, true, ""},
+		{"Time", schema.Time, true, ""},
+		{"Date", schema.Date, true, ""},
 		// PostGIS
-		{"Point", schema.Point, true},
-		{"Geometry", schema.Geometry, true},
-		{"Geography", schema.Geography, true},
+		{"Point", schema.Point, true, ""},
+		{"Geometry", schema.Geometry, true, ""},
+		{"Geography", schema.Geography, true, ""},
 	}
 
-	for _, tc := range tests {
-		result, err := shouldQuoteValue(tc.dataType)
-		assert.NoError(t, err)
-		assert.Equal(t, tc.expected, result, tc.name)
+	for _, testCase := range testCases {
+		actual, err := shouldQuoteValue(testCase.dataType)
+		if testCase.expectedErr == "" {
+			assert.NoError(t, err)
+			assert.Equal(t, testCase.expected, actual, testCase.name)
+		} else {
+			assert.ErrorContains(t, err, testCase.expectedErr, testCase.name)
+		}
 	}
 
 	_, err := shouldQuoteValue(schema.InvalidDataType)
 	assert.ErrorContains(t, err, "invalid data type")
 }
 
-func TestKeysToValueList(t *testing.T) {
-	primaryKeys := []primary_key.Key{
-		{Name: "a", StartingValue: "1", EndingValue: "4"},
-		{Name: "b", StartingValue: "a", EndingValue: "z"},
-		{Name: "c", StartingValue: "2000-01-02 03:04:05", EndingValue: "2001-01-02 03:04:05"},
-		{Name: "d", StartingValue: time.Date(1993, 1, 1, 0, 0, 0, 0, time.UTC), EndingValue: time.Date(1994, 1, 1, 0, 0, 0, 0, time.UTC)},
+func TestConvertToStringForQuery(t *testing.T) {
+	testCases := []struct {
+		name        string
+		dataType    schema.DataType
+		value       any
+		expected    any
+		expectedErr string
+	}{
+		{
+			name:     "time - schema.Int64",
+			value:    time.Date(2001, 2, 3, 4, 5, 6, 0, time.UTC),
+			dataType: schema.Int64, // isn't checked for time.Time
+			expected: "'2001-02-03T04:05:06Z'",
+		},
+		{
+			name:     "time - schema.Text",
+			value:    time.Date(2001, 2, 3, 4, 5, 6, 0, time.UTC),
+			dataType: schema.Text, // isn't checked for time.Time
+			expected: "'2001-02-03T04:05:06Z'",
+		},
+		{
+			name:     "int64",
+			value:    int64(1234),
+			dataType: schema.Int64,
+			expected: "1234",
+		},
+		{
+			name:     "float64",
+			value:    float64(1234.1234),
+			dataType: schema.Float,
+			expected: "1234.1234",
+		},
+		{
+			name:     "text",
+			value:    "foo",
+			dataType: schema.Text,
+			expected: `'foo'`,
+		},
 	}
-
-	cols := []schema.Column{
-		{Name: "a", Type: schema.Int64},
-		{Name: "b", Type: schema.Text},
-		{Name: "c", Type: schema.Timestamp},
-		{Name: "d", Type: schema.Timestamp},
-	}
-
-	{
-		startValues, endValues, err := keysToValueList(primaryKeys, cols)
-		assert.NoError(t, err)
-		assert.Equal(t, []string{"1", "'a'", "'2000-01-02 03:04:05'", "'1993-01-01T00:00:00Z'"}, startValues)
-		assert.Equal(t, []string{"4", "'z'", "'2001-01-02 03:04:05'", "'1994-01-01T00:00:00Z'"}, endValues)
-	}
-	{
-		primaryKeys := append(primaryKeys, primary_key.Key{Name: "foo", StartingValue: "1", EndingValue: "4"})
-		_, _, err := keysToValueList(primaryKeys, cols)
-		assert.ErrorContains(t, err, "primary key foo not found in columns")
+	for _, testCase := range testCases {
+		actual, err := convertToStringForQuery(testCase.value, testCase.dataType)
+		if testCase.expectedErr == "" {
+			assert.NoError(t, err)
+			assert.Equal(t, testCase.expected, actual, testCase.name)
+		} else {
+			assert.ErrorContains(t, err, testCase.expectedErr, testCase.name)
+		}
 	}
 }
 

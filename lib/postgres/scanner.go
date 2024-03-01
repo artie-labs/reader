@@ -36,9 +36,22 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 		}
 	}
 
-	startingValues, endingValues, err := keysToValueList(args.PrimaryKeys, args.Columns)
-	if err != nil {
-		return "", err
+	startingValues := make([]string, len(args.PrimaryKeys))
+	endingValues := make([]string, len(args.PrimaryKeys))
+	for i, pk := range args.PrimaryKeys {
+		colIndex := slices.IndexFunc(args.Columns, func(col schema.Column) bool { return col.Name == pk.Name })
+		if colIndex == -1 {
+			return "", fmt.Errorf("primary key %v not found in columns", pk.Name)
+		}
+		var err error
+		startingValues[i], err = convertToStringForQuery(pk.StartingValue, args.Columns[i].Type)
+		if err != nil {
+			return "", err
+		}
+		endingValues[i], err = convertToStringForQuery(pk.EndingValue, args.Columns[i].Type)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	quotedKeyNames := make([]string, len(args.PrimaryKeys))
@@ -71,14 +84,15 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 	switch dataType {
 	case schema.InvalidDataType:
 		return false, fmt.Errorf("invalid data type")
+	case schema.Interval, // TODO: This doesn't work: operator does not exist: interval >= bigint (SQLSTATE 42883)
+		schema.Array: // TODO: This doesn't work: need to serialize to Postgres array format "{1,2,3}"
+		return false, fmt.Errorf("unsupported primary key type: DataType[%d]", dataType)
 	case schema.Float,
 		schema.Int16,
 		schema.Int32,
 		schema.Int64,
 		schema.Bit,
-		schema.Boolean,
-		schema.Interval, // TODO: This doesn't work: operator does not exist: interval >= bigint (SQLSTATE 42883)
-		schema.Array:    // TODO: This doesn't work: need to serialize to Postgres array format "{1,2,3}"
+		schema.Boolean:
 		return false, nil
 	case schema.VariableNumeric,
 		schema.Money,
@@ -97,46 +111,72 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 		schema.Geography:
 		return true, nil
 	default:
-		return false, fmt.Errorf("unsupported data type: %v", dataType)
+		return false, fmt.Errorf("unsupported data type: DataType[%d]", dataType)
 	}
 }
 
-func keysToValueList(keys []primary_key.Key, columns []schema.Column) ([]string, []string, error) {
-	convertToString := func(value any) string {
-		switch castValue := value.(type) {
-		case time.Time:
-			// This is needed because we need to cast the time.Time object into a string for pagination.
-			return castValue.Format(time.RFC3339)
+func convertToStringForQuery(value any, dataType schema.DataType) (string, error) {
+	// TODO: Change logs to actual errors then remove legacy behavior
+	switch castValue := value.(type) {
+	case time.Time:
+		return QuoteLiteral(castValue.Format(time.RFC3339)), nil
+	case int, int8, int16, int32, int64:
+		switch dataType {
+		case schema.Int16, schema.Int32, schema.Int64:
+			return fmt.Sprint(value), nil
 		default:
-			return fmt.Sprint(value)
+			slog.Error("int8/16/32/64 value with non-int column type",
+				slog.Any("value", value),
+				slog.Any("dataType", dataType),
+			)
 		}
+	case float32, float64:
+		switch dataType {
+		case schema.Float:
+			return fmt.Sprint(value), nil
+		default:
+			slog.Error("float32/64 value with non-float column type",
+				slog.Any("value", value),
+				slog.Any("dataType", dataType),
+			)
+		}
+	case bool:
+		switch dataType {
+		case schema.Bit, schema.Boolean:
+			return fmt.Sprint(value), nil
+		default:
+			slog.Error("bool value with non-bool column type",
+				slog.Any("value", value),
+				slog.Any("dataType", dataType),
+			)
+		}
+	case string:
+		switch dataType {
+		case schema.Text, schema.UserDefinedText, schema.Inet, schema.UUID:
+			return QuoteLiteral(fmt.Sprint(value)), nil
+		default:
+			slog.Error("string value with non-string column type",
+				slog.Any("value", value),
+				slog.Any("dataType", dataType),
+			)
+		}
+	default:
+		slog.Error("unexpected value for primary key",
+			slog.Any("value", value),
+			slog.String("type", fmt.Sprintf("%T", value)),
+			slog.Any("dataType", dataType),
+		)
 	}
-
-	var startValues []string
-	var endValues []string
-	for _, pk := range keys {
-		colIndex := slices.IndexFunc(columns, func(col schema.Column) bool { return col.Name == pk.Name })
-		if colIndex == -1 {
-			return nil, nil, fmt.Errorf("primary key %v not found in columns", pk.Name)
-		}
-
-		shouldQuote, err := shouldQuoteValue(columns[colIndex].Type)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		startVal := convertToString(pk.StartingValue)
-		endVal := convertToString(pk.EndingValue)
-
-		if shouldQuote {
-			startVal = QuoteLiteral(startVal)
-			endVal = QuoteLiteral(endVal)
-		}
-
-		startValues = append(startValues, startVal)
-		endValues = append(endValues, endVal)
+	// fallback to legacy behavior
+	shouldQuote, err := shouldQuoteValue(dataType)
+	if err != nil {
+		return "", err
 	}
-	return startValues, endValues, nil
+	if shouldQuote {
+		return QuoteLiteral(fmt.Sprint(value)), nil
+	} else {
+		return fmt.Sprint(value), nil
+	}
 }
 
 func NewScanner(db *sql.DB, t *Table, cfg scan.ScannerConfig) (scan.Scanner[*Table], error) {
