@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -47,7 +48,7 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 		slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name), slog.String("schema", tableCfg.Schema))
 		table := postgres.NewTable(tableCfg.Schema, tableCfg.Name)
 		if err := table.PopulateColumns(s.db); err != nil {
-			if rdbms.IsNoRowsErr(err) {
+			if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
 				slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name), slog.String("schema", table.Schema))
 				continue
 			} else {

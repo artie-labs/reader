@@ -2,10 +2,12 @@ package schema
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
 
+	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/jackc/pgx/v5"
 )
@@ -237,6 +239,9 @@ func getPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column,
 	}
 
 	if err := db.QueryRow(query).Scan(resultPtrs...); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, rdbms.ErrNoPkValuesForEmptyTable
+		}
 		return nil, err
 	}
 	return result, nil

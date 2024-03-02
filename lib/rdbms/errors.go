@@ -1,10 +1,7 @@
 package rdbms
 
 import (
-	"database/sql"
 	"errors"
 )
 
-func IsNoRowsErr(err error) bool {
-	return errors.Is(err, sql.ErrNoRows)
-}
+var ErrNoPkValuesForEmptyTable = errors.New("cannot get primary key values of empty table")
