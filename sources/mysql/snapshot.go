@@ -56,7 +56,7 @@ func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, 
 	slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name))
 	table := mysql.NewTable(tableCfg.Name)
 	if err := table.PopulateColumns(s.db); err != nil {
-		if errors.Is(err, rdbms.ErrPkValuesEmptyTable) {
+		if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
 			slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name))
 			return nil
 		} else {

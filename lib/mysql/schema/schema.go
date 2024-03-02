@@ -280,7 +280,7 @@ func getPrimaryKeyValues(db *sql.DB, table string, primaryKeys []Column, descend
 
 	if err := stmt.QueryRow().Scan(resultPtrs...); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, rdbms.ErrPkValuesEmptyTable
+			return nil, rdbms.ErrNoPkValuesForEmptyTable
 		}
 		return nil, err
 	}

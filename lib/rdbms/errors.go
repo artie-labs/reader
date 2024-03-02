@@ -4,4 +4,4 @@ import (
 	"errors"
 )
 
-var ErrPkValuesEmptyTable = errors.New("cannot get primary key values of empty table")
+var ErrNoPkValuesForEmptyTable = errors.New("cannot get primary key values of empty table")

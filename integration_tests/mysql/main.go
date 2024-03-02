@@ -449,7 +449,7 @@ func testTypes(db *sql.DB) error {
 	_, err := readTable(db, tempTableName, 100)
 	if err == nil {
 		return fmt.Errorf("expected an error")
-	} else if !errors.Is(err, rdbms.ErrPkValuesEmptyTable) {
+	} else if !errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
 		return err
 	}
 
