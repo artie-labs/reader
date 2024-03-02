@@ -29,7 +29,7 @@ type ScannerConfig struct {
 
 type ScanAdapter interface {
 	BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error)
-	ParseRows(rows *sql.Rows) ([]map[string]any, error)
+	ParseRow(row []any) (map[string]any, error)
 }
 
 type Scanner struct {
@@ -118,5 +118,30 @@ func (s *Scanner) scan() ([]map[string]any, error) {
 		return nil, fmt.Errorf("scan failed: %w", err)
 	}
 
-	return s.adapter.ParseRows(rows)
+	columns, err := rows.Columns()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get columns: %w", err)
+	}
+
+	values := make([]any, len(columns))
+	valuePtrs := make([]any, len(values))
+	for i := range values {
+		valuePtrs[i] = &values[i]
+	}
+
+	var rowsData []map[string]any
+	for rows.Next() {
+		err := rows.Scan(valuePtrs...)
+		if err != nil {
+			return nil, err
+		}
+
+		row, err := s.adapter.ParseRow(values)
+		if err != nil {
+			return nil, err
+		}
+
+		rowsData = append(rowsData, row)
+	}
+	return rowsData, nil
 }

@@ -33,30 +33,15 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 	})
 }
 
-func (s scanAdapter) ParseRows(rows *sql.Rows) ([]map[string]any, error) {
-	values := make([]any, len(s.columns))
-	valuePtrs := make([]any, len(values))
-	for i := range values {
-		valuePtrs[i] = &values[i]
+func (s scanAdapter) ParseRow(values []any) (map[string]any, error) {
+	convertedValues, err := schema.ConvertValues(values, s.columns)
+	if err != nil {
+		return nil, err
 	}
 
-	var rowsData []map[string]any
-	for rows.Next() {
-		err := rows.Scan(valuePtrs...)
-		if err != nil {
-			return nil, err
-		}
-
-		convertedValues, err := schema.ConvertValues(values, s.columns)
-		if err != nil {
-			return nil, err
-		}
-
-		row := make(map[string]any)
-		for idx, value := range convertedValues {
-			row[s.columns[idx].Name] = value
-		}
-		rowsData = append(rowsData, row)
+	row := make(map[string]any)
+	for idx, value := range convertedValues {
+		row[s.columns[idx].Name] = value
 	}
-	return rowsData, nil
+	return row, nil
 }
