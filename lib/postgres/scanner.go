@@ -208,10 +208,13 @@ func (s scanAdapter) ParseRow(values []any) (map[string]any, error) {
 	row := make(map[string]any)
 	for idx, v := range values {
 		col := s.columns[idx]
-		var err error
-		if row[col.Name], err = parse.ParseValue(col.Type, v); err != nil {
+
+		value, err := parse.ParseValue(col.Type, v)
+		if err != nil {
 			return nil, err
 		}
+
+		row[col.Name] = value
 	}
 	return row, nil
 }
