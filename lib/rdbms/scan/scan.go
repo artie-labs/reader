@@ -131,8 +131,7 @@ func (s *Scanner) scan() ([]map[string]any, error) {
 
 	var rowsData []map[string]any
 	for rows.Next() {
-		err := rows.Scan(valuePtrs...)
-		if err != nil {
+		if err := rows.Scan(valuePtrs...); err != nil {
 			return nil, err
 		}
 
