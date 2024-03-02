@@ -10,12 +10,8 @@ import (
 )
 
 func NewScanner(db *sql.DB, table mysql.Table, cfg scan.ScannerConfig) (scan.Scanner, error) {
-	return scan.NewScanner(
-		db,
-		table.PrimaryKeys,
-		scanAdapter{tableName: table.Name, columns: table.Columns},
-		cfg,
-	)
+	adapter := scanAdapter{tableName: table.Name, columns: table.Columns}
+	return scan.NewScanner(db, table.PrimaryKeys, adapter, cfg)
 }
 
 type scanAdapter struct {
