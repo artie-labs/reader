@@ -209,9 +209,8 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 }
 
 func (s scanAdapter) ParseRows(rows *sql.Rows) ([]map[string]any, error) {
-	count := len(s.columns)
-	values := make([]any, count)
-	scanArgs := make([]any, count)
+	values := make([]any, len(s.columns))
+	scanArgs := make([]any, len(values))
 	for i := range values {
 		scanArgs[i] = &values[i]
 	}
