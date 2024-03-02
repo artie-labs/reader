@@ -102,7 +102,7 @@ func (s *Scanner) Next() ([]map[string]any, error) {
 func (s *Scanner) scan() ([]map[string]any, error) {
 	query, parameters, err := s.adapter.BuildQuery(s.primaryKeys.Keys(), s.isFirstBatch, s.batchSize)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate scan query: %w", err)
+		return nil, fmt.Errorf("failed to build scan query: %w", err)
 	}
 
 	logger := slog.With(slog.String("query", query))
