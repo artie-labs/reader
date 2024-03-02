@@ -210,14 +210,14 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 
 func (s scanAdapter) ParseRows(rows *sql.Rows) ([]map[string]any, error) {
 	values := make([]any, len(s.columns))
-	scanArgs := make([]any, len(values))
+	valuePtrs := make([]any, len(values))
 	for i := range values {
-		scanArgs[i] = &values[i]
+		valuePtrs[i] = &values[i]
 	}
 
 	var rowsData []map[string]any
 	for rows.Next() {
-		err := rows.Scan(scanArgs...)
+		err := rows.Scan(valuePtrs...)
 		if err != nil {
 			return nil, err
 		}
