@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"maps"
@@ -17,6 +18,7 @@ import (
 	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/postgres"
+	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/reader/sources/postgres/adapter"
 )
 
@@ -669,6 +671,12 @@ const expectedPayloadTemplate = `{
 func testTypes(db *sql.DB) error {
 	tempTableName, dropTableFunc := utils.CreateTemporaryTable(db, testTypesCreateTableQuery)
 	defer dropTableFunc()
+
+	// Check reading an empty table
+	_, err := readTable(db, tempTableName, 100)
+	if err != nil && !errors.Is(err, rdbms.ErrPkValuesEmptyTable) {
+		return err
+	}
 
 	slog.Info("Inserting data...")
 	if _, err := db.Exec(fmt.Sprintf(testTypesInsertQuery, tempTableName)); err != nil {
