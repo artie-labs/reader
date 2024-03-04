@@ -183,7 +183,7 @@ func convertToStringForQuery(value any, dataType schema.DataType) (string, error
 
 func NewScanner(db *sql.DB, table *Table, cfg scan.ScannerConfig) (scan.Scanner, error) {
 	adapter := scanAdapter{schema: table.Schema, tableName: table.Name, columns: table.Columns}
-	return scan.NewScanner(db, table.PrimaryKeys, adapter, cfg)
+	return scan.NewScanner(db, table.PrimaryKeys, cfg, adapter)
 }
 
 type scanAdapter struct {

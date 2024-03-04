@@ -11,7 +11,7 @@ import (
 
 func NewScanner(db *sql.DB, table mysql.Table, cfg scan.ScannerConfig) (scan.Scanner, error) {
 	adapter := scanAdapter{tableName: table.Name, columns: table.Columns}
-	return scan.NewScanner(db, table.PrimaryKeys, adapter, cfg)
+	return scan.NewScanner(db, table.PrimaryKeys, cfg, adapter)
 }
 
 type scanAdapter struct {

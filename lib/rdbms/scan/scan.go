@@ -45,7 +45,7 @@ type Scanner struct {
 	done         bool
 }
 
-func NewScanner(db *sql.DB, _primaryKeys []primary_key.Key, adapter ScanAdapter, cfg ScannerConfig) (Scanner, error) {
+func NewScanner(db *sql.DB, _primaryKeys []primary_key.Key, cfg ScannerConfig, adapter ScanAdapter) (Scanner, error) {
 	primaryKeys := primary_key.NewKeys(_primaryKeys)
 	if err := primaryKeys.LoadValues(cfg.OptionalStartingValues, cfg.OptionalEndingValues); err != nil {
 		return Scanner{}, fmt.Errorf("failed to override primary key values: %w", err)
