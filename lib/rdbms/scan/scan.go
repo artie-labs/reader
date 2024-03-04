@@ -27,13 +27,17 @@ type ScannerConfig struct {
 	ErrorRetries           int
 }
 
-type Scanner[T Table] struct {
+type ScanAdapter interface {
+	BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error)
+	ParseRow(row []any) (map[string]any, error)
+}
+
+type Scanner struct {
 	// immutable
-	DB        *sql.DB
-	Table     T
-	BatchSize uint
-	RetryCfg  retry.RetryConfig
-	scan      func(scanner *Scanner[T], primaryKeys []primary_key.Key, isFirstBatch bool) ([]map[string]any, error)
+	db        *sql.DB
+	batchSize uint
+	retryCfg  retry.RetryConfig
+	adapter   ScanAdapter
 
 	// mutable
 	primaryKeys  *primary_key.Keys
@@ -41,44 +45,38 @@ type Scanner[T Table] struct {
 	done         bool
 }
 
-func NewScanner[T Table](
-	db *sql.DB,
-	table T,
-	cfg ScannerConfig,
-	scan func(scanner *Scanner[T], primaryKeys []primary_key.Key, isFirstBatch bool) ([]map[string]any, error),
-) (Scanner[T], error) {
-	primaryKeys := primary_key.NewKeys(table.GetPrimaryKeys())
+func NewScanner(db *sql.DB, _primaryKeys []primary_key.Key, cfg ScannerConfig, adapter ScanAdapter) (Scanner, error) {
+	primaryKeys := primary_key.NewKeys(_primaryKeys)
 	if err := primaryKeys.LoadValues(cfg.OptionalStartingValues, cfg.OptionalEndingValues); err != nil {
-		return Scanner[T]{}, fmt.Errorf("failed to override primary key values: %w", err)
+		return Scanner{}, fmt.Errorf("failed to override primary key values: %w", err)
 	}
 
 	retryCfg, err := retry.NewJitterRetryConfig(jitterBaseMs, jitterMaxMs, cfg.ErrorRetries, retry.AlwaysRetry)
 	if err != nil {
-		return Scanner[T]{}, fmt.Errorf("failed to build retry config: %w", err)
+		return Scanner{}, fmt.Errorf("failed to build retry config: %w", err)
 	}
 
-	return Scanner[T]{
-		DB:           db,
-		Table:        table,
-		BatchSize:    cfg.BatchSize,
-		RetryCfg:     retryCfg,
-		scan:         scan,
+	return Scanner{
+		db:           db,
+		batchSize:    cfg.BatchSize,
+		retryCfg:     retryCfg,
+		adapter:      adapter,
 		primaryKeys:  primaryKeys.Clone(),
 		isFirstBatch: true,
 		done:         false,
 	}, nil
 }
 
-func (s *Scanner[T]) HasNext() bool {
+func (s *Scanner) HasNext() bool {
 	return !s.done
 }
 
-func (s *Scanner[T]) Next() ([]map[string]any, error) {
+func (s *Scanner) Next() ([]map[string]any, error) {
 	if !s.HasNext() {
 		return nil, fmt.Errorf("no more rows to scan")
 	}
 
-	rows, err := s.scan(s, s.primaryKeys.Keys(), s.isFirstBatch)
+	rows, err := s.scan()
 	if err != nil {
 		s.done = true
 		return nil, err
@@ -87,7 +85,6 @@ func (s *Scanner[T]) Next() ([]map[string]any, error) {
 	s.isFirstBatch = false
 
 	if len(rows) == 0 || s.primaryKeys.IsExhausted() {
-		slog.Info("Finished scanning", slog.String("table", s.Table.GetName()))
 		s.done = true
 	} else {
 		// Update the starting keys so that the next scan will pick off where we last left off.
@@ -100,4 +97,50 @@ func (s *Scanner[T]) Next() ([]map[string]any, error) {
 	}
 
 	return rows, nil
+}
+
+func (s *Scanner) scan() ([]map[string]any, error) {
+	query, parameters, err := s.adapter.BuildQuery(s.primaryKeys.Keys(), s.isFirstBatch, s.batchSize)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build scan query: %w", err)
+	}
+
+	logger := slog.With(slog.String("query", query))
+	if len(parameters) > 0 {
+		logger = logger.With(slog.Any("parameters", parameters))
+	}
+	logger.Info("Scan query")
+
+	rows, err := retry.WithRetriesAndResult(s.retryCfg, func(_ int, _ error) (*sql.Rows, error) {
+		return s.db.Query(query, parameters...)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("scan failed: %w", err)
+	}
+
+	columns, err := rows.Columns()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get columns: %w", err)
+	}
+
+	values := make([]any, len(columns))
+	valuePtrs := make([]any, len(values))
+	for i := range values {
+		valuePtrs[i] = &values[i]
+	}
+
+	var rowsData []map[string]any
+	for rows.Next() {
+		if err := rows.Scan(valuePtrs...); err != nil {
+			return nil, err
+		}
+
+		row, err := s.adapter.ParseRow(values)
+		if err != nil {
+			return nil, err
+		}
+
+		rowsData = append(rowsData, row)
+	}
+	return rowsData, nil
 }

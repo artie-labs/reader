@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/artie-labs/transfer/lib/retry"
 	"github.com/jackc/pgx/v5"
 
 	"github.com/artie-labs/reader/lib/postgres/parse"
@@ -182,57 +181,40 @@ func convertToStringForQuery(value any, dataType schema.DataType) (string, error
 	}
 }
 
-func NewScanner(db *sql.DB, t *Table, cfg scan.ScannerConfig) (scan.Scanner[*Table], error) {
-	return scan.NewScanner(db, t, cfg, _scan)
+func NewScanner(db *sql.DB, table *Table, cfg scan.ScannerConfig) (scan.Scanner, error) {
+	adapter := scanAdapter{schema: table.Schema, tableName: table.Name, columns: table.Columns}
+	return scan.NewScanner(db, table.PrimaryKeys, cfg, adapter)
 }
 
-func _scan(s *scan.Scanner[*Table], primaryKeys []primary_key.Key, isFirstRow bool) ([]map[string]any, error) {
+type scanAdapter struct {
+	schema    string
+	tableName string
+	columns   []schema.Column
+}
+
+func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error) {
 	query, err := scanTableQuery(scanTableQueryArgs{
-		Schema:              s.Table.Schema,
-		TableName:           s.Table.Name,
+		Schema:              s.schema,
+		TableName:           s.tableName,
 		PrimaryKeys:         primaryKeys,
-		Columns:             s.Table.Columns,
-		InclusiveLowerBound: isFirstRow,
-		Limit:               s.BatchSize,
+		Columns:             s.columns,
+		InclusiveLowerBound: isFirstBatch,
+		Limit:               batchSize,
 	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate query: %w", err)
-	}
-	slog.Info(fmt.Sprintf("Query looks like: %v", query))
+	return query, nil, err
+}
 
-	rows, err := retry.WithRetriesAndResult(s.RetryCfg, func(_ int, _ error) (*sql.Rows, error) {
-		return s.DB.Query(query)
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to scan table: %w", err)
-	}
+func (s scanAdapter) ParseRow(values []any) (map[string]any, error) {
+	row := make(map[string]any)
+	for idx, v := range values {
+		col := s.columns[idx]
 
-	count := len(s.Table.Columns)
-	values := make([]any, count)
-	scanArgs := make([]any, count)
-	for i := range values {
-		scanArgs[i] = &values[i]
-	}
-
-	var rowsData []map[string]any
-	for rows.Next() {
-		err = rows.Scan(scanArgs...)
+		value, err := parse.ParseValue(col.Type, v)
 		if err != nil {
 			return nil, err
 		}
 
-		row := make(map[string]any)
-		for idx, v := range values {
-			col := s.Table.Columns[idx]
-
-			value, err := parse.ParseValue(col.Type, v)
-			if err != nil {
-				return nil, err
-			}
-
-			row[col.Name] = value
-		}
-		rowsData = append(rowsData, row)
+		row[col.Name] = value
 	}
-	return rowsData, nil
+	return row, nil
 }

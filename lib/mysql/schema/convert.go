@@ -112,7 +112,7 @@ func ConvertValue(value any, colType DataType) (any, error) {
 	return nil, fmt.Errorf("could not convert DataType(%d) %T value: %v", colType, value, value)
 }
 
-// ConvertValues takes values returned from the MySQL driver and converts them to a native Go types.
+// ConvertValues takes values returned from the MySQL driver and converts them to native Go types.
 func ConvertValues(values []any, cols []Column) ([]any, error) {
 	if len(values) != len(cols) {
 		return nil, fmt.Errorf("values and cols are not the same length")

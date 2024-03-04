@@ -2,64 +2,42 @@ package scanner
 
 import (
 	"database/sql"
-	"fmt"
-	"log/slog"
 
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/mysql/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
-	"github.com/artie-labs/transfer/lib/retry"
 )
 
-func NewScanner(db *sql.DB, table mysql.Table, cfg scan.ScannerConfig) (scan.Scanner[*mysql.Table], error) {
-	return scan.NewScanner(db, &table, cfg, _scan)
+func NewScanner(db *sql.DB, table mysql.Table, cfg scan.ScannerConfig) (scan.Scanner, error) {
+	adapter := scanAdapter{tableName: table.Name, columns: table.Columns}
+	return scan.NewScanner(db, table.PrimaryKeys, cfg, adapter)
 }
 
-func _scan(s *scan.Scanner[*mysql.Table], primaryKeys []primary_key.Key, isFirstBatch bool) ([]map[string]any, error) {
-	query, parameters, err := buildScanTableQuery(buildScanTableQueryArgs{
-		TableName:           s.Table.Name,
+type scanAdapter struct {
+	tableName string
+	columns   []schema.Column
+}
+
+func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error) {
+	return buildScanTableQuery(buildScanTableQueryArgs{
+		TableName:           s.tableName,
 		PrimaryKeys:         primaryKeys,
-		Columns:             s.Table.Columns,
+		Columns:             s.columns,
 		InclusiveLowerBound: isFirstBatch,
-		Limit:               s.BatchSize,
+		Limit:               batchSize,
 	})
+}
+
+func (s scanAdapter) ParseRow(values []any) (map[string]any, error) {
+	convertedValues, err := schema.ConvertValues(values, s.columns)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate query: %w", err)
+		return nil, err
 	}
 
-	slog.Info("Scan query", slog.String("query", query), slog.Any("parameters", parameters))
-
-	rows, err := retry.WithRetriesAndResult(s.RetryCfg, func(_ int, _ error) (*sql.Rows, error) {
-		return s.DB.Query(query, parameters...)
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to scan table: %w", err)
+	row := make(map[string]any)
+	for idx, value := range convertedValues {
+		row[s.columns[idx].Name] = value
 	}
-
-	values := make([]any, len(s.Table.Columns))
-	valuePtrs := make([]any, len(values))
-	for i := range values {
-		valuePtrs[i] = &values[i]
-	}
-
-	var rowsData []map[string]any
-	for rows.Next() {
-		err = rows.Scan(valuePtrs...)
-		if err != nil {
-			return nil, err
-		}
-
-		convertedValues, err := schema.ConvertValues(values, s.Table.Columns)
-		if err != nil {
-			return nil, err
-		}
-
-		row := make(map[string]any)
-		for idx, value := range convertedValues {
-			row[s.Table.Columns[idx].Name] = value
-		}
-		rowsData = append(rowsData, row)
-	}
-	return rowsData, nil
+	return row, nil
 }
