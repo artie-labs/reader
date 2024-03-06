@@ -16,7 +16,8 @@ func TestMySQLAdapter_TableName(t *testing.T) {
 	table := mysql.Table{
 		Name: "table1",
 	}
-	adapter := mysqlAdapter{table: table}
+	adapter, err := newMySQLAdapter(nil, table, scan.ScannerConfig{})
+	assert.NoError(t, err)
 	assert.Equal(t, "table1", adapter.TableName())
 }
 
@@ -42,7 +43,8 @@ func TestMySQLAdapter_TopicSuffix(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		adapter := mysqlAdapter{table: tc.table}
+		adapter, err := newMySQLAdapter(nil, tc.table, scan.ScannerConfig{})
+		assert.NoError(t, err)
 		assert.Equal(t, tc.expected, adapter.TopicSuffix())
 	}
 }
@@ -99,7 +101,8 @@ func TestMySQLAdapter_PartitionKey(t *testing.T) {
 			Name:        "tbl1",
 			PrimaryKeys: tc.keys,
 		}
-		adapter := mysqlAdapter{table: table}
+		adapter, err := newMySQLAdapter(nil, table, scan.ScannerConfig{})
+		assert.NoError(t, err)
 		assert.Equal(t, tc.expected, adapter.PartitionKey(tc.row), tc.name)
 	}
 }
