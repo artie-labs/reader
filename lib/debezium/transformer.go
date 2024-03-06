@@ -11,21 +11,37 @@ import (
 	"github.com/artie-labs/reader/lib"
 )
 
+type Row = map[string]any
+
+type RowsIterator interface {
+	HasNext() bool
+	Next() ([]Row, error)
+}
+
 type Adapter interface {
 	TableName() string
 	TopicSuffix() string
-	PartitionKey(row map[string]any) map[string]any
+	PartitionKey(row Row) map[string]any
 	Fields() []debezium.Field
-	ConvertRowToDebezium(row map[string]any) (map[string]any, error)
+	NewIterator() (RowsIterator, error)
+	ConvertRowToDebezium(row Row) (Row, error)
 }
 
 type DebeziumTransformer struct {
 	adapter Adapter
 	schema  debezium.Schema
-	iter    batchRowIterator
+	iter    RowsIterator
 }
 
-func NewDebeziumTransformer(adapter Adapter, iter batchRowIterator) *DebeziumTransformer {
+func NewDebeziumTransformer(adapter Adapter) (*DebeziumTransformer, error) {
+	iter, err := adapter.NewIterator()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create iterator :%w", err)
+	}
+	return NewDebeziumTransformerWithIterator(adapter, iter), nil
+}
+
+func NewDebeziumTransformerWithIterator(adapter Adapter, iter RowsIterator) *DebeziumTransformer {
 	schema := debezium.Schema{
 		FieldsObject: []debezium.FieldsObject{{
 			Fields:     adapter.Fields(),
@@ -39,11 +55,6 @@ func NewDebeziumTransformer(adapter Adapter, iter batchRowIterator) *DebeziumTra
 		schema:  schema,
 		iter:    iter,
 	}
-}
-
-type batchRowIterator interface {
-	HasNext() bool
-	Next() ([]map[string]any, error)
 }
 
 func (d *DebeziumTransformer) HasNext() bool {
@@ -72,7 +83,7 @@ func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 	return result, nil
 }
 
-func (d *DebeziumTransformer) createPayload(row map[string]any) (util.SchemaEventPayload, error) {
+func (d *DebeziumTransformer) createPayload(row Row) (util.SchemaEventPayload, error) {
 	dbzRow, err := d.adapter.ConvertRowToDebezium(row)
 	if err != nil {
 		return util.SchemaEventPayload{}, fmt.Errorf("failed to convert row to Debezium: %w", err)

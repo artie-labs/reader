@@ -15,7 +15,6 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/integration_tests/utils"
 	"github.com/artie-labs/reader/lib"
-	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/reader/sources/postgres/adapter"
@@ -68,20 +67,7 @@ func readTable(db *sql.DB, tableName string, batchSize int) ([]lib.RawMessage, e
 		return nil, err
 	}
 
-	scanner, err := dbzAdapter.NewIterator()
-	if err != nil {
-		return nil, fmt.Errorf("failed to build scanner: %w", err)
-	}
-	dbzTransformer := debezium.NewDebeziumTransformer(dbzAdapter, &scanner)
-	rows := []lib.RawMessage{}
-	for dbzTransformer.HasNext() {
-		batch, err := dbzTransformer.Next()
-		if err != nil {
-			logger.Fatal("Failed to get batch", slog.Any("err", err))
-		}
-		rows = append(rows, batch...)
-	}
-	return rows, nil
+	return utils.ReadTable(db, dbzAdapter)
 }
 
 const testTypesCreateTableQuery = `

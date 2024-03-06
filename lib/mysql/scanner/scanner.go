@@ -9,10 +9,10 @@ import (
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
-func NewScanner(db *sql.DB, table mysql.Table, cfg scan.ScannerConfig) (scan.Scanner, error) {
+func NewScanner(db *sql.DB, table mysql.Table, cfg scan.ScannerConfig) (*scan.Scanner, error) {
 	primaryKeyBounds, err := table.GetPrimaryKeysBounds(db)
 	if err != nil {
-		return scan.Scanner{}, err
+		return nil, err
 	}
 
 	adapter := scanAdapter{tableName: table.Name, columns: table.Columns}

@@ -48,7 +48,7 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 			return fmt.Errorf("failed to create PostgreSQL adapter: %w", err)
 		}
 
-		scanner, err := dbzAdapter.NewIterator()
+		dbzTransformer, err := debezium.NewDebeziumTransformer(dbzAdapter)
 		if err != nil {
 			if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
 				logger.Info("Table does not contain any rows, skipping...")
@@ -59,8 +59,6 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 		}
 
 		logger.Info("Scanning table", slog.Any("batchSize", tableCfg.GetBatchSize()))
-
-		dbzTransformer := debezium.NewDebeziumTransformer(dbzAdapter, &scanner)
 		count, err := writer.WriteIterator(ctx, dbzTransformer)
 		if err != nil {
 			return fmt.Errorf("failed to snapshot for table %s: %w", tableCfg.Name, err)

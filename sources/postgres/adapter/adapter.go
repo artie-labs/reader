@@ -6,9 +6,10 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/artie-labs/transfer/lib/debezium"
+	transferDbz "github.com/artie-labs/transfer/lib/debezium"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
@@ -43,15 +44,15 @@ func (p postgresAdapter) TopicSuffix() string {
 	return fmt.Sprintf("%s.%s", p.table.Schema, strings.ReplaceAll(p.table.Name, `"`, ``))
 }
 
-func (p postgresAdapter) Fields() []debezium.Field {
-	fields := make([]debezium.Field, len(p.table.Columns))
+func (p postgresAdapter) Fields() []transferDbz.Field {
+	fields := make([]transferDbz.Field, len(p.table.Columns))
 	for i, col := range p.table.Columns {
 		fields[i] = ColumnToField(col)
 	}
 	return fields
 }
 
-func (p postgresAdapter) NewIterator() (scan.Scanner, error) {
+func (p postgresAdapter) NewIterator() (debezium.RowsIterator, error) {
 	return postgres.NewScanner(p.db, p.table, p.scannerCfg)
 }
 

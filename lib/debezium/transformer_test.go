@@ -12,6 +12,7 @@ import (
 type mockAdatper struct {
 	partitionKeys []string
 	fields        []debezium.Field
+	iter          RowsIterator
 }
 
 func (m mockAdatper) TableName() string {
@@ -32,6 +33,10 @@ func (m mockAdatper) PartitionKey(row map[string]any) map[string]any {
 
 func (m mockAdatper) Fields() []debezium.Field {
 	return m.fields
+}
+
+func (m mockAdatper) NewIterator() (RowsIterator, error) {
+	return m.iter, nil
 }
 
 func (m mockAdatper) ConvertRowToDebezium(row map[string]any) (map[string]any, error) {
@@ -63,7 +68,8 @@ func (m *mockIterator) Next() ([]map[string]any, error) {
 func TestDebeziumTransformer_Iteration(t *testing.T) {
 	{
 		// Empty iterator
-		transformer := NewDebeziumTransformer(mockAdatper{}, &mockIterator{})
+		transformer, err := NewDebeziumTransformer(mockAdatper{iter: &mockIterator{}})
+		assert.NoError(t, err)
 		assert.False(t, transformer.HasNext())
 		rows, err := transformer.Next()
 		assert.NoError(t, err)
@@ -72,7 +78,8 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 	{
 		// One empty batch
 		batches := [][]map[string]any{{}}
-		transformer := NewDebeziumTransformer(mockAdatper{}, &mockIterator{batches: batches})
+		transformer, err := NewDebeziumTransformer(mockAdatper{iter: &mockIterator{batches: batches}})
+		assert.NoError(t, err)
 		assert.True(t, transformer.HasNext())
 		rows, err := transformer.Next()
 		assert.NoError(t, err)
@@ -88,7 +95,8 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 		batches := [][]map[string]any{{
 			{"foo": "bar", "qux": "quux"},
 		}}
-		transformer := NewDebeziumTransformer(mockAdatper{}, &mockIterator{batches: batches})
+		transformer, err := NewDebeziumTransformer(mockAdatper{iter: &mockIterator{batches: batches}})
+		assert.NoError(t, err)
 		// First batch
 		assert.True(t, transformer.HasNext())
 		rows, err := transformer.Next()
@@ -115,7 +123,8 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 				{"corge": "grault", "garply": "waldo"},
 			},
 		}
-		transformer := NewDebeziumTransformer(mockAdatper{}, &mockIterator{batches: batches})
+		transformer, err := NewDebeziumTransformer(mockAdatper{iter: &mockIterator{batches: batches}})
+		assert.NoError(t, err)
 		// First batch
 		assert.True(t, transformer.HasNext())
 		rows, err := transformer.Next()
@@ -152,10 +161,10 @@ func TestDebeziumTransformer_Next(t *testing.T) {
 	batches := [][]map[string]any{{
 		{"foo": "bar", "qux": 12, "baz": "corge"},
 	}}
-	transformer := NewDebeziumTransformer(
-		mockAdatper{fields: fields, partitionKeys: []string{"foo", "qux"}},
-		&mockIterator{batches: batches},
+	transformer, err := NewDebeziumTransformer(
+		mockAdatper{fields: fields, partitionKeys: []string{"foo", "qux"}, iter: &mockIterator{batches: batches}},
 	)
+	assert.NoError(t, err)
 	assert.True(t, transformer.HasNext())
 	rows, err := transformer.Next()
 	assert.NoError(t, err)
@@ -195,7 +204,8 @@ func TestDebeziumTransformer_CreatePayload(t *testing.T) {
 		{Type: "int"},
 	}
 
-	transformer := NewDebeziumTransformer(mockAdatper{fields: fields}, nil)
+	transformer, err := NewDebeziumTransformer(mockAdatper{fields: fields, iter: &mockIterator{}})
+	assert.NoError(t, err)
 	payload, err := transformer.createPayload(map[string]any{"foo": "bar", "qux": "quux"})
 	assert.NoError(t, err)
 	payload.Payload.Source.TsMs = 12345 // Modify source time since it'll be ~now
