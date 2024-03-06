@@ -58,10 +58,10 @@ func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, 
 	scanner, err := adapter.NewIterator()
 	if err != nil {
 		if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
-			slog.Info("Table does not contain any rows, skipping...")
+			logger.Info("Table does not contain any rows, skipping...")
 			return nil
 		} else {
-			return fmt.Errorf("failed to build row iterator for table %s: %w", tableCfg.Name, err)
+			return fmt.Errorf("failed to build scanner for table %s: %w", tableCfg.Name, err)
 		}
 	}
 
