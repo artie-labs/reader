@@ -11,7 +11,7 @@ import (
 	"github.com/artie-labs/reader/lib"
 )
 
-type Row map[string]any
+type Row = map[string]any
 
 type RowsIterator interface {
 	HasNext() bool
