@@ -11,18 +11,20 @@ import (
 	"github.com/artie-labs/reader/lib"
 )
 
+type Row = map[string]any
+
 type RowsIterator interface {
 	HasNext() bool
-	Next() ([]map[string]any, error)
+	Next() ([]Row, error)
 }
 
 type Adapter interface {
 	TableName() string
 	TopicSuffix() string
-	PartitionKey(row map[string]any) map[string]any
+	PartitionKey(row Row) map[string]any
 	Fields() []debezium.Field
 	NewIterator() (RowsIterator, error)
-	ConvertRowToDebezium(row map[string]any) (map[string]any, error)
+	ConvertRowToDebezium(row Row) (Row, error)
 }
 
 type DebeziumTransformer struct {
@@ -73,7 +75,7 @@ func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 	return result, nil
 }
 
-func (d *DebeziumTransformer) createPayload(row map[string]any) (util.SchemaEventPayload, error) {
+func (d *DebeziumTransformer) createPayload(row Row) (util.SchemaEventPayload, error) {
 	dbzRow, err := d.adapter.ConvertRowToDebezium(row)
 	if err != nil {
 		return util.SchemaEventPayload{}, fmt.Errorf("failed to convert row to Debezium: %w", err)
