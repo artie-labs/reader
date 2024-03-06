@@ -53,10 +53,10 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, tableCfg config.MySQLTable) error {
 	snapshotStartTime := time.Now()
 
-	slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name))
-	table := mysql.NewTable(tableCfg.Name)
-	if err := table.PopulateColumns(s.db); err != nil {
-		return fmt.Errorf("failed to load configuration for table %s: %w", table.Name, err)
+	slog.Info("Loading metadata for table", slog.String("table", tableCfg.Name))
+	table, err := mysql.LoadTable(s.db, tableCfg.Name)
+	if err != nil {
+		return fmt.Errorf("failed to load metadata for table %s: %w", table.Name, err)
 	}
 
 	scanner, err := scanner.NewScanner(s.db, *table, tableCfg.ToScannerConfig(defaultErrorRetries))

@@ -43,29 +43,26 @@ func (s *Source) Close() error {
 
 func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 	for _, tableCfg := range s.cfg.Tables {
+		logger := slog.With(slog.String("schema", tableCfg.Schema), slog.String("table", tableCfg.Name))
 		snapshotStartTime := time.Now()
 
-		slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name), slog.String("schema", tableCfg.Schema))
-		table := postgres.NewTable(tableCfg.Schema, tableCfg.Name)
-		if err := table.PopulateColumns(s.db); err != nil {
-			return fmt.Errorf("failed to load configuration for table %s.%s: %w", table.Schema, table.Name, err)
+		logger.Info("Loading metadata for table")
+		table, err := postgres.LoadTable(s.db, tableCfg.Schema, tableCfg.Name)
+		if err != nil {
+			return fmt.Errorf("failed to load metadata for table %s.%s: %w", table.Schema, table.Name, err)
 		}
 
 		scanner, err := postgres.NewScanner(s.db, table, tableCfg.ToScannerConfig(defaultErrorRetries))
 		if err != nil {
 			if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
-				slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name), slog.String("schema", table.Schema))
+				logger.Info("Table does not contain any rows, skipping...")
 				continue
 			} else {
 				return fmt.Errorf("failed to build scanner for table %s: %w", table.Name, err)
 			}
 		}
 
-		slog.Info("Scanning table",
-			slog.String("table", table.Name),
-			slog.String("schema", table.Schema),
-			slog.Any("batchSize", tableCfg.GetBatchSize()),
-		)
+		logger.Info("Scanning table", slog.Any("batchSize", tableCfg.GetBatchSize()))
 
 		dbzTransformer := debezium.NewDebeziumTransformer(adapter.NewPostgresAdapter(*table), &scanner)
 		count, err := writer.WriteIterator(ctx, dbzTransformer)
@@ -73,7 +70,7 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 			return fmt.Errorf("failed to snapshot for table %s: %w", table.Name, err)
 		}
 
-		slog.Info("Finished snapshotting",
+		logger.Info("Finished snapshotting",
 			slog.Int("scannedTotal", count),
 			slog.Duration("totalDuration", time.Since(snapshotStartTime)),
 		)
