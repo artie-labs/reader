@@ -37,7 +37,7 @@ func (p postgresAdapter) Fields() []debezium.Field {
 func (p postgresAdapter) PartitionKey(row map[string]any) map[string]any {
 	result := make(map[string]any)
 	for _, key := range p.table.PrimaryKeys {
-		result[key.Name] = row[key.Name]
+		result[key] = row[key]
 	}
 	return result
 }

@@ -9,7 +9,6 @@ import (
 
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/mysql/schema"
-	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
 
 func TestMySQLAdapter_TableName(t *testing.T) {
@@ -71,7 +70,7 @@ func TestMySQLAdapter_Fields(t *testing.T) {
 func TestMySQLAdapter_PartitionKey(t *testing.T) {
 	type _tc struct {
 		name     string
-		keys     []primary_key.Key
+		keys     []string
 		row      map[string]any
 		expected map[string]any
 	}
@@ -84,22 +83,24 @@ func TestMySQLAdapter_PartitionKey(t *testing.T) {
 		},
 		{
 			name:     "primary keys - empty row",
-			keys:     []primary_key.Key{{Name: "foo"}, {Name: "bar"}},
+			keys:     []string{"foo", "bar"},
 			row:      map[string]any{},
 			expected: map[string]any{"foo": nil, "bar": nil},
 		},
 		{
 			name:     "primary keys - row has data",
-			keys:     []primary_key.Key{{Name: "foo"}, {Name: "bar"}},
+			keys:     []string{"foo", "bar"},
 			row:      map[string]any{"foo": "a", "bar": 2, "baz": 3},
 			expected: map[string]any{"foo": "a", "bar": 2},
 		},
 	}
 
 	for _, tc := range tcs {
-		table := mysql.NewTable("tbl1")
-		table.PrimaryKeys = tc.keys
-		adapter, err := NewMySQLAdapter(*table)
+		table := mysql.Table{
+			Name:        "table",
+			PrimaryKeys: tc.keys,
+		}
+		adapter, err := NewMySQLAdapter(table)
 		assert.NoError(t, err)
 		assert.Equal(t, tc.expected, adapter.PartitionKey(tc.row), tc.name)
 	}

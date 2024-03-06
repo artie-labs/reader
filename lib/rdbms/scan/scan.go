@@ -14,11 +14,6 @@ const (
 	jitterMaxMs  = 5000
 )
 
-type Table interface {
-	GetName() string
-	GetPrimaryKeys() []primary_key.Key
-}
-
 type ScannerConfig struct {
 	BatchSize uint
 	// TODO: These two should be []any

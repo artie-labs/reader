@@ -10,7 +10,6 @@ import (
 	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/postgres/schema"
-	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
 
 type ErrorRowIterator struct{}
@@ -39,12 +38,15 @@ func (m *MockRowIterator) Next() ([]map[string]any, error) {
 }
 
 func TestDebeziumTransformer(t *testing.T) {
-	table := *postgres.NewTable("schema", "table")
-	table.Columns = []schema.Column{
-		{Name: "a", Type: schema.Int16},
-		{Name: "b", Type: schema.Text},
+	table := postgres.Table{
+		Schema: "schema",
+		Name:   "table",
+		Columns: []schema.Column{
+			{Name: "a", Type: schema.Int16},
+			{Name: "b", Type: schema.Text},
+		},
+		PrimaryKeys: []string{"a"},
 	}
-	table.PrimaryKeys = []primary_key.Key{{Name: "a", StartingValue: "1", EndingValue: "4"}}
 
 	// test zero batches
 	{

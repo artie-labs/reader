@@ -11,7 +11,13 @@ import (
 
 func NewScanner(db *sql.DB, table mysql.Table, cfg scan.ScannerConfig) (scan.Scanner, error) {
 	adapter := scanAdapter{tableName: table.Name, columns: table.Columns}
-	return scan.NewScanner(db, table.PrimaryKeys, cfg, adapter)
+
+	primaryKeyBounds, err := table.GetPrimaryKeysBounds(db)
+	if err != nil {
+		return scan.Scanner{}, err
+	}
+
+	return scan.NewScanner(db, primaryKeyBounds, cfg, adapter)
 }
 
 type scanAdapter struct {
