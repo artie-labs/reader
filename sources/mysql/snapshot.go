@@ -65,7 +65,7 @@ func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, 
 		}
 	}
 
-	logger.Info("Scanning table...", slog.Any("batchSize", tableCfg.BatchSize))
+	logger.Info("Scanning table...", slog.Any("batchSize", tableCfg.GetBatchSize()))
 	count, err := writer.WriteIterator(ctx, dbzTransformer)
 	if err != nil {
 		return fmt.Errorf("failed to snapshot for table %s: %w", tableCfg.Name, err)
