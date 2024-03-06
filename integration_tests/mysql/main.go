@@ -16,8 +16,6 @@ import (
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/logger"
-	"github.com/artie-labs/reader/lib/mysql"
-	"github.com/artie-labs/reader/lib/mysql/scanner"
 	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/reader/sources/mysql/adapter"
 )
@@ -59,19 +57,16 @@ func readTable(db *sql.DB, tableName string, batchSize int) ([]lib.RawMessage, e
 		BatchSize: uint(batchSize),
 	}
 
-	table, err := mysql.LoadTable(db, tableCfg.Name)
-	if err != nil {
-		return nil, fmt.Errorf("unable to load table metadata: %w", err)
-	}
-
-	scanner, err := scanner.NewScanner(db, *table, tableCfg.ToScannerConfig(1))
-	if err != nil {
-		return nil, fmt.Errorf("failed to build scanner: %w", err)
-	}
-	dbzAdapter, err := adapter.NewMySQLAdapter(*table)
+	dbzAdapter, err := adapter.NewMySQLAdapter(db, tableCfg)
 	if err != nil {
 		return nil, err
 	}
+
+	scanner, err := dbzAdapter.NewIterator()
+	if err != nil {
+		return nil, fmt.Errorf("failed to build scanner: %w", err)
+	}
+
 	dbzTransformer := debezium.NewDebeziumTransformer(dbzAdapter, &scanner)
 	rows := []lib.RawMessage{}
 	for dbzTransformer.HasNext() {

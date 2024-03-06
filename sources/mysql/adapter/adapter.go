@@ -1,23 +1,42 @@
 package adapter
 
 import (
+	"database/sql"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/artie-labs/transfer/lib/debezium"
 
+	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/mysql"
+	"github.com/artie-labs/reader/lib/mysql/scanner"
 	"github.com/artie-labs/reader/lib/mysql/schema"
+	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
+const defaultErrorRetries = 10
+
 type mysqlAdapter struct {
+	db           *sql.DB
 	table        mysql.Table
 	fields       []debezium.Field
+	scannerCfg   scan.ScannerConfig
 	rowConverter converters.RowConverter
 }
 
-func NewMySQLAdapter(table mysql.Table) (mysqlAdapter, error) {
+func NewMySQLAdapter(db *sql.DB, tableCfg config.MySQLTable) (mysqlAdapter, error) {
+	slog.Info("Loading metadata for table")
+	table, err := mysql.LoadTable(db, tableCfg.Name)
+	if err != nil {
+		return mysqlAdapter{}, fmt.Errorf("failed to load metadata for table %s: %w", tableCfg.Name, err)
+	}
+
+	return newMySQLAdapter(db, *table, tableCfg.ToScannerConfig(defaultErrorRetries))
+}
+
+func newMySQLAdapter(db *sql.DB, table mysql.Table, scannerCfg scan.ScannerConfig) (mysqlAdapter, error) {
 	fields := make([]debezium.Field, len(table.Columns))
 	valueConverters := map[string]converters.ValueConverter{}
 	for i, col := range table.Columns {
@@ -30,8 +49,10 @@ func NewMySQLAdapter(table mysql.Table) (mysqlAdapter, error) {
 	}
 
 	return mysqlAdapter{
+		db:           db,
 		table:        table,
 		fields:       fields,
+		scannerCfg:   scannerCfg,
 		rowConverter: converters.NewRowConverter(valueConverters),
 	}, nil
 }
@@ -46,6 +67,10 @@ func (m mysqlAdapter) TopicSuffix() string {
 
 func (m mysqlAdapter) Fields() []debezium.Field {
 	return m.fields
+}
+
+func (m mysqlAdapter) NewIterator() (scan.Scanner, error) {
+	return scanner.NewScanner(m.db, m.table, m.scannerCfg)
 }
 
 // PartitionKey returns a map of primary keys and their values for a given row.

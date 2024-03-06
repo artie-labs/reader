@@ -9,13 +9,14 @@ import (
 
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/mysql/schema"
+	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
 func TestMySQLAdapter_TableName(t *testing.T) {
 	table := mysql.Table{
 		Name: "table1",
 	}
-	adapter, err := NewMySQLAdapter(table)
+	adapter, err := newMySQLAdapter(nil, table, scan.ScannerConfig{})
 	assert.NoError(t, err)
 	assert.Equal(t, "table1", adapter.TableName())
 }
@@ -42,7 +43,7 @@ func TestMySQLAdapter_TopicSuffix(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		adapter, err := NewMySQLAdapter(tc.table)
+		adapter, err := newMySQLAdapter(nil, tc.table, scan.ScannerConfig{})
 		assert.NoError(t, err)
 		assert.Equal(t, tc.expected, adapter.TopicSuffix())
 	}
@@ -57,7 +58,7 @@ func TestMySQLAdapter_Fields(t *testing.T) {
 			{Name: "col3", Type: schema.JSON},
 		},
 	}
-	adapter, err := NewMySQLAdapter(table)
+	adapter, err := newMySQLAdapter(nil, table, scan.ScannerConfig{})
 	assert.NoError(t, err)
 	expected := []debezium.Field{
 		{FieldName: "col1", Type: "string"},
@@ -100,7 +101,7 @@ func TestMySQLAdapter_PartitionKey(t *testing.T) {
 			Name:        "tbl1",
 			PrimaryKeys: tc.keys,
 		}
-		adapter, err := NewMySQLAdapter(table)
+		adapter, err := newMySQLAdapter(nil, table, scan.ScannerConfig{})
 		assert.NoError(t, err)
 		assert.Equal(t, tc.expected, adapter.PartitionKey(tc.row), tc.name)
 	}

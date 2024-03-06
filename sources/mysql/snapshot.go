@@ -13,13 +13,9 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/kafkalib"
-	"github.com/artie-labs/reader/lib/mysql"
-	"github.com/artie-labs/reader/lib/mysql/scanner"
 	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/reader/sources/mysql/adapter"
 )
-
-const defaultErrorRetries = 10
 
 type Source struct {
 	cfg config.MySQL
@@ -54,32 +50,27 @@ func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, 
 	logger := slog.With(slog.String("table", tableCfg.Name))
 	snapshotStartTime := time.Now()
 
-	logger.Info("Loading metadata for table")
-	table, err := mysql.LoadTable(s.db, tableCfg.Name)
+	adapter, err := adapter.NewMySQLAdapter(s.db, tableCfg)
 	if err != nil {
-		return fmt.Errorf("failed to load metadata for table %s: %w", table.Name, err)
+		return fmt.Errorf("failed to create MySQL adapter: %w", err)
 	}
 
-	scanner, err := scanner.NewScanner(s.db, *table, tableCfg.ToScannerConfig(defaultErrorRetries))
+	scanner, err := adapter.NewIterator()
 	if err != nil {
 		if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
 			logger.Info("Table does not contain any rows, skipping...")
 			return nil
 		} else {
-			return fmt.Errorf("failed to build scanner for table %s: %w", table.Name, err)
+			return fmt.Errorf("failed to build scanner for table %s: %w", tableCfg.Name, err)
 		}
 	}
 
 	logger.Info("Scanning table", slog.Any("batchSize", tableCfg.BatchSize))
 
-	adapter, err := adapter.NewMySQLAdapter(*table)
-	if err != nil {
-		return fmt.Errorf("failed to create MySQL adapter: %w", err)
-	}
 	dbzTransformer := debezium.NewDebeziumTransformer(adapter, &scanner)
 	count, err := writer.WriteIterator(ctx, dbzTransformer)
 	if err != nil {
-		return fmt.Errorf("failed to snapshot for table %s: %w", table.Name, err)
+		return fmt.Errorf("failed to snapshot for table %s: %w", tableCfg.Name, err)
 	}
 
 	logger.Info("Finished snapshotting",
