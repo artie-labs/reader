@@ -30,7 +30,7 @@ func NewMySQLAdapter(db *sql.DB, tableCfg config.MySQLTable) (mysqlAdapter, erro
 	slog.Info("Loading metadata for table")
 	table, err := mysql.LoadTable(db, tableCfg.Name)
 	if err != nil {
-		return mysqlAdapter{}, fmt.Errorf("failed to load metadata for table %s: %w", table.Name, err)
+		return mysqlAdapter{}, fmt.Errorf("failed to load metadata for table %s: %w", tableCfg.Name, err)
 	}
 
 	return newMySQLAdapter(db, *table, tableCfg.ToScannerConfig(defaultErrorRetries))
