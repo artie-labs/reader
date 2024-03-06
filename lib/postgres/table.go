@@ -25,13 +25,11 @@ func LoadTable(db *sql.DB, _schema string, name string) (*Table, error) {
 	}
 
 	var err error
-	tbl.Columns, err = schema.DescribeTable(db, tbl.Schema, tbl.Name)
-	if err != nil {
+	if tbl.Columns, err = schema.DescribeTable(db, tbl.Schema, tbl.Name); err != nil {
 		return nil, fmt.Errorf("failed to describe table %s.%s: %w", tbl.Schema, tbl.Name, err)
 	}
 
-	tbl.PrimaryKeys, err = schema.GetPrimaryKeys(db, tbl.Schema, tbl.Name)
-	if err != nil {
+	if tbl.PrimaryKeys, err = schema.GetPrimaryKeys(db, tbl.Schema, tbl.Name); err != nil {
 		return nil, fmt.Errorf("failed to retrieve primary keys: %w", err)
 	}
 
