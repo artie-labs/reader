@@ -108,10 +108,13 @@ func TestDebeziumTransformer(t *testing.T) {
 }
 
 func TestDebeziumTransformer_NilOptionalSchema(t *testing.T) {
-	table := *postgres.NewTable("schema", "foo")
-	table.Columns = []schema.Column{
-		{Name: "user_id", Type: schema.Int16},
-		{Name: "name", Type: schema.Text},
+	table := postgres.Table{
+		Schema: "schema",
+		Name:   "foo",
+		Columns: []schema.Column{
+			{Name: "user_id", Type: schema.Int16},
+			{Name: "name", Type: schema.Text},
+		},
 	}
 
 	rowData := map[string]any{

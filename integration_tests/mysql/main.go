@@ -59,8 +59,8 @@ func readTable(db *sql.DB, tableName string, batchSize int) ([]lib.RawMessage, e
 		BatchSize: uint(batchSize),
 	}
 
-	table := mysql.NewTable(tableCfg.Name)
-	if err := table.PopulateColumns(db); err != nil {
+	table, err := mysql.LoadTable(db, tableCfg.Name)
+	if err != nil {
 		return nil, fmt.Errorf("unable to load table metadata: %w", err)
 	}
 

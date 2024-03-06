@@ -64,8 +64,8 @@ func readTable(db *sql.DB, tableName string, batchSize int) ([]lib.RawMessage, e
 		BatchSize: uint(batchSize),
 	}
 
-	table := postgres.NewTable(tableCfg.Schema, tableCfg.Name)
-	if err := table.PopulateColumns(db); err != nil {
+	table, err := postgres.LoadTable(db, tableCfg.Schema, tableCfg.Name)
+	if err != nil {
 		return nil, fmt.Errorf("unable to load table metadata: %w", err)
 	}
 

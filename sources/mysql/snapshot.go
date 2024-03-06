@@ -51,28 +51,26 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 }
 
 func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, tableCfg config.MySQLTable) error {
+	logger := slog.With(slog.String("table", tableCfg.Name))
 	snapshotStartTime := time.Now()
 
-	slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name))
-	table := mysql.NewTable(tableCfg.Name)
-	if err := table.PopulateColumns(s.db); err != nil {
-		return fmt.Errorf("failed to load configuration for table %s: %w", table.Name, err)
+	logger.Info("Loading metadata for table")
+	table, err := mysql.LoadTable(s.db, tableCfg.Name)
+	if err != nil {
+		return fmt.Errorf("failed to load metadata for table %s: %w", table.Name, err)
 	}
 
 	scanner, err := scanner.NewScanner(s.db, *table, tableCfg.ToScannerConfig(defaultErrorRetries))
 	if err != nil {
 		if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
-			slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name))
+			logger.Info("Table does not contain any rows, skipping...")
 			return nil
 		} else {
 			return fmt.Errorf("failed to build scanner for table %s: %w", table.Name, err)
 		}
 	}
 
-	slog.Info("Scanning table",
-		slog.String("table", table.Name),
-		slog.Any("batchSize", tableCfg.BatchSize),
-	)
+	logger.Info("Scanning table", slog.Any("batchSize", tableCfg.BatchSize))
 
 	adapter, err := adapter.NewMySQLAdapter(*table)
 	if err != nil {
@@ -84,8 +82,7 @@ func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, 
 		return fmt.Errorf("failed to snapshot for table %s: %w", table.Name, err)
 	}
 
-	slog.Info("Finished snapshotting",
-		slog.String("table", tableCfg.Name),
+	logger.Info("Finished snapshotting",
 		slog.Int("scannedTotal", count),
 		slog.Duration("totalDuration", time.Since(snapshotStartTime)),
 	)

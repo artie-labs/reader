@@ -16,10 +16,21 @@ type Table struct {
 	PrimaryKeys []string
 }
 
-func NewTable(name string) *Table {
-	return &Table{
+func LoadTable(db *sql.DB, name string) (*Table, error) {
+	tbl := &Table{
 		Name: name,
 	}
+
+	var err error
+	if tbl.Columns, err = schema.DescribeTable(db, tbl.Name); err != nil {
+		return nil, fmt.Errorf("failed to describe table %s: %w", tbl.Name, err)
+	}
+
+	if tbl.PrimaryKeys, err = schema.GetPrimaryKeys(db, tbl.Name); err != nil {
+		return nil, fmt.Errorf("failed to retrieve primary keys: %w", err)
+	}
+
+	return tbl, nil
 }
 
 func (t *Table) GetColumnByName(colName string) (*schema.Column, error) {
@@ -40,20 +51,6 @@ func (t *Table) GetColumnsByName(colNames []string) ([]schema.Column, error) {
 		result = append(result, *col)
 	}
 	return result, nil
-}
-
-func (t *Table) PopulateColumns(db *sql.DB) error {
-	cols, err := schema.DescribeTable(db, t.Name)
-	if err != nil {
-		return fmt.Errorf("failed to describe table %s: %w", t.Name, err)
-	}
-	t.Columns = cols
-
-	t.PrimaryKeys, err = schema.GetPrimaryKeys(db, t.Name)
-	if err != nil {
-		return fmt.Errorf("failed to retrieve primary keys: %w", err)
-	}
-	return nil
 }
 
 func (t *Table) GetPrimaryKeysBounds(db *sql.DB) ([]primary_key.Key, error) {
