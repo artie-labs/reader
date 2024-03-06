@@ -17,7 +17,6 @@ import (
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/logger"
-	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/reader/sources/postgres/adapter"
 )
@@ -64,16 +63,16 @@ func readTable(db *sql.DB, tableName string, batchSize int) ([]lib.RawMessage, e
 		BatchSize: uint(batchSize),
 	}
 
-	table, err := postgres.LoadTable(db, tableCfg.Schema, tableCfg.Name)
+	dbzAdapter, err := adapter.NewPostgresAdapter(db, tableCfg)
 	if err != nil {
-		return nil, fmt.Errorf("unable to load table metadata: %w", err)
+		return nil, err
 	}
 
-	scanner, err := postgres.NewScanner(db, table, tableCfg.ToScannerConfig(1))
+	scanner, err := dbzAdapter.NewIterator()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build scanner: %w", err)
 	}
-	dbzTransformer := debezium.NewDebeziumTransformer(adapter.NewPostgresAdapter(*table), &scanner)
+	dbzTransformer := debezium.NewDebeziumTransformer(dbzAdapter, &scanner)
 	rows := []lib.RawMessage{}
 	for dbzTransformer.HasNext() {
 		batch, err := dbzTransformer.Next()

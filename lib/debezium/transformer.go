@@ -22,10 +22,10 @@ type Adapter interface {
 type DebeziumTransformer struct {
 	adapter Adapter
 	schema  debezium.Schema
-	iter    batchRowIterator
+	iter    BatchRowIterator
 }
 
-func NewDebeziumTransformer(adapter Adapter, iter batchRowIterator) *DebeziumTransformer {
+func NewDebeziumTransformer(adapter Adapter, iter BatchRowIterator) *DebeziumTransformer {
 	schema := debezium.Schema{
 		FieldsObject: []debezium.FieldsObject{{
 			Fields:     adapter.Fields(),
@@ -41,7 +41,7 @@ func NewDebeziumTransformer(adapter Adapter, iter batchRowIterator) *DebeziumTra
 	}
 }
 
-type batchRowIterator interface {
+type BatchRowIterator interface {
 	HasNext() bool
 	Next() ([]map[string]any, error)
 }
