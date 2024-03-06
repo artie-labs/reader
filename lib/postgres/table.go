@@ -90,6 +90,5 @@ func (t *Table) GetPrimaryKeysBounds(db *sql.DB) ([]primary_key.Key, error) {
 			EndingValue:   maxVal,
 		}
 	}
-
 	return result, nil
 }
