@@ -17,8 +17,6 @@ import (
 	"github.com/artie-labs/reader/sources/postgres/adapter"
 )
 
-const defaultErrorRetries = 10
-
 type Source struct {
 	cfg config.PostgreSQL
 	db  *sql.DB
