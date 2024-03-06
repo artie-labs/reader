@@ -97,7 +97,7 @@ func TestMySQLAdapter_PartitionKey(t *testing.T) {
 
 	for _, tc := range tcs {
 		table := mysql.Table{
-			Name:        "table",
+			Name:        "tbl1",
 			PrimaryKeys: tc.keys,
 		}
 		adapter, err := NewMySQLAdapter(table)
