@@ -56,11 +56,16 @@ func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, 
 	slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name))
 	table := mysql.NewTable(tableCfg.Name)
 	if err := table.PopulateColumns(s.db); err != nil {
+		return fmt.Errorf("failed to load configuration for table %s: %w", table.Name, err)
+	}
+
+	scanner, err := scanner.NewScanner(s.db, *table, tableCfg.ToScannerConfig(defaultErrorRetries))
+	if err != nil {
 		if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
 			slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name))
 			return nil
 		} else {
-			return fmt.Errorf("failed to load configuration for table %s: %w", table.Name, err)
+			return fmt.Errorf("failed to build scanner for table %s: %w", table.Name, err)
 		}
 	}
 
@@ -69,10 +74,6 @@ func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, 
 		slog.Any("batchSize", tableCfg.BatchSize),
 	)
 
-	scanner, err := scanner.NewScanner(s.db, *table, tableCfg.ToScannerConfig(defaultErrorRetries))
-	if err != nil {
-		return fmt.Errorf("failed to build scanner for table %s: %w", table.Name, err)
-	}
 	adapter, err := adapter.NewMySQLAdapter(*table)
 	if err != nil {
 		return fmt.Errorf("failed to create MySQL adapter: %w", err)

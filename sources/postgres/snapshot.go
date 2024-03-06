@@ -48,11 +48,16 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 		slog.Info("Loading configuration for table", slog.String("table", tableCfg.Name), slog.String("schema", tableCfg.Schema))
 		table := postgres.NewTable(tableCfg.Schema, tableCfg.Name)
 		if err := table.PopulateColumns(s.db); err != nil {
+			return fmt.Errorf("failed to load configuration for table %s.%s: %w", table.Schema, table.Name, err)
+		}
+
+		scanner, err := postgres.NewScanner(s.db, table, tableCfg.ToScannerConfig(defaultErrorRetries))
+		if err != nil {
 			if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
 				slog.Info("Table does not contain any rows, skipping...", slog.String("table", table.Name), slog.String("schema", table.Schema))
 				continue
 			} else {
-				return fmt.Errorf("failed to load configuration for table %s.%s: %w", table.Schema, table.Name, err)
+				return fmt.Errorf("failed to build scanner for table %s: %w", table.Name, err)
 			}
 		}
 
@@ -62,10 +67,6 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 			slog.Any("batchSize", tableCfg.GetBatchSize()),
 		)
 
-		scanner, err := postgres.NewScanner(s.db, table, tableCfg.ToScannerConfig(defaultErrorRetries))
-		if err != nil {
-			return fmt.Errorf("failed to build scanner for table %s: %w", table.Name, err)
-		}
 		dbzTransformer := debezium.NewDebeziumTransformer(adapter.NewPostgresAdapter(*table), &scanner)
 		count, err := writer.WriteIterator(ctx, dbzTransformer)
 		if err != nil {
