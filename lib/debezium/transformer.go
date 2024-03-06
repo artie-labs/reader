@@ -41,7 +41,7 @@ func NewDebeziumTransformer(adapter Adapter) (*DebeziumTransformer, error) {
 	return NewDebeziumTransformerWithIterator(adapter, iter), nil
 }
 
-// NewDebeziumTransformerWithIterator is used for
+// NewDebeziumTransformerWithIterator is used for tests.
 func NewDebeziumTransformerWithIterator(adapter Adapter, iter RowsIterator) *DebeziumTransformer {
 	schema := debezium.Schema{
 		FieldsObject: []debezium.FieldsObject{{
