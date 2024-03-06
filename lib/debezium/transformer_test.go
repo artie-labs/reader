@@ -34,6 +34,10 @@ func (m mockAdatper) Fields() []debezium.Field {
 	return m.fields
 }
 
+func (m mockAdatper) NewIterator() (RowsIterator, error) {
+	return nil, fmt.Errorf("not implemented")
+}
+
 func (m mockAdatper) ConvertRowToDebezium(row map[string]any) (map[string]any, error) {
 	newRow := make(map[string]any)
 	for key, value := range row {

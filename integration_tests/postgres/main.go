@@ -72,7 +72,7 @@ func readTable(db *sql.DB, tableName string, batchSize int) ([]lib.RawMessage, e
 	if err != nil {
 		return nil, fmt.Errorf("failed to build scanner: %w", err)
 	}
-	dbzTransformer := debezium.NewDebeziumTransformer(dbzAdapter, &scanner)
+	dbzTransformer := debezium.NewDebeziumTransformer(dbzAdapter, scanner)
 	rows := []lib.RawMessage{}
 	for dbzTransformer.HasNext() {
 		batch, err := dbzTransformer.Next()

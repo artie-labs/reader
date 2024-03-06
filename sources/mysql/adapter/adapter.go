@@ -6,9 +6,10 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/artie-labs/transfer/lib/debezium"
+	transferDbz "github.com/artie-labs/transfer/lib/debezium"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/mysql/scanner"
@@ -21,7 +22,7 @@ const defaultErrorRetries = 10
 type mysqlAdapter struct {
 	db           *sql.DB
 	table        mysql.Table
-	fields       []debezium.Field
+	fields       []transferDbz.Field
 	scannerCfg   scan.ScannerConfig
 	rowConverter converters.RowConverter
 }
@@ -37,7 +38,7 @@ func NewMySQLAdapter(db *sql.DB, tableCfg config.MySQLTable) (mysqlAdapter, erro
 }
 
 func newMySQLAdapter(db *sql.DB, table mysql.Table, scannerCfg scan.ScannerConfig) (mysqlAdapter, error) {
-	fields := make([]debezium.Field, len(table.Columns))
+	fields := make([]transferDbz.Field, len(table.Columns))
 	valueConverters := map[string]converters.ValueConverter{}
 	for i, col := range table.Columns {
 		converter, err := valueConverterForType(col.Type, col.Opts)
@@ -65,11 +66,11 @@ func (m mysqlAdapter) TopicSuffix() string {
 	return strings.ReplaceAll(m.table.Name, `"`, ``)
 }
 
-func (m mysqlAdapter) Fields() []debezium.Field {
+func (m mysqlAdapter) Fields() []transferDbz.Field {
 	return m.fields
 }
 
-func (m mysqlAdapter) NewIterator() (scan.Scanner, error) {
+func (m mysqlAdapter) NewIterator() (debezium.RowsIterator, error) {
 	return scanner.NewScanner(m.db, m.table, m.scannerCfg)
 }
 

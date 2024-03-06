@@ -40,18 +40,18 @@ type Scanner struct {
 	done         bool
 }
 
-func NewScanner(db *sql.DB, _primaryKeys []primary_key.Key, cfg ScannerConfig, adapter ScanAdapter) (Scanner, error) {
+func NewScanner(db *sql.DB, _primaryKeys []primary_key.Key, cfg ScannerConfig, adapter ScanAdapter) (*Scanner, error) {
 	primaryKeys := primary_key.NewKeys(_primaryKeys)
 	if err := primaryKeys.LoadValues(cfg.OptionalStartingValues, cfg.OptionalEndingValues); err != nil {
-		return Scanner{}, fmt.Errorf("failed to override primary key values: %w", err)
+		return nil, fmt.Errorf("failed to override primary key values: %w", err)
 	}
 
 	retryCfg, err := retry.NewJitterRetryConfig(jitterBaseMs, jitterMaxMs, cfg.ErrorRetries, retry.AlwaysRetry)
 	if err != nil {
-		return Scanner{}, fmt.Errorf("failed to build retry config: %w", err)
+		return nil, fmt.Errorf("failed to build retry config: %w", err)
 	}
 
-	return Scanner{
+	return &Scanner{
 		db:           db,
 		batchSize:    cfg.BatchSize,
 		retryCfg:     retryCfg,

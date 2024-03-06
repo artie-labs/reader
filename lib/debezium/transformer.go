@@ -11,21 +11,27 @@ import (
 	"github.com/artie-labs/reader/lib"
 )
 
+type RowsIterator interface {
+	HasNext() bool
+	Next() ([]map[string]any, error)
+}
+
 type Adapter interface {
 	TableName() string
 	TopicSuffix() string
 	PartitionKey(row map[string]any) map[string]any
 	Fields() []debezium.Field
+	NewIterator() (RowsIterator, error)
 	ConvertRowToDebezium(row map[string]any) (map[string]any, error)
 }
 
 type DebeziumTransformer struct {
 	adapter Adapter
 	schema  debezium.Schema
-	iter    batchRowIterator
+	iter    RowsIterator
 }
 
-func NewDebeziumTransformer(adapter Adapter, iter batchRowIterator) *DebeziumTransformer {
+func NewDebeziumTransformer(adapter Adapter, iter RowsIterator) *DebeziumTransformer {
 	schema := debezium.Schema{
 		FieldsObject: []debezium.FieldsObject{{
 			Fields:     adapter.Fields(),
@@ -39,11 +45,6 @@ func NewDebeziumTransformer(adapter Adapter, iter batchRowIterator) *DebeziumTra
 		schema:  schema,
 		iter:    iter,
 	}
-}
-
-type batchRowIterator interface {
-	HasNext() bool
-	Next() ([]map[string]any, error)
 }
 
 func (d *DebeziumTransformer) HasNext() bool {

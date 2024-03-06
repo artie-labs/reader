@@ -181,10 +181,10 @@ func convertToStringForQuery(value any, dataType schema.DataType) (string, error
 	}
 }
 
-func NewScanner(db *sql.DB, table Table, cfg scan.ScannerConfig) (scan.Scanner, error) {
+func NewScanner(db *sql.DB, table Table, cfg scan.ScannerConfig) (*scan.Scanner, error) {
 	primaryKeyBounds, err := table.GetPrimaryKeysBounds(db)
 	if err != nil {
-		return scan.Scanner{}, err
+		return nil, err
 	}
 
 	adapter := scanAdapter{schema: table.Schema, tableName: table.Name, columns: table.Columns}
