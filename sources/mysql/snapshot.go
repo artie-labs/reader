@@ -55,7 +55,7 @@ func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, 
 		return fmt.Errorf("failed to create MySQL adapter: %w", err)
 	}
 
-	iter, err := adapter.NewIterator()
+	scanner, err := adapter.NewIterator()
 	if err != nil {
 		if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
 			slog.Info("Table does not contain any rows, skipping...")
@@ -67,7 +67,7 @@ func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, 
 
 	logger.Info("Scanning table", slog.Any("batchSize", tableCfg.BatchSize))
 
-	dbzTransformer := debezium.NewDebeziumTransformer(adapter, &iter)
+	dbzTransformer := debezium.NewDebeziumTransformer(adapter, &scanner)
 	count, err := writer.WriteIterator(ctx, dbzTransformer)
 	if err != nil {
 		return fmt.Errorf("failed to snapshot for table %s: %w", tableCfg.Name, err)
