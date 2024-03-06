@@ -1,20 +1,38 @@
 package adapter
 
 import (
+	"database/sql"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/artie-labs/transfer/lib/debezium"
 
+	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/postgres"
+	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
+const defaultErrorRetries = 10
+
 type postgresAdapter struct {
-	table postgres.Table
+	db         *sql.DB
+	table      postgres.Table
+	scannerCfg scan.ScannerConfig
 }
 
-func NewPostgresAdapter(table postgres.Table) postgresAdapter {
-	return postgresAdapter{table: table}
+func NewPostgresAdapter(db *sql.DB, tableCfg config.PostgreSQLTable) (postgresAdapter, error) {
+	slog.Info("Loading metadata for table")
+	table, err := postgres.LoadTable(db, tableCfg.Schema, tableCfg.Name)
+	if err != nil {
+		return postgresAdapter{}, fmt.Errorf("failed to load metadata for table %s.%s: %w", tableCfg.Schema, tableCfg.Name, err)
+	}
+
+	return postgresAdapter{
+		db:         db,
+		table:      *table,
+		scannerCfg: tableCfg.ToScannerConfig(defaultErrorRetries),
+	}, nil
 }
 
 func (p postgresAdapter) TableName() string {
@@ -31,6 +49,10 @@ func (p postgresAdapter) Fields() []debezium.Field {
 		fields[i] = ColumnToField(col)
 	}
 	return fields
+}
+
+func (p postgresAdapter) NewIterator() (scan.Scanner, error) {
+	return postgres.NewScanner(p.db, p.table, p.scannerCfg)
 }
 
 // PartitionKey returns a map of primary keys and their values for a given row.

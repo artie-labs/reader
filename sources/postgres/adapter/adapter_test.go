@@ -15,7 +15,7 @@ func TestPostgresAdapter_TableName(t *testing.T) {
 		Schema: "schema",
 		Name:   "table1",
 	}
-	assert.Equal(t, "table1", NewPostgresAdapter(table).TableName())
+	assert.Equal(t, "table1", postgresAdapter{table: table}.TableName())
 }
 
 func TestPostgresAdapter_TopicSuffix(t *testing.T) {
@@ -42,7 +42,7 @@ func TestPostgresAdapter_TopicSuffix(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		adapter := NewPostgresAdapter(tc.table)
+		adapter := postgresAdapter{table: tc.table}
 		assert.Equal(t, tc.expectedTopicName, adapter.TopicSuffix())
 	}
 }
@@ -57,7 +57,7 @@ func TestPostgresAdapter_Fields(t *testing.T) {
 			{Name: "col3", Type: schema.Array},
 		},
 	}
-	adapter := NewPostgresAdapter(table)
+	adapter := postgresAdapter{table: table}
 
 	expected := []debezium.Field{
 		{Type: "string", FieldName: "col1"},
@@ -101,7 +101,7 @@ func TestPostgresAdapter_PartitionKey(t *testing.T) {
 			Name:        "tbl1",
 			PrimaryKeys: tc.keys,
 		}
-		adapter := NewPostgresAdapter(table)
+		adapter := postgresAdapter{table: table}
 		assert.Equal(t, tc.expected, adapter.PartitionKey(tc.row), tc.name)
 	}
 }

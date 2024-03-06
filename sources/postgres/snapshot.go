@@ -13,12 +13,9 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/kafkalib"
-	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/reader/sources/postgres/adapter"
 )
-
-const defaultErrorRetries = 10
 
 type Source struct {
 	cfg config.PostgreSQL
@@ -46,28 +43,27 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 		logger := slog.With(slog.String("schema", tableCfg.Schema), slog.String("table", tableCfg.Name))
 		snapshotStartTime := time.Now()
 
-		logger.Info("Loading metadata for table")
-		table, err := postgres.LoadTable(s.db, tableCfg.Schema, tableCfg.Name)
+		dbzAdapter, err := adapter.NewPostgresAdapter(s.db, *tableCfg)
 		if err != nil {
-			return fmt.Errorf("failed to load metadata for table %s.%s: %w", table.Schema, table.Name, err)
+			return fmt.Errorf("failed to create PostgreSQL adapter: %w", err)
 		}
 
-		scanner, err := postgres.NewScanner(s.db, table, tableCfg.ToScannerConfig(defaultErrorRetries))
+		scanner, err := dbzAdapter.NewIterator()
 		if err != nil {
 			if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
 				logger.Info("Table does not contain any rows, skipping...")
 				continue
 			} else {
-				return fmt.Errorf("failed to build scanner for table %s: %w", table.Name, err)
+				return fmt.Errorf("failed to build scanner for table %s: %w", tableCfg.Name, err)
 			}
 		}
 
 		logger.Info("Scanning table", slog.Any("batchSize", tableCfg.GetBatchSize()))
 
-		dbzTransformer := debezium.NewDebeziumTransformer(adapter.NewPostgresAdapter(*table), &scanner)
+		dbzTransformer := debezium.NewDebeziumTransformer(dbzAdapter, &scanner)
 		count, err := writer.WriteIterator(ctx, dbzTransformer)
 		if err != nil {
-			return fmt.Errorf("failed to snapshot for table %s: %w", table.Name, err)
+			return fmt.Errorf("failed to snapshot for table %s: %w", tableCfg.Name, err)
 		}
 
 		logger.Info("Finished snapshotting",
