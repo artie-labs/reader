@@ -21,11 +21,11 @@ func LoadTable(db *sql.DB, name string) (*Table, error) {
 		Name: name,
 	}
 
-	cols, err := schema.DescribeTable(db, tbl.Name)
+	var err error
+	tbl.Columns, err = schema.DescribeTable(db, tbl.Name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to describe table %s: %w", tbl.Name, err)
 	}
-	tbl.Columns = cols
 
 	tbl.PrimaryKeys, err = schema.GetPrimaryKeys(db, tbl.Name)
 	if err != nil {
