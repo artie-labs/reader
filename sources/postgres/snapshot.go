@@ -54,11 +54,11 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 				logger.Info("Table does not contain any rows, skipping...")
 				continue
 			} else {
-				return fmt.Errorf("failed to build scanner for table %s: %w", tableCfg.Name, err)
+				return fmt.Errorf("failed to build Debezium transformer for table %s: %w", tableCfg.Name, err)
 			}
 		}
 
-		logger.Info("Scanning table", slog.Any("batchSize", tableCfg.GetBatchSize()))
+		logger.Info("Scanning table...", slog.Any("batchSize", tableCfg.GetBatchSize()))
 		count, err := writer.WriteIterator(ctx, dbzTransformer)
 		if err != nil {
 			return fmt.Errorf("failed to snapshot for table %s: %w", tableCfg.Name, err)
