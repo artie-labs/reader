@@ -33,7 +33,16 @@ type DebeziumTransformer struct {
 	iter    RowsIterator
 }
 
-func NewDebeziumTransformer(adapter Adapter, iter RowsIterator) *DebeziumTransformer {
+func NewDebeziumTransformer(adapter Adapter) (*DebeziumTransformer, error) {
+	iter, err := adapter.NewIterator()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create iterator :%w", err)
+	}
+	return NewDebeziumTransformerWithIterator(adapter, iter), nil
+}
+
+// NewDebeziumTransformerWithIterator is used for
+func NewDebeziumTransformerWithIterator(adapter Adapter, iter RowsIterator) *DebeziumTransformer {
 	schema := debezium.Schema{
 		FieldsObject: []debezium.FieldsObject{{
 			Fields:     adapter.Fields(),

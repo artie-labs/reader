@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/artie-labs/reader/lib"
+	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/transfer/lib/cdc/util"
 )
 
@@ -23,6 +24,23 @@ func CreateTemporaryTable(db *sql.DB, query string) (string, func()) {
 			slog.Error("Failed to drop table", slog.Any("err", err))
 		}
 	}
+}
+
+func ReadTable(db *sql.DB, dbzAdapter debezium.Adapter) ([]lib.RawMessage, error) {
+	dbzTransformer, err := debezium.NewDebeziumTransformer(dbzAdapter)
+	if err != nil {
+		return nil, err
+	}
+
+	rows := []lib.RawMessage{}
+	for dbzTransformer.HasNext() {
+		batch, err := dbzTransformer.Next()
+		if err != nil {
+			return nil, err
+		}
+		rows = append(rows, batch...)
+	}
+	return rows, nil
 }
 
 func GetPayload(message lib.RawMessage) util.SchemaEventPayload {
