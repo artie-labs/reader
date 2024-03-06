@@ -21,8 +21,8 @@ const defaultErrorRetries = 10
 type mysqlAdapter struct {
 	db           *sql.DB
 	table        mysql.Table
-	scannerCfg   scan.ScannerConfig
 	fields       []debezium.Field
+	scannerCfg   scan.ScannerConfig
 	rowConverter converters.RowConverter
 }
 
@@ -57,10 +57,6 @@ func newMySQLAdapter(db *sql.DB, table mysql.Table, scannerCfg scan.ScannerConfi
 	}, nil
 }
 
-func (m mysqlAdapter) NewIterator() (scan.Scanner, error) {
-	return scanner.NewScanner(m.db, m.table, m.scannerCfg)
-}
-
 func (m mysqlAdapter) TableName() string {
 	return m.table.Name
 }
@@ -71,6 +67,10 @@ func (m mysqlAdapter) TopicSuffix() string {
 
 func (m mysqlAdapter) Fields() []debezium.Field {
 	return m.fields
+}
+
+func (m mysqlAdapter) NewIterator() (scan.Scanner, error) {
+	return scanner.NewScanner(m.db, m.table, m.scannerCfg)
 }
 
 // PartitionKey returns a map of primary keys and their values for a given row.
