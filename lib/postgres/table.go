@@ -15,7 +15,7 @@ type Table struct {
 	Schema string
 
 	Columns     []schema.Column
-	PrimaryKeys []primary_key.Key
+	PrimaryKeys []string
 }
 
 func NewTable(schema string, name string) *Table {
@@ -52,45 +52,43 @@ func (t *Table) PopulateColumns(db *sql.DB) error {
 	}
 	t.Columns = cols
 
-	return t.findStartAndEndPrimaryKeys(db)
-}
-
-func (t *Table) findStartAndEndPrimaryKeys(db *sql.DB) error {
-	keys, err := schema.GetPrimaryKeys(db, t.Schema, t.Name)
+	t.PrimaryKeys, err = schema.GetPrimaryKeys(db, t.Schema, t.Name)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve primary keys: %w", err)
 	}
+	return nil
+}
 
-	keyColumns, err := t.GetColumnsByName(keys)
+func (t *Table) GetPrimaryKeysBounds(db *sql.DB) ([]primary_key.Key, error) {
+	keyColumns, err := t.GetColumnsByName(t.PrimaryKeys)
 	if err != nil {
-		return fmt.Errorf("missing primary key columns: %w", err)
+		return nil, fmt.Errorf("missing primary key columns: %w", err)
 	}
 
 	primaryKeysBounds, err := schema.GetPrimaryKeysBounds(db, t.Schema, t.Name, keyColumns, castColumn)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve bounds for primary keys: %w", err)
+		return nil, fmt.Errorf("failed to retrieve bounds for primary keys: %w", err)
 	}
 
-	t.PrimaryKeys = make([]primary_key.Key, len(primaryKeysBounds))
+	result := make([]primary_key.Key, len(primaryKeysBounds))
 	for idx, bounds := range primaryKeysBounds {
 		col := keyColumns[idx]
 
 		minVal, err := parse.ParseValue(col.Type, bounds.Min)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		maxVal, err := parse.ParseValue(col.Type, bounds.Max)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		t.PrimaryKeys[idx] = primary_key.Key{
+		result[idx] = primary_key.Key{
 			Name:          col.Name,
 			StartingValue: minVal,
 			EndingValue:   maxVal,
 		}
 	}
-
-	return nil
+	return result, nil
 }
