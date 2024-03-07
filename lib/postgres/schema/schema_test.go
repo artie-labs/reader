@@ -18,6 +18,7 @@ func TestParseColumnDataType(t *testing.T) {
 
 		expectedDataType DataType
 		expectedOpts     *Opts
+		expectedErr      string
 	}
 
 	var testCases = []_testCase{
@@ -124,12 +125,22 @@ func TestParseColumnDataType(t *testing.T) {
 			udtName:          ptr.ToString("foo"),
 			expectedDataType: UserDefinedText,
 		},
+		{
+			name:        "unsupported",
+			colKind:     "foo",
+			expectedErr: "unknown data type: foo",
+		},
 	}
 
 	for _, testCase := range testCases {
-		dataType, opts := ParseColumnDataType(testCase.colKind, testCase.precision, testCase.scale, testCase.udtName)
-		assert.Equal(t, testCase.expectedDataType, dataType, testCase.name)
-		assert.Equal(t, testCase.expectedOpts, opts, testCase.name)
+		dataType, opts, err := ParseColumnDataType(testCase.colKind, testCase.precision, testCase.scale, testCase.udtName)
+		if testCase.expectedErr == "" {
+			assert.NoError(t, err, testCase.name)
+			assert.Equal(t, testCase.expectedDataType, dataType, testCase.name)
+			assert.Equal(t, testCase.expectedOpts, opts, testCase.name)
+		} else {
+			assert.ErrorContains(t, err, testCase.expectedErr, testCase.name)
+		}
 	}
 }
 

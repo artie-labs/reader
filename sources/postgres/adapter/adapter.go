@@ -19,6 +19,7 @@ const defaultErrorRetries = 10
 type postgresAdapter struct {
 	db         *sql.DB
 	table      postgres.Table
+	fields     []transferDbz.Field
 	scannerCfg scan.ScannerConfig
 }
 
@@ -29,9 +30,18 @@ func NewPostgresAdapter(db *sql.DB, tableCfg config.PostgreSQLTable) (postgresAd
 		return postgresAdapter{}, fmt.Errorf("failed to load metadata for table %s.%s: %w", tableCfg.Schema, tableCfg.Name, err)
 	}
 
+	fields := make([]transferDbz.Field, len(table.Columns))
+	for i, col := range table.Columns {
+		fields[i], err = ColumnToField(col)
+		if err != nil {
+			return postgresAdapter{}, err
+		}
+	}
+
 	return postgresAdapter{
 		db:         db,
 		table:      *table,
+		fields:     fields,
 		scannerCfg: tableCfg.ToScannerConfig(defaultErrorRetries),
 	}, nil
 }
@@ -45,11 +55,7 @@ func (p postgresAdapter) TopicSuffix() string {
 }
 
 func (p postgresAdapter) Fields() []transferDbz.Field {
-	fields := make([]transferDbz.Field, len(p.table.Columns))
-	for i, col := range p.table.Columns {
-		fields[i] = ColumnToField(col)
-	}
-	return fields
+	return p.fields
 }
 
 func (p postgresAdapter) NewIterator() (debezium.RowsIterator, error) {
