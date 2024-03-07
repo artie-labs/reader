@@ -79,7 +79,7 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 
 		dataType, opts, err := ParseColumnDataType(colType, numericPrecision, numericScale, udtName)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse data type for %s: %w", colName, err)
+			return nil, fmt.Errorf("unable to identify type for column %s: %s", colName, colType)
 		}
 
 		cols = append(cols, Column{
