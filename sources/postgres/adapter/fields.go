@@ -1,6 +1,8 @@
 package adapter
 
 import (
+	"fmt"
+
 	"github.com/artie-labs/transfer/lib/debezium"
 
 	"github.com/artie-labs/reader/lib/postgres/schema"
@@ -11,103 +13,106 @@ type Result struct {
 	Type         string
 }
 
-func toDebeziumType(d schema.DataType) Result {
+func toDebeziumType(d schema.DataType) (Result, error) {
 	switch d {
 	case schema.Geography:
 		return Result{
 			DebeziumType: string(debezium.GeographyType),
 			Type:         "struct",
-		}
+		}, nil
 	case schema.Geometry:
 		return Result{
 			DebeziumType: string(debezium.GeometryType),
 			Type:         "struct",
-		}
+		}, nil
 	case schema.Point:
 		return Result{
 			DebeziumType: string(debezium.GeometryPointType),
 			Type:         "struct",
-		}
+		}, nil
 	case schema.VariableNumeric:
 		return Result{
 			DebeziumType: string(debezium.KafkaVariableNumericType),
 			Type:         "struct",
-		}
+		}, nil
 	case schema.Money, schema.Numeric:
 		return Result{
 			DebeziumType: string(debezium.KafkaDecimalType),
-		}
+		}, nil
 	case schema.Boolean, schema.Bit:
 		return Result{
 			Type: "boolean",
-		}
+		}, nil
 	case schema.Text, schema.UserDefinedText, schema.Inet:
 		return Result{
 			Type: "string",
-		}
+		}, nil
 	case schema.Interval:
 		return Result{
 			DebeziumType: "io.debezium.time.MicroDuration",
 			Type:         "int64",
-		}
+		}, nil
 	case schema.Array:
 		return Result{
 			Type: "array",
-		}
+		}, nil
 	case schema.Float:
 		return Result{
 			Type: "float",
-		}
+		}, nil
 	case schema.Int16:
 		return Result{
 			Type: "int16",
-		}
+		}, nil
 	case schema.Int32:
 		return Result{
 			Type: "int32",
-		}
+		}, nil
 	case schema.Int64:
 		return Result{
 			Type: "int64",
-		}
+		}, nil
 	case schema.UUID:
 		return Result{
 			DebeziumType: "io.debezium.data.Uuid",
 			Type:         "string",
-		}
+		}, nil
 	case schema.JSON:
 		return Result{
 			DebeziumType: "io.debezium.data.Json",
 			Type:         "string",
-		}
+		}, nil
 	case schema.Time:
 		return Result{
 			DebeziumType: string(debezium.Time),
 			Type:         "int32",
-		}
+		}, nil
 	case schema.Date:
 		return Result{
 			DebeziumType: string(debezium.Date),
 			Type:         "int32",
-		}
+		}, nil
 	case schema.HStore:
 		return Result{
 			DebeziumType: "",
 			Type:         "map",
-		}
+		}, nil
 	case schema.Timestamp:
 		return Result{
 			DebeziumType: string(debezium.Timestamp),
 			// NOTE: We are returning string here because we want the right layout to be used by our Typing library
 			Type: "string",
-		}
+		}, nil
 	}
 
-	return Result{}
+	return Result{}, fmt.Errorf("unsupported data type: DataType(%d)", d)
 }
 
-func ColumnToField(col schema.Column) debezium.Field {
-	res := toDebeziumType(col.Type)
+func ColumnToField(col schema.Column) (debezium.Field, error) {
+	res, err := toDebeziumType(col.Type)
+	if err != nil {
+		return debezium.Field{}, err
+	}
 	field := debezium.Field{
 		FieldName:    col.Name,
 		Type:         res.Type,
@@ -125,5 +130,5 @@ func ColumnToField(col schema.Column) debezium.Field {
 			field.Parameters[debezium.KafkaDecimalPrecisionKey] = *col.Opts.Precision
 		}
 	}
-	return field
+	return field, nil
 }

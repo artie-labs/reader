@@ -81,8 +81,6 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 
 func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 	switch dataType {
-	case schema.InvalidDataType:
-		return false, fmt.Errorf("invalid data type")
 	case
 		schema.Bit,       // Fails: operator does not exist: bit >= boolean (SQLSTATE 42883)
 		schema.Time,      // Fails: invalid input syntax for type time: "45296000" (SQLSTATE 22007)
@@ -147,7 +145,7 @@ func convertToStringForQuery(value any, dataType schema.DataType) (string, error
 			return fmt.Sprint(value), nil
 		default:
 			slog.Error("bool value with non-bool column type",
-				slog.Any("value", value),
+				slog.Bool("value", castValue),
 				slog.Any("dataType", dataType),
 			)
 		}
@@ -155,10 +153,10 @@ func convertToStringForQuery(value any, dataType schema.DataType) (string, error
 		switch dataType {
 		case schema.Text, schema.UserDefinedText, schema.Inet, schema.UUID, schema.JSON, schema.VariableNumeric,
 			schema.Numeric, schema.Money:
-			return QuoteLiteral(fmt.Sprint(value)), nil
+			return QuoteLiteral(castValue), nil
 		default:
 			slog.Error("string value with non-string column type",
-				slog.Any("value", value),
+				slog.String("value", castValue),
 				slog.Any("dataType", dataType),
 			)
 		}

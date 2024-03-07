@@ -13,7 +13,8 @@ func TestCastColumn(t *testing.T) {
 		name     string
 		dataType schema.DataType
 
-		expected string
+		expected    string
+		expectedErr string
 	}
 
 	var testCases = []_testCase{
@@ -67,11 +68,20 @@ func TestCastColumn(t *testing.T) {
 			dataType: schema.VariableNumeric,
 			expected: `"foo"`,
 		},
+		{
+			name:        "unsupported",
+			dataType:    -1,
+			expectedErr: "unsupported column type: DataType(-1)",
+		},
 	}
 
 	for _, testCase := range testCases {
 		actualEscCol, err := castColumn(schema.Column{Name: "foo", Type: testCase.dataType})
-		assert.NoError(t, err)
-		assert.Equal(t, testCase.expected, actualEscCol, testCase.name)
+		if testCase.expectedErr == "" {
+			assert.NoError(t, err, testCase.name)
+			assert.Equal(t, testCase.expected, actualEscCol, testCase.name)
+		} else {
+			assert.ErrorContains(t, err, testCase.expectedErr, testCase.name)
+		}
 	}
 }
