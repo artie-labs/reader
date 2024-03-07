@@ -137,7 +137,7 @@ func TestColumnToField(t *testing.T) {
 			assert.NoError(t, err, testCase.name)
 			assert.Equal(t, testCase.expected, field, testCase.name)
 		} else {
-			assert.ErrorContains(t, err, testCase.expectedErr)
+			assert.ErrorContains(t, err, testCase.expectedErr, testCase.name)
 		}
 	}
 }
