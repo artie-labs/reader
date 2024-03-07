@@ -21,6 +21,7 @@ const (
 	Numeric
 	Bit
 	Boolean
+	Bytea
 	Inet
 	Text
 	Interval
@@ -111,6 +112,8 @@ func ParseColumnDataType(colKind string, precision, scale, udtName *string) (Dat
 		return Bit, nil
 	case "boolean":
 		return Boolean, nil
+	case "bytea":
+		return Bytea, nil
 	case "date":
 		return Date, nil
 	case "uuid":

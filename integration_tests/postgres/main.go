@@ -80,7 +80,7 @@ CREATE TABLE %s (
 	c_bit bit,
 	c_boolean boolean,
 	-- c_box box,
-	-- c_bytea bytea,
+	c_bytea bytea,
 	c_character character,
 	c_character_varying character varying,
 	c_cidr cidr,
@@ -147,7 +147,7 @@ INSERT INTO %s VALUES (
 	-- c_box
 		-- Not supported
 	-- c_bytea
-		-- Not supported
+		'abc \153\154\155 \052\251\124'::bytea,
 	-- c_character
 		'X',
 	-- c_character_varying
@@ -285,6 +285,14 @@ const expectedPayloadTemplate = `{
 						"optional": false,
 						"default": null,
 						"field": "c_boolean",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "",
+						"optional": false,
+						"default": null,
+						"field": "c_bytea",
 						"name": "",
 						"parameters": null
 					},
@@ -586,6 +594,7 @@ const expectedPayloadTemplate = `{
 			"c_bigserial": 100000123100000123,
 			"c_bit": true,
 			"c_boolean": true,
+			"c_bytea": "YWJjIGtsbSAqqVQ=",
 			"c_character": "X",
 			"c_character_varying": "ASDFGHJKL",
 			"c_cidr": "192.168.100.128/25",

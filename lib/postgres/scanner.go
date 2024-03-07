@@ -88,6 +88,7 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 		schema.Time,      // Fails: invalid input syntax for type time: "45296000" (SQLSTATE 22007)
 		schema.Interval,  // Fails: operator does not exist: interval >= bigint (SQLSTATE 42883)
 		schema.Array,     // Fails: This doesn't work: need to serialize to Postgres array format "{1,2,3}"
+		schema.Bytea,     // Fails: ERROR: invalid byte sequence for encoding
 		schema.HStore,    // Fails: operator does not exist: hstore >= unknown (SQLSTATE 42883)
 		schema.Point,     // Can't be used as a primary key
 		schema.Geometry,  // Fails: parse error - invalid geometry (SQLSTATE XX000)
@@ -155,7 +156,7 @@ func convertToStringForQuery(value any, dataType schema.DataType) (string, error
 		switch dataType {
 		case schema.Text, schema.UserDefinedText, schema.Inet, schema.UUID, schema.JSON, schema.VariableNumeric,
 			schema.Numeric, schema.Money:
-			return QuoteLiteral(fmt.Sprint(value)), nil
+			return QuoteLiteral(castValue), nil
 		default:
 			slog.Error("string value with non-string column type",
 				slog.Any("value", value),
