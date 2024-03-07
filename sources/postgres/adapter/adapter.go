@@ -34,7 +34,7 @@ func NewPostgresAdapter(db *sql.DB, tableCfg config.PostgreSQLTable) (postgresAd
 	for i, col := range table.Columns {
 		fields[i], err = ColumnToField(col)
 		if err != nil {
-			return postgresAdapter{}, err
+			return postgresAdapter{}, fmt.Errorf("failed to build field for column %s: %w", col.Name, err)
 		}
 	}
 
