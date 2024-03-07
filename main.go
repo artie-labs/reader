@@ -4,6 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log/slog"
+
+	"github.com/artie-labs/transfer/lib/telemetry/metrics"
+
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
@@ -13,8 +17,6 @@ import (
 	"github.com/artie-labs/reader/sources/mongo"
 	"github.com/artie-labs/reader/sources/mysql"
 	"github.com/artie-labs/reader/sources/postgres"
-	"github.com/artie-labs/transfer/lib/telemetry/metrics"
-	"log/slog"
 )
 
 func setUpMetrics(cfg *config.Metrics) (mtr.Client, error) {
