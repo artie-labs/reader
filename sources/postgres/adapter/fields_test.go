@@ -17,7 +17,8 @@ func TestColumnToField(t *testing.T) {
 		dataType schema.DataType
 		opts     *schema.Opts
 
-		expected debezium.Field
+		expected    debezium.Field
+		expectedErr string
 	}
 
 	testCases := []_testCase{
@@ -121,12 +122,22 @@ func TestColumnToField(t *testing.T) {
 				FieldName: "inet_col",
 			},
 		},
+		{
+			name:        "unsupported data type",
+			colName:     "inet_col",
+			dataType:    -1,
+			expectedErr: "unsupported data type: DataType(-1)",
+		},
 	}
 
 	for _, testCase := range testCases {
 		col := schema.Column{Name: testCase.colName, Type: testCase.dataType, Opts: testCase.opts}
 		field, err := ColumnToField(col)
-		assert.NoError(t, err, testCase.name)
-		assert.Equal(t, testCase.expected, field, testCase.name)
+		if testCase.expectedErr == "" {
+			assert.NoError(t, err, testCase.name)
+			assert.Equal(t, testCase.expected, field, testCase.name)
+		} else {
+			assert.ErrorContains(t, err, testCase.expectedErr)
+		}
 	}
 }

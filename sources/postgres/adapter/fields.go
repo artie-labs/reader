@@ -105,7 +105,7 @@ func toDebeziumType(d schema.DataType) (Result, error) {
 		}, nil
 	}
 
-	return Result{}, fmt.Errorf("unsupported data type DataType(%d)", d)
+	return Result{}, fmt.Errorf("unsupported data type: DataType(%d)", d)
 }
 
 func ColumnToField(col schema.Column) (debezium.Field, error) {
