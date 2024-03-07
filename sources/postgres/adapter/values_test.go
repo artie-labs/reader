@@ -76,7 +76,9 @@ func TestConvertValueToDebezium(t *testing.T) {
 		} else {
 			assert.NoError(t, actualErr, tc.name)
 			if tc.numericValue {
-				val, err := ColumnToField(tc.col).DecodeDecimal(fmt.Sprint(actualValue))
+				field, err := ColumnToField(tc.col)
+				assert.NoError(t, err, tc.name)
+				val, err := field.DecodeDecimal(fmt.Sprint(actualValue))
 				assert.NoError(t, err)
 				assert.Equal(t, tc.expectedValue, val.String(), tc.name)
 			} else {

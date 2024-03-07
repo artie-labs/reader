@@ -125,7 +125,8 @@ func TestColumnToField(t *testing.T) {
 
 	for _, testCase := range testCases {
 		col := schema.Column{Name: testCase.colName, Type: testCase.dataType, Opts: testCase.opts}
-		field := ColumnToField(col)
+		field, err := ColumnToField(col)
+		assert.NoError(t, err, testCase.name)
 		assert.Equal(t, testCase.expected, field, testCase.name)
 	}
 }
