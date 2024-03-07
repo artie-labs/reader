@@ -4,12 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log/slog"
-	"time"
-
-	"github.com/artie-labs/transfer/lib/telemetry/metrics"
-	"github.com/getsentry/sentry-go"
-
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
@@ -19,6 +13,8 @@ import (
 	"github.com/artie-labs/reader/sources/mongo"
 	"github.com/artie-labs/reader/sources/mysql"
 	"github.com/artie-labs/reader/sources/postgres"
+	"github.com/artie-labs/transfer/lib/telemetry/metrics"
+	"log/slog"
 )
 
 func setUpMetrics(cfg *config.Metrics) (mtr.Client, error) {
@@ -72,13 +68,9 @@ func main() {
 		logger.Fatal("Failed to read config file", slog.Any("err", err))
 	}
 
-	_logger, usingSentry := logger.NewLogger(cfg)
+	_logger, cleanUpHandlers := logger.NewLogger(cfg)
+	defer cleanUpHandlers()
 	slog.SetDefault(_logger)
-	if usingSentry {
-		defer sentry.Flush(2 * time.Second)
-		slog.Info("Sentry logger enabled")
-	}
-
 	ctx := context.Background()
 
 	statsD, err := setUpMetrics(cfg.Metrics)
