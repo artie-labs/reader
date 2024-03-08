@@ -98,11 +98,17 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	case schema.Timestamp:
 		return PgTimestampConverter{}, nil
 	case schema.UUID:
-		return converters.UUIDConverter{}, nil
+		return converters.UUIDConverter{}
 	case schema.JSON:
 		return converters.JSONConverter{}, nil
 	case schema.HStore:
 		return converters.MapConverter{}, nil
+	case schema.Point:
+		return converters.NewPointConverter()
+	case schema.Geometry:
+		return converters.NewGeometryConverter()
+	case schema.Geography:
+		return converters.NewGeographyConverter()
 	case schema.Boolean, schema.Bit:
 		return NewPassthroughConverter("boolean", ""), nil
 	case schema.Text, schema.UserDefinedText, schema.Inet:
