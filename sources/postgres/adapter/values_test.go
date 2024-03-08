@@ -52,7 +52,7 @@ func TestConvertValueToDebezium(t *testing.T) {
 		{
 			name:          "numeric (postgres.Numeric) - variable numeric",
 			col:           schema.Column{Name: "variable_numeric_col", Type: schema.VariableNumeric},
-			value:         123.98,
+			value:         "123.98",
 			expectedValue: map[string]string{"scale": "2", "value": "MG4="},
 		},
 		{

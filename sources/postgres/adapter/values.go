@@ -45,16 +45,6 @@ func ConvertValueToDebezium(col schema.Column, value any) (any, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to encode decimal to b64 for key %s: %w", col.Name, err)
 		}
-	case schema.VariableNumeric:
-		encodedValue, err := debezium.EncodeDecimalToBase64(fmt.Sprint(value), debezium.GetScale(fmt.Sprint(value)))
-		if err != nil {
-			return nil, fmt.Errorf("failed to encode decimal to b64 for key %s: %w", col.Name, err)
-		}
-
-		value = map[string]string{
-			"scale": fmt.Sprint(debezium.GetScale(fmt.Sprint(value))),
-			"value": encodedValue,
-		}
 	}
 
 	return value, nil
