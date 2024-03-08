@@ -18,8 +18,7 @@ func ConvertValueToDebezium(col schema.Column, value any) (any, error) {
 		return value, nil
 	}
 
-	converter := valueConverterForType(col.Type, col.Opts)
-	if converter != nil {
+	if converter := valueConverterForType(col.Type, col.Opts); converter != nil {
 		return converter.Convert(value)
 	}
 

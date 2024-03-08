@@ -109,8 +109,7 @@ func toDebeziumType(d schema.DataType) (Result, error) {
 }
 
 func ColumnToField(col schema.Column) (debezium.Field, error) {
-	converter := valueConverterForType(col.Type, col.Opts)
-	if converter != nil {
+	if converter := valueConverterForType(col.Type, col.Opts); converter != nil {
 		return converter.ToField(col.Name), nil
 	}
 
