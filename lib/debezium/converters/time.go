@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"time"
 
-	readerDebezium "github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/transfer/lib/debezium"
 )
 
@@ -47,7 +46,13 @@ func (DateConverter) ToField(name string) debezium.Field {
 }
 
 func (DateConverter) Convert(value any) (any, error) {
-	return readerDebezium.ToDebeziumDate(value)
+	ts, isOk := value.(time.Time)
+	if !isOk {
+		return nil, fmt.Errorf("object is not a time.Time object")
+	}
+
+	unix := time.UnixMilli(0).In(time.UTC) // 1970-01-01
+	return int(ts.Sub(unix).Hours() / 24), nil
 }
 
 type TimestampConverter struct{}

@@ -96,6 +96,8 @@ func valueConverterForType(dataType schema.DataType, _ *schema.Opts) converters.
 	switch dataType {
 	case schema.Bytea:
 		return converters.BytesPassthrough{}
+	case schema.Date:
+		return converters.DateConverter{}
 	default:
 		return nil
 	}

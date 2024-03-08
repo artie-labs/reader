@@ -87,11 +87,6 @@ func toDebeziumType(d schema.DataType) (Result, error) {
 			DebeziumType: string(debezium.Time),
 			Type:         "int32",
 		}, nil
-	case schema.Date:
-		return Result{
-			DebeziumType: string(debezium.Date),
-			Type:         "int32",
-		}, nil
 	case schema.HStore:
 		return Result{
 			DebeziumType: "",
