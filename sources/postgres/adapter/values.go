@@ -22,7 +22,6 @@ func ConvertValueToDebezium(col schema.Column, value any) (any, error) {
 		return converter.Convert(value)
 	}
 
-	var err error
 	switch col.Type {
 	case schema.Timestamp:
 		valTime, isOk := value.(time.Time)
@@ -34,12 +33,6 @@ func ConvertValueToDebezium(col schema.Column, value any) (any, error) {
 				return nil, nil
 			}
 		}
-	case schema.Date:
-		value, err = debezium.ToDebeziumDate(value)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse date for key %s: %w", col.Name, err)
-		}
-
 	case schema.Numeric, schema.Money:
 		if col.Type == schema.Money {
 			value = stringutil.ParseMoneyIntoString(fmt.Sprint(value))
