@@ -43,7 +43,7 @@ const (
 
 type Opts struct {
 	Scale     int
-	Precision *int
+	Precision int
 }
 
 type Column struct {
@@ -145,13 +145,13 @@ func ParseColumnDataType(colKind string, precision, scale *int, udtName *string)
 		if strings.Contains(colKind, "numeric") {
 			if precision == nil && scale == nil {
 				return VariableNumeric, nil, nil
-			} else if scale != nil {
+			} else if precision != nil && scale != nil {
 				return Numeric, &Opts{
 					Scale:     *scale,
-					Precision: precision,
+					Precision: *precision,
 				}, nil
 			} else {
-				return -1, nil, fmt.Errorf("scale is nil but precision is not")
+				return -1, nil, fmt.Errorf("expected precision (%v) and scale (%v) to both be nil or not-nil", precision, scale)
 			}
 		}
 	}

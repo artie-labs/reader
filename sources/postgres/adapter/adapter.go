@@ -97,7 +97,7 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) converte
 	case schema.VariableNumeric:
 		return converters.VariableNumericConverter{}
 	case schema.Numeric:
-		return converters.NewDecimalConverter(opts.Scale, opts.Precision)
+		return converters.NewDecimalConverter(opts.Scale, &opts.Precision)
 	case schema.Bytea:
 		return converters.BytesPassthrough{}
 	case schema.Date:

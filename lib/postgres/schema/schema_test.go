@@ -85,7 +85,7 @@ func TestParseColumnDataType(t *testing.T) {
 			expectedDataType: Numeric,
 			expectedOpts: &Opts{
 				Scale:     2,
-				Precision: ptr.ToInt(3),
+				Precision: 3,
 			},
 		},
 		{

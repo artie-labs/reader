@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/lib/postgres/schema"
@@ -36,7 +35,7 @@ func TestConvertValueToDebezium(t *testing.T) {
 			name: "numeric (postgres.Numeric)",
 			col: schema.Column{Name: "numeric_col", Type: schema.Numeric, Opts: &schema.Opts{
 				Scale:     2,
-				Precision: ptr.ToInt(5),
+				Precision: 5,
 			}},
 			value:         "578.01",
 			numericValue:  true,
