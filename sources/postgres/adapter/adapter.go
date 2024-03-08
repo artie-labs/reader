@@ -81,7 +81,7 @@ func (p postgresAdapter) ConvertRowToDebezium(row map[string]any) (map[string]an
 			return nil, fmt.Errorf("failed to get column %s by name: %w", key, err)
 		}
 
-		val, err := ConvertValueToDebezium(*col, value)
+		val, err := convertValueToDebezium(*col, value)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert value: %w", err)
 		}
@@ -89,6 +89,18 @@ func (p postgresAdapter) ConvertRowToDebezium(row map[string]any) (map[string]an
 		result[key] = val
 	}
 	return result, nil
+}
+
+func convertValueToDebezium(col schema.Column, value any) (any, error) {
+	if value == nil {
+		return value, nil
+	}
+
+	if converter := valueConverterForType(col.Type, col.Opts); converter != nil {
+		return converter.Convert(value)
+	}
+
+	return value, nil
 }
 
 func valueConverterForType(dataType schema.DataType, opts *schema.Opts) converters.ValueConverter {
