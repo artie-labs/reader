@@ -10,7 +10,9 @@ import (
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium"
+	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/postgres"
+	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
@@ -87,4 +89,14 @@ func (p postgresAdapter) ConvertRowToDebezium(row map[string]any) (map[string]an
 		result[key] = val
 	}
 	return result, nil
+}
+
+func valueConverterForType(dataType schema.DataType, _ *schema.Opts) converters.ValueConverter {
+	// TODO: Implement all Postgres types
+	switch dataType {
+	case schema.Bytea:
+		return converters.BytesPassthrough{}
+	default:
+		return nil
+	}
 }

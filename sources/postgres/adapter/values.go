@@ -18,6 +18,10 @@ func ConvertValueToDebezium(col schema.Column, value any) (any, error) {
 		return value, nil
 	}
 
+	if converter := valueConverterForType(col.Type, col.Opts); converter != nil {
+		return converter.Convert(value)
+	}
+
 	var err error
 	switch col.Type {
 	case schema.Timestamp:
