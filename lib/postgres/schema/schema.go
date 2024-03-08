@@ -151,7 +151,11 @@ func ParseColumnDataType(colKind string, precision, scale *int, udtName *string)
 					Precision: *precision,
 				}, nil
 			} else {
-				return -1, nil, fmt.Errorf("expected precision (%v) and scale (%v) to both be nil or not-nil", precision, scale)
+				return -1, nil, fmt.Errorf(
+					"expected precision (nil: %v) and scale (nil: %v) to both be nil or not-nil",
+					precision == nil,
+					scale == nil,
+				)
 			}
 		}
 	}
