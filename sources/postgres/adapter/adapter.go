@@ -122,7 +122,6 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) converte
 		return converters.UUIDConverter{}
 	case schema.JSON:
 		return converters.JSONConverter{}
-
 	case schema.HStore:
 		return converters.MapConverter{}
 	default:
