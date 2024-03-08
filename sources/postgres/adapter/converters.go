@@ -56,8 +56,9 @@ func (PgTimestampConverter) Convert(value any) (any, error) {
 			slog.Info("Skipping timestamp because year is greater than 9999 or less than 0", slog.Any("value", value))
 			return nil, nil
 		}
+	} else {
+		slog.Error("Emitting a value for a timestamp column that is not a time.Time", slog.Any("value", value), slog.String("type", fmt.Sprintf("%T", value)))
 	}
 
-	slog.Error("Emitting a value for a timestamp column that is not a time.Time", slog.Any("value", value), slog.String("type", fmt.Sprintf("%T", value)))
 	return value, nil
 }
