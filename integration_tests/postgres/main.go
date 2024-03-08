@@ -919,7 +919,7 @@ INSERT INTO %s VALUES (
 	-- c_macaddr8
 		'12:34:56:78:90:ab:cd:ef',
 	-- c_money
-		'52093.89',
+		'$52,093.89',
 	-- c_numeric
 		'987.654',
 	-- c_real
