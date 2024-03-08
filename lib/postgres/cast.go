@@ -30,7 +30,7 @@ func castColumn(col schema.Column) (string, error) {
 	case schema.Int16, schema.Int32, schema.Int64, schema.Float, schema.UUID,
 		schema.UserDefinedText, schema.Text,
 		schema.Money, schema.VariableNumeric, schema.Numeric,
-		schema.Boolean, schema.Bit,
+		schema.Boolean, schema.Bit, schema.Bytea,
 		schema.Date, schema.Timestamp, schema.HStore, schema.JSON,
 		schema.Point, schema.Geography, schema.Geometry:
 		// These are all the columns that do not need to be escaped.
