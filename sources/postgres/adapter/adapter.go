@@ -104,6 +104,8 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) converte
 		return converters.BytesPassthrough{}
 	case schema.Date:
 		return converters.DateConverter{}
+	case schema.Timestamp:
+		return PgTimestampConverter{}
 	case schema.JSON:
 		return converters.JSONConverter{}
 	default:

@@ -82,12 +82,6 @@ func toDebeziumType(d schema.DataType) (Result, error) {
 			DebeziumType: "",
 			Type:         "map",
 		}, nil
-	case schema.Timestamp:
-		return Result{
-			DebeziumType: string(debezium.Timestamp),
-			// NOTE: We are returning string here because we want the right layout to be used by our Typing library
-			Type: "string",
-		}, nil
 	}
 
 	return Result{}, fmt.Errorf("unsupported data type: DataType(%d)", d)
