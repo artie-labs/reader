@@ -8,6 +8,7 @@ import (
 	transferDbz "github.com/artie-labs/transfer/lib/debezium"
 
 	"github.com/artie-labs/reader/lib/debezium"
+	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/stringutil"
 )
 
@@ -60,5 +61,27 @@ func (PgTimestampConverter) Convert(value any) (any, error) {
 		slog.Error("Emitting a value for a timestamp column that is not a time.Time", slog.Any("value", value), slog.String("type", fmt.Sprintf("%T", value)))
 	}
 
+	return value, nil
+}
+
+// TODO: This converter doesn't check types, replace uses of this with specific converters from `debezium/converters`
+type passthroughConverter struct {
+	fieldType    string
+	debeziumType string
+}
+
+func NewPassthroughConverter(fieldType, debeziumType string) converters.ValueConverter {
+	return passthroughConverter{fieldType: fieldType, debeziumType: debeziumType}
+}
+
+func (p passthroughConverter) ToField(name string) transferDbz.Field {
+	return transferDbz.Field{
+		FieldName:    name,
+		DebeziumType: p.debeziumType,
+		Type:         p.fieldType,
+	}
+}
+
+func (passthroughConverter) Convert(value any) (any, error) {
 	return value, nil
 }
