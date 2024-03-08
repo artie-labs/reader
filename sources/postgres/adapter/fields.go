@@ -30,10 +30,6 @@ func toDebeziumType(d schema.DataType) (Result, error) {
 			DebeziumType: string(debezium.GeometryPointType),
 			Type:         "struct",
 		}, nil
-	case schema.Numeric:
-		return Result{
-			DebeziumType: string(debezium.KafkaDecimalType),
-		}, nil
 	case schema.Boolean, schema.Bit:
 		return Result{
 			Type: "boolean",
