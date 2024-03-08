@@ -124,6 +124,12 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) converte
 		return converters.JSONConverter{}
 	case schema.HStore:
 		return converters.MapConverter{}
+	case schema.Point:
+		return converters.NewPointConverter()
+	case schema.Geometry:
+		return converters.NewGeometryConverter()
+	case schema.Geography:
+		return converters.NewGeographyConverter()
 	default:
 		return nil
 	}
