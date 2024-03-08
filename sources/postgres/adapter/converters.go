@@ -35,7 +35,7 @@ func (MoneyConverter) Convert(value any) (any, error) {
 	return stringValue, nil
 }
 
-// TODO: Replace this with `converters.TimestampConverter` once we've run it for awhile and not seen error logs
+// TODO: Replace this with `converters.TimestampConverter` once we've run it for a while and not seen error logs
 type PgTimestampConverter struct{}
 
 func (PgTimestampConverter) ToField(name string) transferDbz.Field {
