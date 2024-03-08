@@ -8,7 +8,6 @@ import (
 
 	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/postgres/schema"
-	"github.com/artie-labs/reader/lib/stringutil"
 )
 
 func ConvertValueToDebezium(col schema.Column, value any) (any, error) {
@@ -31,11 +30,7 @@ func ConvertValueToDebezium(col schema.Column, value any) (any, error) {
 				return nil, nil
 			}
 		}
-	case schema.Numeric, schema.Money:
-		if col.Type == schema.Money {
-			value = stringutil.ParseMoneyIntoString(fmt.Sprint(value))
-		}
-
+	case schema.Numeric:
 		scale, err := strconv.Atoi(*col.Opts.Scale)
 		if err != nil {
 			return nil, fmt.Errorf("unable to find scale for key: %s: %w", col.Name, err)

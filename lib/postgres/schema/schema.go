@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strconv"
 	"strings"
 
 	"github.com/artie-labs/reader/lib/rdbms"
-	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -45,6 +45,13 @@ const (
 type Opts struct {
 	Scale     *string
 	Precision *string
+}
+
+func (o *Opts) ScaleAsInt() (int, error) {
+	if o == nil || o.Scale == nil {
+		return 0, fmt.Errorf("scale is nil")
+	}
+	return strconv.Atoi(*o.Scale)
 }
 
 type Column struct {
@@ -132,9 +139,7 @@ func ParseColumnDataType(colKind string, precision, scale, udtName *string) (Dat
 	case "time with time zone", "time without time zone":
 		return Time, nil, nil
 	case "money":
-		return Money, &Opts{
-			Scale: ptr.ToString("2"),
-		}, nil
+		return Money, nil, nil
 	case "character varying", "text", "character", "xml", "cidr", "macaddr", "macaddr8",
 		"int4range", "int8range", "numrange", "daterange", "tsrange", "tstzrange":
 		return Text, nil, nil
