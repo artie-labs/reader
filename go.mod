@@ -17,7 +17,7 @@ require (
 	github.com/samber/slog-sentry/v2 v2.4.0
 	github.com/segmentio/kafka-go v0.4.39
 	github.com/segmentio/kafka-go/sasl/aws_msk_iam_v2 v0.1.0
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	go.mongodb.org/mongo-driver v1.13.1
 	gopkg.in/yaml.v3 v3.0.1
 )
