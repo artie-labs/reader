@@ -77,11 +77,6 @@ func toDebeziumType(d schema.DataType) (Result, error) {
 			DebeziumType: string(debezium.Time),
 			Type:         "int32",
 		}, nil
-	case schema.HStore:
-		return Result{
-			DebeziumType: "",
-			Type:         "map",
-		}, nil
 	}
 
 	return Result{}, fmt.Errorf("unsupported data type: DataType(%d)", d)
