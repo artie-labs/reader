@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/artie-labs/transfer/lib/debezium"
-	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/lib/postgres/schema"
@@ -55,8 +54,8 @@ func TestColumnToField(t *testing.T) {
 			colName:  "numeric_col",
 			dataType: schema.Numeric,
 			opts: &schema.Opts{
-				Scale:     ptr.ToString("2"),
-				Precision: ptr.ToString("10"),
+				Scale:     2,
+				Precision: 10,
 			},
 			expected: debezium.Field{
 				Type:         "",

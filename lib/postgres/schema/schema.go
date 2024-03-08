@@ -42,8 +42,8 @@ const (
 )
 
 type Opts struct {
-	Scale     *string
-	Precision *string
+	Scale     int
+	Precision int
 }
 
 type Column struct {
@@ -69,8 +69,8 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 	for rows.Next() {
 		var colName string
 		var colType string
-		var numericPrecision *string
-		var numericScale *string
+		var numericPrecision *int
+		var numericScale *int
 		var udtName *string
 		err = rows.Scan(&colName, &colType, &numericPrecision, &numericScale, &udtName)
 		if err != nil {
@@ -91,7 +91,7 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 	return cols, nil
 }
 
-func ParseColumnDataType(colKind string, precision, scale, udtName *string) (DataType, *Opts, error) {
+func ParseColumnDataType(colKind string, precision, scale *int, udtName *string) (DataType, *Opts, error) {
 	colKind = strings.ToLower(colKind)
 	switch colKind {
 	case "point":
@@ -145,11 +145,17 @@ func ParseColumnDataType(colKind string, precision, scale, udtName *string) (Dat
 		if strings.Contains(colKind, "numeric") {
 			if precision == nil && scale == nil {
 				return VariableNumeric, nil, nil
-			} else {
+			} else if precision != nil && scale != nil {
 				return Numeric, &Opts{
-					Scale:     scale,
-					Precision: precision,
+					Scale:     *scale,
+					Precision: *precision,
 				}, nil
+			} else {
+				return -1, nil, fmt.Errorf(
+					"expected precision (nil: %v) and scale (nil: %v) to both be nil or not-nil",
+					precision == nil,
+					scale == nil,
+				)
 			}
 		}
 	}

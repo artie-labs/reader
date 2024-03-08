@@ -114,15 +114,7 @@ func ColumnToField(col schema.Column) (debezium.Field, error) {
 	}
 
 	if col.Opts != nil {
-		field.Parameters = make(map[string]any)
-
-		if col.Opts.Scale != nil {
-			field.Parameters["scale"] = *col.Opts.Scale
-		}
-
-		if col.Opts.Precision != nil {
-			field.Parameters[debezium.KafkaDecimalPrecisionKey] = *col.Opts.Precision
-		}
+		return debezium.Field{}, fmt.Errorf("opts should be nil")
 	}
 	return field, nil
 }
