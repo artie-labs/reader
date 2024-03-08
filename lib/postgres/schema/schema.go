@@ -15,8 +15,7 @@ import (
 type DataType int
 
 const (
-	InvalidDataType DataType = iota
-	VariableNumeric
+	VariableNumeric DataType = iota
 	Money
 	Numeric
 	Bit
@@ -79,8 +78,8 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 			return nil, err
 		}
 
-		dataType, opts := ParseColumnDataType(colType, numericPrecision, numericScale, udtName)
-		if dataType == InvalidDataType {
+		dataType, opts, err := ParseColumnDataType(colType, numericPrecision, numericScale, udtName)
+		if err != nil {
 			return nil, fmt.Errorf("unable to identify type for column %s: %s", colName, colType)
 		}
 
@@ -93,72 +92,72 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 	return cols, nil
 }
 
-func ParseColumnDataType(colKind string, precision, scale, udtName *string) (DataType, *Opts) {
+func ParseColumnDataType(colKind string, precision, scale, udtName *string) (DataType, *Opts, error) {
 	colKind = strings.ToLower(colKind)
 	switch colKind {
 	case "point":
-		return Point, nil
+		return Point, nil, nil
 	case "real", "double precision":
-		return Float, nil
+		return Float, nil, nil
 	case "smallint":
-		return Int16, nil
+		return Int16, nil, nil
 	case "integer":
-		return Int32, nil
+		return Int32, nil, nil
 	case "bigint", "oid":
-		return Int64, nil
+		return Int64, nil, nil
 	case "array":
-		return Array, nil
+		return Array, nil, nil
 	case "bit":
-		return Bit, nil
+		return Bit, nil, nil
 	case "boolean":
-		return Boolean, nil
+		return Boolean, nil, nil
 	case "bytea":
-		return Bytea, nil
+		return Bytea, nil, nil
 	case "date":
-		return Date, nil
+		return Date, nil, nil
 	case "uuid":
-		return UUID, nil
+		return UUID, nil, nil
 	case "user-defined":
 		if udtName != nil && *udtName == "hstore" {
-			return HStore, nil
+			return HStore, nil, nil
 		} else if udtName != nil && *udtName == "geometry" {
-			return Geometry, nil
+			return Geometry, nil, nil
 		} else if udtName != nil && *udtName == "geography" {
-			return Geography, nil
+			return Geography, nil, nil
 		} else {
-			return UserDefinedText, nil
+			return UserDefinedText, nil, nil
 		}
 	case "interval":
-		return Interval, nil
+		return Interval, nil, nil
 	case "time with time zone", "time without time zone":
-		return Time, nil
+		return Time, nil, nil
 	case "money":
 		return Money, &Opts{
 			Scale: ptr.ToString("2"),
-		}
+		}, nil
 	case "character varying", "text", "character", "xml", "cidr", "macaddr", "macaddr8",
 		"int4range", "int8range", "numrange", "daterange", "tsrange", "tstzrange":
-		return Text, nil
+		return Text, nil, nil
 	case "inet":
-		return Inet, nil
+		return Inet, nil, nil
 	case "json", "jsonb":
-		return JSON, nil
+		return JSON, nil, nil
 	case "timestamp without time zone", "timestamp with time zone":
-		return Timestamp, nil
+		return Timestamp, nil, nil
 	default:
 		if strings.Contains(colKind, "numeric") {
 			if precision == nil && scale == nil {
-				return VariableNumeric, nil
+				return VariableNumeric, nil, nil
 			} else {
 				return Numeric, &Opts{
 					Scale:     scale,
 					Precision: precision,
-				}
+				}, nil
 			}
 		}
 	}
 
-	return InvalidDataType, nil
+	return -1, nil, fmt.Errorf("unknown data type: %s", colKind)
 }
 
 // This is a fork of: https://wiki.postgresql.org/wiki/Retrieve_primary_key_columns
