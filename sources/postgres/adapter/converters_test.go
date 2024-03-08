@@ -3,9 +3,10 @@ package adapter
 import (
 	"testing"
 
-	"github.com/artie-labs/reader/lib/debezium/converters"
 	transferDbz "github.com/artie-labs/transfer/lib/debezium"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/artie-labs/reader/lib/debezium/converters"
 )
 
 func TestMoneyConverter_ToField(t *testing.T) {
