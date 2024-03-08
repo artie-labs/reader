@@ -1,12 +1,9 @@
 package adapter
 
 import (
-	"fmt"
 	"log/slog"
-	"strconv"
 	"time"
 
-	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
 
@@ -29,16 +26,6 @@ func ConvertValueToDebezium(col schema.Column, value any) (any, error) {
 				slog.Info("Skipping timestamp because year is greater than 9999 or less than 0", slog.String("key", col.Name), slog.Any("value", value))
 				return nil, nil
 			}
-		}
-	case schema.Numeric:
-		scale, err := strconv.Atoi(*col.Opts.Scale)
-		if err != nil {
-			return nil, fmt.Errorf("unable to find scale for key: %s: %w", col.Name, err)
-		}
-
-		value, err = debezium.EncodeDecimalToBase64(fmt.Sprint(value), scale)
-		if err != nil {
-			return nil, fmt.Errorf("failed to encode decimal to b64 for key %s: %w", col.Name, err)
 		}
 	}
 

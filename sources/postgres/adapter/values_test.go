@@ -35,16 +35,16 @@ func TestConvertValueToDebezium(t *testing.T) {
 		{
 			name: "numeric (postgres.Numeric)",
 			col: schema.Column{Name: "numeric_col", Type: schema.Numeric, Opts: &schema.Opts{
-				Scale:     ptr.ToString("2"),
-				Precision: ptr.ToString("5"),
+				Scale:     2,
+				Precision: ptr.ToInt(5),
 			}},
-			value:         578.01,
+			value:         "578.01",
 			numericValue:  true,
 			expectedValue: "578.01",
 		},
 		{
 			name:          "numeric (postgres.Numeric) - money",
-			col:           schema.Column{Name: "money_col", Type: schema.Money, Opts: &schema.Opts{Scale: ptr.ToString("2")}},
+			col:           schema.Column{Name: "money_col", Type: schema.Money, Opts: &schema.Opts{Scale: 2}},
 			numericValue:  true,
 			value:         123.99,
 			expectedValue: "123.99",
@@ -79,7 +79,7 @@ func TestConvertValueToDebezium(t *testing.T) {
 				field, err := ColumnToField(tc.col)
 				assert.NoError(t, err, tc.name)
 				val, err := field.DecodeDecimal(fmt.Sprint(actualValue))
-				assert.NoError(t, err)
+				assert.NoError(t, err, tc.name)
 				assert.Equal(t, tc.expectedValue, val.String(), tc.name)
 			} else {
 				assert.Equal(t, tc.expectedValue, actualValue, tc.name)

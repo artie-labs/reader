@@ -12,8 +12,8 @@ func TestParseColumnDataType(t *testing.T) {
 	type _testCase struct {
 		name      string
 		colKind   string
-		precision *string
-		scale     *string
+		precision *int
+		scale     *int
 		udtName   *string
 
 		expectedDataType DataType
@@ -80,12 +80,12 @@ func TestParseColumnDataType(t *testing.T) {
 		{
 			name:             "numeric - with scale + precision",
 			colKind:          "numeric",
-			scale:            ptr.ToString("2"),
-			precision:        ptr.ToString("3"),
+			scale:            ptr.ToInt(2),
+			precision:        ptr.ToInt(3),
 			expectedDataType: Numeric,
 			expectedOpts: &Opts{
-				Scale:     ptr.ToString("2"),
-				Precision: ptr.ToString("3"),
+				Scale:     2,
+				Precision: ptr.ToInt(3),
 			},
 		},
 		{

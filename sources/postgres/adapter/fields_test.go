@@ -55,8 +55,8 @@ func TestColumnToField(t *testing.T) {
 			colName:  "numeric_col",
 			dataType: schema.Numeric,
 			opts: &schema.Opts{
-				Scale:     ptr.ToString("2"),
-				Precision: ptr.ToString("10"),
+				Scale:     2,
+				Precision: ptr.ToInt(10),
 			},
 			expected: debezium.Field{
 				Type:         "",
