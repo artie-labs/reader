@@ -118,8 +118,11 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) converte
 		return converters.DateConverter{}
 	case schema.Timestamp:
 		return PgTimestampConverter{}
+	case schema.UUID:
+		return converters.UUIDConverter{}
 	case schema.JSON:
 		return converters.JSONConverter{}
+
 	case schema.HStore:
 		return converters.MapConverter{}
 	default:
