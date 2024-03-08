@@ -145,15 +145,13 @@ func ParseColumnDataType(colKind string, precision, scale *int, udtName *string)
 		if strings.Contains(colKind, "numeric") {
 			if precision == nil && scale == nil {
 				return VariableNumeric, nil, nil
-			} else {
-				if scale == nil {
-					return -1, nil, fmt.Errorf("scale is nil but precision is not")
-				}
-
+			} else if scale != nil {
 				return Numeric, &Opts{
 					Scale:     *scale,
 					Precision: precision,
 				}, nil
+			} else {
+				return -1, nil, fmt.Errorf("scale is nil but precision is not")
 			}
 		}
 	}
