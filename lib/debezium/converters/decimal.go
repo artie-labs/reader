@@ -53,8 +53,8 @@ func (VariableNumericConverter) ToField(name string) transferDBZ.Field {
 }
 
 func (VariableNumericConverter) Convert(value any) (any, error) {
-	stringValue, isOk := value.(string)
-	if !isOk {
+	stringValue, ok := value.(string)
+	if !ok {
 		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
 	}
 
