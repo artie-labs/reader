@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strconv"
 	"strings"
 
 	"github.com/artie-labs/reader/lib/rdbms"
@@ -45,13 +44,6 @@ const (
 type Opts struct {
 	Scale     *string
 	Precision *string
-}
-
-func (o *Opts) ScaleAsInt() (int, error) {
-	if o == nil || o.Scale == nil {
-		return 0, fmt.Errorf("scale is nil")
-	}
-	return strconv.Atoi(*o.Scale)
 }
 
 type Column struct {
