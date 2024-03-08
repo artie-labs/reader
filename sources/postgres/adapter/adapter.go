@@ -120,6 +120,8 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) converte
 		return PgTimestampConverter{}
 	case schema.JSON:
 		return converters.JSONConverter{}
+	case schema.HStore:
+		return converters.MapConverter{}
 	default:
 		return nil
 	}
