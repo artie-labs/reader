@@ -94,6 +94,8 @@ func (p postgresAdapter) ConvertRowToDebezium(row map[string]any) (map[string]an
 func valueConverterForType(dataType schema.DataType, _ *schema.Opts) converters.ValueConverter {
 	// TODO: Implement all Postgres types
 	switch dataType {
+	case schema.VariableNumeric:
+		return converters.VariableNumericConverter{}
 	case schema.Bytea:
 		return converters.BytesPassthrough{}
 	case schema.Date:
