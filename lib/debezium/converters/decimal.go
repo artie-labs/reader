@@ -34,12 +34,12 @@ func (d decimalConverter) ToField(name string) transferDBZ.Field {
 }
 
 func (d decimalConverter) Convert(value any) (any, error) {
-	stringValue, isOk := value.(string)
+	castValue, isOk := value.(string)
 	if !isOk {
 		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
 	}
 
-	return debezium.EncodeDecimalToBase64(stringValue, d.scale)
+	return debezium.EncodeDecimalToBase64(castValue, d.scale)
 }
 
 type VariableNumericConverter struct{}
