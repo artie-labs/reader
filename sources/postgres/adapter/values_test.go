@@ -66,6 +66,12 @@ func TestConvertValueToDebezium(t *testing.T) {
 			value:         true,
 			expectedValue: true,
 		},
+		{
+			name:          "json",
+			col:           schema.Column{Name: "json", Type: schema.JSON},
+			value:         `{"foo":"bar}`,
+			expectedValue: `{"foo":"bar}`,
+		},
 	}
 
 	for _, tc := range tcs {
