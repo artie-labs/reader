@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/lib/debezium"
+	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
@@ -72,7 +73,13 @@ func TestDebeziumTransformer(t *testing.T) {
 	// test two batches each with two rows
 	{
 		builder := debezium.NewDebeziumTransformerWithIterator(
-			postgresAdapter{table: table},
+			postgresAdapter{
+				table: table,
+				rowConverter: converters.NewRowConverter(map[string]converters.ValueConverter{
+					"a": converters.StringPassthrough{},
+					"b": converters.StringPassthrough{},
+				}),
+			},
 			&MockRowIterator{
 				batches: [][]map[string]any{
 					{{"a": "1", "b": "11"}, {"a": "2", "b": "12"}},
@@ -118,12 +125,18 @@ func TestDebeziumTransformer_NilOptionalSchema(t *testing.T) {
 	}
 
 	rowData := map[string]any{
-		"user_id": 123,
+		"user_id": int16(123),
 		"name":    "Robin",
 	}
 
 	builder := debezium.NewDebeziumTransformerWithIterator(
-		postgresAdapter{table: table},
+		postgresAdapter{
+			table: table,
+			rowConverter: converters.NewRowConverter(map[string]converters.ValueConverter{
+				"user_id": converters.Int16Passthrough{},
+				"name":    converters.StringPassthrough{},
+			}),
+		},
 		&MockRowIterator{batches: [][]map[string]any{{rowData}}},
 	)
 

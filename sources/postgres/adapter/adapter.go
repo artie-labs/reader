@@ -98,17 +98,17 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	case schema.Timestamp:
 		return PgTimestampConverter{}, nil
 	case schema.UUID:
-		return converters.UUIDConverter{}
+		return converters.UUIDConverter{}, nil
 	case schema.JSON:
 		return converters.JSONConverter{}, nil
 	case schema.HStore:
 		return converters.MapConverter{}, nil
 	case schema.Point:
-		return converters.NewPointConverter()
+		return converters.NewPointConverter(), nil
 	case schema.Geometry:
-		return converters.NewGeometryConverter()
+		return converters.NewGeometryConverter(), nil
 	case schema.Geography:
-		return converters.NewGeographyConverter()
+		return converters.NewGeographyConverter(), nil
 	case schema.Boolean, schema.Bit:
 		return NewPassthroughConverter("boolean", ""), nil
 	case schema.Text, schema.UserDefinedText, schema.Inet:
@@ -128,6 +128,6 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	case schema.Time:
 		return NewPassthroughConverter("int32", string(transferDbz.Time)), nil
 	default:
-		return nil, nil
+		return nil, fmt.Errorf("unsupported data type: DataType(%d)", dataType)
 	}
 }

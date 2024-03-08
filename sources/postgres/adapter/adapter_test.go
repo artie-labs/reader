@@ -87,7 +87,7 @@ func TestPostgresAdapter_PartitionKey(t *testing.T) {
 	}
 }
 
-func TestConvertValueToDebezium(t *testing.T) {
+func TestValueConverterForType(t *testing.T) {
 	type _tc struct {
 		name          string
 		col           schema.Column
@@ -98,10 +98,6 @@ func TestConvertValueToDebezium(t *testing.T) {
 	}
 
 	tcs := []_tc{
-		{
-			name:  "nil value",
-			value: nil,
-		},
 		{
 			name:          "date (postgres.Date)",
 			col:           schema.Column{Name: "date_col", Type: schema.Date},
@@ -152,14 +148,16 @@ func TestConvertValueToDebezium(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		actualValue, actualErr := convertValueToDebezium(tc.col, tc.value)
+		converter, err := valueConverterForType(tc.col.Type, tc.col.Opts)
+		assert.NoError(t, err, tc.name)
+
+		actualValue, actualErr := converter.Convert(tc.value)
 		if tc.expectErr {
 			assert.Error(t, actualErr, tc.name)
 		} else {
 			assert.NoError(t, actualErr, tc.name)
 			if tc.numericValue {
-				field, err := ColumnToField(tc.col)
-				assert.NoError(t, err, tc.name)
+				field := converter.ToField(tc.col.Name)
 				val, err := field.DecodeDecimal(fmt.Sprint(actualValue))
 				assert.NoError(t, err, tc.name)
 				assert.Equal(t, tc.expectedValue, val.String(), tc.name)
