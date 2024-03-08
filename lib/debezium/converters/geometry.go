@@ -6,11 +6,11 @@ import (
 	"github.com/artie-labs/transfer/lib/debezium"
 )
 
-type _geomConverter struct {
+type geomConverter struct {
 	debeziumType debezium.SupportedDebeziumType
 }
 
-func (g _geomConverter) ToField(name string) debezium.Field {
+func (g geomConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
 		Type:         "struct",
@@ -18,7 +18,7 @@ func (g _geomConverter) ToField(name string) debezium.Field {
 	}
 }
 
-func (_geomConverter) Convert(value any) (any, error) {
+func (geomConverter) Convert(value any) (any, error) {
 	mapValue, ok := value.(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("expected map[string]any got %T with value: %v", value, value)
@@ -28,13 +28,13 @@ func (_geomConverter) Convert(value any) (any, error) {
 }
 
 func NewPointConverter() ValueConverter {
-	return _geomConverter{debeziumType: debezium.GeometryPointType}
+	return geomConverter{debeziumType: debezium.GeometryPointType}
 }
 
 func NewGeometryConverter() ValueConverter {
-	return _geomConverter{debeziumType: debezium.GeometryType}
+	return geomConverter{debeziumType: debezium.GeometryType}
 }
 
 func NewGeographyConverter() ValueConverter {
-	return _geomConverter{debeziumType: debezium.GeographyType}
+	return geomConverter{debeziumType: debezium.GeographyType}
 }
