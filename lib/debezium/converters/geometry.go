@@ -23,7 +23,6 @@ func (geomConverter) Convert(value any) (any, error) {
 	if !ok {
 		return nil, fmt.Errorf("expected map[string]any got %T with value: %v", value, value)
 	}
-
 	return mapValue, nil
 }
 
