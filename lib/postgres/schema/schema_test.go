@@ -97,9 +97,6 @@ func TestParseColumnDataType(t *testing.T) {
 			name:             "money",
 			colKind:          "money",
 			expectedDataType: Money,
-			expectedOpts: &Opts{
-				Scale: ptr.ToString("2"), // money always has a scale of 2
-			},
 		},
 		{
 			name:             "hstore",

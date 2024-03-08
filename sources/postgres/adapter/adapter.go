@@ -100,6 +100,8 @@ func valueConverterForType(dataType schema.DataType, _ *schema.Opts) converters.
 		return converters.BytesPassthrough{}
 	case schema.Date:
 		return converters.DateConverter{}
+	case schema.Money:
+		return MoneyConverter{}
 	default:
 		return nil
 	}
