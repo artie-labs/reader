@@ -43,10 +43,6 @@ func toDebeziumType(d schema.DataType) (Result, error) {
 		return Result{
 			Type: "boolean",
 		}, nil
-	case schema.Bytea:
-		return Result{
-			Type: "bytes",
-		}, nil
 	case schema.Text, schema.UserDefinedText, schema.Inet:
 		return Result{
 			Type: "string",
@@ -113,6 +109,11 @@ func toDebeziumType(d schema.DataType) (Result, error) {
 }
 
 func ColumnToField(col schema.Column) (debezium.Field, error) {
+	converter := valueConverterForType(col.Type, col.Opts)
+	if converter != nil {
+		return converter.ToField(col.Name), nil
+	}
+
 	res, err := toDebeziumType(col.Type)
 	if err != nil {
 		return debezium.Field{}, err
