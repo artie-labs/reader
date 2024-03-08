@@ -98,12 +98,14 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) converte
 		return converters.VariableNumericConverter{}
 	case schema.Numeric:
 		return converters.NewDecimalConverter(opts.Scale, &opts.Precision)
+	case schema.Money:
+		return MoneyConverter{}
 	case schema.Bytea:
 		return converters.BytesPassthrough{}
 	case schema.Date:
 		return converters.DateConverter{}
-	case schema.Money:
-		return MoneyConverter{}
+	case schema.JSON:
+		return converters.JSONConverter{}
 	default:
 		return nil
 	}

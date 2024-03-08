@@ -72,11 +72,6 @@ func toDebeziumType(d schema.DataType) (Result, error) {
 			DebeziumType: "io.debezium.data.Uuid",
 			Type:         "string",
 		}, nil
-	case schema.JSON:
-		return Result{
-			DebeziumType: "io.debezium.data.Json",
-			Type:         "string",
-		}, nil
 	case schema.Time:
 		return Result{
 			DebeziumType: string(debezium.Time),
