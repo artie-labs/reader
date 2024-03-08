@@ -28,7 +28,7 @@ func (_geomConverter) Convert(value any) (any, error) {
 }
 
 func NewPointConverter() ValueConverter {
-	return _geomConverter{debeziumType: debezium.JSON}
+	return _geomConverter{debeziumType: debezium.GeometryPointType}
 }
 
 func NewGeometryConverter() ValueConverter {
