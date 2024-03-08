@@ -6,8 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/artie-labs/transfer/lib/cdc/util"
-
 	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/reader/lib/stringutil"
@@ -50,7 +48,7 @@ func ConvertValueToDebezium(col schema.Column, value any) (any, error) {
 	case schema.VariableNumeric:
 		encodedValue, err := debezium.EncodeDecimalToBase64(fmt.Sprint(value), debezium.GetScale(fmt.Sprint(value)))
 		if err != nil {
-			return util.SchemaEventPayload{}, fmt.Errorf("failed to encode decimal to b64 for key %s: %w", col.Name, err)
+			return nil, fmt.Errorf("failed to encode decimal to b64 for key %s: %w", col.Name, err)
 		}
 
 		value = map[string]string{
