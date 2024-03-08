@@ -15,21 +15,6 @@ type Result struct {
 
 func toDebeziumType(d schema.DataType) (Result, error) {
 	switch d {
-	case schema.Geography:
-		return Result{
-			DebeziumType: string(debezium.GeographyType),
-			Type:         "struct",
-		}, nil
-	case schema.Geometry:
-		return Result{
-			DebeziumType: string(debezium.GeometryType),
-			Type:         "struct",
-		}, nil
-	case schema.Point:
-		return Result{
-			DebeziumType: string(debezium.GeometryPointType),
-			Type:         "struct",
-		}, nil
 	case schema.Numeric:
 		return Result{
 			DebeziumType: string(debezium.KafkaDecimalType),
