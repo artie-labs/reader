@@ -7,8 +7,8 @@ import (
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/debezium/converters"
+	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
@@ -51,7 +51,7 @@ func TestDebeziumTransformer(t *testing.T) {
 
 	// test zero batches
 	{
-		builder := debezium.NewDebeziumTransformerWithIterator(
+		builder := transformer.NewDebeziumTransformerWithIterator(
 			postgresAdapter{table: table},
 			&MockRowIterator{batches: [][]map[string]any{}},
 		)
@@ -60,7 +60,7 @@ func TestDebeziumTransformer(t *testing.T) {
 
 	// test an iterator that returns an error
 	{
-		builder := debezium.NewDebeziumTransformerWithIterator(
+		builder := transformer.NewDebeziumTransformerWithIterator(
 			postgresAdapter{table: table},
 			&ErrorRowIterator{},
 		)
@@ -72,7 +72,7 @@ func TestDebeziumTransformer(t *testing.T) {
 
 	// test two batches each with two rows
 	{
-		builder := debezium.NewDebeziumTransformerWithIterator(
+		builder := transformer.NewDebeziumTransformerWithIterator(
 			postgresAdapter{
 				table: table,
 				rowConverter: converters.NewRowConverter(map[string]converters.ValueConverter{
@@ -129,7 +129,7 @@ func TestDebeziumTransformer_NilOptionalSchema(t *testing.T) {
 		"name":    "Robin",
 	}
 
-	builder := debezium.NewDebeziumTransformerWithIterator(
+	builder := transformer.NewDebeziumTransformerWithIterator(
 		postgresAdapter{
 			table: table,
 			rowConverter: converters.NewRowConverter(map[string]converters.ValueConverter{

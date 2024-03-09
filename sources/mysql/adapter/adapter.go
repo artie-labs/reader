@@ -9,8 +9,8 @@ import (
 	transferDbz "github.com/artie-labs/transfer/lib/debezium"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/debezium/converters"
+	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/mysql/scanner"
 	"github.com/artie-labs/reader/lib/mysql/schema"
@@ -70,7 +70,7 @@ func (m mysqlAdapter) Fields() []transferDbz.Field {
 	return m.fields
 }
 
-func (m mysqlAdapter) NewIterator() (debezium.RowsIterator, error) {
+func (m mysqlAdapter) NewIterator() (transformer.RowsIterator, error) {
 	return scanner.NewScanner(m.db, m.table, m.scannerCfg)
 }
 

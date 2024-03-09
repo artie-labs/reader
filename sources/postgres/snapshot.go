@@ -11,7 +11,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib/debezium"
+	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/reader/sources/postgres/adapter"
@@ -48,7 +48,7 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 			return fmt.Errorf("failed to create PostgreSQL adapter: %w", err)
 		}
 
-		dbzTransformer, err := debezium.NewDebeziumTransformer(dbzAdapter)
+		dbzTransformer, err := transformer.NewDebeziumTransformer(dbzAdapter)
 		if err != nil {
 			if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
 				logger.Info("Table does not contain any rows, skipping...")

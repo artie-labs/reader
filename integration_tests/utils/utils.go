@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/artie-labs/reader/lib"
-	"github.com/artie-labs/reader/lib/debezium"
+	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/transfer/lib/cdc/util"
 )
 
@@ -26,8 +26,8 @@ func CreateTemporaryTable(db *sql.DB, query string) (string, func()) {
 	}
 }
 
-func ReadTable(db *sql.DB, dbzAdapter debezium.Adapter) ([]lib.RawMessage, error) {
-	dbzTransformer, err := debezium.NewDebeziumTransformer(dbzAdapter)
+func ReadTable(db *sql.DB, dbzAdapter transformer.Adapter) ([]lib.RawMessage, error) {
+	dbzTransformer, err := transformer.NewDebeziumTransformer(dbzAdapter)
 	if err != nil {
 		return nil, err
 	}
