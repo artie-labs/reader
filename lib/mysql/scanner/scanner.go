@@ -2,6 +2,7 @@ package scanner
 
 import (
 	"database/sql"
+	
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/mysql/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
