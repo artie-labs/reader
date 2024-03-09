@@ -9,8 +9,8 @@ import (
 	transferDbz "github.com/artie-labs/transfer/lib/debezium"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib/debezium"
 	"github.com/artie-labs/reader/lib/debezium/converters"
+	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
@@ -65,7 +65,7 @@ func (p postgresAdapter) Fields() []transferDbz.Field {
 	return p.fields
 }
 
-func (p postgresAdapter) NewIterator() (debezium.RowsIterator, error) {
+func (p postgresAdapter) NewIterator() (transformer.RowsIterator, error) {
 	return postgres.NewScanner(p.db, p.table, p.scannerCfg)
 }
 

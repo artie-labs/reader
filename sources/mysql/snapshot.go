@@ -11,7 +11,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib/debezium"
+	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/reader/sources/mysql/adapter"
@@ -55,7 +55,7 @@ func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, 
 		return fmt.Errorf("failed to create MySQL adapter: %w", err)
 	}
 
-	dbzTransformer, err := debezium.NewDebeziumTransformer(adapter)
+	dbzTransformer, err := transformer.NewDebeziumTransformer(adapter)
 	if err != nil {
 		if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
 			logger.Info("Table does not contain any rows, skipping...")

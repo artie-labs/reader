@@ -1,4 +1,4 @@
-package debezium
+package transformer
 
 import (
 	"fmt"
