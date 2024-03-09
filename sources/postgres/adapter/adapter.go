@@ -21,8 +21,8 @@ const defaultErrorRetries = 10
 type postgresAdapter struct {
 	db              *sql.DB
 	table           postgres.Table
-	scannerCfg      scan.ScannerConfig
 	fieldConverters []transformer.FieldConverter
+	scannerCfg      scan.ScannerConfig
 }
 
 func NewPostgresAdapter(db *sql.DB, tableCfg config.PostgreSQLTable) (postgresAdapter, error) {

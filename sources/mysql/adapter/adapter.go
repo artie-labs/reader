@@ -20,8 +20,8 @@ const defaultErrorRetries = 10
 type mysqlAdapter struct {
 	db              *sql.DB
 	table           mysql.Table
-	scannerCfg      scan.ScannerConfig
 	fieldConverters []transformer.FieldConverter
+	scannerCfg      scan.ScannerConfig
 }
 
 func NewMySQLAdapter(db *sql.DB, tableCfg config.MySQLTable) (mysqlAdapter, error) {
