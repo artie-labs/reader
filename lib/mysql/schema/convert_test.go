@@ -166,6 +166,12 @@ func TestConvertValue(t *testing.T) {
 			expected: time.Date(2021, 1, 2, 0, 0, 0, 0, time.UTC),
 		},
 		{
+			name:     "date",
+			dataType: Date,
+			value:    []byte("0000-00-00"),
+			expected: nil,
+		},
+		{
 			name:     "datetime",
 			dataType: DateTime,
 			value:    []byte("2021-01-02 03:04:05"),
@@ -265,7 +271,7 @@ func TestConvertValues(t *testing.T) {
 	{
 		// Malformed data
 		_, err := ConvertValues([]any{"bad", "bad", "bad"}, columns)
-		assert.ErrorContains(t, err, "faild to convert value for column a: expected int64 got string for value: bad")
+		assert.ErrorContains(t, err, "failed to convert value for column a: expected int64 got string for value: bad")
 	}
 	{
 		// Happy path - nils
