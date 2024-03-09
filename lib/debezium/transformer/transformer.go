@@ -28,8 +28,8 @@ type Adapter interface {
 	TableName() string
 	TopicSuffix() string
 	PartitionKey(row Row) map[string]any
-	NewIterator() (RowsIterator, error)
 	FieldConverters() []FieldConverter
+	NewIterator() (RowsIterator, error)
 }
 
 type DebeziumTransformer struct {
