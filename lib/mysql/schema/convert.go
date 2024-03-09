@@ -71,6 +71,13 @@ func ConvertValue(value any, colType DataType) (any, error) {
 		if !ok {
 			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
 		}
+
+		// TODO: We should check for zero datetime, timestamp, etc.
+		// MySQL returns 0000-00-00 for zero dates
+		if string(bytesValue) == "0000-00-00" {
+			return nil, nil
+		}
+
 		timeValue, err := time.Parse(time.DateOnly, string(bytesValue))
 		if err != nil {
 			return nil, err
@@ -123,7 +130,7 @@ func ConvertValues(values []any, cols []Column) ([]any, error) {
 		col := cols[idx]
 		convertedVal, err := ConvertValue(value, col.Type)
 		if err != nil {
-			return nil, fmt.Errorf("faild to convert value for column %s: %w", col.Name, err)
+			return nil, fmt.Errorf("failed to convert value for column %s: %w", col.Name, err)
 		}
 		result[idx] = convertedVal
 	}
