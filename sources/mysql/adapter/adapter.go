@@ -6,8 +6,6 @@ import (
 	"log/slog"
 	"strings"
 
-	transferDbz "github.com/artie-labs/transfer/lib/debezium"
-
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
@@ -20,11 +18,10 @@ import (
 const defaultErrorRetries = 10
 
 type mysqlAdapter struct {
-	db           *sql.DB
-	table        mysql.Table
-	fields       []transferDbz.Field
-	scannerCfg   scan.ScannerConfig
-	rowConverter converters.RowConverter
+	db              *sql.DB
+	table           mysql.Table
+	fieldConverters []transformer.FieldConverter
+	scannerCfg      scan.ScannerConfig
 }
 
 func NewMySQLAdapter(db *sql.DB, tableCfg config.MySQLTable) (mysqlAdapter, error) {
@@ -38,23 +35,20 @@ func NewMySQLAdapter(db *sql.DB, tableCfg config.MySQLTable) (mysqlAdapter, erro
 }
 
 func newMySQLAdapter(db *sql.DB, table mysql.Table, scannerCfg scan.ScannerConfig) (mysqlAdapter, error) {
-	fields := make([]transferDbz.Field, len(table.Columns))
-	valueConverters := map[string]converters.ValueConverter{}
+	fieldConverters := make([]transformer.FieldConverter, len(table.Columns))
 	for i, col := range table.Columns {
 		converter, err := valueConverterForType(col.Type, col.Opts)
 		if err != nil {
 			return mysqlAdapter{}, fmt.Errorf("failed to build value converter for column %s: %w", col.Name, err)
 		}
-		fields[i] = converter.ToField(col.Name)
-		valueConverters[col.Name] = converter
+		fieldConverters[i] = transformer.FieldConverter{Name: col.Name, ValueConverter: converter}
 	}
 
 	return mysqlAdapter{
-		db:           db,
-		table:        table,
-		fields:       fields,
-		scannerCfg:   scannerCfg,
-		rowConverter: converters.NewRowConverter(valueConverters),
+		db:              db,
+		table:           table,
+		fieldConverters: fieldConverters,
+		scannerCfg:      scannerCfg,
 	}, nil
 }
 
@@ -66,8 +60,8 @@ func (m mysqlAdapter) TopicSuffix() string {
 	return strings.ReplaceAll(m.table.Name, `"`, ``)
 }
 
-func (m mysqlAdapter) Fields() []transferDbz.Field {
-	return m.fields
+func (m mysqlAdapter) FieldConverters() []transformer.FieldConverter {
+	return m.fieldConverters
 }
 
 func (m mysqlAdapter) NewIterator() (transformer.RowsIterator, error) {
@@ -81,10 +75,6 @@ func (m mysqlAdapter) PartitionKey(row map[string]any) map[string]any {
 		result[key] = row[key]
 	}
 	return result
-}
-
-func (m mysqlAdapter) ConvertRowToDebezium(row map[string]any) (map[string]any, error) {
-	return m.rowConverter.Convert(row)
 }
 
 func valueConverterForType(d schema.DataType, opts *schema.Opts) (converters.ValueConverter, error) {

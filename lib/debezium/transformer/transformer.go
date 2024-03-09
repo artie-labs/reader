@@ -9,6 +9,7 @@ import (
 	"github.com/artie-labs/transfer/lib/debezium"
 
 	"github.com/artie-labs/reader/lib"
+	"github.com/artie-labs/reader/lib/debezium/converters"
 )
 
 type Row = map[string]any
@@ -18,19 +19,24 @@ type RowsIterator interface {
 	Next() ([]Row, error)
 }
 
+type FieldConverter struct {
+	Name           string
+	ValueConverter converters.ValueConverter
+}
+
 type Adapter interface {
 	TableName() string
 	TopicSuffix() string
 	PartitionKey(row Row) map[string]any
-	Fields() []debezium.Field
+	FieldConverters() []FieldConverter
 	NewIterator() (RowsIterator, error)
-	ConvertRowToDebezium(row Row) (Row, error)
 }
 
 type DebeziumTransformer struct {
-	adapter Adapter
-	schema  debezium.Schema
-	iter    RowsIterator
+	adapter      Adapter
+	schema       debezium.Schema
+	iter         RowsIterator
+	rowConverter converters.RowConverter
 }
 
 func NewDebeziumTransformer(adapter Adapter) (*DebeziumTransformer, error) {
@@ -42,18 +48,27 @@ func NewDebeziumTransformer(adapter Adapter) (*DebeziumTransformer, error) {
 }
 
 func NewDebeziumTransformerWithIterator(adapter Adapter, iter RowsIterator) *DebeziumTransformer {
+	fieldConverters := adapter.FieldConverters()
+	fields := make([]debezium.Field, len(fieldConverters))
+	valueConverters := map[string]converters.ValueConverter{}
+	for i, fieldConverter := range fieldConverters {
+		fields[i] = fieldConverter.ValueConverter.ToField(fieldConverter.Name)
+		valueConverters[fieldConverter.Name] = fieldConverter.ValueConverter
+	}
+
 	schema := debezium.Schema{
 		FieldsObject: []debezium.FieldsObject{{
-			Fields:     adapter.Fields(),
+			Fields:     fields,
 			Optional:   false,
 			FieldLabel: cdc.After,
 		}},
 	}
 
 	return &DebeziumTransformer{
-		adapter: adapter,
-		schema:  schema,
-		iter:    iter,
+		adapter:      adapter,
+		schema:       schema,
+		iter:         iter,
+		rowConverter: converters.NewRowConverter(valueConverters),
 	}
 }
 
@@ -84,7 +99,7 @@ func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 }
 
 func (d *DebeziumTransformer) createPayload(row Row) (util.SchemaEventPayload, error) {
-	dbzRow, err := d.adapter.ConvertRowToDebezium(row)
+	dbzRow, err := d.rowConverter.Convert(row)
 	if err != nil {
 		return util.SchemaEventPayload{}, fmt.Errorf("failed to convert row to Debezium: %w", err)
 	}
