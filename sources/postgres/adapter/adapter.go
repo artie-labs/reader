@@ -19,11 +19,10 @@ import (
 const defaultErrorRetries = 10
 
 type postgresAdapter struct {
-	db           *sql.DB
-	table        postgres.Table
-	fields       []transferDbz.Field
-	scannerCfg   scan.ScannerConfig
-	rowConverter converters.RowConverter
+	db              *sql.DB
+	table           postgres.Table
+	scannerCfg      scan.ScannerConfig
+	fieldConverters []transformer.FieldConverter
 }
 
 func NewPostgresAdapter(db *sql.DB, tableCfg config.PostgreSQLTable) (postgresAdapter, error) {
@@ -33,23 +32,20 @@ func NewPostgresAdapter(db *sql.DB, tableCfg config.PostgreSQLTable) (postgresAd
 		return postgresAdapter{}, fmt.Errorf("failed to load metadata for table %s.%s: %w", tableCfg.Schema, tableCfg.Name, err)
 	}
 
-	fields := make([]transferDbz.Field, len(table.Columns))
-	valueConverters := map[string]converters.ValueConverter{}
+	fieldConverters := make([]transformer.FieldConverter, len(table.Columns))
 	for i, col := range table.Columns {
 		converter, err := valueConverterForType(col.Type, col.Opts)
 		if err != nil {
 			return postgresAdapter{}, fmt.Errorf("failed to build value converter for column %s: %w", col.Name, err)
 		}
-		fields[i] = converter.ToField(col.Name)
-		valueConverters[col.Name] = converter
+		fieldConverters[i] = transformer.FieldConverter{Name: col.Name, ValueConverter: converter}
 	}
 
 	return postgresAdapter{
-		db:           db,
-		table:        *table,
-		fields:       fields,
-		scannerCfg:   tableCfg.ToScannerConfig(defaultErrorRetries),
-		rowConverter: converters.NewRowConverter(valueConverters),
+		db:              db,
+		table:           *table,
+		fieldConverters: fieldConverters,
+		scannerCfg:      tableCfg.ToScannerConfig(defaultErrorRetries),
 	}, nil
 }
 
@@ -61,8 +57,8 @@ func (p postgresAdapter) TopicSuffix() string {
 	return fmt.Sprintf("%s.%s", p.table.Schema, strings.ReplaceAll(p.table.Name, `"`, ``))
 }
 
-func (p postgresAdapter) Fields() []transferDbz.Field {
-	return p.fields
+func (p postgresAdapter) FieldConverters() []transformer.FieldConverter {
+	return p.fieldConverters
 }
 
 func (p postgresAdapter) NewIterator() (transformer.RowsIterator, error) {
@@ -76,10 +72,6 @@ func (p postgresAdapter) PartitionKey(row map[string]any) map[string]any {
 		result[key] = row[key]
 	}
 	return result
-}
-
-func (p postgresAdapter) ConvertRowToDebezium(row map[string]any) (map[string]any, error) {
-	return p.rowConverter.Convert(row)
 }
 
 func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (converters.ValueConverter, error) {

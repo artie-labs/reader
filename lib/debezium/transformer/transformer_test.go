@@ -7,12 +7,30 @@ import (
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/artie-labs/reader/lib/debezium/converters"
 )
 
+type MockConverter struct {
+	intConverter bool
+}
+
+func (m MockConverter) ToField(name string) debezium.Field {
+	if m.intConverter {
+		return converters.Int32Passthrough{}.ToField(name)
+	} else {
+		return converters.StringPassthrough{}.ToField(name)
+	}
+}
+
+func (MockConverter) Convert(value any) (any, error) {
+	return fmt.Sprintf("converted-%v", value), nil
+}
+
 type mockAdatper struct {
-	partitionKeys []string
-	fields        []debezium.Field
-	iter          RowsIterator
+	partitionKeys   []string
+	fieldConverters []FieldConverter
+	iter            RowsIterator
 }
 
 func (m mockAdatper) TableName() string {
@@ -31,20 +49,12 @@ func (m mockAdatper) PartitionKey(row map[string]any) map[string]any {
 	return result
 }
 
-func (m mockAdatper) Fields() []debezium.Field {
-	return m.fields
+func (m mockAdatper) FieldConverters() []FieldConverter {
+	return m.fieldConverters
 }
 
 func (m mockAdatper) NewIterator() (RowsIterator, error) {
 	return m.iter, nil
-}
-
-func (m mockAdatper) ConvertRowToDebezium(row map[string]any) (map[string]any, error) {
-	newRow := make(map[string]any)
-	for key, value := range row {
-		newRow[key] = fmt.Sprintf("converted-%v", value)
-	}
-	return newRow, nil
 }
 
 type mockIterator struct {
@@ -92,10 +102,14 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 	}
 	{
 		// One non-empty batch
+		fieldConverters := []FieldConverter{
+			{Name: "foo", ValueConverter: MockConverter{intConverter: false}},
+			{Name: "qux", ValueConverter: MockConverter{intConverter: true}},
+		}
 		batches := [][]map[string]any{{
 			{"foo": "bar", "qux": "quux"},
 		}}
-		transformer, err := NewDebeziumTransformer(mockAdatper{iter: &mockIterator{batches: batches}})
+		transformer, err := NewDebeziumTransformer(mockAdatper{fieldConverters: fieldConverters, iter: &mockIterator{batches: batches}})
 		assert.NoError(t, err)
 		// First batch
 		assert.True(t, transformer.HasNext())
@@ -114,6 +128,12 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 	}
 	{
 		// Two non-empty batches, one empty batch
+		fieldConverters := []FieldConverter{
+			{Name: "foo", ValueConverter: MockConverter{}},
+			{Name: "qux", ValueConverter: MockConverter{}},
+			{Name: "corge", ValueConverter: MockConverter{}},
+			{Name: "garply", ValueConverter: MockConverter{}},
+		}
 		batches := [][]map[string]any{
 			{
 				{"foo": "bar", "qux": "quux"},
@@ -123,7 +143,7 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 				{"corge": "grault", "garply": "waldo"},
 			},
 		}
-		transformer, err := NewDebeziumTransformer(mockAdatper{iter: &mockIterator{batches: batches}})
+		transformer, err := NewDebeziumTransformer(mockAdatper{fieldConverters: fieldConverters, iter: &mockIterator{batches: batches}})
 		assert.NoError(t, err)
 		// First batch
 		assert.True(t, transformer.HasNext())
@@ -154,15 +174,16 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 }
 
 func TestDebeziumTransformer_Next(t *testing.T) {
-	fields := []debezium.Field{
-		{Type: "string"},
-		{Type: "int"},
+	fieldConverters := []FieldConverter{
+		{Name: "foo", ValueConverter: MockConverter{intConverter: false}},
+		{Name: "qux", ValueConverter: MockConverter{intConverter: true}},
+		{Name: "baz", ValueConverter: MockConverter{intConverter: false}},
 	}
 	batches := [][]map[string]any{{
 		{"foo": "bar", "qux": 12, "baz": "corge"},
 	}}
 	transformer, err := NewDebeziumTransformer(
-		mockAdatper{fields: fields, partitionKeys: []string{"foo", "qux"}, iter: &mockIterator{batches: batches}},
+		mockAdatper{fieldConverters: fieldConverters, partitionKeys: []string{"foo", "qux"}, iter: &mockIterator{batches: batches}},
 	)
 	assert.NoError(t, err)
 	assert.True(t, transformer.HasNext())
@@ -182,9 +203,13 @@ func TestDebeziumTransformer_Next(t *testing.T) {
 				FieldsObject: []debezium.FieldsObject{
 					{
 						FieldObjectType: "",
-						Fields:          []debezium.Field{{Type: "string"}, {Type: "int"}},
-						Optional:        false,
-						FieldLabel:      "after",
+						Fields: []debezium.Field{
+							{FieldName: "foo", Type: "string"},
+							{FieldName: "qux", Type: "int32"},
+							{FieldName: "baz", Type: "string"},
+						},
+						Optional:   false,
+						FieldLabel: "after",
 					},
 				},
 			},
@@ -199,12 +224,12 @@ func TestDebeziumTransformer_Next(t *testing.T) {
 }
 
 func TestDebeziumTransformer_CreatePayload(t *testing.T) {
-	fields := []debezium.Field{
-		{Type: "string"},
-		{Type: "int"},
+	fieldConverters := []FieldConverter{
+		{Name: "foo", ValueConverter: MockConverter{intConverter: false}},
+		{Name: "qux", ValueConverter: MockConverter{intConverter: true}},
 	}
 
-	transformer, err := NewDebeziumTransformer(mockAdatper{fields: fields, iter: &mockIterator{}})
+	transformer, err := NewDebeziumTransformer(mockAdatper{fieldConverters: fieldConverters, iter: &mockIterator{}})
 	assert.NoError(t, err)
 	payload, err := transformer.createPayload(map[string]any{"foo": "bar", "qux": "quux"})
 	assert.NoError(t, err)
@@ -215,7 +240,7 @@ func TestDebeziumTransformer_CreatePayload(t *testing.T) {
 				SchemaType: "",
 				FieldsObject: []debezium.FieldsObject{
 					{
-						Fields:     []debezium.Field{{Type: "string"}, {Type: "int"}},
+						Fields:     []debezium.Field{{FieldName: "foo", Type: "string"}, {FieldName: "qux", Type: "int32"}},
 						Optional:   false,
 						FieldLabel: "after",
 					},

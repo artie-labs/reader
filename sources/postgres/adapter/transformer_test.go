@@ -75,10 +75,10 @@ func TestDebeziumTransformer(t *testing.T) {
 		builder := transformer.NewDebeziumTransformerWithIterator(
 			postgresAdapter{
 				table: table,
-				rowConverter: converters.NewRowConverter(map[string]converters.ValueConverter{
-					"a": converters.StringPassthrough{},
-					"b": converters.StringPassthrough{},
-				}),
+				fieldConverters: []transformer.FieldConverter{
+					{Name: "a", ValueConverter: converters.StringPassthrough{}},
+					{Name: "b", ValueConverter: converters.StringPassthrough{}},
+				},
 			},
 			&MockRowIterator{
 				batches: [][]map[string]any{
@@ -132,10 +132,10 @@ func TestDebeziumTransformer_NilOptionalSchema(t *testing.T) {
 	builder := transformer.NewDebeziumTransformerWithIterator(
 		postgresAdapter{
 			table: table,
-			rowConverter: converters.NewRowConverter(map[string]converters.ValueConverter{
-				"user_id": converters.Int16Passthrough{},
-				"name":    converters.StringPassthrough{},
-			}),
+			fieldConverters: []transformer.FieldConverter{
+				{Name: "user_id", ValueConverter: converters.Int16Passthrough{}},
+				{Name: "name", ValueConverter: converters.StringPassthrough{}},
+			},
 		},
 		&MockRowIterator{batches: [][]map[string]any{{rowData}}},
 	)
