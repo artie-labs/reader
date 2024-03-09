@@ -123,7 +123,12 @@ func ConvertValues(values []any, cols []Column) ([]any, error) {
 		col := cols[idx]
 		convertedVal, err := ConvertValue(value, col.Type)
 		if err != nil {
-			return nil, fmt.Errorf("faild to convert value for column %s, values: %v: %w", col.Name, values, err)
+			rowToLog := make(map[string]any)
+			for i, v := range values {
+				rowToLog[cols[i].Name] = v
+			}
+
+			return nil, fmt.Errorf("faild to convert value for column %s, row: %v: %w", col.Name, rowToLog, err)
 		}
 		result[idx] = convertedVal
 	}

@@ -2,8 +2,6 @@ package scanner
 
 import (
 	"database/sql"
-	"fmt"
-
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/mysql/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
@@ -38,7 +36,7 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 func (s scanAdapter) ParseRow(values []any) (map[string]any, error) {
 	convertedValues, err := schema.ConvertValues(values, s.columns)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse values, ")
+		return nil, err
 	}
 
 	row := make(map[string]any)
