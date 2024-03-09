@@ -19,10 +19,11 @@ import (
 const defaultErrorRetries = 10
 
 type postgresAdapter struct {
-	db         *sql.DB
-	table      postgres.Table
-	fields     []transferDbz.Field
-	scannerCfg scan.ScannerConfig
+	db           *sql.DB
+	table        postgres.Table
+	fields       []transferDbz.Field
+	scannerCfg   scan.ScannerConfig
+	rowConverter converters.RowConverter
 }
 
 func NewPostgresAdapter(db *sql.DB, tableCfg config.PostgreSQLTable) (postgresAdapter, error) {
@@ -33,18 +34,22 @@ func NewPostgresAdapter(db *sql.DB, tableCfg config.PostgreSQLTable) (postgresAd
 	}
 
 	fields := make([]transferDbz.Field, len(table.Columns))
+	valueConverters := map[string]converters.ValueConverter{}
 	for i, col := range table.Columns {
-		fields[i], err = ColumnToField(col)
+		converter, err := valueConverterForType(col.Type, col.Opts)
 		if err != nil {
-			return postgresAdapter{}, fmt.Errorf("failed to build field for column %s: %w", col.Name, err)
+			return postgresAdapter{}, fmt.Errorf("failed to build value converter for column %s: %w", col.Name, err)
 		}
+		fields[i] = converter.ToField(col.Name)
+		valueConverters[col.Name] = converter
 	}
 
 	return postgresAdapter{
-		db:         db,
-		table:      *table,
-		fields:     fields,
-		scannerCfg: tableCfg.ToScannerConfig(defaultErrorRetries),
+		db:           db,
+		table:        *table,
+		fields:       fields,
+		scannerCfg:   tableCfg.ToScannerConfig(defaultErrorRetries),
+		rowConverter: converters.NewRowConverter(valueConverters),
 	}, nil
 }
 
@@ -74,63 +79,55 @@ func (p postgresAdapter) PartitionKey(row map[string]any) map[string]any {
 }
 
 func (p postgresAdapter) ConvertRowToDebezium(row map[string]any) (map[string]any, error) {
-	result := make(map[string]any)
-	for key, value := range row {
-		col, err := p.table.GetColumnByName(key)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get column %s by name: %w", key, err)
-		}
-
-		val, err := convertValueToDebezium(*col, value)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert value: %w", err)
-		}
-
-		result[key] = val
-	}
-	return result, nil
+	return p.rowConverter.Convert(row)
 }
 
-func convertValueToDebezium(col schema.Column, value any) (any, error) {
-	if value == nil {
-		return value, nil
-	}
-
-	if converter := valueConverterForType(col.Type, col.Opts); converter != nil {
-		return converter.Convert(value)
-	}
-
-	return value, nil
-}
-
-func valueConverterForType(dataType schema.DataType, opts *schema.Opts) converters.ValueConverter {
-	// TODO: Implement all Postgres types
+func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (converters.ValueConverter, error) {
+	// TODO: Replace uses of `NewPassthroughConverter` with type specific converters
 	switch dataType {
 	case schema.VariableNumeric:
-		return converters.VariableNumericConverter{}
+		return converters.VariableNumericConverter{}, nil
 	case schema.Numeric:
-		return converters.NewDecimalConverter(opts.Scale, &opts.Precision)
+		return converters.NewDecimalConverter(opts.Scale, &opts.Precision), nil
 	case schema.Money:
-		return MoneyConverter{}
+		return MoneyConverter{}, nil
 	case schema.Bytea:
-		return converters.BytesPassthrough{}
+		return converters.BytesPassthrough{}, nil
 	case schema.Date:
-		return converters.DateConverter{}
+		return converters.DateConverter{}, nil
 	case schema.Timestamp:
-		return PgTimestampConverter{}
+		return PgTimestampConverter{}, nil
 	case schema.UUID:
-		return converters.UUIDConverter{}
+		return converters.UUIDConverter{}, nil
 	case schema.JSON:
-		return converters.JSONConverter{}
+		return converters.JSONConverter{}, nil
 	case schema.HStore:
-		return converters.MapConverter{}
+		return converters.MapConverter{}, nil
 	case schema.Point:
-		return converters.NewPointConverter()
+		return converters.NewPointConverter(), nil
 	case schema.Geometry:
-		return converters.NewGeometryConverter()
+		return converters.NewGeometryConverter(), nil
 	case schema.Geography:
-		return converters.NewGeographyConverter()
+		return converters.NewGeographyConverter(), nil
+	case schema.Boolean, schema.Bit:
+		return NewPassthroughConverter("boolean", ""), nil
+	case schema.Text, schema.UserDefinedText, schema.Inet:
+		return NewPassthroughConverter("string", ""), nil
+	case schema.Interval:
+		return NewPassthroughConverter("int64", "io.debezium.time.MicroDuration"), nil
+	case schema.Array:
+		return NewPassthroughConverter("array", ""), nil
+	case schema.Float:
+		return NewPassthroughConverter("float", ""), nil
+	case schema.Int16:
+		return NewPassthroughConverter("int16", ""), nil
+	case schema.Int32:
+		return NewPassthroughConverter("int32", ""), nil
+	case schema.Int64:
+		return NewPassthroughConverter("int64", ""), nil
+	case schema.Time:
+		return NewPassthroughConverter("int32", string(transferDbz.Time)), nil
 	default:
-		return nil
+		return nil, fmt.Errorf("unsupported data type: DataType(%d)", dataType)
 	}
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
 
-func TestColumnToField(t *testing.T) {
+func TestValueConverterForType_Fields(t *testing.T) {
 	type _testCase struct {
 		name     string
 		colName  string
@@ -130,10 +130,10 @@ func TestColumnToField(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		col := schema.Column{Name: testCase.colName, Type: testCase.dataType, Opts: testCase.opts}
-		field, err := ColumnToField(col)
+		converter, err := valueConverterForType(testCase.dataType, testCase.opts)
 		if testCase.expectedErr == "" {
 			assert.NoError(t, err, testCase.name)
+			field := converter.ToField(testCase.colName)
 			assert.Equal(t, testCase.expected, field, testCase.name)
 		} else {
 			assert.ErrorContains(t, err, testCase.expectedErr, testCase.name)

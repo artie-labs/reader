@@ -43,7 +43,7 @@ func newMySQLAdapter(db *sql.DB, table mysql.Table, scannerCfg scan.ScannerConfi
 	for i, col := range table.Columns {
 		converter, err := valueConverterForType(col.Type, col.Opts)
 		if err != nil {
-			return mysqlAdapter{}, fmt.Errorf("failed to build field for column %s: %w", col.Name, err)
+			return mysqlAdapter{}, fmt.Errorf("failed to build value converter for column %s: %w", col.Name, err)
 		}
 		fields[i] = converter.ToField(col.Name)
 		valueConverters[col.Name] = converter
