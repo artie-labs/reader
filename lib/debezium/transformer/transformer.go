@@ -119,6 +119,7 @@ func (d *DebeziumTransformer) createPayload(row Row) (util.SchemaEventPayload, e
 	}, nil
 }
 
+// TODO: Add tests for this function
 func convertRow(valueConverters map[string]converters.ValueConverter, row map[string]any) (map[string]any, error) {
 	result := make(map[string]any)
 	for key, value := range row {
