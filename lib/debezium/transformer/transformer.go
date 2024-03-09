@@ -33,10 +33,10 @@ type Adapter interface {
 }
 
 type DebeziumTransformer struct {
-	adapter      Adapter
-	schema       debezium.Schema
-	iter         RowsIterator
-	rowConverter converters.RowConverter
+	adapter         Adapter
+	schema          debezium.Schema
+	iter            RowsIterator
+	valueConverters map[string]converters.ValueConverter
 }
 
 func NewDebeziumTransformer(adapter Adapter) (*DebeziumTransformer, error) {
@@ -65,10 +65,10 @@ func NewDebeziumTransformerWithIterator(adapter Adapter, iter RowsIterator) *Deb
 	}
 
 	return &DebeziumTransformer{
-		adapter:      adapter,
-		schema:       schema,
-		iter:         iter,
-		rowConverter: converters.NewRowConverter(valueConverters),
+		adapter:         adapter,
+		schema:          schema,
+		iter:            iter,
+		valueConverters: valueConverters,
 	}
 }
 
@@ -99,7 +99,7 @@ func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 }
 
 func (d *DebeziumTransformer) createPayload(row Row) (util.SchemaEventPayload, error) {
-	dbzRow, err := d.rowConverter.Convert(row)
+	dbzRow, err := convertRow(d.valueConverters, row)
 	if err != nil {
 		return util.SchemaEventPayload{}, fmt.Errorf("failed to convert row to Debezium: %w", err)
 	}
@@ -117,4 +117,25 @@ func (d *DebeziumTransformer) createPayload(row Row) (util.SchemaEventPayload, e
 		Schema:  d.schema,
 		Payload: payload,
 	}, nil
+}
+
+func convertRow(valueConverters map[string]converters.ValueConverter, row map[string]any) (map[string]any, error) {
+	result := make(map[string]any)
+	for key, value := range row {
+		valueConverter, isOk := valueConverters[key]
+		if !isOk {
+			return nil, fmt.Errorf("failed to get ValueConverter for key %s", key)
+		}
+
+		if value != nil {
+			var err error
+			value, err = valueConverter.Convert(value)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert value: %w", err)
+			}
+		}
+
+		result[key] = value
+	}
+	return result, nil
 }
