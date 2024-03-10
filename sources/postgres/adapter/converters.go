@@ -3,6 +3,7 @@ package adapter
 import (
 	"fmt"
 	"log/slog"
+	"math"
 	"time"
 
 	transferDbz "github.com/artie-labs/transfer/lib/debezium"
@@ -108,8 +109,13 @@ func (PgIntervalConverter) Convert(value any) (any, error) {
 	}
 
 	totalDays := float64(intervalValue.Days) + float64(intervalValue.Months)*365.25/12.0
-	microsecondsInDay := (time.Duration(24) * time.Hour) / time.Microsecond
-	daysInMicroseconds := int64(totalDays * float64(microsecondsInDay))
+	microsecondsInDay := float64((time.Duration(24) * time.Hour) / time.Microsecond)
+	if totalDays > math.MaxInt64/microsecondsInDay {
+		return nil, fmt.Errorf("positive microseconds are too large for an int64")
+	} else if totalDays < math.MinInt64/microsecondsInDay {
+		return nil, fmt.Errorf("negative microseconds are too large for an int64")
+	}
+	daysInMicroseconds := int64(totalDays * microsecondsInDay)
 
 	return intervalValue.Microseconds + daysInMicroseconds, nil
 }
