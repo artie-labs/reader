@@ -23,7 +23,7 @@ func (TimeConverter) Convert(value any) (any, error) {
 	return asInt32(value)
 }
 
-// Represents the number of microseconds past midnight.
+// Represents the number of microseconds past midnight, and does not include timezone information.
 type MicroTimeConverter struct{}
 
 func (MicroTimeConverter) ToField(name string) debezium.Field {

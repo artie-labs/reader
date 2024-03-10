@@ -15,12 +15,12 @@ func castColumn(col schema.Column) (string, error) {
 		return fmt.Sprintf("%s::text", colName), nil
 	case schema.Time, schema.Interval:
 		// We want to extract(epoch from interval) will emit this in ms
-		// However, Debezium wants this in macro seconds, so we are multiplying this by 1000.
+		// However, Debezium wants this in microseconds, so we are multiplying this by 1000.
 		// We need to use CAST, because regular ::int makes this into a bytes array.
 		// extract from epoch outputs in seconds, default multiplier to ms.
 		multiplier := 1000
 		if col.Type == schema.Interval {
-			// ms to macro seconds.
+			// ms to microseconds.
 			multiplier = 1000 * 1000
 		}
 
