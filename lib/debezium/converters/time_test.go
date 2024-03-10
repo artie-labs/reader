@@ -55,6 +55,11 @@ func TestDateConverter_Convert(t *testing.T) {
 		assert.Equal(t, nil, value)
 	}
 	{
+		// string - malformed
+		_, err := converter.Convert("aaaa-bb-cc")
+		assert.ErrorContains(t, err, `failed to convert to date: parsing time "aaaa-bb-cc" as "2006-01-02"`)
+	}
+	{
 		// string - 2023-05-03
 		value, err := converter.Convert("2023-05-03")
 		assert.NoError(t, err)

@@ -59,7 +59,7 @@ func (DateConverter) Convert(value any) (any, error) {
 		var err error
 		timeValue, err = time.Parse(time.DateOnly, castValue)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse string '%s' to date: %w", castValue, err)
+			return nil, fmt.Errorf("failed to convert to date: %w", err)
 		}
 	default:
 		return nil, fmt.Errorf("expected string/time.Time got %T with value: %v", value, value)
