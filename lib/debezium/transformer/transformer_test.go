@@ -262,18 +262,18 @@ func TestDebeziumTransformer_PartitionKey(t *testing.T) {
 
 	testCases := []_tc{
 		{
-			name:     "no primary keys",
+			name:     "no partition keys",
 			row:      map[string]any{},
 			expected: map[string]any{},
 		},
 		{
-			name:     "primary keys - empty row",
+			name:     "partition keys - empty row",
 			keys:     []string{"foo", "bar"},
 			row:      map[string]any{},
 			expected: map[string]any{"foo": nil, "bar": nil},
 		},
 		{
-			name:     "primary keys - row has data",
+			name:     "partition keys - row has data",
 			keys:     []string{"foo", "bar"},
 			row:      map[string]any{"foo": "a", "bar": 2, "baz": 3},
 			expected: map[string]any{"foo": "a", "bar": 2},
