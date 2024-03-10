@@ -260,7 +260,7 @@ func TestDebeziumTransformer_PartitionKey(t *testing.T) {
 		expected map[string]any
 	}
 
-	tcs := []_tc{
+	testCases := []_tc{
 		{
 			name:     "no primary keys",
 			row:      map[string]any{},
@@ -280,7 +280,7 @@ func TestDebeziumTransformer_PartitionKey(t *testing.T) {
 		},
 	}
 
-	for _, testCase := range tcs {
+	for _, testCase := range testCases {
 		transformer, err := NewDebeziumTransformer(mockAdatper{partitionKeys: testCase.keys})
 		assert.NoError(t, err)
 		assert.Equal(t, testCase.expected, transformer.partitionKey(testCase.row), testCase.name)
