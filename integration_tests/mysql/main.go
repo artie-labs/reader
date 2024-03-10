@@ -41,6 +41,12 @@ func main() {
 		logger.Fatal("Could not connect to MySQL", slog.Any("err", err))
 	}
 
+	// Modify sql_mode so that we can use '0000-00-00' dates
+	_, err = db.Exec("SET GLOBAL sql_mode = '';")
+	if err != nil {
+		logger.Fatal("Unable to change sql_mode", slog.Any("err", err))
+	}
+
 	if err = testTypes(db); err != nil {
 		logger.Fatal("Types test failed", slog.Any("err", err))
 	}
