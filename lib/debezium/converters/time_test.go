@@ -146,10 +146,26 @@ func TestMicroDurationConverter_Convert(t *testing.T) {
 		assert.Equal(t, int64(3_153_600_000_000_000_000), value)
 	}
 	{
-		// 292,471 years (292,472 years will overflow)
+		// 292,471 years
 		value, err := NewMicroDurationConverter(time.Second).Convert(60 * 60 * 24 * 365 * 292_471)
 		assert.NoError(t, err)
-		assert.Equal(t, int64(9_217_058_256_000_000_000), value)
+		assert.Equal(t, int64(9_223_365_456_000_000_000), value)
+	}
+	{
+		// 292,472 years - overflows
+		_, err := NewMicroDurationConverter(time.Second).Convert(60 * 60 * 24 * 365 * 292_472)
+		assert.ErrorContains(t, err, "microsecond value is larger than MaxInt64")
+	}
+	{
+		// -292,471 years
+		value, err := NewMicroDurationConverter(time.Second).Convert(60 * 60 * 24 * 365 * -292_471)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(-9_223_365_456_000_000_000), value)
+	}
+	{
+		// -292,472 years - underflows
+		_, err := NewMicroDurationConverter(time.Second).Convert(60 * 60 * 24 * 365 * -292_472)
+		assert.ErrorContains(t, err, "microsecond value is smaller than MinInt64")
 	}
 }
 
