@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"time"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium/converters"
@@ -88,13 +89,13 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	case schema.Int64:
 		return converters.Int64Passthrough{}, nil
 	case schema.Time:
-		return converters.TimeConverter{}, nil
+		return converters.NewTimeConverter(time.Second), nil
 	case schema.Date:
 		return converters.DateConverter{}, nil
 	case schema.Timestamp:
 		return PgTimestampConverter{}, nil
 	case schema.Interval:
-		return converters.MicroDurationConverter{}, nil
+		return converters.NewMicroDurationConverter(time.Second), nil
 	case schema.UUID:
 		return converters.UUIDConverter{}, nil
 	case schema.JSON:

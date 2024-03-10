@@ -3,13 +3,18 @@ package converters
 import (
 	"fmt"
 	"log/slog"
+	"math"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/debezium"
 )
 
 // Represents the number of milliseconds past midnight, and does not include timezone information.
-type TimeConverter struct{}
+type TimeConverter struct{ inputUnit time.Duration }
+
+func NewTimeConverter(inputUnit time.Duration) TimeConverter {
+	return TimeConverter{inputUnit: inputUnit}
+}
 
 func (TimeConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
@@ -19,8 +24,18 @@ func (TimeConverter) ToField(name string) debezium.Field {
 	}
 }
 
-func (TimeConverter) Convert(value any) (any, error) {
-	return asInt32(value)
+func (t TimeConverter) Convert(value any) (any, error) {
+	int64Value, err := asInt64(value)
+	if err != nil {
+		return nil, err
+	}
+	result := (time.Duration(int64Value) * t.inputUnit) / time.Millisecond
+	if result > math.MaxInt32 {
+		return nil, fmt.Errorf("millisecond value is larger than MinInt32: %d", result)
+	} else if result < math.MinInt32 {
+		return nil, fmt.Errorf("millisecond value is smaller than MinInt32: %d", result)
+	}
+	return int32(result), nil
 }
 
 // Represents the number of microseconds past midnight, and does not include timezone information.
@@ -51,7 +66,11 @@ func (MicroTimeConverter) Convert(value any) (any, error) {
 }
 
 // The approximate number of microseconds for a time interval using the 365.25 / 12.0 formula for days per month average.
-type MicroDurationConverter struct{}
+type MicroDurationConverter struct{ inputUnit time.Duration }
+
+func NewMicroDurationConverter(inputUnit time.Duration) MicroDurationConverter {
+	return MicroDurationConverter{inputUnit: inputUnit}
+}
 
 func (MicroDurationConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
@@ -61,8 +80,18 @@ func (MicroDurationConverter) ToField(name string) debezium.Field {
 	}
 }
 
-func (MicroDurationConverter) Convert(value any) (any, error) {
-	return asInt64(value)
+func (m MicroDurationConverter) Convert(value any) (any, error) {
+	int64Value, err := asInt64(value)
+	if err != nil {
+		return nil, err
+	}
+
+	if m.inputUnit >= time.Microsecond {
+		// Prevent overflows by dividing the unit first
+		return int64Value * (int64(m.inputUnit) / int64(time.Microsecond)), nil
+	} else {
+		return (int64Value * int64(m.inputUnit)) / int64(time.Microsecond), nil
+	}
 }
 
 type DateConverter struct{}

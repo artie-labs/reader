@@ -8,6 +8,61 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestTimeConverter_Convert(t *testing.T) {
+	{
+		// 1 nanosecond
+		value, err := NewTimeConverter(time.Nanosecond).Convert(1)
+		assert.NoError(t, err)
+		assert.Equal(t, int32(0), value)
+	}
+	{
+		// 1 microsecond
+		value, err := NewTimeConverter(time.Microsecond).Convert(1)
+		assert.NoError(t, err)
+		assert.Equal(t, int32(0), value)
+	}
+	{
+		// 1000 microsecond
+		value, err := NewTimeConverter(time.Microsecond).Convert(1000)
+		assert.NoError(t, err)
+		assert.Equal(t, int32(1), value)
+	}
+	{
+		// 1 millisecond
+		value, err := NewTimeConverter(time.Millisecond).Convert(1)
+		assert.NoError(t, err)
+		assert.Equal(t, int32(1), value)
+	}
+	{
+		// 1 second
+		value, err := NewTimeConverter(time.Second).Convert(1)
+		assert.NoError(t, err)
+		assert.Equal(t, int32(1000), value)
+	}
+	{
+		// 24 hour
+		value, err := NewTimeConverter(time.Hour).Convert(24)
+		assert.NoError(t, err)
+		assert.Equal(t, int32(86_400_000), value)
+	}
+	{
+		// 24 days
+		value, err := NewTimeConverter(time.Hour).Convert(24 * 24)
+		assert.NoError(t, err)
+		assert.Equal(t, int32(2_073_600_000), value)
+	}
+	{
+		// 25 days - overflows int32
+		_, err := NewTimeConverter(time.Hour).Convert(24 * 25)
+		assert.ErrorContains(t, err, "millisecond value is larger than MinInt32: 2160000000")
+	}
+	{
+		// -25 days - underflows int32
+		_, err := NewTimeConverter(time.Hour).Convert(24 * -25)
+		assert.ErrorContains(t, err, "millisecond value is smaller than MinInt32: -2160000000")
+	}
+}
+
 func TestMicroTimeConverter_Convert(t *testing.T) {
 	converter := MicroTimeConverter{}
 	{
@@ -38,6 +93,45 @@ func TestMicroTimeConverter_Convert(t *testing.T) {
 		value, err := converter.Convert("01:00:00")
 		assert.NoError(t, err)
 		assert.Equal(t, int64(1000_000*60*60), value)
+	}
+}
+
+func TestMicroDurationConverter_Convert(t *testing.T) {
+	{
+		// 1 nanosecond
+		value, err := NewMicroDurationConverter(time.Nanosecond).Convert(1)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(0), value)
+	}
+	{
+		// 1000 nanosecond
+		value, err := NewMicroDurationConverter(time.Nanosecond).Convert(1000)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(1), value)
+	}
+	{
+		// 1 microsecond
+		value, err := NewMicroDurationConverter(time.Microsecond).Convert(1)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(1), value)
+	}
+	{
+		// 1 millisecond
+		value, err := NewMicroDurationConverter(time.Millisecond).Convert(1)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(1000), value)
+	}
+	{
+		// 1 second
+		value, err := NewMicroDurationConverter(time.Second).Convert(1)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(1_000_000), value)
+	}
+	{
+		// 8_760_000 hours (1000 years)
+		value, err := NewMicroDurationConverter(time.Hour).Convert(8_760_000)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(31_536_000_000_000_000), value)
 	}
 }
 
