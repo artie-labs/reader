@@ -128,10 +128,28 @@ func TestMicroDurationConverter_Convert(t *testing.T) {
 		assert.Equal(t, int64(1_000_000), value)
 	}
 	{
-		// 8_760_000 hours (1000 years)
-		value, err := NewMicroDurationConverter(time.Hour).Convert(8_760_000)
+		// 1000 years
+		value, err := NewMicroDurationConverter(time.Hour).Convert(24 * 365 * 1000)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(31_536_000_000_000_000), value)
+	}
+	{
+		// 100,000 years (as hours)
+		value, err := NewMicroDurationConverter(time.Hour).Convert(24 * 365 * 100_000)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(3_153_600_000_000_000_000), value)
+	}
+	{
+		// 100,000 years (as seconds)
+		value, err := NewMicroDurationConverter(time.Second).Convert(60 * 60 * 24 * 365 * 100_000)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(3_153_600_000_000_000_000), value)
+	}
+	{
+		// 292,471 years (292,472 years will overflow)
+		value, err := NewMicroDurationConverter(time.Second).Convert(60 * 60 * 24 * 365 * 292_471)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(9_217_058_256_000_000_000), value)
 	}
 }
 
