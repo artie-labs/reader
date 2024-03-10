@@ -15,10 +15,10 @@ func castColumn(col schema.Column) (string, error) {
 		return fmt.Sprintf("%s::text", colName), nil
 	case schema.Time:
 		// We want to extract(epoch from interval) will emit this in ms
-		// However, Debezium wants this in microseconds, so we are multiplying this by 1000 * 1000.
+		// However, Debezium wants this in microseconds, so we are multiplying this by 1000.
 		// We need to use CAST, because regular ::int makes this into a bytes array.
 		// extract from epoch outputs in seconds, default multiplier to ms.
-		return fmt.Sprintf(`cast(extract(epoch from %s)*%d as bigint) as "%s"`, colName, 1000*1000, col.Name), nil
+		return fmt.Sprintf(`cast(extract(epoch from %s)*%d as bigint) as "%s"`, colName, 1000, col.Name), nil
 	case schema.Array:
 		return fmt.Sprintf(`ARRAY_TO_JSON(%s)::TEXT as "%s"`, colName, col.Name), nil
 	case schema.Int16, schema.Int32, schema.Int64, schema.Float, schema.UUID,
