@@ -27,7 +27,8 @@ func TestShouldQuoteValue(t *testing.T) {
 		{"Interval", schema.Interval, false, "unsupported primary key type: DataType"},
 		{"Array", schema.Array, false, "unsupported primary key type: DataType"},
 		{"HStore", schema.HStore, true, "unsupported primary key type: DataType"},
-		{"Float", schema.Float, false, ""},
+		{"Real", schema.Real, false, ""},
+		{"Double", schema.Double, false, ""},
 		{"Int16", schema.Int16, false, ""},
 		{"Int32", schema.Int32, false, ""},
 		{"Int64", schema.Int64, false, ""},
@@ -84,9 +85,15 @@ func TestConvertToStringForQuery(t *testing.T) {
 			expected: "1234",
 		},
 		{
+			name:     "float32",
+			value:    float32(1234.1234),
+			dataType: schema.Real,
+			expected: "1234.1234",
+		},
+		{
 			name:     "float64",
 			value:    float64(1234.1234),
-			dataType: schema.Float,
+			dataType: schema.Double,
 			expected: "1234.1234",
 		},
 		{

@@ -92,7 +92,9 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 		schema.Geometry,  // Fails: parse error - invalid geometry (SQLSTATE XX000)
 		schema.Geography: // Fails: parse error - invalid geometry (SQLSTATE XX000)
 		return false, fmt.Errorf("unsupported primary key type: DataType(%d)", dataType)
-	case schema.Float,
+	case
+		schema.Real,
+		schema.Double,
 		schema.Int16,
 		schema.Int32,
 		schema.Int64,
@@ -132,7 +134,7 @@ func convertToStringForQuery(value any, dataType schema.DataType) (string, error
 		}
 	case float32, float64:
 		switch dataType {
-		case schema.Float:
+		case schema.Real, schema.Double:
 			return fmt.Sprint(value), nil
 		default:
 			slog.Error("float32/64 value with non-float column type",
