@@ -58,7 +58,7 @@ func TestParse(t *testing.T) {
 			name:        "array - invalid type",
 			dataType:    schema.Array,
 			value:       1234,
-			expectedErr: "expected array/string/[]byte got int with value: 1234",
+			expectedErr: "expected string/[]byte got int with value: 1234",
 		},
 		{
 			name:        "array - malformed",
