@@ -65,13 +65,8 @@ func (p postgresAdapter) NewIterator() (transformer.RowsIterator, error) {
 	return postgres.NewScanner(p.db, p.table, p.scannerCfg)
 }
 
-// PartitionKey returns a map of primary keys and their values for a given row.
-func (p postgresAdapter) PartitionKey(row map[string]any) map[string]any {
-	result := make(map[string]any)
-	for _, key := range p.table.PrimaryKeys {
-		result[key] = row[key]
-	}
-	return result
+func (p postgresAdapter) PartitionKeys() []string {
+	return p.table.PrimaryKeys
 }
 
 func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (converters.ValueConverter, error) {

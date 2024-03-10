@@ -49,45 +49,6 @@ func TestPostgresAdapter_TopicSuffix(t *testing.T) {
 	}
 }
 
-func TestPostgresAdapter_PartitionKey(t *testing.T) {
-	type _tc struct {
-		name     string
-		keys     []string
-		row      map[string]any
-		expected map[string]any
-	}
-
-	tcs := []_tc{
-		{
-			name:     "no primary keys",
-			row:      map[string]any{},
-			expected: map[string]any{},
-		},
-		{
-			name:     "primary keys - empty row",
-			keys:     []string{"foo", "bar"},
-			row:      map[string]any{},
-			expected: map[string]any{"foo": nil, "bar": nil},
-		},
-		{
-			name:     "primary keys - row has data",
-			keys:     []string{"foo", "bar"},
-			row:      map[string]any{"foo": "a", "bar": 2, "baz": 3},
-			expected: map[string]any{"foo": "a", "bar": 2},
-		},
-	}
-
-	for _, tc := range tcs {
-		table := postgres.Table{
-			Schema:      "schema",
-			Name:        "tbl1",
-			PrimaryKeys: tc.keys,
-		}
-		adapter := postgresAdapter{table: table}
-		assert.Equal(t, tc.expected, adapter.PartitionKey(tc.row), tc.name)
-	}
-}
-
 func TestValueConverterForType_ToField(t *testing.T) {
 	type _testCase struct {
 		name     string
