@@ -98,7 +98,7 @@ func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 	return result, nil
 }
 
-func (d *DebeziumTransformer) partitionKey(row map[string]any) map[string]any {
+func (d *DebeziumTransformer) partitionKey(row Row) map[string]any {
 	result := make(map[string]any)
 	for _, key := range d.adapter.PartitionKeys() {
 		result[key] = row[key]
