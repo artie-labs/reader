@@ -51,28 +51,28 @@ func TestDebeziumTransformer(t *testing.T) {
 
 	// test zero batches
 	{
-		builder := transformer.NewDebeziumTransformerWithIterator(
+		dbzTransformer := transformer.NewDebeziumTransformerWithIterator(
 			postgresAdapter{table: table},
 			&MockRowIterator{batches: [][]map[string]any{}},
 		)
-		assert.False(t, builder.HasNext())
+		assert.False(t, dbzTransformer.HasNext())
 	}
 
 	// test an iterator that returns an error
 	{
-		builder := transformer.NewDebeziumTransformerWithIterator(
+		dbzTransformer := transformer.NewDebeziumTransformerWithIterator(
 			postgresAdapter{table: table},
 			&ErrorRowIterator{},
 		)
 
-		assert.True(t, builder.HasNext())
-		_, err := builder.Next()
+		assert.True(t, dbzTransformer.HasNext())
+		_, err := dbzTransformer.Next()
 		assert.ErrorContains(t, err, "mock error")
 	}
 
 	// test two batches each with two rows
 	{
-		builder := transformer.NewDebeziumTransformerWithIterator(
+		dbzTransformer := transformer.NewDebeziumTransformerWithIterator(
 			postgresAdapter{
 				table: table,
 				fieldConverters: []transformer.FieldConverter{
@@ -88,8 +88,8 @@ func TestDebeziumTransformer(t *testing.T) {
 			},
 		)
 
-		assert.True(t, builder.HasNext())
-		msgs1, err := builder.Next()
+		assert.True(t, dbzTransformer.HasNext())
+		msgs1, err := dbzTransformer.Next()
 		assert.NoError(t, err)
 		assert.Len(t, msgs1, 2)
 		assert.Equal(t, "schema.table", msgs1[0].TopicSuffix)
@@ -99,8 +99,8 @@ func TestDebeziumTransformer(t *testing.T) {
 		assert.Equal(t, map[string]any{"a": "2"}, msgs1[1].PartitionKey)
 		assert.Equal(t, map[string]any{"a": "2", "b": "12"}, msgs1[1].GetPayload().(util.SchemaEventPayload).Payload.After)
 
-		assert.True(t, builder.HasNext())
-		msgs2, err := builder.Next()
+		assert.True(t, dbzTransformer.HasNext())
+		msgs2, err := dbzTransformer.Next()
 		assert.NoError(t, err)
 		assert.Len(t, msgs2, 2)
 		assert.Equal(t, "schema.table", msgs2[0].TopicSuffix)
@@ -110,7 +110,7 @@ func TestDebeziumTransformer(t *testing.T) {
 		assert.Equal(t, map[string]any{"a": "4"}, msgs2[1].PartitionKey)
 		assert.Equal(t, map[string]any{"a": "4", "b": "14"}, msgs2[1].GetPayload().(util.SchemaEventPayload).Payload.After)
 
-		assert.False(t, builder.HasNext())
+		assert.False(t, dbzTransformer.HasNext())
 	}
 }
 
@@ -129,7 +129,7 @@ func TestDebeziumTransformer_NilOptionalSchema(t *testing.T) {
 		"name":    "Robin",
 	}
 
-	builder := transformer.NewDebeziumTransformerWithIterator(
+	dbzTransformer := transformer.NewDebeziumTransformerWithIterator(
 		postgresAdapter{
 			table: table,
 			fieldConverters: []transformer.FieldConverter{
@@ -140,7 +140,7 @@ func TestDebeziumTransformer_NilOptionalSchema(t *testing.T) {
 		&MockRowIterator{batches: [][]map[string]any{{rowData}}},
 	)
 
-	rows, err := builder.Next()
+	rows, err := dbzTransformer.Next()
 	assert.NoError(t, err)
 	assert.NotNil(t, rows)
 	payload := rows[0].GetPayload().(util.SchemaEventPayload)
