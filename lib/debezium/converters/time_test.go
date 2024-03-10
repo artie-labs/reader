@@ -22,7 +22,7 @@ func TestTimeConverter_Convert(t *testing.T) {
 		assert.Equal(t, int32(0), value)
 	}
 	{
-		// 1000 microsecond
+		// 1000 microseconds
 		value, err := NewTimeConverter(time.Microsecond).Convert(1000)
 		assert.NoError(t, err)
 		assert.Equal(t, int32(1), value)
@@ -40,7 +40,7 @@ func TestTimeConverter_Convert(t *testing.T) {
 		assert.Equal(t, int32(1000), value)
 	}
 	{
-		// 24 hour
+		// 24 hours
 		value, err := NewTimeConverter(time.Hour).Convert(24)
 		assert.NoError(t, err)
 		assert.Equal(t, int32(86_400_000), value)
@@ -104,7 +104,7 @@ func TestMicroDurationConverter_Convert(t *testing.T) {
 		assert.Equal(t, int64(0), value)
 	}
 	{
-		// 1000 nanosecond
+		// 1000 nanoseconds
 		value, err := NewMicroDurationConverter(time.Nanosecond).Convert(1000)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(1), value)
