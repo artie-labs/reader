@@ -139,7 +139,7 @@ func TestPgIntervalConverter_Convert(t *testing.T) {
 		assert.ErrorContains(t, err, "negative microseconds are too large for an int64")
 	}
 	{
-		// Valid pgtype.Interval - overflow
+		// Valid pgtype.Interval - underflow
 		_, err := converter.Convert(pgtype.Interval{Valid: true, Microseconds: math.MinInt64, Days: -1})
 		assert.ErrorContains(t, err, "negative microseconds are too large for an int64")
 	}
