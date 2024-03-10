@@ -31,7 +31,6 @@ jobs:
         image: mysql:8.3
         env:
           MYSQL_ROOT_PASSWORD: mysql
-        build-args: "--sql_mode=\"\""
         options: >-
           --health-cmd "mysqladmin ping"
           --health-interval 10s
