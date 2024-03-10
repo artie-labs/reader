@@ -86,7 +86,7 @@ func (m MicroDurationConverter) Convert(value any) (any, error) {
 		return nil, err
 	}
 
-	if m.inputUnit >= time.Microsecond {
+	if m.inputUnit > time.Microsecond {
 		// Prevent overflows by computing the unit conversion first
 		unitConversion := int64(m.inputUnit / time.Microsecond)
 		if int64Value > math.MaxInt64/unitConversion {
@@ -96,12 +96,7 @@ func (m MicroDurationConverter) Convert(value any) (any, error) {
 		}
 		return int64Value * unitConversion, nil
 	} else {
-		if int64Value > math.MaxInt64/int64(m.inputUnit) {
-			return nil, fmt.Errorf("microsecond value is larger than MaxInt64")
-		} else if int64Value < math.MinInt64/int64(m.inputUnit) {
-			return nil, fmt.Errorf("microsecond value is smaller than MinInt64")
-		}
-		return (int64Value * int64(m.inputUnit)) / int64(time.Microsecond), nil
+		return int64Value / (int64(time.Microsecond / m.inputUnit)), nil
 	}
 }
 
