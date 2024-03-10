@@ -71,10 +71,8 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 			bytesValue = castValue
 		case string:
 			bytesValue = []byte(castValue)
-		case []any:
-			return castValue, nil
 		default:
-			return nil, fmt.Errorf("expected array/string/[]byte got %T with value: %v", value, value)
+			return nil, fmt.Errorf("expected string/[]byte got %T with value: %v", value, value)
 		}
 
 		var arr []any

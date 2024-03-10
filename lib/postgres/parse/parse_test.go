@@ -55,12 +55,6 @@ func TestParse(t *testing.T) {
 			expectedValue: []any{"foo", "bar", "abc"},
 		},
 		{
-			name:          "array - slice",
-			dataType:      schema.Array,
-			value:         []any{"foo", "bar", "abc"},
-			expectedValue: []any{"foo", "bar", "abc"},
-		},
-		{
 			name:        "array - invalid type",
 			dataType:    schema.Array,
 			value:       1234,
