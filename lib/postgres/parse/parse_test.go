@@ -67,6 +67,12 @@ func TestParse(t *testing.T) {
 			expectedErr: "expected array/string/[]byte got int with value: 1234",
 		},
 		{
+			name:        "array - malformed",
+			dataType:    schema.Array,
+			value:       "1234",
+			expectedErr: "failed to parse array value 1234:",
+		},
+		{
 			name:          "uuid",
 			dataType:      schema.UUID,
 			value:         "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
