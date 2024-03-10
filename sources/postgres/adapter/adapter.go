@@ -102,9 +102,9 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	case schema.Geography:
 		return converters.NewGeographyConverter(), nil
 	case schema.Boolean, schema.Bit:
-		return NewPassthroughConverter("boolean", ""), nil
+		return converters.BooleanPassthrough{}, nil
 	case schema.Text, schema.UserDefinedText, schema.Inet:
-		return NewPassthroughConverter("string", ""), nil
+		return converters.StringPassthrough{}, nil
 	case schema.Interval:
 		return NewPassthroughConverter("int64", "io.debezium.time.MicroDuration"), nil
 	case schema.Array:
@@ -112,11 +112,11 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	case schema.Float:
 		return NewPassthroughConverter("float", ""), nil
 	case schema.Int16:
-		return NewPassthroughConverter("int16", ""), nil
+		return converters.Int16Passthrough{}, nil
 	case schema.Int32:
-		return NewPassthroughConverter("int32", ""), nil
+		return converters.Int32Passthrough{}, nil
 	case schema.Int64:
-		return NewPassthroughConverter("int64", ""), nil
+		return converters.Int64Passthrough{}, nil
 	case schema.Time:
 		return NewPassthroughConverter("int32", string(transferDbz.Time)), nil
 	default:
