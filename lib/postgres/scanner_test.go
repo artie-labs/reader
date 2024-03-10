@@ -25,7 +25,7 @@ func TestShouldQuoteValue(t *testing.T) {
 		{"Boolean", schema.Boolean, false, ""},
 		{"Inet", schema.Inet, true, ""},
 		{"Text", schema.Text, true, ""},
-		{"Interval", schema.Interval, false, "unsupported primary key type: DataType"},
+		{"Interval", schema.Interval, false, "unexpected primary key type: DataType"},
 		{"Array", schema.Array, false, "unsupported primary key type: DataType"},
 		{"HStore", schema.HStore, true, "unsupported primary key type: DataType"},
 		{"Float", schema.Float, false, ""},
