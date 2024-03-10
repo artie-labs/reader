@@ -6,7 +6,7 @@ import (
 	"reflect"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
@@ -96,10 +96,10 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 			return nil, fmt.Errorf("failed to unmarshal hstore: %w", err)
 		}
 
-		jsonMap := make(map[string]any)
-		for key, value := range val.Map {
-			if value.Status == pgtype.Present {
-				jsonMap[key] = value.String
+		jsonMap := make(map[string]string)
+		for key, value := range val {
+			if value != nil {
+				jsonMap[key] = *value
 			}
 		}
 
