@@ -8,10 +8,25 @@ import (
 	"github.com/artie-labs/transfer/lib/debezium"
 )
 
+// Represents the number of milliseconds past midnight, and does not include timezone information.
+type TimeConverter struct{}
+
+func (TimeConverter) ToField(name string) debezium.Field {
+	return debezium.Field{
+		FieldName:    name,
+		Type:         "int32",
+		DebeziumType: string(debezium.Time),
+	}
+}
+
+func (TimeConverter) Convert(value any) (any, error) {
+	return asInt32(value)
+}
+
+// Represents the number of microseconds past midnight.
 type MicroTimeConverter struct{}
 
 func (MicroTimeConverter) ToField(name string) debezium.Field {
-	// Represents the number of microseconds past midnight.
 	return debezium.Field{
 		FieldName:    name,
 		Type:         "int64",
@@ -33,6 +48,21 @@ func (MicroTimeConverter) Convert(value any) (any, error) {
 	minutes := time.Duration(timeValue.Minute()) * time.Minute
 	seconds := time.Duration(timeValue.Second()) * time.Second
 	return int64((hours + minutes + seconds) / time.Microsecond), nil
+}
+
+// The approximate number of microseconds for a time interval using the 365.25 / 12.0 formula for days per month average.
+type MicroDurationConverter struct{}
+
+func (MicroDurationConverter) ToField(name string) debezium.Field {
+	return debezium.Field{
+		FieldName:    name,
+		Type:         "int64",
+		DebeziumType: "io.debezium.time.MicroDuration",
+	}
+}
+
+func (MicroDurationConverter) Convert(value any) (any, error) {
+	return asInt64(value)
 }
 
 type DateConverter struct{}

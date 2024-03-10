@@ -22,19 +22,19 @@ const (
 	Bytea
 	Inet
 	Text
-	Interval
+	UserDefinedText
 	Array
 	HStore
 	Float
 	Int16
 	Int32
 	Int64
-	UUID
-	UserDefinedText
-	JSON
-	Timestamp
 	Time
 	Date
+	Timestamp
+	Interval
+	UUID
+	JSON
 	// PostGIS
 	Point
 	Geometry
