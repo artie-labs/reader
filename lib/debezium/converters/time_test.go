@@ -45,20 +45,37 @@ func TestDateConverter_Convert(t *testing.T) {
 	converter := DateConverter{}
 	{
 		// Invalid value
-		_, err := converter.Convert("string value")
-		assert.ErrorContains(t, err, "object is not a time.Time object")
+		_, err := converter.Convert(12345)
+		assert.ErrorContains(t, err, "expected string/time.Time got int with value: 12345")
+	}
+	{
+		// string - 0000-00-00
+		value, err := converter.Convert("0000-00-00")
+		assert.NoError(t, err)
+		assert.Equal(t, nil, value)
+	}
+	{
+		// string - malformed
+		_, err := converter.Convert("aaaa-bb-cc")
+		assert.ErrorContains(t, err, `failed to convert to date: parsing time "aaaa-bb-cc" as "2006-01-02"`)
+	}
+	{
+		// string - 2023-05-03
+		value, err := converter.Convert("2023-05-03")
+		assert.NoError(t, err)
+		assert.Equal(t, int32(19480), value)
 	}
 	{
 		// time.Time
 		value, err := converter.Convert(time.Date(1971, 1, 1, 0, 0, 0, 0, time.UTC))
 		assert.NoError(t, err)
-		assert.Equal(t, 365, value)
+		assert.Equal(t, int32(365), value)
 	}
 	{
 		// time.Time
 		days, err := converter.Convert(time.Date(2023, 5, 3, 0, 0, 0, 0, time.UTC))
 		assert.NoError(t, err)
-		assert.Equal(t, 19480, days)
+		assert.Equal(t, int32(19480), days)
 	}
 }
 

@@ -41,6 +41,12 @@ func main() {
 		logger.Fatal("Could not connect to MySQL", slog.Any("err", err))
 	}
 
+	// Modify sql_mode so that we can use '0000-00-00' dates
+	_, err = db.Exec("SET SESSION sql_mode = ''")
+	if err != nil {
+		logger.Fatal("Unable to change sql_mode", slog.Any("err", err))
+	}
+
 	if err = testTypes(db); err != nil {
 		logger.Fatal("Types test failed", slog.Any("err", err))
 	}
@@ -79,6 +85,7 @@ CREATE TABLE %s (
 	c_bit BIT,
 	c_boolean BOOLEAN,
 	c_date DATE,
+	c_date_0000_00_00 DATE,
 	c_datetime DATETIME,
 	c_timestamp TIMESTAMP,
 	c_time TIME,
@@ -123,6 +130,8 @@ INSERT INTO %s VALUES (
 		false,
 	-- c_date
 		'2020-01-02',
+	-- c_date_0000_00_00
+		'0',
 	-- c_datetime
 		'2001-02-03 04:05:06',
 	-- c_timestamp
@@ -270,6 +279,14 @@ const expectedPayloadTemplate = `{
 						"parameters": null
 					},
 					{
+						"type": "int32",
+						"optional": false,
+						"default": null,
+						"field": "c_date_0000_00_00",
+						"name": "io.debezium.time.Date",
+						"parameters": null
+					},
+					{
 						"type": "string",
 						"optional": false,
 						"default": null,
@@ -389,6 +406,7 @@ const expectedPayloadTemplate = `{
 			"c_boolean": false,
 			"c_char": "X",
 			"c_date": 18263,
+			"c_date_0000_00_00": null,
 			"c_datetime": "2001-02-03T04:05:06Z",
 			"c_decimal": "EtRQ",
 			"c_double": 45.678,

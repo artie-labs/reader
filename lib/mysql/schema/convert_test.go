@@ -163,13 +163,13 @@ func TestConvertValue(t *testing.T) {
 			name:     "date",
 			dataType: Date,
 			value:    []byte("2021-01-02"),
-			expected: time.Date(2021, 1, 2, 0, 0, 0, 0, time.UTC),
+			expected: "2021-01-02",
 		},
 		{
-			name:     "date",
+			name:     "date - 0000-00-00",
 			dataType: Date,
 			value:    []byte("0000-00-00"),
-			expected: nil,
+			expected: "0000-00-00",
 		},
 		{
 			name:     "datetime",
