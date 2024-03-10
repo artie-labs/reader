@@ -115,5 +115,17 @@ func (PgIntervalConverter) Convert(value any) (any, error) {
 	} else if totalDays < math.MinInt64/microsecondsInDay {
 		return nil, fmt.Errorf("negative microseconds are too large for an int64")
 	}
-	return intervalValue.Microseconds + int64(totalDays*microsecondsInDay), nil
+	daysInMicroseconds := int64(totalDays * microsecondsInDay)
+
+	if daysInMicroseconds > 0 && intervalValue.Microseconds > 0 {
+		if daysInMicroseconds > math.MaxInt64-intervalValue.Microseconds {
+			return nil, fmt.Errorf("positive microseconds are too large for an int64")
+		}
+	} else if daysInMicroseconds < 0 && intervalValue.Microseconds < 0 {
+		if daysInMicroseconds < math.MinInt64+intervalValue.Microseconds {
+			return nil, fmt.Errorf("negative microseconds are too large for an int64")
+		}
+	}
+
+	return intervalValue.Microseconds + daysInMicroseconds, nil
 }

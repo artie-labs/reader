@@ -1,6 +1,7 @@
 package adapter
 
 import (
+	"math"
 	"testing"
 
 	transferDbz "github.com/artie-labs/transfer/lib/debezium"
@@ -122,6 +123,11 @@ func TestPgIntervalConverter_Convert(t *testing.T) {
 		assert.ErrorContains(t, err, "positive microseconds are too large for an int64")
 	}
 	{
+		// Valid pgtype.Interval - overflow
+		_, err := converter.Convert(pgtype.Interval{Valid: true, Microseconds: math.MaxInt64, Days: 1})
+		assert.ErrorContains(t, err, "positive microseconds are too large for an int64")
+	}
+	{
 		// Valid pgtype.Interval - very large but no underflow
 		value, err := converter.Convert(pgtype.Interval{Valid: true, Months: -292_000 * 12})
 		assert.NoError(t, err)
@@ -130,6 +136,11 @@ func TestPgIntervalConverter_Convert(t *testing.T) {
 	{
 		// Valid pgtype.Interval - underflow
 		_, err := converter.Convert(pgtype.Interval{Valid: true, Months: -293_000 * 12})
+		assert.ErrorContains(t, err, "negative microseconds are too large for an int64")
+	}
+	{
+		// Valid pgtype.Interval - overflow
+		_, err := converter.Convert(pgtype.Interval{Valid: true, Microseconds: math.MinInt64, Days: -1})
 		assert.ErrorContains(t, err, "negative microseconds are too large for an int64")
 	}
 }
