@@ -42,7 +42,7 @@ func main() {
 	}
 
 	// Modify sql_mode so that we can use '0000-00-00' dates
-	_, err = db.Exec("SET GLOBAL sql_mode = '';")
+	_, err = db.Exec("SET SESSION sql_mode = '';")
 	if err != nil {
 		logger.Fatal("Unable to change sql_mode", slog.Any("err", err))
 	}
