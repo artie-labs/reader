@@ -82,6 +82,8 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 
 func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 	switch dataType {
+	case schema.Interval: // We natively support pgtype.Interval in convertToStringForQuery
+		return false, fmt.Errorf("unexpected primary key type: DataType(%d)", dataType)
 	case
 		schema.Bit,       // Fails: operator does not exist: bit >= boolean (SQLSTATE 42883)
 		schema.Time,      // Fails: invalid input syntax for type time: "45296000" (SQLSTATE 22007)
