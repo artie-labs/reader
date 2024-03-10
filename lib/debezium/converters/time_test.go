@@ -110,6 +110,22 @@ func TestMicroDurationConverter_Convert(t *testing.T) {
 		assert.Equal(t, int64(1), value)
 	}
 	{
+		// a lot of nanoseconds
+		value, err := NewMicroDurationConverter(time.Nanosecond).Convert(math.MaxInt64)
+		assert.NoError(t, err)
+		assert.Equal(t, math.MaxInt64/int64(1000), value)
+	}
+	{
+		// a lot of nanoseconds - overflow
+		_, err := NewMicroDurationConverter(time.Nanosecond * 2).Convert(math.MaxInt64)
+		assert.ErrorContains(t, err, "microsecond value is larger than MaxInt64")
+	}
+	{
+		// a lot of negative nanoseconds - underflow
+		_, err := NewMicroDurationConverter(time.Nanosecond * 2).Convert(math.MinInt64)
+		assert.ErrorContains(t, err, "microsecond value is smaller than MinInt64")
+	}
+	{
 		// 1 microsecond
 		value, err := NewMicroDurationConverter(time.Microsecond).Convert(1)
 		assert.NoError(t, err)
