@@ -66,16 +66,58 @@ func TestDateConverter_Convert(t *testing.T) {
 		assert.Equal(t, int32(19480), value)
 	}
 	{
-		// time.Time
+		// time.Time - Unix epoch
+		days, err := converter.Convert(time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, int32(0), days)
+	}
+	{
+		// time.Time - Unix epoch + 1 day
+		days, err := converter.Convert(time.Date(1970, 1, 2, 0, 0, 0, 0, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, int32(1), days)
+	}
+	{
+		// time.Time - Unix epoch + 1 year
 		value, err := converter.Convert(time.Date(1971, 1, 1, 0, 0, 0, 0, time.UTC))
 		assert.NoError(t, err)
 		assert.Equal(t, int32(365), value)
 	}
 	{
-		// time.Time
+		// time.Time - 2003
 		days, err := converter.Convert(time.Date(2023, 5, 3, 0, 0, 0, 0, time.UTC))
 		assert.NoError(t, err)
 		assert.Equal(t, int32(19480), days)
+	}
+	{
+		// time.Time - 1969
+		days, err := converter.Convert(time.Date(1969, 1, 1, 0, 0, 0, 0, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, int32(-365), days)
+	}
+	{
+		// time.Time - Year 9999
+		days, err := converter.Convert(time.Date(9999, 1, 1, 0, 0, 0, 0, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, int32(2_932_532), days)
+	}
+	{
+		// time.Time - Year 10_000
+		days, err := converter.Convert(time.Date(10_000, 1, 1, 0, 0, 0, 0, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, int32(2_932_897), days)
+	}
+	{
+		// time.Time - Year 0
+		days, err := converter.Convert(time.Date(0, 1, 1, 0, 0, 0, 0, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, int32(-719_528), days)
+	}
+	{
+		// time.Time - Year -1
+		days, err := converter.Convert(time.Date(-1, 1, 1, 0, 0, 0, 0, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, int32(-719_893), days)
 	}
 }
 

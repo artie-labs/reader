@@ -64,8 +64,7 @@ func (DateConverter) Convert(value any) (any, error) {
 		return nil, fmt.Errorf("expected string/time.Time got %T with value: %v", value, value)
 	}
 
-	unix := time.UnixMilli(0).In(time.UTC) // 1970-01-01
-	return int32(timeValue.Sub(unix).Hours() / 24), nil
+	return int32(timeValue.Unix() / (60 * 60 * 24)), nil
 }
 
 type TimestampConverter struct{}
