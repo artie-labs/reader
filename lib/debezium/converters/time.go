@@ -31,7 +31,7 @@ func (t TimeConverter) Convert(value any) (any, error) {
 	}
 	result := (time.Duration(int64Value) * t.inputUnit) / time.Millisecond
 	if result > math.MaxInt32 {
-		return nil, fmt.Errorf("millisecond value is larger than MinInt32: %d", result)
+		return nil, fmt.Errorf("millisecond value is larger than MaxInt32: %d", result)
 	} else if result < math.MinInt32 {
 		return nil, fmt.Errorf("millisecond value is smaller than MinInt32: %d", result)
 	}

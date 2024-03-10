@@ -54,7 +54,7 @@ func TestTimeConverter_Convert(t *testing.T) {
 	{
 		// 25 days - overflows int32
 		_, err := NewTimeConverter(time.Hour).Convert(24 * 25)
-		assert.ErrorContains(t, err, "millisecond value is larger than MinInt32: 2160000000")
+		assert.ErrorContains(t, err, "millisecond value is larger than MaxInt32: 2160000000")
 	}
 	{
 		// -25 days - underflows int32
