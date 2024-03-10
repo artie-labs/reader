@@ -14,10 +14,8 @@ func castColumn(col schema.Column) (string, error) {
 	case schema.Inet:
 		return fmt.Sprintf("%s::text", colName), nil
 	case schema.Time, schema.Interval:
-		// We want to extract(epoch from interval) will emit this in ms
-		// However, Debezium wants this in microseconds, so we are multiplying this by 1000.
+		// Use extract(epoch from interval) to emit times and intervals in seconds.
 		// We need to use CAST, because regular ::int makes this into a bytes array.
-		// extract from epoch outputs in seconds, default multiplier to ms.
 		return fmt.Sprintf(`cast(extract(epoch from %s) as bigint) as "%s"`, colName, col.Name), nil
 	case schema.Array:
 		return fmt.Sprintf(`ARRAY_TO_JSON(%s)::TEXT as "%s"`, colName, col.Name), nil
