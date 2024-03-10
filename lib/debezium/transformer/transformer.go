@@ -98,7 +98,6 @@ func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 	return result, nil
 }
 
-// partitionKey returns a map of primary keys and their values for a given row.
 func (d *DebeziumTransformer) partitionKey(row Row) map[string]any {
 	result := make(map[string]any)
 	for _, key := range d.adapter.PartitionKeys() {
