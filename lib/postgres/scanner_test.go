@@ -124,7 +124,7 @@ func TestConvertToStringForQuery(t *testing.T) {
 			name:     "interval - invalid",
 			value:    pgtype.Interval{Days: 2, Months: 1, Microseconds: 1_000_000, Valid: false},
 			dataType: schema.Interval,
-			expected: `null`,
+			expected: "null",
 		},
 	}
 	for _, testCase := range testCases {
