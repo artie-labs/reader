@@ -118,7 +118,7 @@ func TestConvertToStringForQuery(t *testing.T) {
 			name:     "interval",
 			value:    pgtype.Interval{Days: 2, Months: 1, Microseconds: 1_000_000, Valid: true},
 			dataType: schema.Interval,
-			expected: `'1 mon 2 day 00:00:01.000000'`,
+			expected: "'1 mon 2 day 00:00:01.000000'",
 		},
 		{
 			name:     "interval - invalid",
