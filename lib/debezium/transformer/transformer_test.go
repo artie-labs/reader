@@ -41,12 +41,8 @@ func (m mockAdatper) TopicSuffix() string {
 	return "im-a-little-topic-suffix"
 }
 
-func (m mockAdatper) PartitionKey(row map[string]any) map[string]any {
-	result := map[string]any{}
-	for _, key := range m.partitionKeys {
-		result[key] = row[key]
-	}
-	return result
+func (m mockAdatper) PartitionKeys() []string {
+	return m.partitionKeys
 }
 
 func (m mockAdatper) FieldConverters() []FieldConverter {
@@ -254,4 +250,39 @@ func TestDebeziumTransformer_CreatePayload(t *testing.T) {
 		},
 	)
 	assert.Equal(t, expected, payload)
+}
+
+func TestDebeziumTransformer_PartitionKey(t *testing.T) {
+	type _tc struct {
+		name     string
+		keys     []string
+		row      map[string]any
+		expected map[string]any
+	}
+
+	testCases := []_tc{
+		{
+			name:     "no partition keys",
+			row:      map[string]any{},
+			expected: map[string]any{},
+		},
+		{
+			name:     "partition keys - empty row",
+			keys:     []string{"foo", "bar"},
+			row:      map[string]any{},
+			expected: map[string]any{"foo": nil, "bar": nil},
+		},
+		{
+			name:     "partition keys - row has data",
+			keys:     []string{"foo", "bar"},
+			row:      map[string]any{"foo": "a", "bar": 2, "baz": 3},
+			expected: map[string]any{"foo": "a", "bar": 2},
+		},
+	}
+
+	for _, testCase := range testCases {
+		transformer, err := NewDebeziumTransformer(mockAdatper{partitionKeys: testCase.keys})
+		assert.NoError(t, err)
+		assert.Equal(t, testCase.expected, transformer.partitionKey(testCase.row), testCase.name)
+	}
 }

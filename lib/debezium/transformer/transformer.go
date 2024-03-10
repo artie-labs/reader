@@ -27,7 +27,7 @@ type FieldConverter struct {
 type Adapter interface {
 	TableName() string
 	TopicSuffix() string
-	PartitionKey(row Row) map[string]any
+	PartitionKeys() []string
 	FieldConverters() []FieldConverter
 	NewIterator() (RowsIterator, error)
 }
@@ -93,9 +93,17 @@ func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 			return nil, fmt.Errorf("failed to create Debezium payload: %w", err)
 		}
 
-		result = append(result, lib.NewRawMessage(d.adapter.TopicSuffix(), d.adapter.PartitionKey(row), payload))
+		result = append(result, lib.NewRawMessage(d.adapter.TopicSuffix(), d.partitionKey(row), payload))
 	}
 	return result, nil
+}
+
+func (d *DebeziumTransformer) partitionKey(row Row) map[string]any {
+	result := make(map[string]any)
+	for _, key := range d.adapter.PartitionKeys() {
+		result[key] = row[key]
+	}
+	return result
 }
 
 func (d *DebeziumTransformer) createPayload(row Row) (util.SchemaEventPayload, error) {

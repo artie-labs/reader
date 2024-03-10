@@ -68,13 +68,8 @@ func (m mysqlAdapter) NewIterator() (transformer.RowsIterator, error) {
 	return scanner.NewScanner(m.db, m.table, m.scannerCfg)
 }
 
-// PartitionKey returns a map of primary keys and their values for a given row.
-func (m mysqlAdapter) PartitionKey(row map[string]any) map[string]any {
-	result := make(map[string]any)
-	for _, key := range m.table.PrimaryKeys {
-		result[key] = row[key]
-	}
-	return result
+func (m mysqlAdapter) PartitionKeys() []string {
+	return m.table.PrimaryKeys
 }
 
 func valueConverterForType(d schema.DataType, opts *schema.Opts) (converters.ValueConverter, error) {
