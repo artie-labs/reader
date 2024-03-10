@@ -75,7 +75,6 @@ func (p postgresAdapter) PartitionKey(row map[string]any) map[string]any {
 }
 
 func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (converters.ValueConverter, error) {
-	// TODO: Replace uses of `NewPassthroughConverter` with type specific converters
 	switch dataType {
 	case schema.VariableNumeric:
 		return converters.VariableNumericConverter{}, nil
@@ -111,6 +110,7 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 		return converters.NewGeometryConverter(), nil
 	case schema.Geography:
 		return converters.NewGeographyConverter(), nil
+	// TODO: Replace the following uses of `NewPassthroughConverter` with type specific converters
 	case schema.Interval:
 		return NewPassthroughConverter("int64", "io.debezium.time.MicroDuration"), nil
 	case schema.Array:
