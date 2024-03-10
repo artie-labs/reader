@@ -72,17 +72,8 @@ func ConvertValue(value any, colType DataType) (any, error) {
 			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
 		}
 
-		// TODO: We should check for zero datetime, timestamp, etc.
-		// MySQL returns 0000-00-00 for zero dates
-		if string(bytesValue) == "0000-00-00" {
-			return nil, nil
-		}
-
-		timeValue, err := time.Parse(time.DateOnly, string(bytesValue))
-		if err != nil {
-			return nil, err
-		}
-		return timeValue, nil
+		// MySQL supports 0000-00-00 for dates so we can't use time.Time
+		return string(bytesValue), nil
 	case DateTime, Timestamp:
 		bytesValue, ok := value.([]byte)
 		if !ok {

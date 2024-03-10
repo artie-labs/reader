@@ -45,8 +45,20 @@ func TestDateConverter_Convert(t *testing.T) {
 	converter := DateConverter{}
 	{
 		// Invalid value
-		_, err := converter.Convert("string value")
-		assert.ErrorContains(t, err, "object is not a time.Time object")
+		_, err := converter.Convert(12345)
+		assert.ErrorContains(t, err, "expected string/time.Time got int with value: 12345")
+	}
+	{
+		// string - 0000-00-00
+		value, err := converter.Convert("0000-00-00")
+		assert.NoError(t, err)
+		assert.Equal(t, nil, value)
+	}
+	{
+		// string - 2023-05-03
+		value, err := converter.Convert("2023-05-03")
+		assert.NoError(t, err)
+		assert.Equal(t, 19480, value)
 	}
 	{
 		// time.Time

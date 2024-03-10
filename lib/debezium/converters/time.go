@@ -46,13 +46,27 @@ func (DateConverter) ToField(name string) debezium.Field {
 }
 
 func (DateConverter) Convert(value any) (any, error) {
-	ts, isOk := value.(time.Time)
-	if !isOk {
-		return nil, fmt.Errorf("object is not a time.Time object")
+	var timeValue time.Time
+	switch castValue := value.(type) {
+	case time.Time:
+		timeValue = castValue
+	case string:
+		if castValue == "0000-00-00" {
+			// MySQL supports '0000-00-00' for date columns
+			// TODO: We should check for zero datetime, timestamp, etc.
+			return nil, nil
+		}
+		var err error
+		timeValue, err = time.Parse(time.DateOnly, castValue)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse string '%s' to date: %w", castValue, err)
+		}
+	default:
+		return nil, fmt.Errorf("expected string/time.Time got %T with value: %v", value, value)
 	}
 
 	unix := time.UnixMilli(0).In(time.UTC) // 1970-01-01
-	return int(ts.Sub(unix).Hours() / 24), nil
+	return int(timeValue.Sub(unix).Hours() / 24), nil
 }
 
 type TimestampConverter struct{}
