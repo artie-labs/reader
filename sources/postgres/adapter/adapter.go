@@ -93,6 +93,8 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 		return converters.DateConverter{}, nil
 	case schema.Timestamp:
 		return PgTimestampConverter{}, nil
+	case schema.Interval:
+		return PgIntervalConverter{}, nil
 	case schema.UUID:
 		return converters.UUIDConverter{}, nil
 	case schema.JSON:
@@ -106,8 +108,6 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	case schema.Geography:
 		return converters.NewGeographyConverter(), nil
 	// TODO: Replace the following uses of `NewPassthroughConverter` with type specific converters
-	case schema.Interval:
-		return PgIntervalConverter{}, nil
 	case schema.Array:
 		return NewPassthroughConverter("array", ""), nil
 	case schema.Float:
