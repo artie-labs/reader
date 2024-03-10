@@ -283,6 +283,6 @@ func TestDebeziumTransformer_PartitionKey(t *testing.T) {
 	for _, testCase := range tcs {
 		transformer, err := NewDebeziumTransformer(mockAdatper{partitionKeys: testCase.keys})
 		assert.NoError(t, err)
-		assert.Equal(t, testCase.expected, transformer.PartitionKey(testCase.row), testCase.name)
+		assert.Equal(t, testCase.expected, transformer.partitionKey(testCase.row), testCase.name)
 	}
 }

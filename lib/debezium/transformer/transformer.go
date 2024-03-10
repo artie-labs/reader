@@ -93,12 +93,12 @@ func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 			return nil, fmt.Errorf("failed to create Debezium payload: %w", err)
 		}
 
-		result = append(result, lib.NewRawMessage(d.adapter.TopicSuffix(), d.PartitionKey(row), payload))
+		result = append(result, lib.NewRawMessage(d.adapter.TopicSuffix(), d.partitionKey(row), payload))
 	}
 	return result, nil
 }
 
-func (d *DebeziumTransformer) PartitionKey(row map[string]any) map[string]any {
+func (d *DebeziumTransformer) partitionKey(row map[string]any) map[string]any {
 	result := make(map[string]any)
 	for _, key := range d.adapter.PartitionKeys() {
 		result[key] = row[key]
