@@ -3,7 +3,6 @@ package parse
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
@@ -66,13 +65,20 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 
 		return nil, fmt.Errorf("value: %v not of string type for Numeric or VariableNumeric", value)
 	case schema.Array:
-		var arr []any
-		if reflect.TypeOf(value).Kind() == reflect.Slice {
-			// If it's already a slice, don't modify it further.
-			return value, nil
+		var bytesValue []byte
+		switch castValue := value.(type) {
+		case []byte:
+			bytesValue = castValue
+		case string:
+			bytesValue = []byte(castValue)
+		case []any:
+			return castValue, nil
+		default:
+			return nil, fmt.Errorf("expected array/string/[]byte got %T with value: %v", value, value)
 		}
 
-		err := json.Unmarshal([]byte(fmt.Sprint(value)), &arr)
+		var arr []any
+		err := json.Unmarshal(bytesValue, &arr)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse array value %v: %w", value, err)
 		}
