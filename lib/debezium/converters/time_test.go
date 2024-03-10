@@ -58,19 +58,19 @@ func TestDateConverter_Convert(t *testing.T) {
 		// string - 2023-05-03
 		value, err := converter.Convert("2023-05-03")
 		assert.NoError(t, err)
-		assert.Equal(t, 19480, value)
+		assert.Equal(t, int32(19480), value)
 	}
 	{
 		// time.Time
 		value, err := converter.Convert(time.Date(1971, 1, 1, 0, 0, 0, 0, time.UTC))
 		assert.NoError(t, err)
-		assert.Equal(t, 365, value)
+		assert.Equal(t, int32(365), value)
 	}
 	{
 		// time.Time
 		days, err := converter.Convert(time.Date(2023, 5, 3, 0, 0, 0, 0, time.UTC))
 		assert.NoError(t, err)
-		assert.Equal(t, 19480, days)
+		assert.Equal(t, int32(19480), days)
 	}
 }
 

@@ -235,7 +235,7 @@ func TestValueConverterForType_Convert(t *testing.T) {
 			name:          "date (postgres.Date)",
 			col:           schema.Column{Name: "date_col", Type: schema.Date},
 			value:         time.Date(2023, 5, 3, 0, 0, 0, 0, time.UTC),
-			expectedValue: 19480,
+			expectedValue: int32(19480),
 		},
 		{
 			name: "numeric (postgres.Numeric)",
