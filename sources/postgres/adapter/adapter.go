@@ -107,7 +107,7 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 		return converters.NewGeographyConverter(), nil
 	// TODO: Replace the following uses of `NewPassthroughConverter` with type specific converters
 	case schema.Interval:
-		return NewPassthroughConverter("int64", "io.debezium.time.MicroDuration"), nil
+		return PgIntervalConverter{}, nil
 	case schema.Array:
 		return NewPassthroughConverter("array", ""), nil
 	case schema.Float:

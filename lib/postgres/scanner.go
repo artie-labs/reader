@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/artie-labs/reader/lib/postgres/parse"
 	"github.com/artie-labs/reader/lib/postgres/schema"
@@ -120,6 +121,19 @@ func convertToStringForQuery(value any, dataType schema.DataType) (string, error
 	switch castValue := value.(type) {
 	case time.Time:
 		return QuoteLiteral(castValue.Format(time.RFC3339)), nil
+	case pgtype.Interval:
+		if !castValue.Valid {
+			return "null", nil
+		}
+		value, err := castValue.Value()
+		if err != nil {
+			return "", err
+		}
+		stringValue, ok := value.(string)
+		if !ok {
+			return "", fmt.Errorf("expected string got %T with value %v", value, value)
+		}
+		return QuoteLiteral(stringValue), nil
 	case int, int8, int16, int32, int64:
 		switch dataType {
 		case schema.Int16, schema.Int32, schema.Int64:

@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/lib/postgres/schema"
@@ -112,6 +113,18 @@ func TestConvertToStringForQuery(t *testing.T) {
 			value:       "foo",
 			dataType:    -1,
 			expectedErr: "unsupported data type",
+		},
+		{
+			name:     "interval",
+			value:    pgtype.Interval{Days: 2, Months: 1, Microseconds: 1_000_000, Valid: true},
+			dataType: schema.Interval,
+			expected: `'1 mon 2 day 00:00:01.000000'`,
+		},
+		{
+			name:     "interval - invalid",
+			value:    pgtype.Interval{Days: 2, Months: 1, Microseconds: 1_000_000, Valid: false},
+			dataType: schema.Interval,
+			expected: `null`,
 		},
 	}
 	for _, testCase := range testCases {

@@ -3,6 +3,7 @@ package parse
 import (
 	"testing"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/lib/postgres/schema"
@@ -41,6 +42,18 @@ func TestParse(t *testing.T) {
 			dataType:      schema.Text,
 			value:         "hello",
 			expectedValue: "hello",
+		},
+		{
+			colName:       "interval",
+			dataType:      schema.Interval,
+			value:         "1 day",
+			expectedValue: pgtype.Interval{Days: 1, Valid: true},
+		},
+		{
+			colName:   "interval - malformed",
+			dataType:  schema.Interval,
+			value:     "blah",
+			expectErr: true,
 		},
 		{
 			colName:       "uuid",
