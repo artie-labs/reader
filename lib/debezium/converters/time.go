@@ -53,7 +53,6 @@ func (DateConverter) Convert(value any) (any, error) {
 	case string:
 		if castValue == "0000-00-00" {
 			// MySQL supports '0000-00-00' for date columns
-			// TODO: We should check for zero datetime, timestamp, etc.
 			return nil, nil
 		}
 		var err error
