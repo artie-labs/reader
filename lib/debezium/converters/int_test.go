@@ -91,7 +91,7 @@ func TestAsInt16(t *testing.T) {
 		assert.ErrorContains(t, err, "value is too large for int16")
 	}
 	{
-		// int - just large enough
+		// int - just positive enough
 		value, err := asInt16(int(math.MaxInt16))
 		assert.NoError(t, err)
 		assert.Equal(t, int16(math.MaxInt16), value)
