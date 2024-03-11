@@ -36,9 +36,9 @@ var supportedPrimaryKeyDataType []schema.DataType = []schema.DataType{
 	schema.Inet,
 	schema.JSON,
 	// schema.Bit - fails: operator does not exist: bit >= boolean (SQLSTATE 42883)
+	// schema.Bytea - fails: ERROR: invalid byte sequence for encoding
 	// schema.Time - fails: invalid input syntax for type time: "45296000" (SQLSTATE 22007)
 	// schema.Array - fails: This doesn't work: need to serialize to Postgres array format "{1,2,3}"
-	// schema.Bytea - fails: ERROR: invalid byte sequence for encoding
 	// schema.HStore - fails: operator does not exist: hstore >= unknown (SQLSTATE 42883)
 	// schema.Point - can't be used as a primary key
 	// schema.Geometry - fails: parse error - invalid geometry (SQLSTATE XX000)
