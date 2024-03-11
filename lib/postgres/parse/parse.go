@@ -65,18 +65,13 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 
 		return nil, fmt.Errorf("value: %v not of string type for Numeric or VariableNumeric", value)
 	case schema.Array:
-		var bytesValue []byte
-		switch castValue := value.(type) {
-		case []byte:
-			bytesValue = castValue
-		case string:
-			bytesValue = []byte(castValue)
-		default:
-			return nil, fmt.Errorf("expected string/[]byte got %T with value: %v", value, value)
+		stringValue, ok := value.(string)
+		if !ok {
+			return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
 		}
 
 		var arr []any
-		err := json.Unmarshal(bytesValue, &arr)
+		err := json.Unmarshal([]byte(stringValue), &arr)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse array value %v: %w", value, err)
 		}
