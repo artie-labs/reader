@@ -24,15 +24,26 @@ func TestAsInt16(t *testing.T) {
 		assert.Equal(t, int16(1234), value)
 	}
 	{
-		// int32 - just large enough
+		// int32 - just negative enough
+		value, err := asInt16(int32(math.MinInt16))
+		assert.NoError(t, err)
+		assert.Equal(t, int16(math.MinInt16), value)
+	}
+	{
+		// int32 - negative overflow
+		_, err := asInt16(int32(math.MinInt16 - 1))
+		assert.ErrorContains(t, err, "value overflows int16")
+	}
+	{
+		// int32 - just positive enough
 		value, err := asInt16(int32(math.MaxInt16))
 		assert.NoError(t, err)
 		assert.Equal(t, int16(math.MaxInt16), value)
 	}
 	{
-		// int32 - too large
+		// int32 - positive overflow
 		_, err := asInt16(int32(math.MaxInt16 + 1))
-		assert.ErrorContains(t, err, "value is too large for int16")
+		assert.ErrorContains(t, err, "value overflows int16")
 	}
 	{
 		// int64
@@ -41,15 +52,26 @@ func TestAsInt16(t *testing.T) {
 		assert.Equal(t, int16(1234), value)
 	}
 	{
-		// int64 - just large enough
+		// int64 - just negative enough
+		value, err := asInt16(int64(math.MinInt16))
+		assert.NoError(t, err)
+		assert.Equal(t, int16(math.MinInt16), value)
+	}
+	{
+		// int64 - negative overflow
+		_, err := asInt16(int64(math.MinInt16 - 1))
+		assert.ErrorContains(t, err, "value overflows int16")
+	}
+	{
+		// int64 - just positive enough
 		value, err := asInt16(int64(math.MaxInt16))
 		assert.NoError(t, err)
 		assert.Equal(t, int16(math.MaxInt16), value)
 	}
 	{
-		// int64 - too large
+		// int64 - positive overflow
 		_, err := asInt16(int64(math.MaxInt16 + 1))
-		assert.ErrorContains(t, err, "value is too large for int16")
+		assert.ErrorContains(t, err, "value overflows int16")
 	}
 	{
 		// int
@@ -58,15 +80,26 @@ func TestAsInt16(t *testing.T) {
 		assert.Equal(t, int16(1234), value)
 	}
 	{
-		// int - just large enough
+		// int - just negative enough
+		value, err := asInt16(int(math.MinInt16))
+		assert.NoError(t, err)
+		assert.Equal(t, int16(math.MinInt16), value)
+	}
+	{
+		// int - negative overflow
+		_, err := asInt16(int(math.MinInt16 - 1))
+		assert.ErrorContains(t, err, "value overflows int16")
+	}
+	{
+		// int - just positive enough
 		value, err := asInt16(int(math.MaxInt16))
 		assert.NoError(t, err)
 		assert.Equal(t, int16(math.MaxInt16), value)
 	}
 	{
-		// int - too large
+		// int - positive overflow
 		_, err := asInt16(int(math.MaxInt16 + 1))
-		assert.ErrorContains(t, err, "value is too large for int16")
+		assert.ErrorContains(t, err, "value overflows int16")
 	}
 }
 
@@ -94,15 +127,26 @@ func TestAsInt32(t *testing.T) {
 		assert.Equal(t, int32(1234), value)
 	}
 	{
-		// int64 - just large enough
+		// int64 - just negative enough
+		value, err := asInt32(int64(math.MinInt32))
+		assert.NoError(t, err)
+		assert.Equal(t, int32(math.MinInt32), value)
+	}
+	{
+		// int64 - negative overflow
+		_, err := asInt32(int64(math.MinInt32 - 1))
+		assert.ErrorContains(t, err, "value overflows int32")
+	}
+	{
+		// int64 - just positive enough
 		value, err := asInt32(int64(math.MaxInt32))
 		assert.NoError(t, err)
 		assert.Equal(t, int32(math.MaxInt32), value)
 	}
 	{
-		// int64 - too large
+		// int64 - positive overflow
 		_, err := asInt32(int64(math.MaxInt32 + 1))
-		assert.ErrorContains(t, err, "value is too large for int32")
+		assert.ErrorContains(t, err, "value overflows int32")
 	}
 	{
 		// int
@@ -111,15 +155,26 @@ func TestAsInt32(t *testing.T) {
 		assert.Equal(t, int32(1234), value)
 	}
 	{
-		// int - just large enough
+		// int - just negative enough
+		value, err := asInt32(int(math.MinInt32))
+		assert.NoError(t, err)
+		assert.Equal(t, int32(math.MinInt32), value)
+	}
+	{
+		// int - negative overflow
+		_, err := asInt32(int(math.MinInt32 - 1))
+		assert.ErrorContains(t, err, "value overflows int32")
+	}
+	{
+		// int - just postive enough
 		value, err := asInt32(int(math.MaxInt32))
 		assert.NoError(t, err)
 		assert.Equal(t, int32(math.MaxInt32), value)
 	}
 	{
-		// int - too large
+		// int - positive overflow
 		_, err := asInt32(int(math.MaxInt32 + 1))
-		assert.ErrorContains(t, err, "value is too large for int32")
+		assert.ErrorContains(t, err, "value overflows int32")
 	}
 }
 

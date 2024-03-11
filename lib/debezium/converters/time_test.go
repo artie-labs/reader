@@ -176,6 +176,6 @@ func TestYearConverter_Convert(t *testing.T) {
 	{
 		// int64 - too big
 		_, err := converter.Convert(int64(math.MaxInt32 + 1))
-		assert.ErrorContains(t, err, "value is too large for int32")
+		assert.ErrorContains(t, err, "value overflows int32")
 	}
 }
