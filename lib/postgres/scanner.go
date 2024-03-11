@@ -17,6 +17,34 @@ import (
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
+var supportedPrimaryKeyDataType []schema.DataType = []schema.DataType{
+	schema.Interval,
+	schema.Real,
+	schema.Double,
+	schema.Int16,
+	schema.Int32,
+	schema.Int64,
+	schema.Boolean,
+	schema.VariableNumeric,
+	schema.Money,
+	schema.Numeric,
+	schema.Inet,
+	schema.Text,
+	schema.UUID,
+	schema.UserDefinedText,
+	schema.JSON,
+	schema.Timestamp,
+	schema.Date,
+	// schema.Bit - fails: operator does not exist: bit >= boolean (SQLSTATE 42883)
+	// schema.Time - fails: invalid input syntax for type time: "45296000" (SQLSTATE 22007)
+	// schema.Array - fails: This doesn't work: need to serialize to Postgres array format "{1,2,3}"
+	// schema.Bytea - fails: ERROR: invalid byte sequence for encoding
+	// schema.HStore - fails: operator does not exist: hstore >= unknown (SQLSTATE 42883)
+	// schema.Point - can't be used as a primary key
+	// schema.Geometry - fails: parse error - invalid geometry (SQLSTATE XX000)
+	// schema.Geography - fails: parse error - invalid geometry (SQLSTATE XX000)
+}
+
 type scanTableQueryArgs struct {
 	Schema              string
 	TableName           string
@@ -81,19 +109,13 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 }
 
 func shouldQuoteValue(dataType schema.DataType) (bool, error) {
+	if !slices.Contains(supportedPrimaryKeyDataType, dataType) {
+		return false, fmt.Errorf("unsupported primary key type: DataType(%d)", dataType)
+	}
+
 	switch dataType {
 	case schema.Interval: // We natively support pgtype.Interval in convertToStringForQuery
 		return false, fmt.Errorf("unexpected primary key type: DataType(%d)", dataType)
-	case
-		schema.Bit,       // Fails: operator does not exist: bit >= boolean (SQLSTATE 42883)
-		schema.Time,      // Fails: invalid input syntax for type time: "45296000" (SQLSTATE 22007)
-		schema.Array,     // Fails: This doesn't work: need to serialize to Postgres array format "{1,2,3}"
-		schema.Bytea,     // Fails: ERROR: invalid byte sequence for encoding
-		schema.HStore,    // Fails: operator does not exist: hstore >= unknown (SQLSTATE 42883)
-		schema.Point,     // Can't be used as a primary key
-		schema.Geometry,  // Fails: parse error - invalid geometry (SQLSTATE XX000)
-		schema.Geography: // Fails: parse error - invalid geometry (SQLSTATE XX000)
-		return false, fmt.Errorf("unsupported primary key type: DataType(%d)", dataType)
 	case
 		schema.Real,
 		schema.Double,
@@ -198,6 +220,16 @@ func convertToStringForQuery(value any, dataType schema.DataType) (string, error
 }
 
 func NewScanner(db *sql.DB, table Table, cfg scan.ScannerConfig) (*scan.Scanner, error) {
+	for _, key := range table.PrimaryKeys {
+		column, err := table.GetColumnByName(key)
+		if err != nil {
+			return nil, fmt.Errorf("missing column with name: %s", key)
+		}
+		if !slices.Contains(supportedPrimaryKeyDataType, column.Type) {
+			return nil, fmt.Errorf("DataType(%d) for column '%s' is not supported for use as a primary key", column.Type, column.Name)
+		}
+	}
+
 	primaryKeyBounds, err := table.GetPrimaryKeysBounds(db)
 	if err != nil {
 		return nil, err
