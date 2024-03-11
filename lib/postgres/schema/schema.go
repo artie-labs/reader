@@ -14,28 +14,28 @@ import (
 type DataType int
 
 const (
-	VariableNumeric DataType = iota
-	Money
-	Numeric
-	Bit
+	Bit DataType = iota
 	Boolean
-	Bytea
-	Inet
-	Text
-	UserDefinedText
-	Interval
-	Array
-	HStore
-	Real
-	Double
 	Int16
 	Int32
 	Int64
-	UUID
-	JSON
-	Timestamp
+	Real
+	Double
+	Numeric
+	VariableNumeric
+	Money
+	Bytea
+	Text
+	UserDefinedText
 	Time
 	Date
+	Timestamp
+	Interval
+	UUID
+	Inet
+	Array
+	JSON
+	HStore
 	// PostGIS
 	Point
 	Geometry
@@ -95,30 +95,45 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 func ParseColumnDataType(colKind string, precision, scale *int, udtName *string) (DataType, *Opts, error) {
 	colKind = strings.ToLower(colKind)
 	switch colKind {
-	case "point":
-		return Point, nil, nil
-	case "real":
-		return Real, nil, nil
-	case "double precision":
-		return Double, nil, nil
+	case "bit":
+		return Bit, nil, nil
+	case "boolean":
+		return Boolean, nil, nil
 	case "smallint":
 		return Int16, nil, nil
 	case "integer":
 		return Int32, nil, nil
 	case "bigint", "oid":
 		return Int64, nil, nil
-	case "array":
-		return Array, nil, nil
-	case "bit":
-		return Bit, nil, nil
-	case "boolean":
-		return Boolean, nil, nil
+	case "real":
+		return Real, nil, nil
+	case "double precision":
+		return Double, nil, nil
+	case "money":
+		return Money, nil, nil
 	case "bytea":
 		return Bytea, nil, nil
+	case "character varying", "text", "character", "xml", "cidr", "macaddr", "macaddr8",
+		"int4range", "int8range", "numrange", "daterange", "tsrange", "tstzrange":
+		return Text, nil, nil
+	case "time with time zone", "time without time zone":
+		return Time, nil, nil
 	case "date":
 		return Date, nil, nil
+	case "timestamp without time zone", "timestamp with time zone":
+		return Timestamp, nil, nil
+	case "interval":
+		return Interval, nil, nil
 	case "uuid":
 		return UUID, nil, nil
+	case "inet":
+		return Inet, nil, nil
+	case "array":
+		return Array, nil, nil
+	case "json", "jsonb":
+		return JSON, nil, nil
+	case "point":
+		return Point, nil, nil
 	case "user-defined":
 		if udtName != nil && *udtName == "hstore" {
 			return HStore, nil, nil
@@ -129,21 +144,6 @@ func ParseColumnDataType(colKind string, precision, scale *int, udtName *string)
 		} else {
 			return UserDefinedText, nil, nil
 		}
-	case "interval":
-		return Interval, nil, nil
-	case "time with time zone", "time without time zone":
-		return Time, nil, nil
-	case "money":
-		return Money, nil, nil
-	case "character varying", "text", "character", "xml", "cidr", "macaddr", "macaddr8",
-		"int4range", "int8range", "numrange", "daterange", "tsrange", "tstzrange":
-		return Text, nil, nil
-	case "inet":
-		return Inet, nil, nil
-	case "json", "jsonb":
-		return JSON, nil, nil
-	case "timestamp without time zone", "timestamp with time zone":
-		return Timestamp, nil, nil
 	default:
 		if strings.Contains(colKind, "numeric") {
 			if precision == nil && scale == nil {
