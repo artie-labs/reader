@@ -18,6 +18,7 @@ import (
 )
 
 var supportedPrimaryKeyDataType []schema.DataType = []schema.DataType{
+	schema.Boolean,
 	schema.Int16,
 	schema.Int32,
 	schema.Int64,
@@ -26,7 +27,6 @@ var supportedPrimaryKeyDataType []schema.DataType = []schema.DataType{
 	schema.Numeric,
 	schema.VariableNumeric,
 	schema.Money,
-	schema.Boolean,
 	schema.Text,
 	schema.UserDefinedText,
 	schema.Date,

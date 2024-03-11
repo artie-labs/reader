@@ -14,7 +14,9 @@ import (
 type DataType int
 
 const (
-	Int16 DataType = iota
+	Bit DataType = iota
+	Boolean
+	Int16
 	Int32
 	Int64
 	Real
@@ -22,8 +24,6 @@ const (
 	Numeric
 	VariableNumeric
 	Money
-	Bit
-	Boolean
 	Bytea
 	Text
 	UserDefinedText
