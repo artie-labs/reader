@@ -10,7 +10,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/artie-labs/reader/lib/debezium"
-	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/stringutil"
 )
 
@@ -66,26 +65,25 @@ func (PgTimestampConverter) Convert(value any) (any, error) {
 	return value, nil
 }
 
-// TODO: This converter doesn't check types, replace uses of this with specific converters from `debezium/converters`
-type passthroughConverter struct {
-	fieldType    string
-	debeziumType string
-}
+type PgTimeConverter struct{}
 
-func NewPassthroughConverter(fieldType, debeziumType string) converters.ValueConverter {
-	return passthroughConverter{fieldType: fieldType, debeziumType: debeziumType}
-}
-
-func (p passthroughConverter) ToField(name string) transferDbz.Field {
+func (p PgTimeConverter) ToField(name string) transferDbz.Field {
+	// Represents the number of milliseconds past midnight, and does not include timezone information.
 	return transferDbz.Field{
 		FieldName:    name,
-		DebeziumType: p.debeziumType,
-		Type:         p.fieldType,
+		Type:         "int32",
+		DebeziumType: string(transferDbz.Time),
 	}
 }
 
-func (passthroughConverter) Convert(value any) (any, error) {
-	return value, nil
+func (PgTimeConverter) Convert(value any) (any, error) {
+	// TODO: Switch from casting the value to seconds in the query to parsing the value to a `pgtypes.Time`
+	// Not using `pgtypes.Time` right now as it doesn't handle TIME WITH TIME ZONE properly.
+	seconds, ok := value.(int64)
+	if !ok {
+		return nil, fmt.Errorf("expected int64 got %T with value: %v", value, value)
+	}
+	return (time.Duration(seconds) * time.Second) / time.Millisecond, nil
 }
 
 type PgIntervalConverter struct{}
