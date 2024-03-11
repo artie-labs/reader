@@ -115,6 +115,22 @@ func TestPgTimeConverter_Convert(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, int32(86_400_000), value)
 	}
+	{
+		// Valid pgtype.Time - negative overflow
+		_, err := converter.Convert(pgtype.Time{
+			Valid:        true,
+			Microseconds: math.MinInt64,
+		})
+		assert.ErrorContains(t, err, "milliseconds overflows int32")
+	}
+	{
+		// Valid pgtype.Time - positive overflow
+		_, err := converter.Convert(pgtype.Time{
+			Valid:        true,
+			Microseconds: math.MaxInt64,
+		})
+		assert.ErrorContains(t, err, "milliseconds overflows int32")
+	}
 }
 
 func TestPgIntervalConverter_ToField(t *testing.T) {
