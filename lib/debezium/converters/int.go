@@ -10,17 +10,17 @@ func asInt16(value any) (int16, error) {
 	case int16:
 		return castValue, nil
 	case int32:
-		if castValue > math.MaxInt16 {
+		if castValue > math.MaxInt16 || castValue < math.MinInt16 {
 			return 0, fmt.Errorf("value is too large for int16")
 		}
 		return int16(castValue), nil
 	case int:
-		if castValue > math.MaxInt16 {
+		if castValue > math.MaxInt16 || castValue < math.MinInt16 {
 			return 0, fmt.Errorf("value is too large for int16")
 		}
 		return int16(castValue), nil
 	case int64:
-		if castValue > math.MaxInt16 {
+		if castValue > math.MaxInt16 || castValue < math.MinInt16 {
 			return 0, fmt.Errorf("value is too large for int16")
 		}
 		return int16(castValue), nil
@@ -35,12 +35,12 @@ func asInt32(value any) (int32, error) {
 	case int32:
 		return castValue, nil
 	case int:
-		if castValue > math.MaxInt32 {
+		if castValue > math.MaxInt32 || castValue < math.MinInt32 {
 			return 0, fmt.Errorf("value is too large for int32")
 		}
 		return int32(castValue), nil
 	case int64:
-		if castValue > math.MaxInt32 {
+		if castValue > math.MaxInt32 || castValue < math.MinInt32 {
 			return 0, fmt.Errorf("value is too large for int32")
 		}
 		return int32(castValue), nil

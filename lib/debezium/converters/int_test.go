@@ -30,7 +30,12 @@ func TestAsInt16(t *testing.T) {
 		assert.Equal(t, int16(math.MaxInt16), value)
 	}
 	{
-		// int32 - too large
+		// int32 - underflow
+		_, err := asInt16(int32(math.MinInt16 - 1))
+		assert.ErrorContains(t, err, "value is too large for int16")
+	}
+	{
+		// int32 - overflow
 		_, err := asInt16(int32(math.MaxInt16 + 1))
 		assert.ErrorContains(t, err, "value is too large for int16")
 	}
@@ -47,7 +52,12 @@ func TestAsInt16(t *testing.T) {
 		assert.Equal(t, int16(math.MaxInt16), value)
 	}
 	{
-		// int64 - too large
+		// int64 - underflow
+		_, err := asInt16(int64(math.MinInt16 - 1))
+		assert.ErrorContains(t, err, "value is too large for int16")
+	}
+	{
+		// int64 - overflow
 		_, err := asInt16(int64(math.MaxInt16 + 1))
 		assert.ErrorContains(t, err, "value is too large for int16")
 	}
@@ -64,7 +74,12 @@ func TestAsInt16(t *testing.T) {
 		assert.Equal(t, int16(math.MaxInt16), value)
 	}
 	{
-		// int - too large
+		// int - underflow
+		_, err := asInt16(int(math.MinInt16 - 1))
+		assert.ErrorContains(t, err, "value is too large for int16")
+	}
+	{
+		// int - overflow
 		_, err := asInt16(int(math.MaxInt16 + 1))
 		assert.ErrorContains(t, err, "value is too large for int16")
 	}
@@ -100,7 +115,12 @@ func TestAsInt32(t *testing.T) {
 		assert.Equal(t, int32(math.MaxInt32), value)
 	}
 	{
-		// int64 - too large
+		// int64 - underflow
+		_, err := asInt32(int64(math.MinInt32 - 1))
+		assert.ErrorContains(t, err, "value is too large for int32")
+	}
+	{
+		// int64 - overflow
 		_, err := asInt32(int64(math.MaxInt32 + 1))
 		assert.ErrorContains(t, err, "value is too large for int32")
 	}
@@ -117,7 +137,12 @@ func TestAsInt32(t *testing.T) {
 		assert.Equal(t, int32(math.MaxInt32), value)
 	}
 	{
-		// int - too large
+		// int - underflow
+		_, err := asInt32(int(math.MinInt32 - 1))
+		assert.ErrorContains(t, err, "value is too large for int32")
+	}
+	{
+		// int - overflow
 		_, err := asInt32(int(math.MaxInt32 + 1))
 		assert.ErrorContains(t, err, "value is too large for int32")
 	}
