@@ -25,7 +25,8 @@ const (
 	Interval
 	Array
 	HStore
-	Float
+	Real
+	Double
 	Int16
 	Int32
 	Int64
@@ -96,8 +97,10 @@ func ParseColumnDataType(colKind string, precision, scale *int, udtName *string)
 	switch colKind {
 	case "point":
 		return Point, nil, nil
-	case "real", "double precision":
-		return Float, nil, nil
+	case "real":
+		return Real, nil, nil
+	case "double precision":
+		return Double, nil, nil
 	case "smallint":
 		return Int16, nil, nil
 	case "integer":

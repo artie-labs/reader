@@ -81,8 +81,8 @@ func TestParse(t *testing.T) {
 		{
 			name:          "hstore",
 			dataType:      schema.HStore,
-			value:         `"foo"=>"bar"`,
-			expectedValue: map[string]any{"foo": "bar"},
+			value:         `"foo"=>"bar", "baz"=>"qux"`,
+			expectedValue: map[string]string{"foo": "bar", "baz": "qux"},
 		},
 		{
 			name:     "geography",
