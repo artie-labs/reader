@@ -41,6 +41,37 @@ func TestMicroTimeConverter_Convert(t *testing.T) {
 	}
 }
 
+func TestTimeConverter_Convert(t *testing.T) {
+	converter := TimeConverter{}
+	{
+		// Invalid type
+		_, err := converter.Convert(1234)
+		assert.ErrorContains(t, err, "expected time.Duration got int with value: 1234")
+	}
+	{
+		// 1 millisecond
+		value, err := converter.Convert(time.Duration(1) * time.Millisecond)
+		assert.NoError(t, err)
+		assert.Equal(t, int32(1), value)
+	}
+	{
+		// 1 day
+		value, err := converter.Convert(time.Duration(24) * time.Hour)
+		assert.NoError(t, err)
+		assert.Equal(t, int32(86400000), value)
+	}
+	{
+		// Positive overflow
+		_, err := converter.Convert(time.Duration(math.MaxInt64))
+		assert.ErrorContains(t, err, "value overflows int32")
+	}
+	{
+		// Negative overflow
+		_, err := converter.Convert(time.Duration(math.MinInt64))
+		assert.ErrorContains(t, err, "value overflows int32")
+	}
+}
+
 func TestDateConverter_Convert(t *testing.T) {
 	converter := DateConverter{}
 	{

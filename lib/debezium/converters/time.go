@@ -11,7 +11,7 @@ import (
 type MicroTimeConverter struct{}
 
 func (MicroTimeConverter) ToField(name string) debezium.Field {
-	// Represents the number of microseconds past midnight.
+	// Represents the number of microseconds past midnight, and does not include timezone information.
 	return debezium.Field{
 		FieldName:    name,
 		Type:         "int64",
@@ -33,6 +33,25 @@ func (MicroTimeConverter) Convert(value any) (any, error) {
 	minutes := time.Duration(timeValue.Minute()) * time.Minute
 	seconds := time.Duration(timeValue.Second()) * time.Second
 	return int64((hours + minutes + seconds) / time.Microsecond), nil
+}
+
+type TimeConverter struct{}
+
+func (p TimeConverter) ToField(name string) debezium.Field {
+	// Represents the number of milliseconds past midnight, and does not include timezone information.
+	return debezium.Field{
+		FieldName:    name,
+		Type:         "int32",
+		DebeziumType: string(debezium.Time),
+	}
+}
+
+func (TimeConverter) Convert(value any) (any, error) {
+	duration, ok := value.(time.Duration)
+	if !ok {
+		return nil, fmt.Errorf("expected time.Duration got %T with value: %v", value, value)
+	}
+	return asInt32(int64(time.Duration(duration) / time.Millisecond))
 }
 
 type DateConverter struct{}

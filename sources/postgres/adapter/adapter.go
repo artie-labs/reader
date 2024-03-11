@@ -92,7 +92,7 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	case schema.Int64:
 		return converters.Int64Passthrough{}, nil
 	case schema.Time:
-		return PgTimeConverter{}, nil
+		return converters.TimeConverter{}, nil
 	case schema.Date:
 		return converters.DateConverter{}, nil
 	case schema.Timestamp:

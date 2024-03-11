@@ -65,27 +65,6 @@ func (PgTimestampConverter) Convert(value any) (any, error) {
 	return value, nil
 }
 
-type PgTimeConverter struct{}
-
-func (p PgTimeConverter) ToField(name string) transferDbz.Field {
-	// Represents the number of milliseconds past midnight, and does not include timezone information.
-	return transferDbz.Field{
-		FieldName:    name,
-		Type:         "int32",
-		DebeziumType: string(transferDbz.Time),
-	}
-}
-
-func (PgTimeConverter) Convert(value any) (any, error) {
-	// TODO: Switch from casting the value to seconds in the query to parsing the value to a `pgtypes.Time`
-	// Not using `pgtypes.Time` right now as it doesn't handle TIME WITH TIME ZONE properly.
-	seconds, ok := value.(int64)
-	if !ok {
-		return nil, fmt.Errorf("expected int64 got %T with value: %v", value, value)
-	}
-	return (time.Duration(seconds) * time.Second) / time.Millisecond, nil
-}
-
 type PgIntervalConverter struct{}
 
 func (PgIntervalConverter) ToField(name string) transferDbz.Field {
