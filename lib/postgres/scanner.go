@@ -139,7 +139,6 @@ func convertToStringForQuery(value any, dataType schema.DataType) (string, error
 		if !ok {
 			return "", fmt.Errorf("expected string got %T with value %v", value, value)
 		}
-
 		return QuoteLiteral(stringValue), nil
 	case pgtype.Interval:
 		if !castValue.Valid {
