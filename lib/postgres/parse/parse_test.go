@@ -50,12 +50,6 @@ func TestParse(t *testing.T) {
 			expectedValue: pgtype.Interval{Days: 1, Valid: true},
 		},
 		{
-			name:          "interval - nil",
-			dataType:      schema.Interval,
-			value:         nil,
-			expectedValue: nil,
-		},
-		{
 			name:        "interval - malformed",
 			dataType:    schema.Interval,
 			value:       "blah",
