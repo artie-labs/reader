@@ -862,6 +862,7 @@ CREATE TABLE %s (
 	c_double_precision double precision,
 	c_inet inet,
 	c_integer integer,
+	c_interval interval,
 	c_jsonb jsonb,
 	c_macaddr macaddr,
 	c_macaddr8 macaddr8,
@@ -882,8 +883,8 @@ CREATE TABLE %s (
 	c_tstzrange tstzrange,
 	c_daterange daterange,
 	PRIMARY KEY (
-		c_bigint, c_bigserial, c_boolean, c_character, c_character_varying, c_cidr, c_date, c_double_precision,
-		c_inet, c_integer, c_jsonb, c_macaddr, c_macaddr8, c_money, c_numeric, c_real, c_smallint, c_serial, c_text,
+		c_bigint, c_bigserial, c_boolean, c_character, c_character_varying, c_cidr, c_date, c_double_precision, c_inet,
+		c_integer, c_interval, c_jsonb, c_macaddr, c_macaddr8, c_money, c_numeric, c_real, c_smallint, c_serial, c_text,
 		c_timestamp_without_timezone, c_timestamp_with_timezone, c_uuid, c_int4range, c_int8range, c_numrange,
 		c_tsrange, c_tstzrange, c_daterange
 	)
@@ -912,6 +913,8 @@ INSERT INTO %s VALUES (
 		'192.168.1.5',
 	-- c_integer
 		12345,
+	-- c_interval
+		'2 mon 3 day 4 hours',
 	-- c_jsonb
 		'{"foo": "bar", "baz": 4321}'::jsonb,
 	-- c_macaddr

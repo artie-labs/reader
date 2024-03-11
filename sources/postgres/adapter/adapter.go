@@ -97,6 +97,8 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 		return converters.DateConverter{}, nil
 	case schema.Timestamp:
 		return PgTimestampConverter{}, nil
+	case schema.Interval:
+		return PgIntervalConverter{}, nil
 	case schema.UUID:
 		return converters.UUIDConverter{}, nil
 	case schema.Array:
@@ -112,8 +114,6 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	case schema.Geography:
 		return converters.NewGeographyConverter(), nil
 	// TODO: Replace the following uses of `NewPassthroughConverter` with type specific converters
-	case schema.Interval:
-		return NewPassthroughConverter("int64", "io.debezium.time.MicroDuration"), nil
 	case schema.Time:
 		return NewPassthroughConverter("int32", string(transferDbz.Time)), nil
 	default:

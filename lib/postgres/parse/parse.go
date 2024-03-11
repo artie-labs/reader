@@ -64,6 +64,19 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 		}
 
 		return nil, fmt.Errorf("value: %v not of string type for Numeric or VariableNumeric", value)
+	case schema.Interval:
+		stringValue, ok := value.(string)
+		if !ok {
+			return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
+		}
+		var intervalValue pgtype.Interval
+		if err := intervalValue.Scan(stringValue); err != nil {
+			return nil, fmt.Errorf("failed to parse interval value %s: %w", value, err)
+		}
+		if !intervalValue.Valid {
+			return nil, nil
+		}
+		return intervalValue, nil
 	case schema.Array:
 		stringValue, ok := value.(string)
 		if !ok {

@@ -44,11 +44,6 @@ func TestCastColumn(t *testing.T) {
 			expected: `"foo"`,
 		},
 		{
-			name:     "interval",
-			dataType: schema.Interval,
-			expected: `cast(extract(epoch from "foo")*1000000 as bigint) as "foo"`,
-		},
-		{
 			name:     "time",
 			dataType: schema.Time,
 			expected: `cast(extract(epoch from "foo")*1000 as bigint) as "foo"`,
