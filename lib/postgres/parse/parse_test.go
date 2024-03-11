@@ -45,19 +45,19 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:          "time - one second",
-			dataType:      schema.TimeWithoutTimeZone,
+			dataType:      schema.Time,
 			value:         "00:00:01",
 			expectedValue: pgtype.Time{Microseconds: 100_0000, Valid: true},
 		},
 		{
 			name:          "time - 24 hours",
-			dataType:      schema.TimeWithoutTimeZone,
+			dataType:      schema.Time,
 			value:         "24:00:00",
 			expectedValue: pgtype.Time{Microseconds: 86_400_000_000, Valid: true},
 		},
 		{
 			name:        "time - malformed",
-			dataType:    schema.TimeWithoutTimeZone,
+			dataType:    schema.Time,
 			value:       "blah",
 			expectedErr: "failed to parse time value blah: cannot decode blah into Time",
 		},

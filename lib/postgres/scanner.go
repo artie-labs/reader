@@ -84,7 +84,7 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 	switch dataType {
 	case
 		// Natively supported types in convertToStringForQuery
-		schema.TimeWithoutTimeZone,
+		schema.Time,
 		schema.Interval:
 		return false, fmt.Errorf("unexpected primary key type: DataType(%d)", dataType)
 	case

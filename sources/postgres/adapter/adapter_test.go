@@ -135,7 +135,7 @@ func TestValueConverterForType_ToField(t *testing.T) {
 		{
 			name:     "time",
 			colName:  "time",
-			dataType: schema.TimeWithoutTimeZone,
+			dataType: schema.Time,
 			expected: debezium.Field{
 				Type:         "int32",
 				FieldName:    "time",

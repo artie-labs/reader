@@ -27,7 +27,7 @@ const (
 	Bytea
 	Text
 	UserDefinedText
-	TimeWithoutTimeZone
+	Time
 	TimeWithTimeZone
 	Date
 	Timestamp
@@ -118,7 +118,7 @@ func ParseColumnDataType(colKind string, precision, scale *int, udtName *string)
 		"int4range", "int8range", "numrange", "daterange", "tsrange", "tstzrange":
 		return Text, nil, nil
 	case "time without time zone":
-		return TimeWithoutTimeZone, nil, nil
+		return Time, nil, nil
 	case "time with time zone":
 		return TimeWithTimeZone, nil, nil
 	case "date":
