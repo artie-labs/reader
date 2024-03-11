@@ -69,28 +69,28 @@ func (p postgresAdapter) PartitionKeys() []string {
 
 func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (converters.ValueConverter, error) {
 	switch dataType {
-	case schema.VariableNumeric:
-		return converters.VariableNumericConverter{}, nil
-	case schema.Numeric:
-		return converters.NewDecimalConverter(opts.Scale, &opts.Precision), nil
-	case schema.Money:
-		return MoneyConverter{}, nil
-	case schema.Boolean, schema.Bit:
+	case schema.Bit, schema.Boolean:
 		return converters.BooleanPassthrough{}, nil
-	case schema.Bytea:
-		return converters.BytesPassthrough{}, nil
-	case schema.Text, schema.UserDefinedText, schema.Inet:
-		return converters.StringPassthrough{}, nil
-	case schema.Real:
-		return converters.FloatPassthrough{}, nil
-	case schema.Double:
-		return converters.DoublePassthrough{}, nil
 	case schema.Int16:
 		return converters.Int16Passthrough{}, nil
 	case schema.Int32:
 		return converters.Int32Passthrough{}, nil
 	case schema.Int64:
 		return converters.Int64Passthrough{}, nil
+	case schema.Real:
+		return converters.FloatPassthrough{}, nil
+	case schema.Double:
+		return converters.DoublePassthrough{}, nil
+	case schema.Numeric:
+		return converters.NewDecimalConverter(opts.Scale, &opts.Precision), nil
+	case schema.VariableNumeric:
+		return converters.VariableNumericConverter{}, nil
+	case schema.Money:
+		return MoneyConverter{}, nil
+	case schema.Bytea:
+		return converters.BytesPassthrough{}, nil
+	case schema.Text, schema.UserDefinedText, schema.Inet:
+		return converters.StringPassthrough{}, nil
 	case schema.Time:
 		return converters.TimeConverter{}, nil
 	case schema.Date:
