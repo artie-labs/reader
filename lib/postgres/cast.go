@@ -14,7 +14,7 @@ func castColumn(col schema.Column) (string, error) {
 	case schema.Inet:
 		return fmt.Sprintf("%s::text", colName), nil
 	case schema.TimeWithTimeZone:
-		// If we don't convert "time with time zone" to UTC we end up with strings like `10:23:54-02`
+		// If we don't convert `time with time zone` to UTC we end up with strings like `10:23:54-02`
 		// And pgtype.Time doesn't parse the offset propertly.
 		return fmt.Sprintf(`%s AT TIME ZONE 'UTC' AS "%s"`, colName, col.Name), nil
 	case schema.Array:
