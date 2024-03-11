@@ -37,6 +37,33 @@ func (MoneyConverter) Convert(value any) (any, error) {
 	return stringValue, nil
 }
 
+type PgTimeConverter struct{}
+
+func (PgTimeConverter) ToField(name string) transferDbz.Field {
+	// Represents the number of milliseconds past midnight, and does not include timezone information.
+	return transferDbz.Field{
+		FieldName:    name,
+		Type:         "int32",
+		DebeziumType: string(transferDbz.Time),
+	}
+}
+
+func (PgTimeConverter) Convert(value any) (any, error) {
+	timeValue, ok := value.(pgtype.Time)
+	if !ok {
+		return nil, fmt.Errorf("expected pgtype.Time got %T with value: %v", value, value)
+	}
+	if !timeValue.Valid {
+		return nil, nil
+	}
+
+	milliseconds := timeValue.Microseconds / int64(time.Millisecond/time.Microsecond)
+	if milliseconds > math.MaxInt32 || milliseconds < math.MinInt32 {
+		return nil, fmt.Errorf("milliseconds overflows int32")
+	}
+	return int32(milliseconds), nil
+}
+
 // TODO: Replace this with `converters.TimestampConverter` once we've run it for a while and not seen error logs
 type PgTimestampConverter struct{}
 

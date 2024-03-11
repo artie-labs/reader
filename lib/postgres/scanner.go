@@ -82,17 +82,20 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 
 func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 	switch dataType {
-	case schema.Interval: // We natively support pgtype.Interval in convertToStringForQuery
+	case
+		// Natively supported types in convertToStringForQuery
+		schema.TimeWithoutTimeZone,
+		schema.Interval:
 		return false, fmt.Errorf("unexpected primary key type: DataType(%d)", dataType)
 	case
-		schema.Bit,       // Fails: operator does not exist: bit >= boolean (SQLSTATE 42883)
-		schema.Time,      // Fails: invalid input syntax for type time: "45296000" (SQLSTATE 22007)
-		schema.Array,     // Fails: This doesn't work: need to serialize to Postgres array format "{1,2,3}"
-		schema.Bytea,     // Fails: ERROR: invalid byte sequence for encoding
-		schema.HStore,    // Fails: operator does not exist: hstore >= unknown (SQLSTATE 42883)
-		schema.Point,     // Can't be used as a primary key
-		schema.Geometry,  // Fails: parse error - invalid geometry (SQLSTATE XX000)
-		schema.Geography: // Fails: parse error - invalid geometry (SQLSTATE XX000)
+		schema.Bit,              // Fails: operator does not exist: bit >= boolean (SQLSTATE 42883)
+		schema.TimeWithTimeZone, // Fails: without the original timezone offset the query doesn't match any rows
+		schema.Array,            // Fails: This doesn't work: need to serialize to Postgres array format "{1,2,3}"
+		schema.Bytea,            // Fails: ERROR: invalid byte sequence for encoding
+		schema.HStore,           // Fails: operator does not exist: hstore >= unknown (SQLSTATE 42883)
+		schema.Point,            // Can't be used as a primary key
+		schema.Geometry,         // Fails: parse error - invalid geometry (SQLSTATE XX000)
+		schema.Geography:        // Fails: parse error - invalid geometry (SQLSTATE XX000)
 		return false, fmt.Errorf("unsupported primary key type: DataType(%d)", dataType)
 	case
 		schema.Real,
@@ -124,6 +127,20 @@ func convertToStringForQuery(value any, dataType schema.DataType) (string, error
 	switch castValue := value.(type) {
 	case time.Time:
 		return QuoteLiteral(castValue.Format(time.RFC3339)), nil
+	case pgtype.Time:
+		if !castValue.Valid {
+			return "null", nil
+		}
+		dbValue, err := castValue.Value()
+		if err != nil {
+			return "", err
+		}
+		stringValue, ok := dbValue.(string)
+		if !ok {
+			return "", fmt.Errorf("expected string got %T with value %v", value, value)
+		}
+
+		return QuoteLiteral(stringValue), nil
 	case pgtype.Interval:
 		if !castValue.Valid {
 			return "null", nil

@@ -3,7 +3,6 @@ package parse
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -39,14 +38,19 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 		}
 
 		return nil, fmt.Errorf("value: %v not of string type for Numeric or VariableNumeric", value)
-	case schema.Time:
-		// TODO: Switch from casting the value to seconds in the query to parsing the value to a `pgtypes.Time`
-		// Not using `pgtypes.Time` right now as it doesn't handle TIME WITH TIME ZONE properly.
-		secondsValue, ok := value.(int64)
+	case schema.TimeWithoutTimeZone, schema.TimeWithTimeZone:
+		stringValue, ok := value.(string)
 		if !ok {
-			return nil, fmt.Errorf("expected int64 got %T with value: %v", value, value)
+			return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
 		}
-		return time.Duration(secondsValue) * time.Second, nil
+		var timeValue pgtype.Time
+		if err := timeValue.Scan(stringValue); err != nil {
+			return nil, fmt.Errorf("failed to parse time value %s: %w", value, err)
+		}
+		if !timeValue.Valid {
+			return nil, nil
+		}
+		return timeValue, nil
 	case schema.Interval:
 		stringValue, ok := value.(string)
 		if !ok {

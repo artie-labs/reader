@@ -3,6 +3,7 @@ package adapter
 import (
 	"math"
 	"testing"
+	"time"
 
 	transferDbz "github.com/artie-labs/transfer/lib/debezium"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -67,6 +68,52 @@ func TestMoneyConverter_Convert(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "BfY8aA==", converted)
 		assert.Equal(t, "1000234.00", decodeValue(converted))
+	}
+}
+
+func TestPgTimeConverter_ToField(t *testing.T) {
+	converter := PgTimeConverter{}
+	expected := transferDbz.Field{
+		FieldName:    "col",
+		Type:         "int32",
+		DebeziumType: "io.debezium.time.Time",
+	}
+	assert.Equal(t, expected, converter.ToField("col"))
+}
+
+func TestPgTimeConverter_Convert(t *testing.T) {
+	converter := PgTimeConverter{}
+	{
+		// Invalid type
+		_, err := converter.Convert(1234)
+		assert.ErrorContains(t, err, "expected pgtype.Time got int with value: 1234")
+	}
+	{
+		// Invalid pgtype.Time
+		value, err := converter.Convert(pgtype.Time{Valid: false})
+		assert.NoError(t, err)
+		assert.Nil(t, value)
+	}
+	{
+		// Valid pgtype.Time - one microsecond
+		value, err := converter.Convert(pgtype.Time{Valid: true, Microseconds: 1})
+		assert.NoError(t, err)
+		assert.Equal(t, int32(0), value)
+	}
+	{
+		// Valid pgtype.Time - one millisecond
+		value, err := converter.Convert(pgtype.Time{Valid: true, Microseconds: 1000})
+		assert.NoError(t, err)
+		assert.Equal(t, int32(1), value)
+	}
+	{
+		// Valid pgtype.Time - one day
+		value, err := converter.Convert(pgtype.Time{
+			Valid:        true,
+			Microseconds: int64((time.Duration(24) * time.Hour) / time.Microsecond),
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, int32(86_400_000), value)
 	}
 }
 
