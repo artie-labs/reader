@@ -44,7 +44,7 @@ func TestCastColumn(t *testing.T) {
 			expected: `"foo"`,
 		},
 		{
-			name:     "time",
+			name:     "time with time zone",
 			dataType: schema.TimeWithTimeZone,
 			expected: `"foo" AT TIME ZONE 'UTC' AS "foo"`,
 		},
