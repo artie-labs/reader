@@ -83,6 +83,10 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 		return converters.BytesPassthrough{}, nil
 	case schema.Text, schema.UserDefinedText, schema.Inet:
 		return converters.StringPassthrough{}, nil
+	case schema.Real:
+		return converters.FloatPassthrough{}, nil
+	case schema.Double:
+		return converters.DoublePassthrough{}, nil
 	case schema.Int16:
 		return converters.Int16Passthrough{}, nil
 	case schema.Int32:
@@ -97,6 +101,8 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 		return PgIntervalConverter{}, nil
 	case schema.UUID:
 		return converters.UUIDConverter{}, nil
+	case schema.Array:
+		return converters.ArrayConverter{}, nil
 	case schema.JSON:
 		return converters.JSONConverter{}, nil
 	case schema.HStore:
@@ -108,10 +114,6 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	case schema.Geography:
 		return converters.NewGeographyConverter(), nil
 	// TODO: Replace the following uses of `NewPassthroughConverter` with type specific converters
-	case schema.Array:
-		return NewPassthroughConverter("array", ""), nil
-	case schema.Float:
-		return NewPassthroughConverter("float", ""), nil
 	case schema.Time:
 		return NewPassthroughConverter("int32", string(transferDbz.Time)), nil
 	default:

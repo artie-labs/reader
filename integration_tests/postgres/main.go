@@ -332,7 +332,7 @@ const expectedPayloadTemplate = `{
 						"parameters": null
 					},
 					{
-						"type": "float",
+						"type": "double",
 						"optional": false,
 						"default": null,
 						"field": "c_double_precision",

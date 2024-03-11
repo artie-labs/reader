@@ -10,7 +10,6 @@ require (
 	github.com/getsentry/sentry-go v0.26.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/uuid v1.3.0
-	github.com/jackc/pgtype v1.14.1
 	github.com/jackc/pgx/v5 v5.5.4
 	github.com/lmittmann/tint v1.0.4
 	github.com/samber/slog-multi v1.0.2
@@ -37,7 +36,6 @@ require (
 	github.com/aws/smithy-go v1.13.5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect

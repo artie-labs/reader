@@ -3,10 +3,8 @@ package parse
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 
 	"github.com/google/uuid"
-	oldPgtype "github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/artie-labs/reader/lib/postgres/schema"
@@ -80,13 +78,13 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 		}
 		return intervalValue, nil
 	case schema.Array:
-		var arr []any
-		if reflect.TypeOf(value).Kind() == reflect.Slice {
-			// If it's already a slice, don't modify it further.
-			return value, nil
+		stringValue, ok := value.(string)
+		if !ok {
+			return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
 		}
 
-		err := json.Unmarshal([]byte(fmt.Sprint(value)), &arr)
+		var arr []any
+		err := json.Unmarshal([]byte(stringValue), &arr)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse array value %v: %w", value, err)
 		}
@@ -104,16 +102,16 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 
 		return _uuid.String(), nil
 	case schema.HStore:
-		var val oldPgtype.Hstore
+		var val pgtype.Hstore
 		err := val.Scan(value)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal hstore: %w", err)
 		}
 
-		jsonMap := make(map[string]any)
-		for key, value := range val.Map {
-			if value.Status == oldPgtype.Present {
-				jsonMap[key] = value.String
+		jsonMap := make(map[string]string)
+		for key, value := range val {
+			if value != nil {
+				jsonMap[key] = *value
 			}
 		}
 
