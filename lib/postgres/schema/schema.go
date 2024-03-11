@@ -22,6 +22,7 @@ const (
 	Bytea
 	Inet
 	Text
+	UserDefinedText
 	Interval
 	Array
 	HStore
@@ -31,7 +32,6 @@ const (
 	Int32
 	Int64
 	UUID
-	UserDefinedText
 	JSON
 	Timestamp
 	Time
