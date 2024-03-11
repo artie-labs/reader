@@ -14,28 +14,28 @@ import (
 type DataType int
 
 const (
-	VariableNumeric DataType = iota
-	Money
+	Int16 DataType = iota
+	Int32
+	Int64
+	Real
+	Double
 	Numeric
+	VariableNumeric
+	Money
 	Bit
 	Boolean
 	Bytea
-	Inet
 	Text
 	UserDefinedText
-	Interval
-	Array
-	HStore
-	Real
-	Double
-	Int16
-	Int32
-	Int64
-	UUID
-	JSON
-	Timestamp
 	Time
 	Date
+	Timestamp
+	Interval
+	UUID
+	Inet
+	Array
+	HStore
+	JSON
 	// PostGIS
 	Point
 	Geometry

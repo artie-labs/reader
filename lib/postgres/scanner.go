@@ -18,23 +18,23 @@ import (
 )
 
 var supportedPrimaryKeyDataType []schema.DataType = []schema.DataType{
-	schema.Interval,
-	schema.Real,
-	schema.Double,
 	schema.Int16,
 	schema.Int32,
 	schema.Int64,
-	schema.Boolean,
+	schema.Real,
+	schema.Double,
+	schema.Numeric,
 	schema.VariableNumeric,
 	schema.Money,
-	schema.Numeric,
-	schema.Inet,
+	schema.Boolean,
 	schema.Text,
-	schema.UUID,
 	schema.UserDefinedText,
-	schema.JSON,
-	schema.Timestamp,
 	schema.Date,
+	schema.Timestamp,
+	schema.Interval,
+	schema.UUID,
+	schema.Inet,
+	schema.JSON,
 	// schema.Bit - fails: operator does not exist: bit >= boolean (SQLSTATE 42883)
 	// schema.Time - fails: invalid input syntax for type time: "45296000" (SQLSTATE 22007)
 	// schema.Array - fails: This doesn't work: need to serialize to Postgres array format "{1,2,3}"
