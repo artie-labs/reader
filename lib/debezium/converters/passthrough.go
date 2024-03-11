@@ -81,7 +81,6 @@ func (FloatPassthrough) Convert(value any) (any, error) {
 	case float32, float64:
 		return castValue, nil
 	}
-
 	return nil, fmt.Errorf("expected float32/float64 got %T with value: %v", value, value)
 }
 
