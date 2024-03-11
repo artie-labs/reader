@@ -98,18 +98,6 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 		}
 
 		return jsonMap, nil
-	case schema.Geometry, schema.Geography:
-		valString, isOk := value.(string)
-		if !isOk {
-			return nil, fmt.Errorf("value: %v not of string type for geometry / geography", value)
-		}
-
-		geometry, err := ToGeography([]byte(valString))
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse geometry / geography: %w", err)
-		}
-
-		return geometry, nil
 	case schema.Point:
 		valString, isOk := value.(string)
 		if !isOk {
@@ -122,6 +110,18 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 		}
 
 		return point.ToMap(), nil
+	case schema.Geometry, schema.Geography:
+		valString, isOk := value.(string)
+		if !isOk {
+			return nil, fmt.Errorf("value: %v not of string type for geometry / geography", value)
+		}
+
+		geometry, err := ToGeography([]byte(valString))
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse geometry / geography: %w", err)
+		}
+
+		return geometry, nil
 	default:
 		return value, nil
 	}
