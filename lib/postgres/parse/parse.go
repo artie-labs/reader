@@ -45,10 +45,10 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 		}
 		var timeValue pgtype.Time
 		if err := timeValue.Scan(stringValue); err != nil {
-			return nil, fmt.Errorf("failed to parse time value %s: %w", value, err)
+			return nil, fmt.Errorf("failed to parse time value %s: %w", stringValue, err)
 		}
 		if !timeValue.Valid {
-			return nil, nil
+			return nil, fmt.Errorf("parsed time value %s is not valid", stringValue)
 		}
 		return timeValue, nil
 	case schema.Interval:
