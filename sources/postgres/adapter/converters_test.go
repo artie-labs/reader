@@ -128,18 +128,18 @@ func TestPgIntervalConverter_Convert(t *testing.T) {
 		assert.ErrorContains(t, err, "positive microseconds are too large for an int64")
 	}
 	{
-		// Valid pgtype.Interval - very large but no underflow
+		// Valid pgtype.Interval - very large but no overflow
 		value, err := converter.Convert(pgtype.Interval{Valid: true, Months: -292_000 * 12})
 		assert.NoError(t, err)
 		assert.Equal(t, int64(-9_214_819_200_000_000_000), value)
 	}
 	{
-		// Valid pgtype.Interval - underflow
+		// Valid pgtype.Interval - negative overflow
 		_, err := converter.Convert(pgtype.Interval{Valid: true, Months: -293_000 * 12})
 		assert.ErrorContains(t, err, "negative microseconds are too large for an int64")
 	}
 	{
-		// Valid pgtype.Interval - underflow
+		// Valid pgtype.Interval - positive overflow
 		_, err := converter.Convert(pgtype.Interval{Valid: true, Microseconds: math.MinInt64, Days: -1})
 		assert.ErrorContains(t, err, "negative microseconds are too large for an int64")
 	}
