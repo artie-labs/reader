@@ -3,6 +3,7 @@ package parse
 import (
 	"testing"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/lib/postgres/schema"
@@ -41,6 +42,30 @@ func TestParse(t *testing.T) {
 			dataType:      schema.Text,
 			value:         "hello",
 			expectedValue: "hello",
+		},
+		{
+			colName:       "time - one second",
+			dataType:      schema.Time,
+			value:         "00:00:01",
+			expectedValue: pgtype.Time{Microseconds: 100_0000, Valid: true},
+		},
+		{
+			colName:       "time - 24 hours",
+			dataType:      schema.Time,
+			value:         "24:00:00",
+			expectedValue: pgtype.Time{Microseconds: 86_400_000_000, Valid: true},
+		},
+		{
+			colName:       "time - nil",
+			dataType:      schema.Time,
+			value:         nil,
+			expectedValue: nil,
+		},
+		{
+			colName:   "time - malformed",
+			dataType:  schema.Time,
+			value:     "blah",
+			expectErr: true,
 		},
 		{
 			colName:       "uuid",

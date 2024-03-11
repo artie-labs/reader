@@ -13,18 +13,16 @@ func castColumn(col schema.Column) (string, error) {
 	switch col.Type {
 	case schema.Inet:
 		return fmt.Sprintf("%s::text", colName), nil
-	case schema.Time, schema.Interval:
+	case schema.Time:
+		// If we don't convert "time with time zone" to UTC we end up with strings like `10:23:54+02
+		// And pgtype.Time doesn't parse the offset propertly.
+		return fmt.Sprintf(`%s AT TIME ZONE 'UTC' AS "%s"`, colName, col.Name), nil
+	case schema.Interval:
 		// We want to extract(epoch from interval) will emit this in ms
 		// However, Debezium wants this in macro seconds, so we are multiplying this by 1000.
 		// We need to use CAST, because regular ::int makes this into a bytes array.
 		// extract from epoch outputs in seconds, default multiplier to ms.
-		multiplier := 1000
-		if col.Type == schema.Interval {
-			// ms to macro seconds.
-			multiplier = 1000 * 1000
-		}
-
-		return fmt.Sprintf(`cast(extract(epoch from %s)*%d as bigint) as "%s"`, colName, multiplier, col.Name), nil
+		return fmt.Sprintf(`cast(extract(epoch from %s)*%d as bigint) as "%s"`, colName, 1000*1000, col.Name), nil
 	case schema.Array:
 		return fmt.Sprintf(`ARRAY_TO_JSON(%s)::TEXT as "%s"`, colName, col.Name), nil
 	case schema.Int16, schema.Int32, schema.Int64, schema.Float, schema.UUID,

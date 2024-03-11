@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/artie-labs/reader/lib/postgres/parse"
 	"github.com/artie-labs/reader/lib/postgres/schema"
@@ -81,9 +82,10 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 
 func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 	switch dataType {
+	case schema.Time: // We natively support pgtype.Time in convertToStringForQuery
+		return false, fmt.Errorf("unexpected primary key type: DataType(%d)", dataType)
 	case
 		schema.Bit,       // Fails: operator does not exist: bit >= boolean (SQLSTATE 42883)
-		schema.Time,      // Fails: invalid input syntax for type time: "45296000" (SQLSTATE 22007)
 		schema.Interval,  // Fails: operator does not exist: interval >= bigint (SQLSTATE 42883)
 		schema.Array,     // Fails: This doesn't work: need to serialize to Postgres array format "{1,2,3}"
 		schema.Bytea,     // Fails: ERROR: invalid byte sequence for encoding
@@ -120,6 +122,20 @@ func convertToStringForQuery(value any, dataType schema.DataType) (string, error
 	switch castValue := value.(type) {
 	case time.Time:
 		return QuoteLiteral(castValue.Format(time.RFC3339)), nil
+	case pgtype.Time:
+		if !castValue.Valid {
+			return "null", nil
+		}
+		dbValue, err := castValue.Value()
+		if err != nil {
+			return "", err
+		}
+		stringValue, ok := dbValue.(string)
+		if !ok {
+			return "", fmt.Errorf("expected string got %T with value %v", value, value)
+		}
+
+		return QuoteLiteral(stringValue), nil
 	case int, int8, int16, int32, int64:
 		switch dataType {
 		case schema.Int16, schema.Int32, schema.Int64:

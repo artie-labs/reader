@@ -6,8 +6,6 @@ import (
 	"log/slog"
 	"strings"
 
-	transferDbz "github.com/artie-labs/transfer/lib/debezium"
-
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
@@ -113,7 +111,7 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	case schema.Float:
 		return NewPassthroughConverter("float", ""), nil
 	case schema.Time:
-		return NewPassthroughConverter("int32", string(transferDbz.Time)), nil
+		return PgTimeConverter{}, nil
 	default:
 		return nil, fmt.Errorf("unsupported data type: DataType(%d)", dataType)
 	}

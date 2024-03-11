@@ -6,7 +6,8 @@ import (
 	"reflect"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgtype"
+	oldPgtype "github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
@@ -65,6 +66,19 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 		}
 
 		return nil, fmt.Errorf("value: %v not of string type for Numeric or VariableNumeric", value)
+	case schema.Time:
+		stringValue, ok := value.(string)
+		if !ok {
+			return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
+		}
+		var timeValue pgtype.Time
+		if err := timeValue.Scan(stringValue); err != nil {
+			return nil, fmt.Errorf("failed to parse time value %s: %w", value, err)
+		}
+		if !timeValue.Valid {
+			return nil, nil
+		}
+		return timeValue, nil
 	case schema.Array:
 		var arr []any
 		if reflect.TypeOf(value).Kind() == reflect.Slice {
@@ -90,7 +104,7 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 
 		return _uuid.String(), nil
 	case schema.HStore:
-		var val pgtype.Hstore
+		var val oldPgtype.Hstore
 		err := val.Scan(value)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal hstore: %w", err)
@@ -98,7 +112,7 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 
 		jsonMap := make(map[string]any)
 		for key, value := range val.Map {
-			if value.Status == pgtype.Present {
+			if value.Status == oldPgtype.Present {
 				jsonMap[key] = value.String
 			}
 		}
