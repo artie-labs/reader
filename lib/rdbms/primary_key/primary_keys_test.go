@@ -142,32 +142,6 @@ func TestKeys_UpdateStartingValue(t *testing.T) {
 	}
 }
 
-func TestKeys_Clone(t *testing.T) {
-	// empty keys
-	{
-		keys := NewKeys([]Key{})
-		keys2 := keys.Clone()
-		assert.Equal(t, keys.keys, keys2.keys)
-	}
-	// non-empty keys
-	{
-		keys := NewKeys([]Key{{Name: "foo", StartingValue: "a", EndingValue: nil}})
-		keys2 := keys.Clone()
-		assert.Equal(t, keys.keys, keys2.keys)
-		assert.Equal(t, []Key{{"foo", "a", nil}}, keys2.keys)
-	}
-	// cloning actually makes a clone and doesn't reuse pointers to keys
-	{
-		keys := NewKeys([]Key{{Name: "foo", StartingValue: 20}, {Name: "bar", StartingValue: 0}})
-		clonedKeys := keys.Clone()
-		clonedKeys.UpdateStartingValue("foo", "new starting value")
-		assert.Equal(t, "foo", keys.keys[0].Name)
-		assert.Equal(t, 20, keys.keys[0].StartingValue)
-		assert.Equal(t, "foo", clonedKeys.keys[0].Name)
-		assert.Equal(t, "new starting value", clonedKeys.keys[0].StartingValue)
-	}
-}
-
 func TestKeys_IsExausted(t *testing.T) {
 	// empty keys
 	{

@@ -56,7 +56,7 @@ func NewScanner(db *sql.DB, _primaryKeys []primary_key.Key, cfg ScannerConfig, a
 		batchSize:    cfg.BatchSize,
 		retryCfg:     retryCfg,
 		adapter:      adapter,
-		primaryKeys:  primaryKeys.Clone(),
+		primaryKeys:  primaryKeys,
 		isFirstBatch: true,
 		done:         false,
 	}, nil

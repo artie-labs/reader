@@ -59,10 +59,6 @@ func (k *Keys) LoadValues(startingValues, endingValues []string) error {
 	return nil
 }
 
-func (k *Keys) Clone() *Keys {
-	return NewKeys(k.keys)
-}
-
 func (k *Keys) UpdateStartingValue(keyName string, startingVal any) error {
 	idx := slices.IndexFunc(k.keys, func(x Key) bool { return x.Name == keyName })
 	if idx < 0 {
