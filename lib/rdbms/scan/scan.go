@@ -150,8 +150,8 @@ func (s *Scanner) scan() ([]map[string]any, error) {
 	return rowsData, nil
 }
 
-// parsePkValueOverrides converts primary key starting or ending values coming from db config files into values usable
-// by the db driver.
+// parsePkValueOverrides converts primary key starting/ending string values coming from db config files into values
+// usable by the db driver.
 func parsePkValueOverrides(values []string, primaryKeys []primary_key.Key, adapter ScanAdapter) ([]any, error) {
 	if len(values) == 0 {
 		return make([]any, 0), nil
