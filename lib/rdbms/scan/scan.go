@@ -15,14 +15,14 @@ const (
 )
 
 type ScannerConfig struct {
-	BatchSize uint
-	// TODO: These two should be []any
+	BatchSize              uint
 	OptionalStartingValues []string
 	OptionalEndingValues   []string
 	ErrorRetries           int
 }
 
 type ScanAdapter interface {
+	ParsePrimaryKeyValue(columnName string, value string) (any, error)
 	BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error)
 	ParseRow(row []any) (map[string]any, error)
 }
@@ -41,8 +41,18 @@ type Scanner struct {
 }
 
 func NewScanner(db *sql.DB, _primaryKeys []primary_key.Key, cfg ScannerConfig, adapter ScanAdapter) (*Scanner, error) {
+	optionalStartingValues, err := parsePkValueOverrides(cfg.OptionalStartingValues, _primaryKeys, adapter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse optional starting values: %w", err)
+	}
+
+	optionalEndingValues, err := parsePkValueOverrides(cfg.OptionalEndingValues, _primaryKeys, adapter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse optional ending values: %w", err)
+	}
+
 	primaryKeys := primary_key.NewKeys(_primaryKeys)
-	if err := primaryKeys.LoadValues(cfg.OptionalStartingValues, cfg.OptionalEndingValues); err != nil {
+	if err := primaryKeys.LoadValues(optionalStartingValues, optionalEndingValues); err != nil {
 		return nil, fmt.Errorf("failed to override primary key values: %w", err)
 	}
 
@@ -138,4 +148,27 @@ func (s *Scanner) scan() ([]map[string]any, error) {
 		rowsData = append(rowsData, row)
 	}
 	return rowsData, nil
+}
+
+// parsePkValueOverrides converts primary key starting/ending string values coming from db config files into values
+// usable by the db driver.
+func parsePkValueOverrides(values []string, primaryKeys []primary_key.Key, adapter ScanAdapter) ([]any, error) {
+	if len(values) == 0 {
+		return make([]any, 0), nil
+	}
+
+	if len(values) != len(primaryKeys) {
+		return nil, fmt.Errorf("keys (%d), and override values (%d) length does not match, keys: %v, values: %v",
+			len(primaryKeys), len(values), primaryKeys, values)
+	}
+
+	result := make([]any, len(values))
+	for i, value := range values {
+		parsedValue, err := adapter.ParsePrimaryKeyValue(primaryKeys[i].Name, value)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse value '%v': %w", value, err)
+		}
+		result[i] = parsedValue
+	}
+	return result, nil
 }
