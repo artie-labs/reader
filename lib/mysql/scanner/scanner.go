@@ -94,6 +94,8 @@ func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any,
 		if err != nil {
 			return nil, fmt.Errorf(`unable to convert "%s" to a year: %w`, value, err)
 		}
+		// MySQL only supports years from 1901 to 2155
+		// https://dev.mysql.com/doc/refman/8.3/en/year.html
 		if intValue < 1901 {
 			return nil, fmt.Errorf(`unable to convert "%s" to a year: value must be >= 1901`, value)
 		} else if intValue > 2155 {
