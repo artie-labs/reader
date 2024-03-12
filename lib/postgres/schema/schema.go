@@ -14,7 +14,7 @@ import (
 type DataType int
 
 const (
-	Bit DataType = iota
+	Bit DataType = iota + 1
 	Boolean
 	Int16
 	Int32
