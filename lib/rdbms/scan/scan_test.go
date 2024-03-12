@@ -38,12 +38,12 @@ func TestParsePkValueOverrides(t *testing.T) {
 	{
 		// Non-empty values + empty primary keys
 		_, err := parsePkValueOverrides([]string{"foo"}, []primary_key.Key{}, mockAdapter{})
-		assert.ErrorContains(t, err, "keys (0), and passed in values (1) length does not match, keys: [], values: [foo]")
+		assert.ErrorContains(t, err, "keys (0), and override values (1) length does not match, keys: [], values: [foo]")
 	}
 	{
 		// len(values) != len(primary keys)
 		_, err := parsePkValueOverrides([]string{"123", "456"}, []primary_key.Key{{Name: "foo"}}, mockAdapter{})
-		assert.ErrorContains(t, err, "keys (1), and passed in values (2) length does not match, keys: [{foo <nil> <nil>}]")
+		assert.ErrorContains(t, err, "keys (1), and override values (2) length does not match, keys: [{foo <nil> <nil>}]")
 	}
 	{
 		// len(values) == len(primary keys) + error in ParsePrimaryKeyValue
