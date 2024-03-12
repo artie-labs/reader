@@ -230,6 +230,11 @@ type scanAdapter struct {
 	columns   []schema.Column
 }
 
+func (s scanAdapter) ParsePrimaryKeyValue(_ string, value string) (any, error) {
+	// TODO: Implement
+	return value, nil
+}
+
 func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error) {
 	query, err := scanTableQuery(scanTableQueryArgs{
 		Schema:              s.schema,

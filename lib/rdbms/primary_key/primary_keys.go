@@ -16,7 +16,7 @@ func NewKeys(keys []Key) *Keys {
 	}
 }
 
-func (k *Keys) LoadValues(startingValues, endingValues []string) error {
+func (k *Keys) LoadValues(startingValues, endingValues []any) error {
 	length := len(k.keys)
 	if len(startingValues) != 0 {
 		if len(startingValues) != length {
@@ -24,12 +24,12 @@ func (k *Keys) LoadValues(startingValues, endingValues []string) error {
 				length, len(startingValues), k.KeyNames(), startingValues)
 		}
 
-		for idx := range k.keys {
+		for idx, key := range k.keys {
 			newValue := startingValues[idx]
 
 			slog.Info("Overriding primary key start value",
-				slog.String("colName", k.keys[idx].Name),
-				slog.Any("dbMin", k.keys[idx].StartingValue),
+				slog.String("colName", key.Name),
+				slog.Any("dbMin", key.StartingValue),
 				slog.Any("override", newValue),
 			)
 
@@ -43,12 +43,12 @@ func (k *Keys) LoadValues(startingValues, endingValues []string) error {
 				length, len(endingValues), k.KeyNames(), endingValues)
 		}
 
-		for idx := range k.keys {
+		for idx, key := range k.keys {
 			newValue := endingValues[idx]
 
 			slog.Info("Overriding primary key end value",
-				slog.String("colName", k.keys[idx].Name),
-				slog.Any("dbMax", k.keys[idx].EndingValue),
+				slog.String("colName", key.Name),
+				slog.Any("dbMax", key.EndingValue),
 				slog.Any("override", newValue),
 			)
 

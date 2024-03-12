@@ -22,8 +22,8 @@ func TestNewKeys(t *testing.T) {
 func TestPrimaryKeys_LoadValues(t *testing.T) {
 	type _tc struct {
 		name           string
-		startingValues []string
-		endingValues   []string
+		startingValues []any
+		endingValues   []any
 
 		keys         []Key
 		expectedKeys []Key
@@ -34,44 +34,44 @@ func TestPrimaryKeys_LoadValues(t *testing.T) {
 		{
 			name:           "happy path (starting values)",
 			keys:           []Key{{Name: "id"}},
-			startingValues: []string{"123"},
+			startingValues: []any{"123"},
 			expectedKeys:   []Key{{Name: "id", StartingValue: "123"}},
 		},
 		{
 			name:           "happy path w/ 2 keys (starting values)",
 			keys:           []Key{{Name: "id"}, {Name: "content_key"}},
-			startingValues: []string{"123", "path:123"},
+			startingValues: []any{"123", "path:123"},
 			expectedKeys:   []Key{{Name: "id", StartingValue: "123"}, {Name: "content_key", StartingValue: "path:123"}},
 		},
 		{
 			name:         "happy path (ending values)",
 			keys:         []Key{{Name: "id"}},
-			endingValues: []string{"123"},
+			endingValues: []any{"123"},
 			expectedKeys: []Key{{Name: "id", EndingValue: "123"}},
 		},
 		{
 			name:         "happy path w/ 2 keys (ending values)",
 			keys:         []Key{{Name: "id"}, {Name: "content_key"}},
-			endingValues: []string{"123", "path:123"},
+			endingValues: []any{"123", "path:123"},
 			expectedKeys: []Key{{Name: "id", EndingValue: "123"}, {Name: "content_key", EndingValue: "path:123"}},
 		},
 		{
 			name:           "happy path w/ 2 keys (starting and ending values)",
 			keys:           []Key{{Name: "id"}, {Name: "content_key"}},
-			startingValues: []string{"122", "path:122"},
-			endingValues:   []string{"123", "path:123"},
+			startingValues: []any{"122", "path:122"},
+			endingValues:   []any{"123", "path:123"},
 			expectedKeys:   []Key{{Name: "id", StartingValue: "122", EndingValue: "123"}, {Name: "content_key", StartingValue: "path:122", EndingValue: "path:123"}},
 		},
 		{
 			name:           "bad data - no keys",
 			keys:           []Key{},
-			startingValues: []string{"123", "path:123"},
+			startingValues: []any{"123", "path:123"},
 			expectedErr:    true,
 		},
 		{
 			name:           "bad data - no values, so we just don't load",
 			keys:           []Key{{Name: "id"}, {Name: "content_key"}},
-			startingValues: []string{},
+			startingValues: []any{},
 			expectedErr:    false,
 			expectedKeys:   []Key{{Name: "id"}, {Name: "content_key"}},
 		},
