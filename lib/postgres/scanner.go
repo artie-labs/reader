@@ -146,7 +146,6 @@ func shouldQuoteValue(dataType schema.DataType) (bool, error) {
 
 // convertToStringForQuery returns a string value suitable for use directly in a query.
 func convertToStringForQuery(value any, dataType schema.DataType) (string, error) {
-	// TODO: Change logs to actual errors then remove legacy behavior
 	switch castValue := value.(type) {
 	case time.Time:
 		return QuoteLiteral(castValue.Format(time.RFC3339)), nil
@@ -176,36 +175,8 @@ func convertToStringForQuery(value any, dataType schema.DataType) (string, error
 			return "", fmt.Errorf("expected string got %T with value %v", value, value)
 		}
 		return QuoteLiteral(stringValue), nil
-	case int, int8, int16, int32, int64:
-		switch dataType {
-		case schema.Int16, schema.Int32, schema.Int64:
-			return fmt.Sprint(value), nil
-		default:
-			slog.Error("int8/16/32/64 value with non-int column type",
-				slog.Any("value", value),
-				slog.Any("dataType", dataType),
-			)
-		}
-	case float32, float64:
-		switch dataType {
-		case schema.Real, schema.Double:
-			return fmt.Sprint(value), nil
-		default:
-			slog.Error("float32/64 value with non-float column type",
-				slog.Any("value", value),
-				slog.Any("dataType", dataType),
-			)
-		}
-	case bool:
-		switch dataType {
-		case schema.Bit, schema.Boolean:
-			return fmt.Sprint(value), nil
-		default:
-			slog.Error("bool value with non-bool column type",
-				slog.Bool("value", castValue),
-				slog.Any("dataType", dataType),
-			)
-		}
+	case bool, int, int8, int16, int32, int64, float32, float64:
+		return fmt.Sprint(value), nil
 	case string:
 		switch dataType {
 		case schema.Text, schema.UserDefinedText, schema.Inet, schema.UUID, schema.JSON, schema.VariableNumeric,
@@ -216,23 +187,20 @@ func convertToStringForQuery(value any, dataType schema.DataType) (string, error
 				slog.String("value", castValue),
 				slog.Any("dataType", dataType),
 			)
+			// legacy behavior - used when optionalPrimaryKeyValStart/End is configured
+			// TODO: parse optionalPrimaryKeyValStart/End based on DataType to Go type
+			shouldQuote, err := shouldQuoteValue(dataType)
+			if err != nil {
+				return "", err
+			}
+			if shouldQuote {
+				return QuoteLiteral(fmt.Sprint(value)), nil
+			} else {
+				return fmt.Sprint(value), nil
+			}
 		}
 	default:
-		slog.Error("unexpected value for primary key",
-			slog.Any("value", value),
-			slog.String("type", fmt.Sprintf("%T", value)),
-			slog.Any("dataType", dataType),
-		)
-	}
-	// legacy behavior
-	shouldQuote, err := shouldQuoteValue(dataType)
-	if err != nil {
-		return "", err
-	}
-	if shouldQuote {
-		return QuoteLiteral(fmt.Sprint(value)), nil
-	} else {
-		return fmt.Sprint(value), nil
+		return "", fmt.Errorf("unexpected type %T for primary key with value %v", value, value)
 	}
 }
 
