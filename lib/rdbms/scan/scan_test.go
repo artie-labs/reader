@@ -31,30 +31,30 @@ func (mockAdapter) ParseRow(row []any) (map[string]any, error) {
 func TestParseOptionalValues(t *testing.T) {
 	{
 		// Empty values.
-		result, err := parseOptionalValues([]string{}, []primary_key.Key{}, mockAdapter{})
+		result, err := parsePkValueOverrides([]string{}, []primary_key.Key{}, mockAdapter{})
 		assert.NoError(t, err)
 		assert.Empty(t, result)
 	}
 	{
 		// Non-empty values + empty primary keys
-		_, err := parseOptionalValues([]string{"foo"}, []primary_key.Key{}, mockAdapter{})
+		_, err := parsePkValueOverrides([]string{"foo"}, []primary_key.Key{}, mockAdapter{})
 		assert.ErrorContains(t, err, "keys (0), and passed in values (1) length does not match, keys: [], values: [foo]")
 	}
 	{
 		// len(values) != len(primary keys)
-		_, err := parseOptionalValues([]string{"123", "456"}, []primary_key.Key{{Name: "foo"}}, mockAdapter{})
+		_, err := parsePkValueOverrides([]string{"123", "456"}, []primary_key.Key{{Name: "foo"}}, mockAdapter{})
 		assert.ErrorContains(t, err, "keys (1), and passed in values (2) length does not match, keys: [{foo <nil> <nil>}]")
 	}
 	{
 		// len(values) == len(primary keys) + error in ParsePrimaryKeyValue
 		adapter := mockAdapter{returnError: true}
-		_, err := parseOptionalValues([]string{"123", "456"}, []primary_key.Key{{Name: "foo"}, {Name: "bar"}}, adapter)
+		_, err := parsePkValueOverrides([]string{"123", "456"}, []primary_key.Key{{Name: "foo"}, {Name: "bar"}}, adapter)
 		assert.ErrorContains(t, err, "failed to parse value '123': mock error in ParsePrimaryKeyValue")
 	}
 	{
 		// Happy path: len(values) == len(primary keys) + no error
 		adapter := mockAdapter{returnError: false}
-		result, err := parseOptionalValues([]string{"123", "456"}, []primary_key.Key{{Name: "foo"}, {Name: "bar"}}, adapter)
+		result, err := parsePkValueOverrides([]string{"123", "456"}, []primary_key.Key{{Name: "foo"}, {Name: "bar"}}, adapter)
 		assert.NoError(t, err)
 		assert.Equal(t, []any{"parsed-foo-123", "parsed-bar-456"}, result)
 	}

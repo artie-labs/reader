@@ -41,12 +41,12 @@ type Scanner struct {
 }
 
 func NewScanner(db *sql.DB, _primaryKeys []primary_key.Key, cfg ScannerConfig, adapter ScanAdapter) (*Scanner, error) {
-	optionalStartingValues, err := parseOptionalValues(cfg.OptionalStartingValues, _primaryKeys, adapter)
+	optionalStartingValues, err := parsePkValueOverrides(cfg.OptionalStartingValues, _primaryKeys, adapter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse optional starting values: %w", err)
 	}
 
-	optionalEndingValues, err := parseOptionalValues(cfg.OptionalEndingValues, _primaryKeys, adapter)
+	optionalEndingValues, err := parsePkValueOverrides(cfg.OptionalEndingValues, _primaryKeys, adapter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse optional ending values: %w", err)
 	}
@@ -150,9 +150,9 @@ func (s *Scanner) scan() ([]map[string]any, error) {
 	return rowsData, nil
 }
 
-// parseOptionalValues converts primary key starting or ending values coming from db config files into values usable by
-// the db driver.
-func parseOptionalValues(values []string, primaryKeys []primary_key.Key, adapter ScanAdapter) ([]any, error) {
+// parsePkValueOverrides converts primary key starting or ending values coming from db config files into values usable
+// by the db driver.
+func parsePkValueOverrides(values []string, primaryKeys []primary_key.Key, adapter ScanAdapter) ([]any, error) {
 	if len(values) == 0 {
 		return make([]any, 0), nil
 	}
