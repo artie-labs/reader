@@ -162,7 +162,7 @@ func parsePkValueOverrides(values []string, primaryKeys []primary_key.Key, adapt
 			len(primaryKeys), len(values), primaryKeys, values)
 	}
 
-	result := make([]any, len(primaryKeys))
+	result := make([]any, len(values))
 	for i, value := range values {
 		parsedValue, err := adapter.ParsePrimaryKeyValue(primaryKeys[i].Name, value)
 		if err != nil {
