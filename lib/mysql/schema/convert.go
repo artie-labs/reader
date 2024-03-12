@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-const dateTimeFormat = "2006-01-02 15:04:05.999999999"
+const DateTimeFormat = "2006-01-02 15:04:05.999999999"
 
 // ConvertValue takes a value returned from the MySQL driver and converts it to a native Go type.
 func ConvertValue(value any, colType DataType) (any, error) {
@@ -79,7 +79,7 @@ func ConvertValue(value any, colType DataType) (any, error) {
 		if !ok {
 			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
 		}
-		timeValue, err := time.Parse(dateTimeFormat, string(bytesValue))
+		timeValue, err := time.Parse(DateTimeFormat, string(bytesValue))
 		if err != nil {
 			return nil, err
 		}
