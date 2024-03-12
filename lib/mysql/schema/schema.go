@@ -16,7 +16,7 @@ type DataType int
 
 const (
 	// Integer Types (Exact Value)
-	TinyInt DataType = iota
+	TinyInt DataType = iota + 1
 	SmallInt
 	MediumInt
 	Int

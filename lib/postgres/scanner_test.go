@@ -208,7 +208,7 @@ func TestScanAdapter_ParsePrimaryKeyValue(t *testing.T) {
 			name:        "unsupported data type",
 			dataType:    schema.Array,
 			value:       "1234",
-			expectedErr: "DataType(20) for column 'col' is not supported for use as a primary key",
+			expectedErr: "DataType(21) for column 'col' is not supported for use as a primary key",
 		},
 		{
 			name:        "boolean - malformed",
