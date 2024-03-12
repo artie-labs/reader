@@ -25,7 +25,7 @@ type scanAdapter struct {
 }
 
 func (s scanAdapter) ParsePrimaryKeyValue(_ string, value string) (any, error) {
-	// TODO: Build out
+	// TODO: Implement
 	return value, nil
 }
 
