@@ -30,7 +30,7 @@ func (mockAdapter) ParseRow(row []any) (map[string]any, error) {
 
 func TestParsePkValueOverrides(t *testing.T) {
 	{
-		// Empty values.
+		// Empty values
 		result, err := parsePkValueOverrides([]string{}, []primary_key.Key{}, mockAdapter{})
 		assert.NoError(t, err)
 		assert.Empty(t, result)
