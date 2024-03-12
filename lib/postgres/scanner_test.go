@@ -57,7 +57,7 @@ func TestShouldQuoteValue(t *testing.T) {
 	}
 
 	_, err := shouldQuoteValue(-1)
-	assert.ErrorContains(t, err, "unsupported data type: DataType(-1)")
+	assert.ErrorContains(t, err, "unsupported primary key type: DataType(-1)")
 }
 
 func TestConvertToStringForQuery(t *testing.T) {
@@ -120,7 +120,7 @@ func TestConvertToStringForQuery(t *testing.T) {
 			name:        "text - unsupported data type",
 			value:       "foo",
 			dataType:    -1,
-			expectedErr: "unsupported data type",
+			expectedErr: "unsupported primary key type: DataType(-1)",
 		},
 		{
 			name:     "interval",
