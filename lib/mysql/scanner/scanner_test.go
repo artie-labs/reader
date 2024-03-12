@@ -204,6 +204,12 @@ func TestScanAdapter_ParsePrimaryKeyValue(t *testing.T) {
 			expected: int16(1901),
 		},
 		{
+			name:     "year - well-formed",
+			dataType: schema.Year,
+			value:    "2002",
+			expected: int16(2002),
+		},
+		{
 			name:     "text",
 			dataType: schema.Text,
 			value:    "red orange yellow",
