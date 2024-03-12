@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -230,9 +231,71 @@ type scanAdapter struct {
 	columns   []schema.Column
 }
 
-func (s scanAdapter) ParsePrimaryKeyValue(_ string, value string) (any, error) {
-	// TODO: Implement
-	return value, nil
+func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any, error) {
+	columnIdx := slices.IndexFunc(s.columns, func(x schema.Column) bool { return x.Name == columnName })
+	if columnIdx < 0 {
+		return nil, fmt.Errorf("primary key column does not exist: %s", columnName)
+	}
+	column := s.columns[columnIdx]
+
+	if !slices.Contains(supportedPrimaryKeyDataType, column.Type) {
+		return nil, fmt.Errorf("DataType(%d) for column '%s' is not supported for use as a primary key", column.Type, column.Name)
+	}
+
+	switch column.Type {
+	case schema.Boolean:
+		boolValue, err := strconv.ParseBool(value)
+		if err != nil {
+			return nil, fmt.Errorf(`unable to convert "%s" to a bool: %w`, value, err)
+		}
+		return boolValue, nil
+	case schema.Int16:
+		intValue, err := strconv.ParseInt(value, 10, 16)
+		if err != nil {
+			return nil, fmt.Errorf(`unable to convert "%s" to an int16: %w`, value, err)
+		}
+		return int16(intValue), nil
+	case schema.Int32:
+		intValue, err := strconv.ParseInt(value, 10, 32)
+		if err != nil {
+			return nil, fmt.Errorf(`unable to convert "%s" to an int32: %w`, value, err)
+		}
+		return int32(intValue), nil
+	case schema.Int64:
+		intValue, err := strconv.ParseInt(value, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf(`unable to convert "%s" to an int64: %w`, value, err)
+		}
+		return intValue, nil
+	case schema.Real:
+		floatValue, err := strconv.ParseFloat(value, 32)
+		if err != nil {
+			return nil, fmt.Errorf(`unable to convert "%s" to a float32: %w`, value, err)
+		}
+		return float32(floatValue), nil
+	case schema.Double:
+		floatValue, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			return nil, fmt.Errorf(`unable to convert "%s" to a float64: %w`, value, err)
+		}
+		return floatValue, nil
+	case
+		schema.Numeric,
+		schema.VariableNumeric,
+		schema.Text,
+		schema.Money,
+		schema.UserDefinedText,
+		schema.Time,
+		schema.Date,
+		schema.Timestamp,
+		schema.Interval,
+		schema.UUID,
+		schema.Inet,
+		schema.JSON:
+		return value, nil
+	default:
+		return nil, fmt.Errorf("primary key value parsing not implemented for DataType(%d)", column.Type)
+	}
 }
 
 func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error) {
