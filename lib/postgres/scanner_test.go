@@ -148,14 +148,14 @@ func TestConvertToStringForQuery(t *testing.T) {
 
 func TestScanTableQuery(t *testing.T) {
 	primaryKeys := []primary_key.Key{
-		{Name: "a", StartingValue: "1", EndingValue: "4"},
-		{Name: "b", StartingValue: "2", EndingValue: "5"},
+		{Name: "a", StartingValue: int64(1), EndingValue: int64(4)},
+		{Name: "b", StartingValue: int64(2), EndingValue: int64(5)},
 		{Name: "c", StartingValue: "3", EndingValue: "6"},
 	}
 	cols := []schema.Column{
 		{Name: "a", Type: schema.Int64},
 		{Name: "b", Type: schema.Int64},
-		{Name: "c", Type: schema.Int64},
+		{Name: "c", Type: schema.Text},
 		{Name: "e", Type: schema.Text},
 		{Name: "f", Type: schema.Int64},
 		{Name: "127.0.0.1", Type: schema.Inet},
@@ -172,7 +172,7 @@ func TestScanTableQuery(t *testing.T) {
 			Columns:             cols,
 		})
 		assert.NoError(t, err)
-		assert.Equal(t, `SELECT "a","b","c","e","f","127.0.0.1"::text FROM "schema"."table" WHERE row("a","b","c") >= row(1,2,3) AND row("a","b","c") <= row(4,5,6) ORDER BY "a","b","c" LIMIT 1`, query)
+		assert.Equal(t, `SELECT "a","b","c","e","f","127.0.0.1"::text FROM "schema"."table" WHERE row("a","b","c") >= row(1,2,'3') AND row("a","b","c") <= row(4,5,'6') ORDER BY "a","b","c" LIMIT 1`, query)
 	}
 	{
 		// exclusive lower bound
@@ -185,6 +185,6 @@ func TestScanTableQuery(t *testing.T) {
 			Columns:             cols,
 		})
 		assert.NoError(t, err)
-		assert.Equal(t, `SELECT "a","b","c","e","f","127.0.0.1"::text FROM "schema"."table" WHERE row("a","b","c") > row(1,2,3) AND row("a","b","c") <= row(4,5,6) ORDER BY "a","b","c" LIMIT 1`, query)
+		assert.Equal(t, `SELECT "a","b","c","e","f","127.0.0.1"::text FROM "schema"."table" WHERE row("a","b","c") > row(1,2,'3') AND row("a","b","c") <= row(4,5,'6') ORDER BY "a","b","c" LIMIT 1`, query)
 	}
 }
