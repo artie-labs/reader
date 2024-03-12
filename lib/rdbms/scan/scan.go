@@ -158,7 +158,7 @@ func parsePkValueOverrides(values []string, primaryKeys []primary_key.Key, adapt
 	}
 
 	if len(values) != len(primaryKeys) {
-		return nil, fmt.Errorf("keys (%v), and passed in values (%v) length does not match, keys: %v, values: %s",
+		return nil, fmt.Errorf("keys (%d), and passed in values (%d) length does not match, keys: %v, values: %v",
 			len(primaryKeys), len(values), primaryKeys, values)
 	}
 
