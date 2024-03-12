@@ -28,7 +28,7 @@ func (mockAdapter) ParseRow(row []any) (map[string]any, error) {
 	panic("not implemented")
 }
 
-func TestParseOptionalValues(t *testing.T) {
+func TestParsePkValueOverrides(t *testing.T) {
 	{
 		// Empty values.
 		result, err := parsePkValueOverrides([]string{}, []primary_key.Key{}, mockAdapter{})
