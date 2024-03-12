@@ -68,7 +68,7 @@ func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any,
 	case schema.Bit, schema.Boolean:
 		boolValue, err := strconv.ParseBool(value)
 		if err != nil {
-			return nil, fmt.Errorf(`unable to convert "%s" to a bool`, value)
+			return nil, fmt.Errorf(`unable to convert "%s" to a bool: %w`, value, err)
 		}
 		return boolValue, nil
 	case schema.Float:
