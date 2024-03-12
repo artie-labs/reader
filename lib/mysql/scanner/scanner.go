@@ -117,7 +117,7 @@ func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any,
 		schema.JSON:
 		return value, nil
 	case schema.Binary, schema.Varbinary, schema.Blob:
-		return nil, fmt.Errorf("primary key value parsing not implemented binary types")
+		return nil, fmt.Errorf("primary key value parsing not implemented for binary types")
 	default:
 		return nil, fmt.Errorf("primary key value parsing not implemented for DataType(%d)", column.Type)
 	}

@@ -33,7 +33,7 @@ func TestScanAdapter_ParsePrimaryKeyValue(t *testing.T) {
 			name:        "unsupported binary type",
 			dataType:    schema.Blob,
 			value:       "1234",
-			expectedErr: "primary key value parsing not implemented binary types",
+			expectedErr: "primary key value parsing not implemented for binary types",
 		},
 		{
 			name:        "tinyint - malformed",
