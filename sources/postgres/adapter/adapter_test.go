@@ -143,6 +143,16 @@ func TestValueConverterForType_ToField(t *testing.T) {
 			},
 		},
 		{
+			name:     "time with time zone",
+			colName:  "time",
+			dataType: schema.TimeWithTimeZone,
+			expected: debezium.Field{
+				Type:         "int32",
+				FieldName:    "time",
+				DebeziumType: string(debezium.Time),
+			},
+		},
+		{
 			name:     "date",
 			colName:  "date_col",
 			dataType: schema.Date,

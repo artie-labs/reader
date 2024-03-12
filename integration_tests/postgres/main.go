@@ -872,6 +872,7 @@ CREATE TABLE %s (
 	c_smallint smallserial,
 	c_serial serial,
 	c_text text,
+	c_time_without_timezone time WITHOUT TIME ZONE,
 	c_timestamp_without_timezone timestamp WITHOUT TIME ZONE,
 	c_timestamp_with_timezone timestamp WITH TIME ZONE,
 	c_uuid uuid,
@@ -885,8 +886,8 @@ CREATE TABLE %s (
 	PRIMARY KEY (
 		c_bigint, c_bigserial, c_boolean, c_character, c_character_varying, c_cidr, c_date, c_double_precision, c_inet,
 		c_integer, c_interval, c_jsonb, c_macaddr, c_macaddr8, c_money, c_numeric, c_real, c_smallint, c_serial, c_text,
-		c_timestamp_without_timezone, c_timestamp_with_timezone, c_uuid, c_int4range, c_int8range, c_numrange,
-		c_tsrange, c_tstzrange, c_daterange
+		c_time_without_timezone, c_timestamp_without_timezone, c_timestamp_with_timezone, c_uuid, c_int4range,
+		c_int8range, c_numrange, c_tsrange, c_tstzrange, c_daterange
 	)
 )
 `
@@ -933,6 +934,8 @@ INSERT INTO %s VALUES (
 		1000000123,
 	-- c_text
 		'QWERTYUIOP',
+	-- c_time_without_timezone
+		'20:38:21',
 	-- c_timestamp_without_timezone
 		'2001-02-16 20:38:40',
 	-- c_timestamp_with_timezone

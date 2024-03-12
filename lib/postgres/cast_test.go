@@ -44,9 +44,9 @@ func TestCastColumn(t *testing.T) {
 			expected: `"foo"`,
 		},
 		{
-			name:     "time",
-			dataType: schema.Time,
-			expected: `cast(extract(epoch from "foo")*1000 as bigint) as "foo"`,
+			name:     "time with time zone",
+			dataType: schema.TimeWithTimeZone,
+			expected: `"foo" AT TIME ZONE 'UTC' AS "foo"`,
 		},
 		{
 			name:     "date",

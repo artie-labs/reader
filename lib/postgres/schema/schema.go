@@ -28,6 +28,7 @@ const (
 	Text
 	UserDefinedText
 	Time
+	TimeWithTimeZone
 	Date
 	Timestamp
 	Interval
@@ -116,8 +117,10 @@ func ParseColumnDataType(colKind string, precision, scale *int, udtName *string)
 	case "character varying", "text", "character", "xml", "cidr", "macaddr", "macaddr8",
 		"int4range", "int8range", "numrange", "daterange", "tsrange", "tstzrange":
 		return Text, nil, nil
-	case "time with time zone", "time without time zone":
+	case "time without time zone":
 		return Time, nil, nil
+	case "time with time zone":
+		return TimeWithTimeZone, nil, nil
 	case "date":
 		return Date, nil, nil
 	case "timestamp without time zone", "timestamp with time zone":

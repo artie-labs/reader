@@ -10,7 +10,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/artie-labs/reader/lib/debezium"
-	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/stringutil"
 )
 
@@ -38,6 +37,33 @@ func (MoneyConverter) Convert(value any) (any, error) {
 	return stringValue, nil
 }
 
+type PgTimeConverter struct{}
+
+func (PgTimeConverter) ToField(name string) transferDbz.Field {
+	// Represents the number of milliseconds past midnight, and does not include timezone information.
+	return transferDbz.Field{
+		FieldName:    name,
+		Type:         "int32",
+		DebeziumType: string(transferDbz.Time),
+	}
+}
+
+func (PgTimeConverter) Convert(value any) (any, error) {
+	timeValue, ok := value.(pgtype.Time)
+	if !ok {
+		return nil, fmt.Errorf("expected pgtype.Time got %T with value: %v", value, value)
+	}
+	if !timeValue.Valid {
+		return nil, nil
+	}
+
+	milliseconds := timeValue.Microseconds / int64(time.Millisecond/time.Microsecond)
+	if milliseconds > math.MaxInt32 || milliseconds < math.MinInt32 {
+		return nil, fmt.Errorf("milliseconds overflows int32")
+	}
+	return int32(milliseconds), nil
+}
+
 // TODO: Replace this with `converters.TimestampConverter` once we've run it for a while and not seen error logs
 type PgTimestampConverter struct{}
 
@@ -63,28 +89,6 @@ func (PgTimestampConverter) Convert(value any) (any, error) {
 		slog.Error("Emitting a value for a timestamp column that is not a time.Time", slog.Any("value", value), slog.String("type", fmt.Sprintf("%T", value)))
 	}
 
-	return value, nil
-}
-
-// TODO: This converter doesn't check types, replace uses of this with specific converters from `debezium/converters`
-type passthroughConverter struct {
-	fieldType    string
-	debeziumType string
-}
-
-func NewPassthroughConverter(fieldType, debeziumType string) converters.ValueConverter {
-	return passthroughConverter{fieldType: fieldType, debeziumType: debeziumType}
-}
-
-func (p passthroughConverter) ToField(name string) transferDbz.Field {
-	return transferDbz.Field{
-		FieldName:    name,
-		DebeziumType: p.debeziumType,
-		Type:         p.fieldType,
-	}
-}
-
-func (passthroughConverter) Convert(value any) (any, error) {
 	return value, nil
 }
 

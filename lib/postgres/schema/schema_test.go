@@ -50,7 +50,7 @@ func TestParseColumnDataType(t *testing.T) {
 		{
 			name:             "time with time zone",
 			colKind:          "time with time zone",
-			expectedDataType: Time,
+			expectedDataType: TimeWithTimeZone,
 		},
 		{
 			name:             "time without time zone",

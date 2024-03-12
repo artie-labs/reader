@@ -11,7 +11,7 @@ import (
 type MicroTimeConverter struct{}
 
 func (MicroTimeConverter) ToField(name string) debezium.Field {
-	// Represents the number of microseconds past midnight.
+	// Represents the number of microseconds past midnight, and does not include timezone information.
 	return debezium.Field{
 		FieldName:    name,
 		Type:         "int64",

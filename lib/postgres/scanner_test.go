@@ -37,7 +37,8 @@ func TestShouldQuoteValue(t *testing.T) {
 		{"UserDefinedText", schema.UserDefinedText, true, ""},
 		{"JSON", schema.JSON, true, ""},
 		{"Timestamp", schema.Timestamp, true, ""},
-		{"Time", schema.Time, true, "unsupported primary key type: DataType"},
+		{"Time", schema.Time, true, "unexpected primary key type: DataType"},
+		{"TimeWithTimeZone", schema.TimeWithTimeZone, true, "unsupported primary key type: DataType"},
 		{"Date", schema.Date, true, ""},
 		// PostGIS
 		{"Point", schema.Point, true, "unsupported primary key type: DataType"},
