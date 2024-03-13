@@ -22,7 +22,7 @@ func TestGetColumnByName(t *testing.T) {
 		{
 			columns:     []mockColumn{},
 			columnName:  "col2",
-			expectedErr: "failed to find column with name col2",
+			expectedErr: "failed to find column with name: col2",
 		},
 		{
 
@@ -54,7 +54,7 @@ func TestGetColumnByName(t *testing.T) {
 				},
 			},
 			columnName:  "col2",
-			expectedErr: "failed to find column with name col2",
+			expectedErr: "failed to find column with name: col2",
 		},
 	}
 
@@ -118,7 +118,7 @@ func TestGetColumnsByName(t *testing.T) {
 				},
 			},
 			columnNames: []string{"col1", "col2"},
-			expectedErr: "failed to find column with name col2",
+			expectedErr: "failed to find column with name: col2",
 		},
 	}
 
