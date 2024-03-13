@@ -42,8 +42,8 @@ func NewMySQLAdapter(db *sql.DB, tableCfg config.MySQLTable) (mysqlAdapter, erro
 }
 
 func newMySQLAdapter(db *sql.DB, table mysql.Table, columns []schema.Column, scannerCfg scan.ScannerConfig) (mysqlAdapter, error) {
-	fieldConverters := make([]transformer.FieldConverter, len(table.Columns))
-	for i, col := range table.Columns {
+	fieldConverters := make([]transformer.FieldConverter, len(columns))
+	for i, col := range columns {
 		converter, err := valueConverterForType(col.Type, col.Opts)
 		if err != nil {
 			return mysqlAdapter{}, fmt.Errorf("failed to build value converter for column %s: %w", col.Name, err)
