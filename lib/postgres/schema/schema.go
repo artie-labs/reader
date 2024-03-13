@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/artie-labs/reader/lib/rdbms"
+	"github.com/artie-labs/reader/lib/rdbms/column"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -48,11 +49,7 @@ type Opts struct {
 	Precision int
 }
 
-type Column struct {
-	Name string
-	Type DataType
-	Opts *Opts
-}
+type Column = column.Column[DataType, Opts]
 
 const describeTableQuery = `
 SELECT column_name, data_type, numeric_precision, numeric_scale, udt_name

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/artie-labs/reader/lib/rdbms"
+	"github.com/artie-labs/reader/lib/rdbms/column"
 	"github.com/artie-labs/transfer/lib/ptr"
 )
 
@@ -57,11 +58,7 @@ type Opts struct {
 	Size      *int
 }
 
-type Column struct {
-	Name string
-	Type DataType
-	Opts *Opts
-}
+type Column = column.Column[DataType, Opts]
 
 func QuoteIdentifier(s string) string {
 	return fmt.Sprintf("`%s`", strings.ReplaceAll(s, "`", "``"))
