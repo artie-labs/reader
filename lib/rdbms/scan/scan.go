@@ -18,6 +18,7 @@ type ScannerConfig struct {
 	BatchSize              uint
 	OptionalStartingValues []string
 	OptionalEndingValues   []string
+	ExcludeColumns         []string
 	ErrorRetries           int
 }
 

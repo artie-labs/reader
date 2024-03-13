@@ -9,6 +9,7 @@ import (
 
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/mysql/schema"
+	"github.com/artie-labs/reader/lib/rdbms/column"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
@@ -19,7 +20,12 @@ func NewScanner(db *sql.DB, table mysql.Table, cfg scan.ScannerConfig) (*scan.Sc
 		return nil, err
 	}
 
-	adapter := scanAdapter{tableName: table.Name, columns: table.Columns}
+	columns, err := column.ExcludeColumns(table.Columns, cfg.ExcludeColumns, table.PrimaryKeys)
+	if err != nil {
+		return nil, err
+	}
+
+	adapter := scanAdapter{tableName: table.Name, columns: columns}
 	return scan.NewScanner(db, primaryKeyBounds, cfg, adapter)
 }
 

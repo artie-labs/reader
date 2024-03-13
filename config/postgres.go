@@ -33,11 +33,12 @@ func (p *PostgreSQL) ToDSN() string {
 }
 
 type PostgreSQLTable struct {
-	Name                       string `yaml:"name"`
-	Schema                     string `yaml:"schema"`
-	BatchSize                  uint   `yaml:"batchSize"`
-	OptionalPrimaryKeyValStart string `yaml:"optionalPrimaryKeyValStart"`
-	OptionalPrimaryKeyValEnd   string `yaml:"optionalPrimaryKeyValEnd"`
+	Name                       string   `yaml:"name"`
+	Schema                     string   `yaml:"schema"`
+	BatchSize                  uint     `yaml:"batchSize"`
+	OptionalPrimaryKeyValStart string   `yaml:"optionalPrimaryKeyValStart"`
+	OptionalPrimaryKeyValEnd   string   `yaml:"optionalPrimaryKeyValEnd"`
+	ExcludeColumns             []string `yaml:"excludeColumns"`
 }
 
 func (p *PostgreSQLTable) GetBatchSize() uint {
@@ -67,6 +68,7 @@ func (p *PostgreSQLTable) ToScannerConfig(errorRetries int) scan.ScannerConfig {
 		BatchSize:              p.GetBatchSize(),
 		OptionalStartingValues: p.GetOptionalPrimaryKeyValStart(),
 		OptionalEndingValues:   p.GetOptionalPrimaryKeyValEnd(),
+		ExcludeColumns:         p.ExcludeColumns,
 		ErrorRetries:           errorRetries,
 	}
 }

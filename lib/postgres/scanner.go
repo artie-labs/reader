@@ -161,12 +161,17 @@ func NewScanner(db *sql.DB, table Table, cfg scan.ScannerConfig) (*scan.Scanner,
 		}
 	}
 
+	columns, err := column.ExcludeColumns(table.Columns, cfg.ExcludeColumns, table.PrimaryKeys)
+	if err != nil {
+		return nil, err
+	}
+
 	primaryKeyBounds, err := table.GetPrimaryKeysBounds(db)
 	if err != nil {
 		return nil, err
 	}
 
-	adapter := scanAdapter{schema: table.Schema, tableName: table.Name, columns: table.Columns}
+	adapter := scanAdapter{schema: table.Schema, tableName: table.Name, columns: columns}
 	return scan.NewScanner(db, primaryKeyBounds, cfg, adapter)
 }
 
