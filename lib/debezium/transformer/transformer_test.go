@@ -11,19 +11,23 @@ import (
 	"github.com/artie-labs/reader/lib/debezium/converters"
 )
 
-type MockConverter struct {
-	intConverter bool
+type testConverter struct {
+	intField  bool
+	returnErr bool
 }
 
-func (m MockConverter) ToField(name string) debezium.Field {
-	if m.intConverter {
+func (t testConverter) ToField(name string) debezium.Field {
+	if t.intField {
 		return converters.Int32Passthrough{}.ToField(name)
 	} else {
 		return converters.StringPassthrough{}.ToField(name)
 	}
 }
 
-func (MockConverter) Convert(value any) (any, error) {
+func (t testConverter) Convert(value any) (any, error) {
+	if t.returnErr {
+		return nil, fmt.Errorf("test error")
+	}
 	return fmt.Sprintf("converted-%v", value), nil
 }
 
@@ -99,8 +103,8 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 	{
 		// One non-empty batch
 		fieldConverters := []FieldConverter{
-			{Name: "foo", ValueConverter: MockConverter{intConverter: false}},
-			{Name: "qux", ValueConverter: MockConverter{intConverter: true}},
+			{Name: "foo", ValueConverter: testConverter{intField: false}},
+			{Name: "qux", ValueConverter: testConverter{intField: true}},
 		}
 		batches := [][]map[string]any{{
 			{"foo": "bar", "qux": "quux"},
@@ -125,10 +129,10 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 	{
 		// Two non-empty batches, one empty batch
 		fieldConverters := []FieldConverter{
-			{Name: "foo", ValueConverter: MockConverter{}},
-			{Name: "qux", ValueConverter: MockConverter{}},
-			{Name: "corge", ValueConverter: MockConverter{}},
-			{Name: "garply", ValueConverter: MockConverter{}},
+			{Name: "foo", ValueConverter: testConverter{}},
+			{Name: "qux", ValueConverter: testConverter{}},
+			{Name: "corge", ValueConverter: testConverter{}},
+			{Name: "garply", ValueConverter: testConverter{}},
 		}
 		batches := [][]map[string]any{
 			{
@@ -171,9 +175,9 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 
 func TestDebeziumTransformer_Next(t *testing.T) {
 	fieldConverters := []FieldConverter{
-		{Name: "foo", ValueConverter: MockConverter{intConverter: false}},
-		{Name: "qux", ValueConverter: MockConverter{intConverter: true}},
-		{Name: "baz", ValueConverter: MockConverter{intConverter: false}},
+		{Name: "foo", ValueConverter: testConverter{intField: false}},
+		{Name: "qux", ValueConverter: testConverter{intField: true}},
+		{Name: "baz", ValueConverter: testConverter{intField: false}},
 	}
 	batches := [][]map[string]any{{
 		{"foo": "bar", "qux": 12, "baz": "corge"},
@@ -221,8 +225,8 @@ func TestDebeziumTransformer_Next(t *testing.T) {
 
 func TestDebeziumTransformer_CreatePayload(t *testing.T) {
 	fieldConverters := []FieldConverter{
-		{Name: "foo", ValueConverter: MockConverter{intConverter: false}},
-		{Name: "qux", ValueConverter: MockConverter{intConverter: true}},
+		{Name: "foo", ValueConverter: testConverter{intField: false}},
+		{Name: "qux", ValueConverter: testConverter{intField: true}},
 	}
 
 	transformer, err := NewDebeziumTransformer(mockAdatper{fieldConverters: fieldConverters, iter: &mockIterator{}})
@@ -285,21 +289,6 @@ func TestDebeziumTransformer_PartitionKey(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, testCase.expected, transformer.partitionKey(testCase.row), testCase.name)
 	}
-}
-
-type testConverter struct {
-	returnErr bool
-}
-
-func (testConverter) ToField(name string) debezium.Field {
-	panic("not implemented")
-}
-
-func (t testConverter) Convert(value any) (any, error) {
-	if t.returnErr {
-		return nil, fmt.Errorf("test error")
-	}
-	return fmt.Sprintf("converted-%v", value), nil
 }
 
 func TestConvertRow(t *testing.T) {
