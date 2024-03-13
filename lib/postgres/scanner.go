@@ -110,6 +110,7 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 
 // convertToStringForQuery returns a string value suitable for use directly in a query.
 func convertToStringForQuery(value any) (string, error) {
+	// TODO: Switch to using a parameterized query
 	switch castValue := value.(type) {
 	case bool, int, int8, int16, int32, int64, float32, float64:
 		return fmt.Sprint(value), nil
