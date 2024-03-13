@@ -15,12 +15,12 @@ import (
 )
 
 func NewScanner(db *sql.DB, table mysql.Table, cfg scan.ScannerConfig) (*scan.Scanner, error) {
-	primaryKeyBounds, err := table.GetPrimaryKeysBounds(db)
+	columns, err := column.ExcludeColumns(table.Columns, cfg.ExcludeColumns, table.PrimaryKeys)
 	if err != nil {
 		return nil, err
 	}
 
-	columns, err := column.ExcludeColumns(table.Columns, cfg.ExcludeColumns, table.PrimaryKeys)
+	primaryKeyBounds, err := table.GetPrimaryKeysBounds(db)
 	if err != nil {
 		return nil, err
 	}
