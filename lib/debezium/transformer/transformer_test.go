@@ -188,12 +188,11 @@ func TestDebeziumTransformer_Next(t *testing.T) {
 	{
 		// Iteration error
 		fieldConverters := []FieldConverter{{Name: "foo", ValueConverter: testConverter{}}}
-		batches := [][]Row{{{"foo": "bar"}}}
 		transformer, err := NewDebeziumTransformer(
 			mockAdatper{
 				fieldConverters: fieldConverters,
 				partitionKeys:   []string{"foo"},
-				iter:            &mockIterator{batches: batches, returnErr: true},
+				iter:            &mockIterator{batches: [][]Row{{{"foo": "bar"}}}, returnErr: true},
 			},
 		)
 		assert.NoError(t, err)
@@ -206,13 +205,10 @@ func TestDebeziumTransformer_Next(t *testing.T) {
 		fieldConverters := []FieldConverter{
 			{Name: "foo", ValueConverter: testConverter{returnErr: true}},
 		}
-		batches := [][]Row{{
-			{"foo": "bar"},
-		}}
 		transformer, err := NewDebeziumTransformer(mockAdatper{
 			fieldConverters: fieldConverters,
 			partitionKeys:   []string{"foo"},
-			iter:            &mockIterator{batches: batches},
+			iter:            &mockIterator{batches: [][]Row{{{"foo": "bar"}}}},
 		},
 		)
 		assert.NoError(t, err)
