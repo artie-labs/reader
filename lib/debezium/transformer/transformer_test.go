@@ -58,15 +58,20 @@ func (m mockAdatper) NewIterator() (RowsIterator, error) {
 }
 
 type mockIterator struct {
-	index   int
-	batches [][]map[string]any
+	returnErr bool
+	index     int
+	batches   [][]Row
 }
 
 func (m *mockIterator) HasNext() bool {
 	return m.index < len(m.batches)
 }
 
-func (m *mockIterator) Next() ([]map[string]any, error) {
+func (m *mockIterator) Next() ([]Row, error) {
+	if m.returnErr {
+		return nil, fmt.Errorf("test iteration error")
+	}
+
 	if !m.HasNext() {
 		return nil, fmt.Errorf("done")
 	}
@@ -87,7 +92,7 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 	}
 	{
 		// One empty batch
-		batches := [][]map[string]any{{}}
+		batches := [][]Row{{}}
 		transformer, err := NewDebeziumTransformer(mockAdatper{iter: &mockIterator{batches: batches}})
 		assert.NoError(t, err)
 		assert.True(t, transformer.HasNext())
@@ -106,10 +111,13 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 			{Name: "foo", ValueConverter: testConverter{intField: false}},
 			{Name: "qux", ValueConverter: testConverter{intField: true}},
 		}
-		batches := [][]map[string]any{{
+		batches := [][]Row{{
 			{"foo": "bar", "qux": "quux"},
 		}}
-		transformer, err := NewDebeziumTransformer(mockAdatper{fieldConverters: fieldConverters, iter: &mockIterator{batches: batches}})
+		transformer, err := NewDebeziumTransformer(mockAdatper{
+			fieldConverters: fieldConverters,
+			iter:            &mockIterator{batches: batches},
+		})
 		assert.NoError(t, err)
 		// First batch
 		assert.True(t, transformer.HasNext())
@@ -134,7 +142,7 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 			{Name: "corge", ValueConverter: testConverter{}},
 			{Name: "garply", ValueConverter: testConverter{}},
 		}
-		batches := [][]map[string]any{
+		batches := [][]Row{
 			{
 				{"foo": "bar", "qux": "quux"},
 			},
@@ -143,7 +151,10 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 				{"corge": "grault", "garply": "waldo"},
 			},
 		}
-		transformer, err := NewDebeziumTransformer(mockAdatper{fieldConverters: fieldConverters, iter: &mockIterator{batches: batches}})
+		transformer, err := NewDebeziumTransformer(mockAdatper{
+			fieldConverters: fieldConverters,
+			iter:            &mockIterator{batches: batches},
+		})
 		assert.NoError(t, err)
 		// First batch
 		assert.True(t, transformer.HasNext())
@@ -174,112 +185,165 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 }
 
 func TestDebeziumTransformer_Next(t *testing.T) {
-	fieldConverters := []FieldConverter{
-		{Name: "foo", ValueConverter: testConverter{intField: false}},
-		{Name: "qux", ValueConverter: testConverter{intField: true}},
-		{Name: "baz", ValueConverter: testConverter{intField: false}},
+	{
+		// Iteration error
+		fieldConverters := []FieldConverter{{Name: "foo", ValueConverter: testConverter{}}}
+		batches := [][]Row{{{"foo": "bar"}}}
+		transformer, err := NewDebeziumTransformer(
+			mockAdatper{
+				fieldConverters: fieldConverters,
+				partitionKeys:   []string{"foo"},
+				iter:            &mockIterator{batches: batches, returnErr: true},
+			},
+		)
+		assert.NoError(t, err)
+		assert.True(t, transformer.HasNext())
+		_, err = transformer.Next()
+		assert.ErrorContains(t, err, `failed to scan: test iteration error`)
 	}
-	batches := [][]map[string]any{{
-		{"foo": "bar", "qux": 12, "baz": "corge"},
-	}}
-	transformer, err := NewDebeziumTransformer(
-		mockAdatper{fieldConverters: fieldConverters, partitionKeys: []string{"foo", "qux"}, iter: &mockIterator{batches: batches}},
-	)
-	assert.NoError(t, err)
-	assert.True(t, transformer.HasNext())
-	rows, err := transformer.Next()
-	assert.NoError(t, err)
-	assert.Len(t, rows, 1)
-	rawMessage := rows[0]
-	assert.Equal(t, map[string]any{"foo": "bar", "qux": 12}, rawMessage.PartitionKey)
-	assert.Equal(t, "im-a-little-topic-suffix", rawMessage.TopicSuffix)
-	payload, isOk := rawMessage.GetPayload().(util.SchemaEventPayload)
-	assert.True(t, isOk)
-	payload.Payload.Source.TsMs = 12345 // Modify source time since it'll be ~now
-	expected := util.SchemaEventPayload(
-		util.SchemaEventPayload{
-			Schema: debezium.Schema{
-				SchemaType: "",
-				FieldsObject: []debezium.FieldsObject{
-					{
-						FieldObjectType: "",
-						Fields: []debezium.Field{
-							{FieldName: "foo", Type: "string"},
-							{FieldName: "qux", Type: "int32"},
-							{FieldName: "baz", Type: "string"},
+	{
+		// Value converter error
+		fieldConverters := []FieldConverter{
+			{Name: "foo", ValueConverter: testConverter{returnErr: true}},
+		}
+		batches := [][]Row{{
+			{"foo": "bar"},
+		}}
+		transformer, err := NewDebeziumTransformer(mockAdatper{
+			fieldConverters: fieldConverters,
+			partitionKeys:   []string{"foo"},
+			iter:            &mockIterator{batches: batches},
+		},
+		)
+		assert.NoError(t, err)
+		assert.True(t, transformer.HasNext())
+		_, err = transformer.Next()
+		assert.ErrorContains(t, err, `failed to create Debezium payload: failed to convert row value for key "foo": test error`)
+	}
+	{
+		// Happy path
+		fieldConverters := []FieldConverter{
+			{Name: "foo", ValueConverter: testConverter{intField: false}},
+			{Name: "qux", ValueConverter: testConverter{intField: true}},
+			{Name: "baz", ValueConverter: testConverter{intField: false}},
+		}
+		batches := [][]Row{{
+			{"foo": "bar", "qux": 12, "baz": "corge"},
+		}}
+		transformer, err := NewDebeziumTransformer(mockAdatper{
+			fieldConverters: fieldConverters,
+			partitionKeys:   []string{"foo", "qux"},
+			iter:            &mockIterator{batches: batches},
+		},
+		)
+		assert.NoError(t, err)
+		assert.True(t, transformer.HasNext())
+		rows, err := transformer.Next()
+		assert.NoError(t, err)
+		assert.Len(t, rows, 1)
+		rawMessage := rows[0]
+		assert.Equal(t, Row{"foo": "bar", "qux": 12}, rawMessage.PartitionKey)
+		assert.Equal(t, "im-a-little-topic-suffix", rawMessage.TopicSuffix)
+		payload, isOk := rawMessage.GetPayload().(util.SchemaEventPayload)
+		assert.True(t, isOk)
+		payload.Payload.Source.TsMs = 12345 // Modify source time since it'll be ~now
+		expected := util.SchemaEventPayload(
+			util.SchemaEventPayload{
+				Schema: debezium.Schema{
+					SchemaType: "",
+					FieldsObject: []debezium.FieldsObject{
+						{
+							FieldObjectType: "",
+							Fields: []debezium.Field{
+								{FieldName: "foo", Type: "string"},
+								{FieldName: "qux", Type: "int32"},
+								{FieldName: "baz", Type: "string"},
+							},
+							Optional:   false,
+							FieldLabel: "after",
 						},
-						Optional:   false,
-						FieldLabel: "after",
 					},
 				},
+				Payload: util.Payload{
+					After:     map[string]any{"foo": "converted-bar", "qux": "converted-12", "baz": "converted-corge"},
+					Source:    util.Source{Connector: "", TsMs: 12345, Database: "", Schema: "", Table: "im-a-little-table"},
+					Operation: "r",
+				},
 			},
-			Payload: util.Payload{
-				After:     map[string]interface{}{"foo": "converted-bar", "qux": "converted-12", "baz": "converted-corge"},
-				Source:    util.Source{Connector: "", TsMs: 12345, Database: "", Schema: "", Table: "im-a-little-table"},
-				Operation: "r",
-			},
-		},
-	)
-	assert.Equal(t, expected, payload)
+		)
+		assert.Equal(t, expected, payload)
+	}
 }
 
 func TestDebeziumTransformer_CreatePayload(t *testing.T) {
-	fieldConverters := []FieldConverter{
-		{Name: "foo", ValueConverter: testConverter{intField: false}},
-		{Name: "qux", ValueConverter: testConverter{intField: true}},
+	{
+		// Field converter error
+		fieldConverters := []FieldConverter{
+			{Name: "qux", ValueConverter: testConverter{intField: true, returnErr: true}},
+		}
+		transformer, err := NewDebeziumTransformer(mockAdatper{fieldConverters: fieldConverters, iter: &mockIterator{}})
+		assert.NoError(t, err)
+		_, err = transformer.createPayload(Row{"qux": "quux"})
+		assert.ErrorContains(t, err, `failed to convert row value for key "qux": test error`)
 	}
-
-	transformer, err := NewDebeziumTransformer(mockAdatper{fieldConverters: fieldConverters, iter: &mockIterator{}})
-	assert.NoError(t, err)
-	payload, err := transformer.createPayload(map[string]any{"foo": "bar", "qux": "quux"})
-	assert.NoError(t, err)
-	payload.Payload.Source.TsMs = 12345 // Modify source time since it'll be ~now
-	expected := util.SchemaEventPayload(
-		util.SchemaEventPayload{
-			Schema: debezium.Schema{
-				SchemaType: "",
-				FieldsObject: []debezium.FieldsObject{
-					{
-						Fields:     []debezium.Field{{FieldName: "foo", Type: "string"}, {FieldName: "qux", Type: "int32"}},
-						Optional:   false,
-						FieldLabel: "after",
+	{
+		// Happy path
+		fieldConverters := []FieldConverter{
+			{Name: "foo", ValueConverter: testConverter{intField: false}},
+			{Name: "qux", ValueConverter: testConverter{intField: true}},
+		}
+		transformer, err := NewDebeziumTransformer(mockAdatper{fieldConverters: fieldConverters, iter: &mockIterator{}})
+		assert.NoError(t, err)
+		payload, err := transformer.createPayload(Row{"foo": "bar", "qux": "quux"})
+		assert.NoError(t, err)
+		payload.Payload.Source.TsMs = 12345 // Modify source time since it'll be ~now
+		expected := util.SchemaEventPayload(
+			util.SchemaEventPayload{
+				Schema: debezium.Schema{
+					SchemaType: "",
+					FieldsObject: []debezium.FieldsObject{
+						{
+							Fields:     []debezium.Field{{FieldName: "foo", Type: "string"}, {FieldName: "qux", Type: "int32"}},
+							Optional:   false,
+							FieldLabel: "after",
+						},
 					},
 				},
+				Payload: util.Payload{
+					After:     map[string]any{"foo": "converted-bar", "qux": "converted-quux"},
+					Source:    util.Source{TsMs: 12345, Table: "im-a-little-table"},
+					Operation: "r",
+				},
 			},
-			Payload: util.Payload{
-				After:     map[string]interface{}{"foo": "converted-bar", "qux": "converted-quux"},
-				Source:    util.Source{TsMs: 12345, Table: "im-a-little-table"},
-				Operation: "r",
-			},
-		},
-	)
-	assert.Equal(t, expected, payload)
+		)
+		assert.Equal(t, expected, payload)
+	}
 }
 
 func TestDebeziumTransformer_PartitionKey(t *testing.T) {
 	type _tc struct {
 		name     string
 		keys     []string
-		row      map[string]any
+		row      Row
 		expected map[string]any
 	}
 
 	testCases := []_tc{
 		{
 			name:     "no partition keys",
-			row:      map[string]any{},
+			row:      Row{},
 			expected: map[string]any{},
 		},
 		{
 			name:     "partition keys - empty row",
 			keys:     []string{"foo", "bar"},
-			row:      map[string]any{},
+			row:      Row{},
 			expected: map[string]any{"foo": nil, "bar": nil},
 		},
 		{
 			name:     "partition keys - row has data",
 			keys:     []string{"foo", "bar"},
-			row:      map[string]any{"foo": "a", "bar": 2, "baz": 3},
+			row:      Row{"foo": "a", "bar": 2, "baz": 3},
 			expected: map[string]any{"foo": "a", "bar": 2},
 		},
 	}
