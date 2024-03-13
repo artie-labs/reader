@@ -12,10 +12,10 @@ type mockColumn = Column[int, mockOpts]
 
 func TestGetColumnByName(t *testing.T) {
 	type _tc struct {
-		columns        []mockColumn
-		columnName     string
-		expectedResult *mockColumn
-		expectedErr    string
+		columns     []mockColumn
+		columnName  string
+		expected    *mockColumn
+		expectedErr string
 	}
 
 	testCases := []_tc{
@@ -41,7 +41,7 @@ func TestGetColumnByName(t *testing.T) {
 				},
 			},
 			columnName: "col2",
-			expectedResult: &mockColumn{
+			expected: &mockColumn{
 				Name: "col2",
 				Type: 2,
 			},
@@ -64,24 +64,24 @@ func TestGetColumnByName(t *testing.T) {
 			assert.ErrorContains(t, err, testCase.expectedErr)
 		} else {
 			assert.Nil(t, err)
-			assert.Equal(t, testCase.expectedResult, result)
+			assert.Equal(t, testCase.expected, result)
 		}
 	}
 }
 
 func TestGetColumnsByName(t *testing.T) {
 	type _tc struct {
-		columns        []mockColumn
-		columnNames    []string
-		expectedResult []mockColumn
-		expectedErr    string
+		columns     []mockColumn
+		columnNames []string
+		expected    []mockColumn
+		expectedErr string
 	}
 
 	testCases := []_tc{
 		{
-			columns:        []mockColumn{},
-			columnNames:    []string{},
-			expectedResult: []mockColumn(nil),
+			columns:     []mockColumn{},
+			columnNames: []string{},
+			expected:    []mockColumn(nil),
 		},
 		{
 			columns: []mockColumn{
@@ -99,7 +99,7 @@ func TestGetColumnsByName(t *testing.T) {
 				},
 			},
 			columnNames: []string{"col1", "col3"},
-			expectedResult: []mockColumn{
+			expected: []mockColumn{
 				{
 					Name: "col1",
 					Type: 1,
@@ -128,7 +128,7 @@ func TestGetColumnsByName(t *testing.T) {
 			assert.ErrorContains(t, err, testCase.expectedErr)
 		} else {
 			assert.Nil(t, err)
-			assert.Equal(t, testCase.expectedResult, result)
+			assert.Equal(t, testCase.expected, result)
 		}
 	}
 }
