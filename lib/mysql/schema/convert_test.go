@@ -265,24 +265,23 @@ func TestConvertValues(t *testing.T) {
 
 	{
 		// Too few values
-		_, err := ConvertValues([]any{}, columns)
-		assert.ErrorContains(t, err, "values and cols are not the same length")
+		assert.ErrorContains(t, ConvertValues([]any{}, columns), "values and cols are not the same length")
 	}
 	{
 		// Malformed data
-		_, err := ConvertValues([]any{"bad", "bad", "bad"}, columns)
+		err := ConvertValues([]any{"bad", "bad", "bad"}, columns)
 		assert.ErrorContains(t, err, "failed to convert value for column a: expected int64 got string for value: bad")
 	}
 	{
 		// Happy path - nils
-		result, err := ConvertValues([]any{nil, nil, nil}, columns)
-		assert.NoError(t, err)
-		assert.Equal(t, []any{nil, nil, nil}, result)
+		values := []any{nil, nil, nil}
+		assert.NoError(t, ConvertValues(values, columns))
+		assert.Equal(t, []any{nil, nil, nil}, values)
 	}
 	{
 		// Happy path - no nils
-		result, err := ConvertValues([]any{int64(1234), []byte("hello world"), []byte{byte(1)}}, columns)
-		assert.NoError(t, err)
-		assert.Equal(t, []any{int64(1234), "hello world", true}, result)
+		values := []any{int64(1234), []byte("hello world"), []byte{byte(1)}}
+		assert.NoError(t, ConvertValues(values, columns))
+		assert.Equal(t, []any{int64(1234), "hello world", true}, values)
 	}
 }

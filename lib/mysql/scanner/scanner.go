@@ -133,15 +133,6 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 	})
 }
 
-func (s scanAdapter) ParseRow(values []any) (map[string]any, error) {
-	convertedValues, err := schema.ConvertValues(values, s.columns)
-	if err != nil {
-		return nil, err
-	}
-
-	row := make(map[string]any)
-	for idx, value := range convertedValues {
-		row[s.columns[idx].Name] = value
-	}
-	return row, nil
+func (s scanAdapter) ParseRow(values []any) error {
+	return schema.ConvertValues(values, s.columns)
 }

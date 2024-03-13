@@ -282,7 +282,11 @@ func getPrimaryKeyValues(db *sql.DB, table string, primaryKeys []Column, descend
 		return nil, err
 	}
 
-	return ConvertValues(result, primaryKeys)
+	if err := ConvertValues(result, primaryKeys); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 type Bounds struct {

@@ -24,7 +24,7 @@ type ScannerConfig struct {
 type ScanAdapter interface {
 	ParsePrimaryKeyValue(columnName string, value string) (any, error)
 	BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error)
-	ParseRow(row []any) (map[string]any, error)
+	ParseRow(row []any) error
 }
 
 type Scanner struct {
@@ -140,11 +140,14 @@ func (s *Scanner) scan() ([]map[string]any, error) {
 			return nil, err
 		}
 
-		row, err := s.adapter.ParseRow(values)
-		if err != nil {
+		if err := s.adapter.ParseRow(values); err != nil {
 			return nil, err
 		}
 
+		row := make(map[string]any)
+		for i, column := range columns {
+			row[column] = values[i]
+		}
 		rowsData = append(rowsData, row)
 	}
 	return rowsData, nil

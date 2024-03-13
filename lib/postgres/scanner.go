@@ -255,17 +255,12 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 	return query, nil, err
 }
 
-func (s scanAdapter) ParseRow(values []any) (map[string]any, error) {
-	row := make(map[string]any)
-	for idx, v := range values {
-		col := s.columns[idx]
-
-		value, err := parse.ParseValue(col.Type, v)
-		if err != nil {
-			return nil, err
+func (s scanAdapter) ParseRow(values []any) error {
+	for i, value := range values {
+		var err error
+		if values[i], err = parse.ParseValue(s.columns[i].Type, value); err != nil {
+			return err
 		}
-
-		row[col.Name] = value
 	}
-	return row, nil
+	return nil
 }
