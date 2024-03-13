@@ -3,10 +3,10 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
-	"slices"
 
 	"github.com/artie-labs/reader/lib/postgres/parse"
 	"github.com/artie-labs/reader/lib/postgres/schema"
+	"github.com/artie-labs/reader/lib/rdbms/column"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
 
@@ -36,28 +36,8 @@ func LoadTable(db *sql.DB, _schema string, name string) (*Table, error) {
 	return tbl, nil
 }
 
-func (t *Table) GetColumnByName(colName string) (*schema.Column, error) {
-	index := slices.IndexFunc(t.Columns, func(c schema.Column) bool { return c.Name == colName })
-	if index < 0 {
-		return nil, fmt.Errorf("failed to find column with name %s", colName)
-	}
-	return &t.Columns[index], nil
-}
-
-func (t *Table) GetColumnsByName(colNames []string) ([]schema.Column, error) {
-	var result []schema.Column
-	for _, colName := range colNames {
-		col, err := t.GetColumnByName(colName)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, *col)
-	}
-	return result, nil
-}
-
 func (t *Table) GetPrimaryKeysBounds(db *sql.DB) ([]primary_key.Key, error) {
-	keyColumns, err := t.GetColumnsByName(t.PrimaryKeys)
+	keyColumns, err := column.GetColumnsByName(t.Columns, t.PrimaryKeys)
 	if err != nil {
 		return nil, fmt.Errorf("missing primary key columns: %w", err)
 	}

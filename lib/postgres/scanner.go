@@ -13,6 +13,7 @@ import (
 
 	"github.com/artie-labs/reader/lib/postgres/parse"
 	"github.com/artie-labs/reader/lib/postgres/schema"
+	"github.com/artie-labs/reader/lib/rdbms/column"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
@@ -151,7 +152,7 @@ func convertToStringForQuery(value any) (string, error) {
 
 func NewScanner(db *sql.DB, table Table, cfg scan.ScannerConfig) (*scan.Scanner, error) {
 	for _, key := range table.PrimaryKeys {
-		column, err := table.GetColumnByName(key)
+		column, err := column.GetColumnByName(table.Columns, key)
 		if err != nil {
 			return nil, fmt.Errorf("missing column with name: %s", key)
 		}

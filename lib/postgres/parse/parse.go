@@ -89,7 +89,6 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 
 		return _uuid.String(), nil
 	case schema.JSON:
-		// Debezium sends JSON as a JSON string
 		byteSlice, isByteSlice := value.([]byte)
 		if !isByteSlice {
 			return nil, fmt.Errorf("value: %v not of []byte type for JSON", value)
