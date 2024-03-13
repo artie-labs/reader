@@ -256,9 +256,9 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 }
 
 func (s scanAdapter) ParseRow(values []any) error {
-	for i, v := range values {
+	for i, value := range values {
 		var err error
-		values[i], err = parse.ParseValue(s.columns[i].Type, v)
+		values[i], err = parse.ParseValue(s.columns[i].Type, value)
 		if err != nil {
 			return err
 		}
