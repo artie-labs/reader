@@ -79,12 +79,12 @@ func TestConvertToStringForQuery(t *testing.T) {
 			expected: "'2001-02-03T04:05:06Z'",
 		},
 		{
-			name:     "pgtime - not valid",
+			name:     "pgtype.Time - not valid",
 			value:    pgtype.Time{Microseconds: 1_000_000, Valid: false},
 			expected: "null",
 		},
 		{
-			name:     "pgtime - valid",
+			name:     "pgtype.Time - valid",
 			value:    pgtype.Time{Microseconds: 1_000_000 * 30, Valid: true},
 			expected: "'00:00:30.000000'",
 		},
