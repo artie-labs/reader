@@ -89,14 +89,14 @@ func TestConvertToStringForQuery(t *testing.T) {
 			expected: "'00:00:30.000000'",
 		},
 		{
-			name:     "interval",
-			value:    pgtype.Interval{Days: 2, Months: 1, Microseconds: 1_000_000, Valid: true},
-			expected: "'1 mon 2 day 00:00:01.000000'",
-		},
-		{
-			name:     "interval - invalid",
+			name:     "pgtype.Interval - not valid",
 			value:    pgtype.Interval{Days: 2, Months: 1, Microseconds: 1_000_000, Valid: false},
 			expected: "null",
+		},
+		{
+			name:     "pgtype.Interval - valid",
+			value:    pgtype.Interval{Days: 2, Months: 1, Microseconds: 1_000_000, Valid: true},
+			expected: "'1 mon 2 day 00:00:01.000000'",
 		},
 	}
 	for _, testCase := range testCases {
