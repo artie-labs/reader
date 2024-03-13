@@ -24,7 +24,7 @@ func (mockAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, 
 	panic("not implemented")
 }
 
-func (mockAdapter) ParseRow(row []any) (map[string]any, error) {
+func (mockAdapter) ParseRow(row []any) error {
 	panic("not implemented")
 }
 

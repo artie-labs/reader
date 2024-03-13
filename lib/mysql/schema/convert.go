@@ -111,19 +111,18 @@ func ConvertValue(value any, colType DataType) (any, error) {
 }
 
 // ConvertValues takes values returned from the MySQL driver and converts them to native Go types.
-func ConvertValues(values []any, cols []Column) ([]any, error) {
+func ConvertValues(values []any, cols []Column) error {
 	if len(values) != len(cols) {
-		return nil, fmt.Errorf("values and cols are not the same length")
+		return fmt.Errorf("values and cols are not the same length")
 	}
 
-	result := make([]any, len(values))
-	for idx, value := range values {
-		col := cols[idx]
+	for i, value := range values {
+		col := cols[i]
 		convertedVal, err := ConvertValue(value, col.Type)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert value for column %s: %w", col.Name, err)
+			return fmt.Errorf("failed to convert value for column %s: %w", col.Name, err)
 		}
-		result[idx] = convertedVal
+		values[i] = convertedVal
 	}
-	return result, nil
+	return nil
 }
