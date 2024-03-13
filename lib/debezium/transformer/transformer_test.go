@@ -286,3 +286,55 @@ func TestDebeziumTransformer_PartitionKey(t *testing.T) {
 		assert.Equal(t, testCase.expected, transformer.partitionKey(testCase.row), testCase.name)
 	}
 }
+
+type testConverter struct {
+	returnErr bool
+}
+
+func (testConverter) ToField(name string) debezium.Field {
+	panic("not implemented")
+}
+
+func (t testConverter) Convert(value any) (any, error) {
+	if t.returnErr {
+		return nil, fmt.Errorf("test error")
+	}
+	return fmt.Sprintf("converted-%v", value), nil
+}
+
+func TestConvertRow(t *testing.T) {
+	{
+		// Empty `valueConverters` + empty `row``
+		value, err := convertRow(map[string]converters.ValueConverter{}, Row{})
+		assert.NoError(t, err)
+		assert.Equal(t, Row{}, value)
+	}
+	{
+		// Empty `valueConverters` + non-empty `row``
+		_, err := convertRow(map[string]converters.ValueConverter{}, Row{"foo": "bar"})
+		assert.ErrorContains(t, err, `failed to get ValueConverter for key "foo"`)
+	}
+	{
+		// Non-empty `valueConverters` + empty `row``
+		value, err := convertRow(map[string]converters.ValueConverter{"foo": testConverter{}}, Row{})
+		assert.NoError(t, err)
+		assert.Equal(t, Row{}, value)
+	}
+	{
+		// Non-empty `valueConverters` + non-empty `row`
+		value, err := convertRow(
+			map[string]converters.ValueConverter{"foo": testConverter{}, "baz": testConverter{}},
+			Row{"foo": "bar", "baz": nil},
+		)
+		assert.NoError(t, err)
+		assert.Equal(t, Row{"foo": "converted-bar", "baz": nil}, value)
+	}
+	{
+		// Non-empty `valueConverters` + non-empty `row` + conversion error
+		_, err := convertRow(
+			map[string]converters.ValueConverter{"foo": testConverter{returnErr: true}, "baz": testConverter{}},
+			Row{"foo": "bar", "baz": nil},
+		)
+		assert.ErrorContains(t, err, `failed to convert row value for key "foo": test error`)
+	}
+}
