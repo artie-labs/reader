@@ -11,132 +11,96 @@ import (
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
 
-func TestShouldQuoteValue(t *testing.T) {
-	testCases := []struct {
-		name        string
-		dataType    schema.DataType
-		expected    bool
-		expectedErr string
-	}{
-		{"VariableNumeric", schema.VariableNumeric, true, ""},
-		{"Money", schema.Money, true, ""},
-		{"Numeric", schema.Numeric, true, ""},
-		{"Bit", schema.Bit, false, "unsupported primary key type: DataType"},
-		{"Boolean", schema.Boolean, false, ""},
-		{"Inet", schema.Inet, true, ""},
-		{"Text", schema.Text, true, ""},
-		{"Interval", schema.Interval, false, "unexpected primary key type: DataType"},
-		{"Array", schema.Array, false, "unsupported primary key type: DataType"},
-		{"HStore", schema.HStore, true, "unsupported primary key type: DataType"},
-		{"Real", schema.Real, false, ""},
-		{"Double", schema.Double, false, ""},
-		{"Int16", schema.Int16, false, ""},
-		{"Int32", schema.Int32, false, ""},
-		{"Int64", schema.Int64, false, ""},
-		{"UUID", schema.UUID, true, ""},
-		{"UserDefinedText", schema.UserDefinedText, true, ""},
-		{"JSON", schema.JSON, true, ""},
-		{"Timestamp", schema.Timestamp, true, ""},
-		{"Time", schema.Time, true, "unexpected primary key type: DataType"},
-		{"TimeWithTimeZone", schema.TimeWithTimeZone, true, "unsupported primary key type: DataType"},
-		{"Date", schema.Date, true, ""},
-		// PostGIS
-		{"Point", schema.Point, true, "unsupported primary key type: DataType"},
-		{"Geometry", schema.Geometry, true, "unsupported primary key type: DataType"},
-		{"Geography", schema.Geography, true, "unsupported primary key type: DataType"},
-	}
-
-	for _, tc := range testCases {
-		actual, err := shouldQuoteValue(tc.dataType)
-		if tc.expectedErr == "" {
-			assert.NoError(t, err, tc.name)
-			assert.Equal(t, tc.expected, actual, tc.name)
-		} else {
-			assert.ErrorContains(t, err, tc.expectedErr, tc.name)
-		}
-	}
-
-	_, err := shouldQuoteValue(-1)
-	assert.ErrorContains(t, err, "unsupported primary key type: DataType(-1)")
-}
-
 func TestConvertToStringForQuery(t *testing.T) {
 	testCases := []struct {
 		name        string
-		dataType    schema.DataType
 		value       any
-		expected    any
+		expected    string
 		expectedErr string
 	}{
 		{
-			name:     "time - schema.Int64",
-			value:    time.Date(2001, 2, 3, 4, 5, 6, 0, time.UTC),
-			dataType: schema.Int64, // isn't checked for time.Time
-			expected: "'2001-02-03T04:05:06Z'",
-		},
-		{
-			name:     "time - schema.Text",
-			value:    time.Date(2001, 2, 3, 4, 5, 6, 0, time.UTC),
-			dataType: schema.Text, // isn't checked for time.Time
-			expected: "'2001-02-03T04:05:06Z'",
-		},
-		{
-			name:     "int64",
-			value:    int64(1234),
-			dataType: schema.Int64,
-			expected: "1234",
-		},
-		{
-			name:     "float32",
-			value:    float32(1234.1234),
-			dataType: schema.Real,
-			expected: "1234.1234",
-		},
-		{
-			name:     "float64",
-			value:    float64(1234.1234),
-			dataType: schema.Double,
-			expected: "1234.1234",
+			name:        "unsupported data type",
+			value:       []byte("foo"),
+			expectedErr: "unexpected type []uint8 for primary key with value ",
 		},
 		{
 			name:     "boolean - true",
 			value:    true,
-			dataType: schema.Boolean,
 			expected: "true",
 		},
 		{
 			name:     "boolean - false",
 			value:    false,
-			dataType: schema.Boolean,
 			expected: "false",
+		},
+		{
+			name:     "int",
+			value:    int(1234),
+			expected: "1234",
+		},
+		{
+			name:     "int8",
+			value:    int8(12),
+			expected: "12",
+		},
+		{
+			name:     "int16",
+			value:    int16(1234),
+			expected: "1234",
+		},
+		{
+			name:     "int32",
+			value:    int32(1234),
+			expected: "1234",
+		},
+		{
+			name:     "int64",
+			value:    int64(1234),
+			expected: "1234",
+		},
+		{
+			name:     "float32",
+			value:    float32(1234.1234),
+			expected: "1234.1234",
+		},
+		{
+			name:     "float64",
+			value:    float64(1234.1234),
+			expected: "1234.1234",
 		},
 		{
 			name:     "text",
 			value:    "foo",
-			dataType: schema.Text,
 			expected: "'foo'",
 		},
 		{
-			name:        "text - unsupported data type",
-			value:       "foo",
-			dataType:    -1,
-			expectedErr: "unsupported primary key type: DataType(-1)",
+			name:     "time",
+			value:    time.Date(2001, 2, 3, 4, 5, 6, 0, time.UTC),
+			expected: "'2001-02-03T04:05:06Z'",
 		},
 		{
-			name:     "interval",
-			value:    pgtype.Interval{Days: 2, Months: 1, Microseconds: 1_000_000, Valid: true},
-			dataType: schema.Interval,
-			expected: "'1 mon 2 day 00:00:01.000000'",
-		},
-		{
-			name:     "interval - invalid",
-			value:    pgtype.Interval{Days: 2, Months: 1, Microseconds: 1_000_000, Valid: false},
-			dataType: schema.Interval,
+			name:     "pgtype.Time - not valid",
+			value:    pgtype.Time{Microseconds: 1_000_000, Valid: false},
 			expected: "null",
+		},
+		{
+			name:     "pgtype.Time - valid",
+			value:    pgtype.Time{Microseconds: 1_000_000 * 30, Valid: true},
+			expected: "'00:00:30.000000'",
+		},
+		{
+			name:     "pgtype.Interval - not valid",
+			value:    pgtype.Interval{Days: 2, Months: 1, Microseconds: 1_000_000, Valid: false},
+			expected: "null",
+		},
+		{
+			name:     "pgtype.Interval - valid",
+			value:    pgtype.Interval{Days: 2, Months: 1, Microseconds: 1_000_000, Valid: true},
+			expected: "'1 mon 2 day 00:00:01.000000'",
 		},
 	}
 	for _, testCase := range testCases {
-		actual, err := convertToStringForQuery(testCase.value, testCase.dataType)
+		actual, err := convertToStringForQuery(testCase.value)
 		if testCase.expectedErr == "" {
 			assert.NoError(t, err)
 			assert.Equal(t, testCase.expected, actual, testCase.name)

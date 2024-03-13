@@ -3,7 +3,6 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
-	"log/slog"
 	"slices"
 	"strconv"
 	"strings"
@@ -73,13 +72,12 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 		if colIndex == -1 {
 			return "", fmt.Errorf("primary key %v not found in columns", pk.Name)
 		}
-		colType := args.Columns[colIndex].Type
 
 		var err error
-		if startingValues[i], err = convertToStringForQuery(pk.StartingValue, colType); err != nil {
+		if startingValues[i], err = convertToStringForQuery(pk.StartingValue); err != nil {
 			return "", err
 		}
-		if endingValues[i], err = convertToStringForQuery(pk.EndingValue, colType); err != nil {
+		if endingValues[i], err = convertToStringForQuery(pk.EndingValue); err != nil {
 			return "", err
 		}
 	}
@@ -110,44 +108,14 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 	), nil
 }
 
-func shouldQuoteValue(dataType schema.DataType) (bool, error) {
-	if !slices.Contains(supportedPrimaryKeyDataType, dataType) {
-		return false, fmt.Errorf("unsupported primary key type: DataType(%d)", dataType)
-	}
-
-	switch dataType {
-	case
-		// Natively supported types in convertToStringForQuery
-		schema.Time,
-		schema.Interval:
-		return false, fmt.Errorf("unexpected primary key type: DataType(%d)", dataType)
-	case
-		schema.Real,
-		schema.Double,
-		schema.Int16,
-		schema.Int32,
-		schema.Int64,
-		schema.Boolean:
-		return false, nil
-	case schema.VariableNumeric,
-		schema.Money,
-		schema.Numeric,
-		schema.Inet,
-		schema.Text,
-		schema.UUID,
-		schema.UserDefinedText,
-		schema.JSON,
-		schema.Timestamp,
-		schema.Date:
-		return true, nil
-	default:
-		return false, fmt.Errorf("unsupported data type: DataType(%d)", dataType)
-	}
-}
-
 // convertToStringForQuery returns a string value suitable for use directly in a query.
-func convertToStringForQuery(value any, dataType schema.DataType) (string, error) {
+func convertToStringForQuery(value any) (string, error) {
+	// TODO: Switch to using a parameterized query
 	switch castValue := value.(type) {
+	case bool, int, int8, int16, int32, int64, float32, float64:
+		return fmt.Sprint(value), nil
+	case string:
+		return QuoteLiteral(castValue), nil
 	case time.Time:
 		return QuoteLiteral(castValue.Format(time.RFC3339)), nil
 	case pgtype.Time:
@@ -176,30 +144,6 @@ func convertToStringForQuery(value any, dataType schema.DataType) (string, error
 			return "", fmt.Errorf("expected string got %T with value %v", value, value)
 		}
 		return QuoteLiteral(stringValue), nil
-	case bool, int, int8, int16, int32, int64, float32, float64:
-		return fmt.Sprint(value), nil
-	case string:
-		switch dataType {
-		case schema.Text, schema.UserDefinedText, schema.Inet, schema.UUID, schema.JSON, schema.VariableNumeric,
-			schema.Numeric, schema.Money:
-			return QuoteLiteral(castValue), nil
-		default:
-			slog.Error("string value with non-string column type",
-				slog.String("value", castValue),
-				slog.Any("dataType", dataType),
-			)
-			// legacy behavior - used when optionalPrimaryKeyValStart/End is configured
-			// TODO: parse optionalPrimaryKeyValStart/End based on DataType to Go type
-			shouldQuote, err := shouldQuoteValue(dataType)
-			if err != nil {
-				return "", err
-			}
-			if shouldQuote {
-				return QuoteLiteral(fmt.Sprint(value)), nil
-			} else {
-				return fmt.Sprint(value), nil
-			}
-		}
 	default:
 		return "", fmt.Errorf("unexpected type %T for primary key with value %v", value, value)
 	}
