@@ -150,7 +150,7 @@ func convertToStringForQuery(value any) (string, error) {
 	}
 }
 
-func NewScanner(db *sql.DB, table Table, cfg scan.ScannerConfig) (*scan.Scanner, error) {
+func NewScanner(db *sql.DB, table Table, columns []schema.Column, cfg scan.ScannerConfig) (*scan.Scanner, error) {
 	for _, key := range table.PrimaryKeys {
 		column, err := column.GetColumnByName(table.Columns, key)
 		if err != nil {
@@ -159,11 +159,6 @@ func NewScanner(db *sql.DB, table Table, cfg scan.ScannerConfig) (*scan.Scanner,
 		if !slices.Contains(supportedPrimaryKeyDataType, column.Type) {
 			return nil, fmt.Errorf("DataType(%d) for column '%s' is not supported for use as a primary key", column.Type, column.Name)
 		}
-	}
-
-	columns, err := column.ExcludeColumns(table.Columns, cfg.ExcludeColumns, table.PrimaryKeys)
-	if err != nil {
-		return nil, err
 	}
 
 	primaryKeyBounds, err := table.GetPrimaryKeysBounds(db)

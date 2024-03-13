@@ -9,17 +9,11 @@ import (
 
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/mysql/schema"
-	"github.com/artie-labs/reader/lib/rdbms/column"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
-func NewScanner(db *sql.DB, table mysql.Table, cfg scan.ScannerConfig) (*scan.Scanner, error) {
-	columns, err := column.ExcludeColumns(table.Columns, cfg.ExcludeColumns, table.PrimaryKeys)
-	if err != nil {
-		return nil, err
-	}
-
+func NewScanner(db *sql.DB, table mysql.Table, columns []schema.Column, cfg scan.ScannerConfig) (*scan.Scanner, error) {
 	primaryKeyBounds, err := table.GetPrimaryKeysBounds(db)
 	if err != nil {
 		return nil, err

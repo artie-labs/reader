@@ -66,7 +66,6 @@ func (m *MySQLTable) ToScannerConfig(errorRetries int) scan.ScannerConfig {
 		BatchSize:              m.GetBatchSize(),
 		OptionalStartingValues: m.GetOptionalPrimaryKeyValStart(),
 		OptionalEndingValues:   m.GetOptionalPrimaryKeyValEnd(),
-		ExcludeColumns:         m.ExcludeColumns,
 		ErrorRetries:           errorRetries,
 	}
 }

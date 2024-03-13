@@ -11,6 +11,7 @@ import (
 	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/postgres/schema"
+	"github.com/artie-labs/reader/lib/rdbms/column"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
@@ -19,6 +20,7 @@ const defaultErrorRetries = 10
 type postgresAdapter struct {
 	db              *sql.DB
 	table           postgres.Table
+	columns         []schema.Column
 	fieldConverters []transformer.FieldConverter
 	scannerCfg      scan.ScannerConfig
 }
@@ -30,8 +32,13 @@ func NewPostgresAdapter(db *sql.DB, tableCfg config.PostgreSQLTable) (postgresAd
 		return postgresAdapter{}, fmt.Errorf("failed to load metadata for table %s.%s: %w", tableCfg.Schema, tableCfg.Name, err)
 	}
 
-	fieldConverters := make([]transformer.FieldConverter, len(table.Columns))
-	for i, col := range table.Columns {
+	columns, err := column.ExcludeColumns(table.Columns, tableCfg.ExcludeColumns, table.PrimaryKeys)
+	if err != nil {
+		return postgresAdapter{}, err
+	}
+
+	fieldConverters := make([]transformer.FieldConverter, len(columns))
+	for i, col := range columns {
 		converter, err := valueConverterForType(col.Type, col.Opts)
 		if err != nil {
 			return postgresAdapter{}, fmt.Errorf("failed to build value converter for column %s: %w", col.Name, err)
@@ -42,6 +49,7 @@ func NewPostgresAdapter(db *sql.DB, tableCfg config.PostgreSQLTable) (postgresAd
 	return postgresAdapter{
 		db:              db,
 		table:           *table,
+		columns:         columns,
 		fieldConverters: fieldConverters,
 		scannerCfg:      tableCfg.ToScannerConfig(defaultErrorRetries),
 	}, nil
@@ -60,7 +68,7 @@ func (p postgresAdapter) FieldConverters() []transformer.FieldConverter {
 }
 
 func (p postgresAdapter) NewIterator() (transformer.RowsIterator, error) {
-	return postgres.NewScanner(p.db, p.table, p.scannerCfg)
+	return postgres.NewScanner(p.db, p.table, p.columns, p.scannerCfg)
 }
 
 func (p postgresAdapter) PartitionKeys() []string {

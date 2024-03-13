@@ -68,7 +68,6 @@ func (p *PostgreSQLTable) ToScannerConfig(errorRetries int) scan.ScannerConfig {
 		BatchSize:              p.GetBatchSize(),
 		OptionalStartingValues: p.GetOptionalPrimaryKeyValStart(),
 		OptionalEndingValues:   p.GetOptionalPrimaryKeyValEnd(),
-		ExcludeColumns:         p.ExcludeColumns,
 		ErrorRetries:           errorRetries,
 	}
 }
