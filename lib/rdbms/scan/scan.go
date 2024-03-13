@@ -148,7 +148,6 @@ func (s *Scanner) scan() ([]map[string]any, error) {
 		for i, column := range columns {
 			row[column] = values[i]
 		}
-
 		rowsData = append(rowsData, row)
 	}
 	return rowsData, nil
