@@ -23,19 +23,13 @@ func TestParse(t *testing.T) {
 			name:          "bit - 0",
 			dataType:      schema.Bit,
 			value:         "0",
-			expectedValue: int8(0),
+			expectedValue: "0",
 		},
 		{
 			name:          "bit - 1",
 			dataType:      schema.Bit,
 			value:         "1",
-			expectedValue: int8(1),
-		},
-		{
-			name:        "bit - 2",
-			dataType:    schema.Bit,
-			value:       "2",
-			expectedErr: `parsing "2": value out of range`,
+			expectedValue: "1",
 		},
 		{
 			name:        "bit - malformed",

@@ -17,8 +17,8 @@ import (
 )
 
 var supportedPrimaryKeyDataType []schema.DataType = []schema.DataType{
-	schema.Boolean,
 	schema.Bit,
+	schema.Boolean,
 	schema.Int16,
 	schema.Int32,
 	schema.Int64,
