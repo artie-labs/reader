@@ -19,10 +19,10 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 	switch colKind {
 	case schema.Bit:
 		valString, isOk := value.(string)
-		if !isOk {
-			return nil, fmt.Errorf("value: %v not of string type for bit", value)
+		if isOk {
+			return valString, nil
 		}
-		return valString, nil
+		return nil, fmt.Errorf("value: %v not of string type for bit", value)
 	case schema.UserDefinedText:
 		stringSlice, isOk := value.(string)
 		if !isOk {
