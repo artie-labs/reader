@@ -6,11 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestQuotedIdentifiers(t *testing.T) {
-	assert.Equal(t, []string{`"a"`, `"bb""bb"`, `"c"`}, QuotedIdentifiers([]string{"a", `bb"bb`, "c"}))
-}
-
-func TestQuoteLiteral(t *testing.T) {
-	assert.Equal(t, "'abc'", QuoteLiteral("abc"))
-	assert.Equal(t, "'a''bc'", QuoteLiteral("a'bc"))
+func TestQueryPlaceholderss(t *testing.T) {
+	assert.Equal(t, []string{}, QueryPlaceholders(0, 0))
+	assert.Equal(t, []string{"$1", "$2"}, QueryPlaceholders(0, 2))
+	assert.Equal(t, []string{"$4", "$5", "$6", "$7"}, QueryPlaceholders(3, 4))
 }

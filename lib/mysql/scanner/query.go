@@ -9,7 +9,7 @@ import (
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
 
-func sqlPlaceholders(count int) []string {
+func queryPlaceholders(count int) []string {
 	result := make([]string, count)
 	for i := range count {
 		result[i] = "?"
@@ -54,9 +54,9 @@ func buildScanTableQuery(args buildScanTableQueryArgs) (string, []any, error) {
 		// FROM
 		schema.QuoteIdentifier(args.TableName),
 		// WHERE (pk) > (123)
-		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(sqlPlaceholders(len(startingValues)), ","),
+		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(queryPlaceholders(len(startingValues)), ","),
 		// AND NOT (pk) <= (123)
-		strings.Join(quotedKeyNames, ","), strings.Join(sqlPlaceholders(len(endingValues)), ","),
+		strings.Join(quotedKeyNames, ","), strings.Join(queryPlaceholders(len(endingValues)), ","),
 		// ORDER BY
 		strings.Join(quotedKeyNames, ","),
 		// LIMIT

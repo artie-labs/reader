@@ -56,30 +56,30 @@ type scanTableQueryArgs struct {
 	Limit               uint
 }
 
-func scanTableQuery(args scanTableQueryArgs) (string, error) {
+func scanTableQuery(args scanTableQueryArgs) (string, []any, error) {
 	castedColumns := make([]string, len(args.Columns))
 	for idx, col := range args.Columns {
 		var err error
 		castedColumns[idx], err = castColumn(col)
 		if err != nil {
-			return "", err
+			return "", nil, err
 		}
 	}
 
-	startingValues := make([]string, len(args.PrimaryKeys))
-	endingValues := make([]string, len(args.PrimaryKeys))
+	startingValues := make([]any, len(args.PrimaryKeys))
+	endingValues := make([]any, len(args.PrimaryKeys))
 	for i, pk := range args.PrimaryKeys {
 		colIndex := slices.IndexFunc(args.Columns, func(col schema.Column) bool { return col.Name == pk.Name })
 		if colIndex == -1 {
-			return "", fmt.Errorf("primary key %v not found in columns", pk.Name)
+			return "", nil, fmt.Errorf("primary key %v not found in columns", pk.Name)
 		}
 
 		var err error
-		if startingValues[i], err = convertToStringForQuery(pk.StartingValue); err != nil {
-			return "", err
+		if startingValues[i], err = convertToQueryValue(pk.StartingValue); err != nil {
+			return "", nil, err
 		}
-		if endingValues[i], err = convertToStringForQuery(pk.EndingValue); err != nil {
-			return "", err
+		if endingValues[i], err = convertToQueryValue(pk.EndingValue); err != nil {
+			return "", nil, err
 		}
 	}
 
@@ -99,29 +99,26 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 		// FROM
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
 		// WHERE row(pk) > row(123)
-		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(startingValues, ","),
+		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(QueryPlaceholders(0, len(endingValues)), ","),
 		// AND row(pk) <= row(123)
-		strings.Join(quotedKeyNames, ","), strings.Join(endingValues, ","),
+		strings.Join(quotedKeyNames, ","), strings.Join(QueryPlaceholders(len(startingValues), len(endingValues)), ","),
 		// ORDER BY
 		strings.Join(quotedKeyNames, ","),
 		// LIMIT
 		args.Limit,
-	), nil
+	), slices.Concat(startingValues, endingValues), nil
 }
 
-// convertToStringForQuery returns a string value suitable for use directly in a query.
-func convertToStringForQuery(value any) (string, error) {
-	// TODO: Switch to using a parameterized query
+// convertToQueryValue returns a value suitable for use directly in a query.
+func convertToQueryValue(value any) (any, error) {
 	switch castValue := value.(type) {
-	case bool, int, int8, int16, int32, int64, float32, float64:
-		return fmt.Sprint(value), nil
-	case string:
-		return QuoteLiteral(castValue), nil
+	case bool, int, int8, int16, int32, int64, float32, float64, string:
+		return value, nil
 	case time.Time:
-		return QuoteLiteral(castValue.Format(time.RFC3339)), nil
+		return castValue.Format(time.RFC3339), nil
 	case pgtype.Time:
 		if !castValue.Valid {
-			return "null", nil
+			return nil, nil
 		}
 		dbValue, err := castValue.Value()
 		if err != nil {
@@ -131,10 +128,10 @@ func convertToStringForQuery(value any) (string, error) {
 		if !ok {
 			return "", fmt.Errorf("expected string got %T with value %v", value, value)
 		}
-		return QuoteLiteral(stringValue), nil
+		return stringValue, nil
 	case pgtype.Interval:
 		if !castValue.Valid {
-			return "null", nil
+			return nil, nil
 		}
 		value, err := castValue.Value()
 		if err != nil {
@@ -144,7 +141,7 @@ func convertToStringForQuery(value any) (string, error) {
 		if !ok {
 			return "", fmt.Errorf("expected string got %T with value %v", value, value)
 		}
-		return QuoteLiteral(stringValue), nil
+		return stringValue, nil
 	default:
 		return "", fmt.Errorf("unexpected type %T for primary key with value %v", value, value)
 	}
@@ -244,7 +241,7 @@ func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any,
 }
 
 func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error) {
-	query, err := scanTableQuery(scanTableQueryArgs{
+	return scanTableQuery(scanTableQueryArgs{
 		Schema:              s.schema,
 		TableName:           s.tableName,
 		PrimaryKeys:         primaryKeys,
@@ -252,7 +249,6 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 		InclusiveLowerBound: isFirstBatch,
 		Limit:               batchSize,
 	})
-	return query, nil, err
 }
 
 func (s scanAdapter) ParseRow(values []any) error {
