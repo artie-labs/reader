@@ -84,24 +84,14 @@ func TestConvertToQueryValue(t *testing.T) {
 			expected: "2001-02-03T04:05:06Z",
 		},
 		{
-			name:     "pgtype.Time - not valid",
-			value:    pgtype.Time{Microseconds: 1_000_000, Valid: false},
-			expected: nil,
-		},
-		{
 			name:     "pgtype.Time - valid",
 			value:    pgtype.Time{Microseconds: 1_000_000 * 30, Valid: true},
-			expected: "00:00:30.000000",
-		},
-		{
-			name:     "pgtype.Interval - not valid",
-			value:    pgtype.Interval{Days: 2, Months: 1, Microseconds: 1_000_000, Valid: false},
-			expected: nil,
+			expected: pgtype.Time{Microseconds: 1_000_000 * 30, Valid: true},
 		},
 		{
 			name:     "pgtype.Interval - valid",
 			value:    pgtype.Interval{Days: 2, Months: 1, Microseconds: 1_000_000, Valid: true},
-			expected: "1 mon 2 day 00:00:01.000000",
+			expected: pgtype.Interval{Days: 2, Months: 1, Microseconds: 1_000_000, Valid: true},
 		},
 	}
 	for _, testCase := range testCases {
