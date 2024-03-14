@@ -24,6 +24,11 @@ func TestConvertToQueryValue(t *testing.T) {
 			expectedErr: "unexpected type []uint8 for primary key with value ",
 		},
 		{
+			name:     "nil",
+			value:    nil,
+			expected: nil,
+		},
+		{
 			name:     "boolean - true",
 			value:    true,
 			expected: true,
