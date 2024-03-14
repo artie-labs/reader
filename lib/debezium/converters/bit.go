@@ -24,7 +24,7 @@ func (BitConverter) Convert(value any) (any, error) {
 		} else if stringValue == "1" {
 			return true, nil
 		}
-		return nil, fmt.Errorf(`string value "%s" is not 0 or 1`, value)
+		return nil, fmt.Errorf(`string value "%s" is not in ["0", "1"]`, value)
 	}
 	return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
 }
