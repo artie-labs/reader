@@ -33,7 +33,7 @@ func NewMySQLAdapter(db *sql.DB, tableCfg config.MySQLTable) (mysqlAdapter, erro
 		return mysqlAdapter{}, fmt.Errorf("failed to load metadata for table %s: %w", tableCfg.Name, err)
 	}
 
-	columns, err := column.ExcludeColumns(table.Columns, tableCfg.ExcludeColumns, table.PrimaryKeys)
+	columns, err := column.FilterOutExcludedColumns(table.Columns, tableCfg.ExcludeColumns, table.PrimaryKeys)
 	if err != nil {
 		return mysqlAdapter{}, err
 	}

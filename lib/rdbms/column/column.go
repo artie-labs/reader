@@ -31,8 +31,8 @@ func GetColumnsByName[T ~int, O any](columns []Column[T, O], names []string) ([]
 	return result, nil
 }
 
-// ExcludeColumns returns a list of columns excluding those that match `excludeNames` provided they are not primary keys.
-func ExcludeColumns[T ~int, O any](columns []Column[T, O], excludeNames []string, primaryKeys []string) ([]Column[T, O], error) {
+// FilterOutExcludedColumns returns a list of columns excluding those that match `excludeNames` provided they are not primary keys.
+func FilterOutExcludedColumns[T ~int, O any](columns []Column[T, O], excludeNames []string, primaryKeys []string) ([]Column[T, O], error) {
 	if len(excludeNames) == 0 {
 		return columns, nil
 	}
