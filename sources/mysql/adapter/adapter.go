@@ -12,6 +12,7 @@ import (
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/mysql/scanner"
 	"github.com/artie-labs/reader/lib/mysql/schema"
+	"github.com/artie-labs/reader/lib/rdbms/column"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
@@ -20,6 +21,7 @@ const defaultErrorRetries = 10
 type mysqlAdapter struct {
 	db              *sql.DB
 	table           mysql.Table
+	columns         []schema.Column
 	fieldConverters []transformer.FieldConverter
 	scannerCfg      scan.ScannerConfig
 }
@@ -31,12 +33,17 @@ func NewMySQLAdapter(db *sql.DB, tableCfg config.MySQLTable) (mysqlAdapter, erro
 		return mysqlAdapter{}, fmt.Errorf("failed to load metadata for table %s: %w", tableCfg.Name, err)
 	}
 
-	return newMySQLAdapter(db, *table, tableCfg.ToScannerConfig(defaultErrorRetries))
+	columns, err := column.FilterOutExcludedColumns(table.Columns, tableCfg.ExcludeColumns, table.PrimaryKeys)
+	if err != nil {
+		return mysqlAdapter{}, err
+	}
+
+	return newMySQLAdapter(db, *table, columns, tableCfg.ToScannerConfig(defaultErrorRetries))
 }
 
-func newMySQLAdapter(db *sql.DB, table mysql.Table, scannerCfg scan.ScannerConfig) (mysqlAdapter, error) {
-	fieldConverters := make([]transformer.FieldConverter, len(table.Columns))
-	for i, col := range table.Columns {
+func newMySQLAdapter(db *sql.DB, table mysql.Table, columns []schema.Column, scannerCfg scan.ScannerConfig) (mysqlAdapter, error) {
+	fieldConverters := make([]transformer.FieldConverter, len(columns))
+	for i, col := range columns {
 		converter, err := valueConverterForType(col.Type, col.Opts)
 		if err != nil {
 			return mysqlAdapter{}, fmt.Errorf("failed to build value converter for column %s: %w", col.Name, err)
@@ -47,6 +54,7 @@ func newMySQLAdapter(db *sql.DB, table mysql.Table, scannerCfg scan.ScannerConfi
 	return mysqlAdapter{
 		db:              db,
 		table:           table,
+		columns:         columns,
 		fieldConverters: fieldConverters,
 		scannerCfg:      scannerCfg,
 	}, nil
@@ -65,7 +73,7 @@ func (m mysqlAdapter) FieldConverters() []transformer.FieldConverter {
 }
 
 func (m mysqlAdapter) NewIterator() (transformer.RowsIterator, error) {
-	return scanner.NewScanner(m.db, m.table, m.scannerCfg)
+	return scanner.NewScanner(m.db, m.table, m.columns, m.scannerCfg)
 }
 
 func (m mysqlAdapter) PartitionKeys() []string {

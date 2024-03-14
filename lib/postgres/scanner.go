@@ -67,11 +67,6 @@ func scanTableQuery(args scanTableQueryArgs) (string, []any, error) {
 	startingValues := make([]any, len(args.PrimaryKeys))
 	endingValues := make([]any, len(args.PrimaryKeys))
 	for i, pk := range args.PrimaryKeys {
-		colIndex := slices.IndexFunc(args.Columns, func(col schema.Column) bool { return col.Name == pk.Name })
-		if colIndex == -1 {
-			return "", nil, fmt.Errorf("primary key %v not found in columns", pk.Name)
-		}
-
 		startingValues[i] = pk.StartingValue
 		endingValues[i] = pk.EndingValue
 	}
@@ -102,9 +97,9 @@ func scanTableQuery(args scanTableQueryArgs) (string, []any, error) {
 	), slices.Concat(startingValues, endingValues), nil
 }
 
-func NewScanner(db *sql.DB, table Table, cfg scan.ScannerConfig) (*scan.Scanner, error) {
+func NewScanner(db *sql.DB, table Table, columns []schema.Column, cfg scan.ScannerConfig) (*scan.Scanner, error) {
 	for _, key := range table.PrimaryKeys {
-		column, err := column.GetColumnByName(table.Columns, key)
+		column, err := column.GetColumnByName(columns, key)
 		if err != nil {
 			return nil, fmt.Errorf("missing column with name: %s", key)
 		}
@@ -118,7 +113,7 @@ func NewScanner(db *sql.DB, table Table, cfg scan.ScannerConfig) (*scan.Scanner,
 		return nil, err
 	}
 
-	adapter := scanAdapter{schema: table.Schema, tableName: table.Name, columns: table.Columns}
+	adapter := scanAdapter{schema: table.Schema, tableName: table.Name, columns: columns}
 	return scan.NewScanner(db, primaryKeyBounds, cfg, adapter)
 }
 

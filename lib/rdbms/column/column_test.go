@@ -132,3 +132,29 @@ func TestGetColumnsByName(t *testing.T) {
 		}
 	}
 }
+
+func TestFilterOutExcludedColumns(t *testing.T) {
+	{
+		// Empty `excludeNames`
+		value, err := FilterOutExcludedColumns([]mockColumn{{Name: "foo"}}, []string{}, []string{})
+		assert.NoError(t, err)
+		assert.Equal(t, value, []mockColumn{{Name: "foo"}})
+	}
+	{
+		// Non-empty `excludeNames`, excluded column is not in list
+		value, err := FilterOutExcludedColumns([]mockColumn{{Name: "foo"}}, []string{"bar"}, []string{})
+		assert.NoError(t, err)
+		assert.Equal(t, value, []mockColumn{{Name: "foo"}})
+	}
+	{
+		// Non-empty `excludeNames`, excluded column is in list
+		value, err := FilterOutExcludedColumns([]mockColumn{{Name: "foo"}, {Name: "bar"}}, []string{"bar"}, []string{})
+		assert.NoError(t, err)
+		assert.Equal(t, value, []mockColumn{{Name: "foo"}})
+	}
+	{
+		// Non-empty `excludeNames`, excluded column is in list, and is also a primary key
+		_, err := FilterOutExcludedColumns([]mockColumn{{Name: "foo"}, {Name: "bar"}}, []string{"bar"}, []string{"bar"})
+		assert.ErrorContains(t, err, `cannot exclude primary key column "bar"`)
+	}
+}
