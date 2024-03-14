@@ -91,9 +91,9 @@ func scanTableQuery(args scanTableQueryArgs) (string, []any, error) {
 		strings.Join(castedColumns, ","),
 		// FROM
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
-		// WHERE row(pk) > row(123)
+		// WHERE row(pk) > row($1)
 		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(QueryPlaceholders(0, len(endingValues)), ","),
-		// AND row(pk) <= row(123)
+		// AND row(pk) <= row($2)
 		strings.Join(quotedKeyNames, ","), strings.Join(QueryPlaceholders(len(startingValues), len(endingValues)), ","),
 		// ORDER BY
 		strings.Join(quotedKeyNames, ","),
