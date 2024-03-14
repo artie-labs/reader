@@ -112,39 +112,11 @@ func scanTableQuery(args scanTableQueryArgs) (string, []any, error) {
 // convertToQueryValue returns a value suitable for use directly in a query.
 func convertToQueryValue(value any) (any, error) {
 	switch castValue := value.(type) {
-	case nil, bool, int, int8, int16, int32, int64, float32, float64, string:
+	case nil, bool, int, int8, int16, int32, int64, float32, float64, string, pgtype.Time, pgtype.Interval:
 		return value, nil
 	case time.Time:
 		// TODO: See if we can directly use `time.Time` in query
 		return castValue.Format(time.RFC3339), nil
-	case pgtype.Time:
-		// TODO: See if we can directly use `pgtype.Time` in query
-		if !castValue.Valid {
-			return nil, nil
-		}
-		dbValue, err := castValue.Value()
-		if err != nil {
-			return "", err
-		}
-		stringValue, ok := dbValue.(string)
-		if !ok {
-			return "", fmt.Errorf("expected string got %T with value %v", value, value)
-		}
-		return stringValue, nil
-	case pgtype.Interval:
-		// TODO: See if we can directly use `pgtype.Interval` in query
-		if !castValue.Valid {
-			return nil, nil
-		}
-		value, err := castValue.Value()
-		if err != nil {
-			return "", err
-		}
-		stringValue, ok := value.(string)
-		if !ok {
-			return "", fmt.Errorf("expected string got %T with value %v", value, value)
-		}
-		return stringValue, nil
 	default:
 		return "", fmt.Errorf("unexpected type %T for primary key with value %v", value, value)
 	}
