@@ -89,15 +89,25 @@ func (s *Scanner) Next() ([]map[string]any, error) {
 
 	s.isFirstBatch = false
 
-	if len(rows) == 0 || s.primaryKeys.IsExhausted() {
+	if len(rows) == 0 {
 		s.done = true
-	} else {
-		// Update the starting keys so that the next scan will pick off where we last left off.
-		lastRow := rows[len(rows)-1]
-		for _, pk := range s.primaryKeys.Keys() {
-			if err := s.primaryKeys.UpdateStartingValue(pk.Name, lastRow[pk.Name]); err != nil {
-				return nil, err
-			}
+		return rows, nil
+	}
+
+	exhausted, err := s.primaryKeys.IsExhausted()
+	if err != nil {
+		return nil, err
+	}
+	if exhausted {
+		s.done = true
+		return rows, nil
+
+	}
+	// Update the starting keys so that the next scan will pick off where we last left off.
+	lastRow := rows[len(rows)-1]
+	for _, pk := range s.primaryKeys.Keys() {
+		if err := s.primaryKeys.UpdateStartingValue(pk.Name, lastRow[pk.Name]); err != nil {
+			return nil, err
 		}
 	}
 

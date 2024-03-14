@@ -1,6 +1,7 @@
 package primary_key
 
 import (
+	"bytes"
 	"fmt"
 	"log/slog"
 	"slices"
@@ -82,11 +83,20 @@ func (k *Keys) Keys() []Key {
 }
 
 // IsExhausted returns true if the starting values and ending values are the same for all keys
-func (k *Keys) IsExhausted() bool {
+func (k *Keys) IsExhausted() (bool, error) {
 	for _, key := range k.keys {
-		if key.StartingValue != key.EndingValue {
-			return false
+		switch castStartValue := key.StartingValue.(type) {
+		case []byte:
+			castEndValue, ok := key.EndingValue.([]byte)
+			if !ok {
+				return false, fmt.Errorf(`start value is []byte but end value is %T for key "%s"`, key.EndingValue, key.Name)
+			}
+			return bytes.Equal(castStartValue, castEndValue), nil
+		default:
+			if key.StartingValue != key.EndingValue {
+				return false, nil
+			}
 		}
 	}
-	return true
+	return true, nil
 }
