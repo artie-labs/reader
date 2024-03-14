@@ -16,7 +16,7 @@ func TestMySQLAdapter_TableName(t *testing.T) {
 	table := mysql.Table{
 		Name: "table1",
 	}
-	adapter, err := newMySQLAdapter(nil, table, scan.ScannerConfig{})
+	adapter, err := newMySQLAdapter(nil, table, []schema.Column{}, scan.ScannerConfig{})
 	assert.NoError(t, err)
 	assert.Equal(t, "table1", adapter.TableName())
 }
@@ -43,7 +43,7 @@ func TestMySQLAdapter_TopicSuffix(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		adapter, err := newMySQLAdapter(nil, tc.table, scan.ScannerConfig{})
+		adapter, err := newMySQLAdapter(nil, tc.table, []schema.Column{}, scan.ScannerConfig{})
 		assert.NoError(t, err)
 		assert.Equal(t, tc.expected, adapter.TopicSuffix())
 	}

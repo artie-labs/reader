@@ -13,13 +13,13 @@ import (
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
-func NewScanner(db *sql.DB, table mysql.Table, cfg scan.ScannerConfig) (*scan.Scanner, error) {
+func NewScanner(db *sql.DB, table mysql.Table, columns []schema.Column, cfg scan.ScannerConfig) (*scan.Scanner, error) {
 	primaryKeyBounds, err := table.GetPrimaryKeysBounds(db)
 	if err != nil {
 		return nil, err
 	}
 
-	adapter := scanAdapter{tableName: table.Name, columns: table.Columns}
+	adapter := scanAdapter{tableName: table.Name, columns: columns}
 	return scan.NewScanner(db, primaryKeyBounds, cfg, adapter)
 }
 

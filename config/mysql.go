@@ -32,10 +32,11 @@ func (m *MySQL) ToDSN() string {
 }
 
 type MySQLTable struct {
-	Name                       string `yaml:"name"`
-	BatchSize                  uint   `yaml:"batchSize"`
-	OptionalPrimaryKeyValStart string `yaml:"optionalPrimaryKeyValStart"`
-	OptionalPrimaryKeyValEnd   string `yaml:"optionalPrimaryKeyValEnd"`
+	Name                       string   `yaml:"name"`
+	BatchSize                  uint     `yaml:"batchSize"`
+	OptionalPrimaryKeyValStart string   `yaml:"optionalPrimaryKeyValStart"`
+	OptionalPrimaryKeyValEnd   string   `yaml:"optionalPrimaryKeyValEnd"`
+	ExcludeColumns             []string `yaml:"excludeColumns"`
 }
 
 func (m *MySQLTable) GetBatchSize() uint {

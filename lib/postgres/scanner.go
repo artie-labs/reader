@@ -145,9 +145,9 @@ func convertToStringForQuery(value any) (string, error) {
 	}
 }
 
-func NewScanner(db *sql.DB, table Table, cfg scan.ScannerConfig) (*scan.Scanner, error) {
+func NewScanner(db *sql.DB, table Table, columns []schema.Column, cfg scan.ScannerConfig) (*scan.Scanner, error) {
 	for _, key := range table.PrimaryKeys {
-		column, err := column.GetColumnByName(table.Columns, key)
+		column, err := column.GetColumnByName(columns, key)
 		if err != nil {
 			return nil, fmt.Errorf("missing column with name: %s", key)
 		}
@@ -161,7 +161,7 @@ func NewScanner(db *sql.DB, table Table, cfg scan.ScannerConfig) (*scan.Scanner,
 		return nil, err
 	}
 
-	adapter := scanAdapter{schema: table.Schema, tableName: table.Name, columns: table.Columns}
+	adapter := scanAdapter{schema: table.Schema, tableName: table.Name, columns: columns}
 	return scan.NewScanner(db, primaryKeyBounds, cfg, adapter)
 }
 
