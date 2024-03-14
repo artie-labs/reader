@@ -87,7 +87,7 @@ func scanTableQuery(args scanTableQueryArgs) (string, []any, error) {
 		// FROM
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
 		// WHERE row(pk) > row($1)
-		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(QueryPlaceholders(0, len(endingValues)), ","),
+		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(QueryPlaceholders(0, len(startingValues)), ","),
 		// AND row(pk) <= row($2)
 		strings.Join(quotedKeyNames, ","), strings.Join(QueryPlaceholders(len(startingValues), len(endingValues)), ","),
 		// ORDER BY
