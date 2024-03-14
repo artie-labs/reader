@@ -115,8 +115,10 @@ func convertToQueryValue(value any) (any, error) {
 	case nil, bool, int, int8, int16, int32, int64, float32, float64, string:
 		return value, nil
 	case time.Time:
+		// TODO: See if we can directly use `time.Time` in query
 		return castValue.Format(time.RFC3339), nil
 	case pgtype.Time:
+		// TODO: See if we can directly use `pgtype.Time` in query
 		if !castValue.Valid {
 			return nil, nil
 		}
@@ -130,6 +132,7 @@ func convertToQueryValue(value any) (any, error) {
 		}
 		return stringValue, nil
 	case pgtype.Interval:
+		// TODO: See if we can directly use `pgtype.Interval` in query
 		if !castValue.Valid {
 			return nil, nil
 		}
