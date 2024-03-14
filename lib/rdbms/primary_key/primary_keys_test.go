@@ -172,7 +172,7 @@ func TestKeys_IsExausted(t *testing.T) {
 			{Name: "foo", StartingValue: "a", EndingValue: "a"},
 			{Name: "bar", StartingValue: 2, EndingValue: 2},
 			{Name: "qux", StartingValue: []byte{}, EndingValue: []byte{}},
-			{Name: "quxx", StartingValue: []byte{byte(0)}, EndingValue: []byte{byte(0)}},
+			{Name: "quxx", StartingValue: []byte{byte(20)}, EndingValue: []byte{byte(20)}},
 			{Name: "baz", StartingValue: nil, EndingValue: nil},
 		})
 		assert.True(t, keys.IsExhausted())
@@ -190,7 +190,7 @@ func TestKeys_IsExausted(t *testing.T) {
 	{
 		keys := NewKeys([]Key{
 			{Name: "foo", StartingValue: "a", EndingValue: "a"},
-			{Name: "qux", StartingValue: []byte{byte(0)}, EndingValue: "string"},
+			{Name: "qux", StartingValue: []byte{byte(10)}, EndingValue: "string"},
 			{Name: "baz", StartingValue: nil, EndingValue: nil},
 		})
 		assert.False(t, keys.IsExhausted())
@@ -199,7 +199,7 @@ func TestKeys_IsExausted(t *testing.T) {
 	{
 		keys := NewKeys([]Key{
 			{Name: "foo", StartingValue: "a", EndingValue: 1},
-			{Name: "qux", StartingValue: []byte{byte(0)}, EndingValue: "string"},
+			{Name: "qux", StartingValue: []byte{byte(30)}, EndingValue: "string"},
 			{Name: "baz", StartingValue: nil, EndingValue: nil},
 		})
 		assert.False(t, keys.IsExhausted())
