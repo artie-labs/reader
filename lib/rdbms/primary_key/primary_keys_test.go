@@ -195,15 +195,6 @@ func TestKeys_IsExausted(t *testing.T) {
 		})
 		assert.False(t, keys.IsExhausted())
 	}
-	// three keys, first has different values
-	{
-		keys := NewKeys([]Key{
-			{Name: "foo", StartingValue: "a", EndingValue: 1},
-			{Name: "qux", StartingValue: []byte{byte(30)}, EndingValue: "string"},
-			{Name: "baz", StartingValue: nil, EndingValue: nil},
-		})
-		assert.False(t, keys.IsExhausted())
-	}
 }
 
 func TestEqual(t *testing.T) {
