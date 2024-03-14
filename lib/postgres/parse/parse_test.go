@@ -20,16 +20,22 @@ func TestParse(t *testing.T) {
 
 	tcs := []_testCase{
 		{
-			name:          "bit - true",
-			dataType:      schema.Bit,
-			value:         "1",
-			expectedValue: true,
-		},
-		{
-			name:          "bit - false",
+			name:          "bit - 0",
 			dataType:      schema.Bit,
 			value:         "0",
-			expectedValue: false,
+			expectedValue: int8(0),
+		},
+		{
+			name:          "bit - 1",
+			dataType:      schema.Bit,
+			value:         "1",
+			expectedValue: int8(1),
+		},
+		{
+			name:        "bit - 2",
+			dataType:    schema.Bit,
+			value:       "2",
+			expectedErr: `parsing "2": value out of range`,
 		},
 		{
 			name:        "bit - malformed",
