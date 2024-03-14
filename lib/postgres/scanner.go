@@ -27,6 +27,7 @@ var supportedPrimaryKeyDataType []schema.DataType = []schema.DataType{
 	schema.Numeric,
 	schema.VariableNumeric,
 	schema.Money,
+	schema.Bytea,
 	schema.Text,
 	schema.UserDefinedText,
 	schema.Time,
@@ -36,7 +37,6 @@ var supportedPrimaryKeyDataType []schema.DataType = []schema.DataType{
 	schema.UUID,
 	schema.Inet,
 	schema.JSON,
-	// schema.Bytea - fails: invalid byte sequence for encoding
 	// schema.TimeWithTimeZone - fails: without the original timezone offset the query doesn't match any rows
 	// schema.Array - fails: this doesn't work: need to serialize to Postgres array format "{1,2,3}"
 	// schema.HStore - fails: operator does not exist: hstore >= unknown (SQLSTATE 42883)

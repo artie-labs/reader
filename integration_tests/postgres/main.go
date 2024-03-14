@@ -856,6 +856,7 @@ CREATE TABLE %s (
 	c_bigserial bigserial,
 	c_bit bit,
 	c_boolean boolean,
+	c_bytea bytea,
 	c_character character,
 	c_character_varying character varying,
 	c_cidr cidr,
@@ -885,9 +886,9 @@ CREATE TABLE %s (
 	c_tstzrange tstzrange,
 	c_daterange daterange,
 	PRIMARY KEY (
-		c_bigint, c_bigserial, c_bit, c_boolean, c_character, c_character_varying, c_cidr, c_date, c_double_precision, c_inet,
-		c_integer, c_interval, c_jsonb, c_macaddr, c_macaddr8, c_money, c_numeric, c_real, c_smallint, c_serial, c_text,
-		c_time_without_timezone, c_timestamp_without_timezone, c_timestamp_with_timezone, c_uuid, c_int4range,
+		c_bigint, c_bigserial, c_bit, c_boolean, c_bytea, c_character, c_character_varying, c_cidr, c_date, c_double_precision,
+		c_inet, c_integer, c_interval, c_jsonb, c_macaddr, c_macaddr8, c_money, c_numeric, c_real, c_smallint, c_serial,
+		c_text, c_time_without_timezone, c_timestamp_without_timezone, c_timestamp_with_timezone, c_uuid, c_int4range,
 		c_int8range, c_numrange, c_tsrange, c_tstzrange, c_daterange
 	)
 )
@@ -903,6 +904,8 @@ INSERT INTO %s VALUES (
 		B'1',
 	-- c_boolean
 		true,
+	-- c_bytea
+		'abc \153\154\155 \052\251\124'::bytea,
 	-- c_character
 		'X',
 	-- c_character_varying
