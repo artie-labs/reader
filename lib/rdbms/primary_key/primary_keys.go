@@ -93,6 +93,7 @@ func (k *Keys) IsExhausted() bool {
 }
 
 func equal(a, b any) bool {
+	// comparing two byte arrays panics: comparing uncomparable type []uint8
 	if aBytes, ok := a.([]byte); ok {
 		bBytes, ok := b.([]byte)
 		if !ok {
