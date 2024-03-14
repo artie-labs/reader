@@ -82,7 +82,7 @@ func (k *Keys) Keys() []Key {
 	return k.keys
 }
 
-// IsExhausted returns true if the starting values and ending values are the same for all keys
+// IsExhausted returns true if the starting values and ending values are the same for all keys.
 func (k *Keys) IsExhausted() bool {
 	for _, key := range k.keys {
 		if !equal(key.StartingValue, key.EndingValue) {
@@ -93,7 +93,7 @@ func (k *Keys) IsExhausted() bool {
 }
 
 func equal(a, b any) bool {
-	// comparing two byte arrays panics: comparing uncomparable type []uint8
+	// Comparing byte arrays panics: comparing uncomparable type []uint8.
 	if aBytes, ok := a.([]byte); ok {
 		bBytes, ok := b.([]byte)
 		if !ok {
