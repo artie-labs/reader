@@ -2,108 +2,12 @@ package postgres
 
 import (
 	"testing"
-	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
-
-func TestConvertToQueryValue(t *testing.T) {
-	testCases := []struct {
-		name        string
-		value       any
-		expected    any
-		expectedErr string
-	}{
-		{
-			name:        "unsupported data type",
-			value:       []byte("foo"),
-			expectedErr: "unexpected type []uint8 for primary key with value ",
-		},
-		{
-			name:     "nil",
-			value:    nil,
-			expected: nil,
-		},
-		{
-			name:     "boolean - true",
-			value:    true,
-			expected: true,
-		},
-		{
-			name:     "boolean - false",
-			value:    false,
-			expected: false,
-		},
-		{
-			name:     "int",
-			value:    int(1234),
-			expected: int(1234),
-		},
-		{
-			name:     "int8",
-			value:    int8(12),
-			expected: int8(12),
-		},
-		{
-			name:     "int16",
-			value:    int16(1234),
-			expected: int16(1234),
-		},
-		{
-			name:     "int32",
-			value:    int32(1234),
-			expected: int32(1234),
-		},
-		{
-			name:     "int64",
-			value:    int64(1234),
-			expected: int64(1234),
-		},
-		{
-			name:     "float32",
-			value:    float32(1234.1234),
-			expected: float32(1234.1234),
-		},
-		{
-			name:     "float64",
-			value:    float64(1234.1234),
-			expected: float64(1234.1234),
-		},
-		{
-			name:     "text",
-			value:    "foo",
-			expected: "foo",
-		},
-		{
-			name:     "time",
-			value:    time.Date(2001, 2, 3, 4, 5, 6, 0, time.UTC),
-			expected: "2001-02-03T04:05:06Z",
-		},
-		{
-			name:     "pgtype.Time - valid",
-			value:    pgtype.Time{Microseconds: 1_000_000 * 30, Valid: true},
-			expected: pgtype.Time{Microseconds: 1_000_000 * 30, Valid: true},
-		},
-		{
-			name:     "pgtype.Interval - valid",
-			value:    pgtype.Interval{Days: 2, Months: 1, Microseconds: 1_000_000, Valid: true},
-			expected: pgtype.Interval{Days: 2, Months: 1, Microseconds: 1_000_000, Valid: true},
-		},
-	}
-	for _, testCase := range testCases {
-		actual, err := convertToQueryValue(testCase.value)
-		if testCase.expectedErr == "" {
-			assert.NoError(t, err)
-			assert.Equal(t, testCase.expected, actual, testCase.name)
-		} else {
-			assert.ErrorContains(t, err, testCase.expectedErr, testCase.name)
-		}
-	}
-}
 
 func TestScanTableQuery(t *testing.T) {
 	primaryKeys := []primary_key.Key{

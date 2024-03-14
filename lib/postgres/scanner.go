@@ -6,10 +6,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/artie-labs/reader/lib/postgres/parse"
 	"github.com/artie-labs/reader/lib/postgres/schema"
@@ -74,13 +72,8 @@ func scanTableQuery(args scanTableQueryArgs) (string, []any, error) {
 			return "", nil, fmt.Errorf("primary key %v not found in columns", pk.Name)
 		}
 
-		var err error
-		if startingValues[i], err = convertToQueryValue(pk.StartingValue); err != nil {
-			return "", nil, err
-		}
-		if endingValues[i], err = convertToQueryValue(pk.EndingValue); err != nil {
-			return "", nil, err
-		}
+		startingValues[i] = pk.StartingValue
+		endingValues[i] = pk.EndingValue
 	}
 
 	quotedKeyNames := make([]string, len(args.PrimaryKeys))
@@ -107,19 +100,6 @@ func scanTableQuery(args scanTableQueryArgs) (string, []any, error) {
 		// LIMIT
 		args.Limit,
 	), slices.Concat(startingValues, endingValues), nil
-}
-
-// convertToQueryValue returns a value suitable for use directly in a query.
-func convertToQueryValue(value any) (any, error) {
-	switch castValue := value.(type) {
-	case nil, bool, int, int8, int16, int32, int64, float32, float64, string, pgtype.Time, pgtype.Interval:
-		return value, nil
-	case time.Time:
-		// TODO: See if we can directly use `time.Time` in query
-		return castValue.Format(time.RFC3339), nil
-	default:
-		return "", fmt.Errorf("unexpected type %T for primary key with value %v", value, value)
-	}
 }
 
 func NewScanner(db *sql.DB, table Table, cfg scan.ScannerConfig) (*scan.Scanner, error) {

@@ -937,9 +937,9 @@ INSERT INTO %s VALUES (
 	-- c_time_without_timezone
 		'20:38:21',
 	-- c_timestamp_without_timezone
-		'2001-02-16 20:38:40',
+		'2001-02-16 20:38:40.123123',
 	-- c_timestamp_with_timezone
-		'2001-02-16 20:38:40' AT TIME ZONE 'America/Denver',
+		'2001-02-16 20:38:40.123123' AT TIME ZONE 'America/Denver',
 	-- c_uuid
 		'e7082e96-7190-4cc3-8ab4-bd27f1269f08',
 	-- c_int4range
