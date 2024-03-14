@@ -2,17 +2,7 @@ package postgres
 
 import (
 	"strings"
-
-	"github.com/jackc/pgx/v5"
 )
-
-func QuotedIdentifiers(ids []string) []string {
-	quoted := make([]string, len(ids))
-	for idx := range ids {
-		quoted[idx] = pgx.Identifier{ids[idx]}.Sanitize()
-	}
-	return quoted
-}
 
 // QuoteLiteral quotes a 'literal' (e.g. a parameter, often used to pass literal
 // to DDL and other statements that do not accept parameters) to be used as part
