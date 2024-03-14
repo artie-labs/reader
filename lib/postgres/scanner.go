@@ -69,6 +69,11 @@ func scanTableQuery(args scanTableQueryArgs) (string, []any, error) {
 	startingValues := make([]any, len(args.PrimaryKeys))
 	endingValues := make([]any, len(args.PrimaryKeys))
 	for i, pk := range args.PrimaryKeys {
+		colIndex := slices.IndexFunc(args.Columns, func(col schema.Column) bool { return col.Name == pk.Name })
+		if colIndex == -1 {
+			return "", nil, fmt.Errorf("primary key %v not found in columns", pk.Name)
+		}
+
 		var err error
 		if startingValues[i], err = convertToQueryValue(pk.StartingValue); err != nil {
 			return "", nil, err
