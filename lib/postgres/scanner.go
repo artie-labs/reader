@@ -112,7 +112,7 @@ func scanTableQuery(args scanTableQueryArgs) (string, []any, error) {
 // convertToQueryValue returns a value suitable for use directly in a query.
 func convertToQueryValue(value any) (any, error) {
 	switch castValue := value.(type) {
-	case bool, int, int8, int16, int32, int64, float32, float64, string:
+	case nil, bool, int, int8, int16, int32, int64, float32, float64, string:
 		return value, nil
 	case time.Time:
 		return castValue.Format(time.RFC3339), nil
