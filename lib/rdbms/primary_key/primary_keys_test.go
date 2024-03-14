@@ -166,13 +166,13 @@ func TestKeys_IsExausted(t *testing.T) {
 		})
 		assert.False(t, keys.IsExhausted())
 	}
-	// four keys, same starting and ending values for all
+	// five keys, same starting and ending values for all
 	{
 		keys := NewKeys([]Key{
 			{Name: "foo", StartingValue: "a", EndingValue: "a"},
 			{Name: "bar", StartingValue: 2, EndingValue: 2},
 			{Name: "qux", StartingValue: []byte{}, EndingValue: []byte{}},
-			{Name: "qux", StartingValue: []byte{byte(0)}, EndingValue: []byte{byte(0)}},
+			{Name: "quxx", StartingValue: []byte{byte(0)}, EndingValue: []byte{byte(0)}},
 			{Name: "baz", StartingValue: nil, EndingValue: nil},
 		})
 		assert.True(t, keys.IsExhausted())
