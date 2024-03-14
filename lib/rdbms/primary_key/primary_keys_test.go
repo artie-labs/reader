@@ -166,13 +166,52 @@ func TestKeys_IsExausted(t *testing.T) {
 		})
 		assert.False(t, keys.IsExhausted())
 	}
-	// three keys, same starting and ending values for all
+	// five keys, same starting and ending values for all
 	{
 		keys := NewKeys([]Key{
 			{Name: "foo", StartingValue: "a", EndingValue: "a"},
 			{Name: "bar", StartingValue: 2, EndingValue: 2},
+			{Name: "qux", StartingValue: []byte{}, EndingValue: []byte{}},
+			{Name: "quxx", StartingValue: []byte{byte(20)}, EndingValue: []byte{byte(20)}},
 			{Name: "baz", StartingValue: nil, EndingValue: nil},
 		})
 		assert.True(t, keys.IsExhausted())
 	}
+	// three keys, second has different values
+	{
+		keys := NewKeys([]Key{
+			{Name: "foo", StartingValue: "a", EndingValue: "a"},
+			{Name: "qux", StartingValue: []byte{byte(0)}, EndingValue: []byte{byte(1)}},
+			{Name: "baz", StartingValue: nil, EndingValue: nil},
+		})
+		assert.False(t, keys.IsExhausted())
+	}
+	// three keys, second has different values
+	{
+		keys := NewKeys([]Key{
+			{Name: "foo", StartingValue: "a", EndingValue: "a"},
+			{Name: "qux", StartingValue: []byte{byte(10)}, EndingValue: "string"},
+			{Name: "baz", StartingValue: nil, EndingValue: nil},
+		})
+		assert.False(t, keys.IsExhausted())
+	}
+}
+
+func TestEqual(t *testing.T) {
+	// string
+	assert.True(t, equal("a", "a"))
+	assert.False(t, equal("a", "b"))
+
+	// int
+	assert.True(t, equal(123, 123))
+	assert.False(t, equal(124, 123))
+
+	// []byte
+	assert.True(t, equal([]byte{}, []byte{}))
+	assert.True(t, equal([]byte{byte(1)}, []byte{byte(1)}))
+	assert.False(t, equal([]byte{}, nil))
+	assert.False(t, equal([]byte{}, ""))
+	assert.False(t, equal(nil, []byte{}))
+	assert.False(t, equal("", []byte{}))
+	assert.False(t, equal([]byte{byte(1)}, []byte{byte(12)}))
 }

@@ -1,6 +1,7 @@
 package primary_key
 
 import (
+	"bytes"
 	"fmt"
 	"log/slog"
 	"slices"
@@ -81,12 +82,27 @@ func (k *Keys) Keys() []Key {
 	return k.keys
 }
 
-// IsExhausted returns true if the starting values and ending values are the same for all keys
+// IsExhausted returns true if the starting values and ending values are the same for all keys.
 func (k *Keys) IsExhausted() bool {
 	for _, key := range k.keys {
-		if key.StartingValue != key.EndingValue {
+		if !equal(key.StartingValue, key.EndingValue) {
 			return false
 		}
 	}
 	return true
+}
+
+func equal(a, b any) bool {
+	// Comparing byte arrays panics: comparing uncomparable type []uint8.
+	if aBytes, ok := a.([]byte); ok {
+		bBytes, ok := b.([]byte)
+		if !ok {
+			return false
+		}
+		return bytes.Equal(aBytes, bBytes)
+	} else if _, ok := b.([]byte); ok {
+		return false // b is []byte but a is not
+	}
+
+	return a == b
 }
