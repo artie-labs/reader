@@ -2,113 +2,12 @@ package postgres
 
 import (
 	"testing"
-	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
-
-func TestConvertToStringForQuery(t *testing.T) {
-	testCases := []struct {
-		name        string
-		value       any
-		expected    string
-		expectedErr string
-	}{
-		{
-			name:        "unsupported data type",
-			value:       []byte("foo"),
-			expectedErr: "unexpected type []uint8 for primary key with value ",
-		},
-		{
-			name:     "boolean - true",
-			value:    true,
-			expected: "true",
-		},
-		{
-			name:     "boolean - false",
-			value:    false,
-			expected: "false",
-		},
-		{
-			name:     "int",
-			value:    int(1234),
-			expected: "1234",
-		},
-		{
-			name:     "int8",
-			value:    int8(12),
-			expected: "12",
-		},
-		{
-			name:     "int16",
-			value:    int16(1234),
-			expected: "1234",
-		},
-		{
-			name:     "int32",
-			value:    int32(1234),
-			expected: "1234",
-		},
-		{
-			name:     "int64",
-			value:    int64(1234),
-			expected: "1234",
-		},
-		{
-			name:     "float32",
-			value:    float32(1234.1234),
-			expected: "1234.1234",
-		},
-		{
-			name:     "float64",
-			value:    float64(1234.1234),
-			expected: "1234.1234",
-		},
-		{
-			name:     "text",
-			value:    "foo",
-			expected: "'foo'",
-		},
-		{
-			name:     "time",
-			value:    time.Date(2001, 2, 3, 4, 5, 6, 0, time.UTC),
-			expected: "'2001-02-03T04:05:06Z'",
-		},
-		{
-			name:     "pgtype.Time - not valid",
-			value:    pgtype.Time{Microseconds: 1_000_000, Valid: false},
-			expected: "null",
-		},
-		{
-			name:     "pgtype.Time - valid",
-			value:    pgtype.Time{Microseconds: 1_000_000 * 30, Valid: true},
-			expected: "'00:00:30.000000'",
-		},
-		{
-			name:     "pgtype.Interval - not valid",
-			value:    pgtype.Interval{Days: 2, Months: 1, Microseconds: 1_000_000, Valid: false},
-			expected: "null",
-		},
-		{
-			name:     "pgtype.Interval - valid",
-			value:    pgtype.Interval{Days: 2, Months: 1, Microseconds: 1_000_000, Valid: true},
-			expected: "'1 mon 2 day 00:00:01.000000'",
-		},
-	}
-	for _, testCase := range testCases {
-		actual, err := convertToStringForQuery(testCase.value)
-		if testCase.expectedErr == "" {
-			assert.NoError(t, err)
-			assert.Equal(t, testCase.expected, actual, testCase.name)
-		} else {
-			assert.ErrorContains(t, err, testCase.expectedErr, testCase.name)
-		}
-	}
-}
 
 func TestScanTableQuery(t *testing.T) {
 	primaryKeys := []primary_key.Key{
@@ -127,7 +26,7 @@ func TestScanTableQuery(t *testing.T) {
 
 	{
 		// inclusive lower bound
-		query, err := scanTableQuery(scanTableQueryArgs{
+		query, parameters, err := scanTableQuery(scanTableQueryArgs{
 			Schema:              "schema",
 			TableName:           "table",
 			PrimaryKeys:         primaryKeys,
@@ -136,20 +35,22 @@ func TestScanTableQuery(t *testing.T) {
 			Columns:             cols,
 		})
 		assert.NoError(t, err)
-		assert.Equal(t, `SELECT "a","b","c","e","f","127.0.0.1"::text FROM "schema"."table" WHERE row("a","b","c") >= row(1,2,'3') AND row("a","b","c") <= row(4,5,'6') ORDER BY "a","b","c" LIMIT 1`, query)
+		assert.Equal(t, `SELECT "a","b","c","e","f","127.0.0.1"::text FROM "schema"."table" WHERE row("a","b","c") >= row($1,$2,$3) AND row("a","b","c") <= row($4,$5,$6) ORDER BY "a","b","c" LIMIT 1`, query)
+		assert.Equal(t, []any{int64(1), int64(2), "3", int64(4), int64(5), "6"}, parameters)
 	}
 	{
 		// exclusive lower bound
-		query, err := scanTableQuery(scanTableQueryArgs{
+		query, parameters, err := scanTableQuery(scanTableQueryArgs{
 			Schema:              "schema",
 			TableName:           "table",
 			PrimaryKeys:         primaryKeys,
 			InclusiveLowerBound: false,
-			Limit:               1,
+			Limit:               2,
 			Columns:             cols,
 		})
 		assert.NoError(t, err)
-		assert.Equal(t, `SELECT "a","b","c","e","f","127.0.0.1"::text FROM "schema"."table" WHERE row("a","b","c") > row(1,2,'3') AND row("a","b","c") <= row(4,5,'6') ORDER BY "a","b","c" LIMIT 1`, query)
+		assert.Equal(t, `SELECT "a","b","c","e","f","127.0.0.1"::text FROM "schema"."table" WHERE row("a","b","c") > row($1,$2,$3) AND row("a","b","c") <= row($4,$5,$6) ORDER BY "a","b","c" LIMIT 2`, query)
+		assert.Equal(t, []any{int64(1), int64(2), "3", int64(4), int64(5), "6"}, parameters)
 	}
 }
 

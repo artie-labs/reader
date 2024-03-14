@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSqlPlaceholders(t *testing.T) {
-	assert.Equal(t, []string{}, sqlPlaceholders(0))
-	assert.Equal(t, []string{"?"}, sqlPlaceholders(1))
-	assert.Equal(t, []string{"?", "?"}, sqlPlaceholders(2))
+func TestQueryPlaceholders(t *testing.T) {
+	assert.Equal(t, []string{}, queryPlaceholders(0))
+	assert.Equal(t, []string{"?"}, queryPlaceholders(1))
+	assert.Equal(t, []string{"?", "?"}, queryPlaceholders(2))
 }
 
 func TestBuildScanTableQuery(t *testing.T) {

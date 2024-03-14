@@ -6,10 +6,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/artie-labs/reader/lib/postgres/parse"
 	"github.com/artie-labs/reader/lib/postgres/schema"
@@ -56,26 +54,21 @@ type scanTableQueryArgs struct {
 	Limit               uint
 }
 
-func scanTableQuery(args scanTableQueryArgs) (string, error) {
+func scanTableQuery(args scanTableQueryArgs) (string, []any, error) {
 	castedColumns := make([]string, len(args.Columns))
 	for idx, col := range args.Columns {
 		var err error
 		castedColumns[idx], err = castColumn(col)
 		if err != nil {
-			return "", err
+			return "", nil, err
 		}
 	}
 
-	startingValues := make([]string, len(args.PrimaryKeys))
-	endingValues := make([]string, len(args.PrimaryKeys))
+	startingValues := make([]any, len(args.PrimaryKeys))
+	endingValues := make([]any, len(args.PrimaryKeys))
 	for i, pk := range args.PrimaryKeys {
-		var err error
-		if startingValues[i], err = convertToStringForQuery(pk.StartingValue); err != nil {
-			return "", err
-		}
-		if endingValues[i], err = convertToStringForQuery(pk.EndingValue); err != nil {
-			return "", err
-		}
+		startingValues[i] = pk.StartingValue
+		endingValues[i] = pk.EndingValue
 	}
 
 	quotedKeyNames := make([]string, len(args.PrimaryKeys))
@@ -93,56 +86,15 @@ func scanTableQuery(args scanTableQueryArgs) (string, error) {
 		strings.Join(castedColumns, ","),
 		// FROM
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
-		// WHERE row(pk) > row(123)
-		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(startingValues, ","),
-		// AND row(pk) <= row(123)
-		strings.Join(quotedKeyNames, ","), strings.Join(endingValues, ","),
+		// WHERE row(pk) > row($1)
+		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(QueryPlaceholders(0, len(startingValues)), ","),
+		// AND row(pk) <= row($2)
+		strings.Join(quotedKeyNames, ","), strings.Join(QueryPlaceholders(len(startingValues), len(endingValues)), ","),
 		// ORDER BY
 		strings.Join(quotedKeyNames, ","),
 		// LIMIT
 		args.Limit,
-	), nil
-}
-
-// convertToStringForQuery returns a string value suitable for use directly in a query.
-func convertToStringForQuery(value any) (string, error) {
-	// TODO: Switch to using a parameterized query
-	switch castValue := value.(type) {
-	case bool, int, int8, int16, int32, int64, float32, float64:
-		return fmt.Sprint(value), nil
-	case string:
-		return QuoteLiteral(castValue), nil
-	case time.Time:
-		return QuoteLiteral(castValue.Format(time.RFC3339)), nil
-	case pgtype.Time:
-		if !castValue.Valid {
-			return "null", nil
-		}
-		dbValue, err := castValue.Value()
-		if err != nil {
-			return "", err
-		}
-		stringValue, ok := dbValue.(string)
-		if !ok {
-			return "", fmt.Errorf("expected string got %T with value %v", value, value)
-		}
-		return QuoteLiteral(stringValue), nil
-	case pgtype.Interval:
-		if !castValue.Valid {
-			return "null", nil
-		}
-		value, err := castValue.Value()
-		if err != nil {
-			return "", err
-		}
-		stringValue, ok := value.(string)
-		if !ok {
-			return "", fmt.Errorf("expected string got %T with value %v", value, value)
-		}
-		return QuoteLiteral(stringValue), nil
-	default:
-		return "", fmt.Errorf("unexpected type %T for primary key with value %v", value, value)
-	}
+	), slices.Concat(startingValues, endingValues), nil
 }
 
 func NewScanner(db *sql.DB, table Table, columns []schema.Column, cfg scan.ScannerConfig) (*scan.Scanner, error) {
@@ -239,7 +191,7 @@ func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any,
 }
 
 func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error) {
-	query, err := scanTableQuery(scanTableQueryArgs{
+	return scanTableQuery(scanTableQueryArgs{
 		Schema:              s.schema,
 		TableName:           s.tableName,
 		PrimaryKeys:         primaryKeys,
@@ -247,7 +199,6 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 		InclusiveLowerBound: isFirstBatch,
 		Limit:               batchSize,
 	})
-	return query, nil, err
 }
 
 func (s scanAdapter) ParseRow(values []any) error {
