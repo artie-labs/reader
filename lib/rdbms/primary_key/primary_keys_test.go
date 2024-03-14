@@ -146,23 +146,17 @@ func TestKeys_IsExausted(t *testing.T) {
 	// empty keys
 	{
 		keys := NewKeys([]Key{})
-		value, err := keys.IsExhausted()
-		assert.NoError(t, err)
-		assert.True(t, value)
+		assert.True(t, keys.IsExhausted())
 	}
 	// one key, different starting and ending values
 	{
 		keys := NewKeys([]Key{{Name: "foo", StartingValue: "a", EndingValue: "b"}})
-		value, err := keys.IsExhausted()
-		assert.NoError(t, err)
-		assert.False(t, value)
+		assert.False(t, keys.IsExhausted())
 	}
 	// one key, same starting and ending values
 	{
 		keys := NewKeys([]Key{{Name: "foo", StartingValue: "a", EndingValue: "a"}})
-		value, err := keys.IsExhausted()
-		assert.NoError(t, err)
-		assert.True(t, value)
+		assert.True(t, keys.IsExhausted())
 	}
 	// two keys, different starting and ending values for one
 	{
@@ -170,29 +164,63 @@ func TestKeys_IsExausted(t *testing.T) {
 			{Name: "foo", StartingValue: "a", EndingValue: "a"},
 			{Name: "bar", StartingValue: nil, EndingValue: "a"},
 		})
-		value, err := keys.IsExhausted()
-		assert.NoError(t, err)
-		assert.False(t, value)
+		assert.False(t, keys.IsExhausted())
 	}
-	// three keys, same starting and ending values for all
+	// four keys, same starting and ending values for all
 	{
 		keys := NewKeys([]Key{
 			{Name: "foo", StartingValue: "a", EndingValue: "a"},
 			{Name: "bar", StartingValue: 2, EndingValue: 2},
+			{Name: "qux", StartingValue: []byte{}, EndingValue: []byte{}},
+			{Name: "qux", StartingValue: []byte{byte(0)}, EndingValue: []byte{byte(0)}},
 			{Name: "baz", StartingValue: nil, EndingValue: nil},
 		})
-		value, err := keys.IsExhausted()
-		assert.NoError(t, err)
-		assert.True(t, value)
+		assert.True(t, keys.IsExhausted())
 	}
-	// one []byte, one not []byte
-	// three keys, same starting and ending values for all
+	// three keys, second has different values
 	{
 		keys := NewKeys([]Key{
-			{Name: "bar", StartingValue: 2, EndingValue: 2},
-			{Name: "foo", StartingValue: []byte{byte(0)}, EndingValue: "a"},
+			{Name: "foo", StartingValue: "a", EndingValue: "a"},
+			{Name: "qux", StartingValue: []byte{byte(0)}, EndingValue: []byte{byte(1)}},
+			{Name: "baz", StartingValue: nil, EndingValue: nil},
 		})
-		_, err := keys.IsExhausted()
-		assert.ErrorContains(t, err, `start value is []byte but end value is string for key "foo"`)
+		assert.False(t, keys.IsExhausted())
 	}
+	// three keys, second has different values
+	{
+		keys := NewKeys([]Key{
+			{Name: "foo", StartingValue: "a", EndingValue: "a"},
+			{Name: "qux", StartingValue: []byte{byte(0)}, EndingValue: "string"},
+			{Name: "baz", StartingValue: nil, EndingValue: nil},
+		})
+		assert.False(t, keys.IsExhausted())
+	}
+	// three keys, first has different values
+	{
+		keys := NewKeys([]Key{
+			{Name: "foo", StartingValue: "a", EndingValue: 1},
+			{Name: "qux", StartingValue: []byte{byte(0)}, EndingValue: "string"},
+			{Name: "baz", StartingValue: nil, EndingValue: nil},
+		})
+		assert.False(t, keys.IsExhausted())
+	}
+}
+
+func TestEqual(t *testing.T) {
+	// string
+	assert.True(t, equal("a", "a"))
+	assert.False(t, equal("a", "b"))
+
+	// int
+	assert.True(t, equal(123, 123))
+	assert.False(t, equal(124, 123))
+
+	// []byte
+	assert.True(t, equal([]byte{}, []byte{}))
+	assert.True(t, equal([]byte{byte(1)}, []byte{byte(1)}))
+	assert.False(t, equal([]byte{}, nil))
+	assert.False(t, equal([]byte{}, ""))
+	assert.False(t, equal(nil, []byte{}))
+	assert.False(t, equal("", []byte{}))
+	assert.False(t, equal([]byte{byte(1)}, []byte{byte(12)}))
 }

@@ -83,20 +83,25 @@ func (k *Keys) Keys() []Key {
 }
 
 // IsExhausted returns true if the starting values and ending values are the same for all keys
-func (k *Keys) IsExhausted() (bool, error) {
+func (k *Keys) IsExhausted() bool {
 	for _, key := range k.keys {
-		switch castStartValue := key.StartingValue.(type) {
-		case []byte:
-			castEndValue, ok := key.EndingValue.([]byte)
-			if !ok {
-				return false, fmt.Errorf(`start value is []byte but end value is %T for key "%s"`, key.EndingValue, key.Name)
-			}
-			return bytes.Equal(castStartValue, castEndValue), nil
-		default:
-			if key.StartingValue != key.EndingValue {
-				return false, nil
-			}
+		if !equal(key.StartingValue, key.EndingValue) {
+			return false
 		}
 	}
-	return true, nil
+	return true
+}
+
+func equal(a, b any) bool {
+	if aBytes, ok := a.([]byte); ok {
+		bBytes, ok := b.([]byte)
+		if !ok {
+			return false
+		}
+		return bytes.Equal(aBytes, bBytes)
+	} else if _, ok := b.([]byte); ok {
+		return false // b is []byte but a is not
+	}
+
+	return a == b
 }
