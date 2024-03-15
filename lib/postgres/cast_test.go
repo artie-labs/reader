@@ -54,11 +54,6 @@ func TestCastColumn(t *testing.T) {
 			expected: `"foo"`,
 		},
 		{
-			name:     "inet",
-			dataType: schema.Inet,
-			expected: `"foo"::text`,
-		},
-		{
 			name:     "variable numeric",
 			dataType: schema.VariableNumeric,
 			expected: `"foo"`,

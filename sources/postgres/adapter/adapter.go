@@ -99,7 +99,7 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 		return MoneyConverter{}, nil
 	case schema.Bytea:
 		return converters.BytesPassthrough{}, nil
-	case schema.Text, schema.UserDefinedText, schema.Inet:
+	case schema.Text, schema.UserDefinedText:
 		return converters.StringPassthrough{}, nil
 	case schema.Time, schema.TimeWithTimeZone:
 		return PgTimeConverter{}, nil
@@ -111,6 +111,8 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 		return PgIntervalConverter{}, nil
 	case schema.UUID:
 		return converters.UUIDConverter{}, nil
+	case schema.Inet:
+		return PgInetConverter{}, nil
 	case schema.Array:
 		return converters.ArrayConverter{}, nil
 	case schema.JSON:
