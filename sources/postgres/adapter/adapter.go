@@ -106,7 +106,7 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	case schema.Date:
 		return converters.DateConverter{}, nil
 	case schema.Timestamp:
-		return PgTimestampConverter{}, nil
+		return converters.TimestampConverter{}, nil
 	case schema.Interval:
 		return PgIntervalConverter{}, nil
 	case schema.UUID:
