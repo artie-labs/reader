@@ -157,7 +157,7 @@ func (PgInetConverter) Convert(value any) (any, error) {
 	if !strings.Contains(stringVal, "/") {
 		ip := net.ParseIP(stringVal)
 		if ip == nil {
-			return fmt.Errorf(`failed to parse "%s" to an IP address`, stringVal), nil
+			return nil, fmt.Errorf(`failed to parse "%s" to an IP address`, stringVal)
 		}
 
 		var ipBytes int
@@ -166,7 +166,7 @@ func (PgInetConverter) Convert(value any) (any, error) {
 		} else if ip16 := ip.To16(); ip16 != nil {
 			ipBytes = len(ip16)
 		} else {
-			return fmt.Errorf(`ip address "%s" is neither IPv4 nor IPv6`, stringVal), nil
+			return nil, fmt.Errorf(`ip address "%s" is neither IPv4 nor IPv6`, stringVal)
 		}
 		return fmt.Sprintf("%s/%d", stringVal, ipBytes*8), nil
 	}
