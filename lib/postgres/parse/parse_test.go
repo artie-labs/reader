@@ -134,34 +134,10 @@ func TestParse(t *testing.T) {
 			expectedErr: "expected string got int with value: 1234",
 		},
 		{
-			name:          "inet - IPv4 without subnet",
+			name:          "inet - string",
 			dataType:      schema.Inet,
-			value:         "10.1.2.3",
-			expectedValue: "10.1.2.3/32",
-		},
-		{
-			name:          "inet - IPv4 with subnet",
-			dataType:      schema.Inet,
-			value:         "10.1.2.3/8",
-			expectedValue: "10.1.2.3/8",
-		},
-		{
-			name:          "inet - IPv6 without subnet",
-			dataType:      schema.Inet,
-			value:         "2001:4f8:3:ba:2e0:81ff:fe22:d1f1",
-			expectedValue: "2001:4f8:3:ba:2e0:81ff:fe22:d1f1/128",
-		},
-		{
-			name:          "inet - IPv6 with subnet",
-			dataType:      schema.Inet,
-			value:         "2001:4f8:3:ba:2e0:81ff:fe22:d1f1/64",
-			expectedValue: "2001:4f8:3:ba:2e0:81ff:fe22:d1f1/64",
-		},
-		{
-			name:          "inet - IPv6 with subnet",
-			dataType:      schema.Inet,
-			value:         "::ffff:1.2.3.0",
-			expectedValue: "::ffff:1.2.3.0/128",
+			value:         "124.0.0.1/32",
+			expectedValue: "124.0.0.1/32",
 		},
 		{
 			name:          "json",

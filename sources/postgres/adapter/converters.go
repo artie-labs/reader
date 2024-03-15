@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log/slog"
 	"math"
+	"net"
+	"strings"
 	"time"
 
 	transferDbz "github.com/artie-labs/transfer/lib/debezium"
@@ -132,4 +134,42 @@ func (PgIntervalConverter) Convert(value any) (any, error) {
 	}
 
 	return intervalValue.Microseconds + daysInMicroseconds, nil
+}
+
+type PgInetConverter struct{}
+
+func (PgInetConverter) ToField(name string) transferDbz.Field {
+	return transferDbz.Field{
+		FieldName: name,
+		Type:      "string",
+	}
+}
+
+func (PgInetConverter) Convert(value any) (any, error) {
+	stringVal, ok := value.(string)
+	if !ok {
+		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
+	}
+
+	// Postgres will omit the subnet if it specifies a single host.
+	// Add it back to preserve compatibility with casting the column using `::text`.
+	// See https://www.postgresql.org/docs/current/datatype-net-types.html#DATATYPE-INET
+	if !strings.Contains(stringVal, "/") {
+		ip := net.ParseIP(stringVal)
+		if ip == nil {
+			return fmt.Errorf(`failed to parse "%s" to an IP address`, stringVal), nil
+		}
+
+		var ipBytes int
+		if ip4 := ip.To4(); !strings.Contains(stringVal, ":") && ip4 != nil {
+			ipBytes = len(ip4)
+		} else if ip16 := ip.To16(); ip16 != nil {
+			ipBytes = len(ip16)
+		} else {
+			return fmt.Errorf(`ip address "%s" is neither IPv4 nor IPv6`, stringVal), nil
+		}
+		return fmt.Sprintf("%s/%d", stringVal, ipBytes*8), nil
+	}
+
+	return stringVal, nil
 }

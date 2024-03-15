@@ -3,8 +3,6 @@ package parse
 import (
 	"encoding/json"
 	"fmt"
-	"net"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -94,27 +92,6 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 		if !isOk {
 			return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
 		}
-
-		// Postgres will omit the subnet if it specifies a single host.
-		// Add it back to preserve compatibility with casting the column using `::text`.
-		// See https://www.postgresql.org/docs/current/datatype-net-types.html#DATATYPE-INET
-		if !strings.Contains(stringVal, "/") {
-			ip := net.ParseIP(stringVal)
-			if ip == nil {
-				return fmt.Errorf(`failed to parse "%s" to an IP address`, stringVal), nil
-			}
-
-			var ipBytes int
-			if ip4 := ip.To4(); !strings.Contains(stringVal, ":") && ip4 != nil {
-				ipBytes = len(ip4)
-			} else if ip16 := ip.To16(); ip16 != nil {
-				ipBytes = len(ip16)
-			} else {
-				return fmt.Errorf(`ip address "%s" is neither IPv4 nor IPv6`, stringVal), nil
-			}
-			return fmt.Sprintf("%s/%d", stringVal, ipBytes*8), nil
-		}
-
 		return stringVal, nil
 	case schema.JSON:
 		byteSlice, isByteSlice := value.([]byte)
