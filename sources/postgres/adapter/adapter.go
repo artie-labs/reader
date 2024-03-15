@@ -77,7 +77,9 @@ func (p postgresAdapter) PartitionKeys() []string {
 
 func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (converters.ValueConverter, error) {
 	switch dataType {
-	case schema.Bit, schema.Boolean:
+	case schema.Bit:
+		return converters.BitConverter{}, nil
+	case schema.Boolean:
 		return converters.BooleanPassthrough{}, nil
 	case schema.Int16:
 		return converters.Int16Passthrough{}, nil

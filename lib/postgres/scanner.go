@@ -17,6 +17,7 @@ import (
 )
 
 var supportedPrimaryKeyDataType []schema.DataType = []schema.DataType{
+	schema.Bit,
 	schema.Boolean,
 	schema.Int16,
 	schema.Int32,
@@ -36,7 +37,6 @@ var supportedPrimaryKeyDataType []schema.DataType = []schema.DataType{
 	schema.UUID,
 	schema.Inet,
 	schema.JSON,
-	// schema.Bit - fails: unable to encode true into binary format for bit (OID 1560)
 	// schema.TimeWithTimeZone - fails: without the original timezone offset the query doesn't match any rows
 	// schema.Array - fails: this doesn't work: need to serialize to Postgres array format "{1,2,3}"
 	// schema.HStore - fails: operator does not exist: hstore >= unknown (SQLSTATE 42883)
