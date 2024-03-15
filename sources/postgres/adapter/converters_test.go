@@ -254,7 +254,7 @@ func TestPgInetConverter_Convert(t *testing.T) {
 		assert.Equal(t, "2001:4f8:3:ba:2e0:81ff:fe22:d1f1/64", value)
 	}
 	{
-		// IPv6 with subnet
+		// IPv6 without subnet
 		value, err := converter.Convert("::ffff:1.2.3.0")
 		assert.NoError(t, err)
 		assert.Equal(t, "::ffff:1.2.3.0/128", value)
