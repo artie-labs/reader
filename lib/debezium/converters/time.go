@@ -71,7 +71,8 @@ type TimestampConverter struct{}
 
 func (TimestampConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
-		FieldName:    name,
+		FieldName: name,
+		// NOTE: We are returning string here because we want the right layout to be used by our Typing library
 		Type:         "string",
 		DebeziumType: string(debezium.Timestamp),
 	}
