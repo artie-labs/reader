@@ -87,7 +87,10 @@ CREATE TABLE %s (
 	-- c_circle circle,
 	c_date date,
 	c_double_precision double precision,
-	c_inet inet,
+	c_inet_ipv4_no_subnet inet,
+	c_inet_ipv4_subnet inet,
+	c_inet_ipv6_no_subnet inet,
+	c_inet_ipv6_subnet inet,
 	c_integer integer,
 	c_interval interval,
 	c_json json,
@@ -161,8 +164,14 @@ INSERT INTO %s VALUES (
 		'2020-01-02',
 	-- c_double_precision
 		123.456,
-	-- c_inet
+	-- c_inet_ipv4_no_subnet
 		'192.168.1.5',
+	-- c_inet_ipv4_subnet
+		'192.168.1.5/24',
+	-- c_inet_ipv6_no_subnet
+		'2001:4f8:3:ba:2e0:81ff:fe22:d1f1',
+	-- c_inet_ipv6_subnet
+		'2001:4f8:3:ba:2e0:81ff:fe22:d1f1/64',
 	-- c_integer
 		12345,
 	-- c_interval
@@ -343,7 +352,31 @@ const expectedPayloadTemplate = `{
 						"type": "string",
 						"optional": false,
 						"default": null,
-						"field": "c_inet",
+						"field": "c_inet_ipv4_no_subnet",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"default": null,
+						"field": "c_inet_ipv4_subnet",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"default": null,
+						"field": "c_inet_ipv6_no_subnet",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"default": null,
+						"field": "c_inet_ipv6_subnet",
 						"name": "",
 						"parameters": null
 					},
@@ -625,7 +658,10 @@ const expectedPayloadTemplate = `{
 				"c": "d",
 				"e": "f"
 			},
-			"c_inet": "192.168.1.5/32",
+			"c_inet_ipv4_no_subnet": "192.168.1.5/32",
+			"c_inet_ipv4_subnet": "192.168.1.5/24",
+			"c_inet_ipv6_no_subnet": "2001:4f8:3:ba:2e0:81ff:fe22:d1f1/128",
+			"c_inet_ipv6_subnet": "2001:4f8:3:ba:2e0:81ff:fe22:d1f1/64",
 			"c_int4range": "[10,20)",
 			"c_int8range": "[1009900990099009000,9009900990099009000)",
 			"c_int_array": [

@@ -116,10 +116,52 @@ func TestParse(t *testing.T) {
 			expectedValue: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
 		},
 		{
+			name:        "uuid - not a string",
+			dataType:    schema.UUID,
+			value:       1234,
+			expectedErr: "expected string got int with value: 1234",
+		},
+		{
 			name:        "uuid - malformed",
 			dataType:    schema.UUID,
 			value:       "abcd :(",
 			expectedErr: "failed to cast uuid into *uuid.UUID",
+		},
+		{
+			name:        "inet - not a string",
+			dataType:    schema.Inet,
+			value:       1234,
+			expectedErr: "expected string got int with value: 1234",
+		},
+		{
+			name:          "inet - IPv4 without subnet",
+			dataType:      schema.Inet,
+			value:         "10.1.2.3",
+			expectedValue: "10.1.2.3/32",
+		},
+		{
+			name:          "inet - IPv4 with subnet",
+			dataType:      schema.Inet,
+			value:         "10.1.2.3/8",
+			expectedValue: "10.1.2.3/8",
+		},
+		{
+			name:          "inet - IPv6 without subnet",
+			dataType:      schema.Inet,
+			value:         "2001:4f8:3:ba:2e0:81ff:fe22:d1f1",
+			expectedValue: "2001:4f8:3:ba:2e0:81ff:fe22:d1f1/128",
+		},
+		{
+			name:          "inet - IPv6 with subnet",
+			dataType:      schema.Inet,
+			value:         "2001:4f8:3:ba:2e0:81ff:fe22:d1f1/64",
+			expectedValue: "2001:4f8:3:ba:2e0:81ff:fe22:d1f1/64",
+		},
+		{
+			name:          "inet - IPv6 with subnet",
+			dataType:      schema.Inet,
+			value:         "::ffff:1.2.3.0",
+			expectedValue: "::ffff:1.2.3.0/128",
 		},
 		{
 			name:          "json",
