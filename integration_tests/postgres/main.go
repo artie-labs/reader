@@ -658,9 +658,9 @@ const expectedPayloadTemplate = `{
 				"c": "d",
 				"e": "f"
 			},
-			"c_inet_ipv4_no_subnet": "192.168.1.5/32",
+			"c_inet_ipv4_no_subnet": "192.168.1.5",
 			"c_inet_ipv4_subnet": "192.168.1.5/24",
-			"c_inet_ipv6_no_subnet": "2001:4f8:3:ba:2e0:81ff:fe22:d1f1/128",
+			"c_inet_ipv6_no_subnet": "2001:4f8:3:ba:2e0:81ff:fe22:d1f1",
 			"c_inet_ipv6_subnet": "2001:4f8:3:ba:2e0:81ff:fe22:d1f1/64",
 			"c_int4range": "[10,20)",
 			"c_int8range": "[1009900990099009000,9009900990099009000)",

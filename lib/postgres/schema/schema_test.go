@@ -70,7 +70,7 @@ func TestParseColumnDataType(t *testing.T) {
 		{
 			name:             "inet",
 			colKind:          "inet",
-			expectedDataType: Inet,
+			expectedDataType: Text,
 		},
 		{
 			name:             "numeric",

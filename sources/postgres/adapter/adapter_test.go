@@ -165,7 +165,7 @@ func TestValueConverterForType_ToField(t *testing.T) {
 		{
 			name:     "inet",
 			colName:  "inet_col",
-			dataType: schema.Inet,
+			dataType: schema.Text,
 			expected: debezium.Field{
 				Type:      "string",
 				FieldName: "inet_col",
@@ -173,7 +173,7 @@ func TestValueConverterForType_ToField(t *testing.T) {
 		},
 		{
 			name:        "unsupported data type",
-			colName:     "inet_col",
+			colName:     "unsupported",
 			dataType:    -1,
 			expectedErr: "unsupported data type: DataType(-1)",
 		},

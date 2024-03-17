@@ -35,7 +35,6 @@ var supportedPrimaryKeyDataType []schema.DataType = []schema.DataType{
 	schema.Timestamp,
 	schema.Interval,
 	schema.UUID,
-	schema.Inet,
 	schema.JSON,
 	// schema.TimeWithTimeZone - fails: without the original timezone offset the query doesn't match any rows
 	// schema.Array - fails: this doesn't work: need to serialize to Postgres array format "{1,2,3}"
@@ -182,7 +181,6 @@ func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any,
 		schema.Timestamp,
 		schema.Interval,
 		schema.UUID,
-		schema.Inet,
 		schema.JSON:
 		return value, nil
 	default:

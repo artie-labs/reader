@@ -87,12 +87,6 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 		}
 
 		return _uuid.String(), nil
-	case schema.Inet:
-		stringVal, ok := value.(string)
-		if !ok {
-			return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
-		}
-		return stringVal, nil
 	case schema.JSON:
 		byteSlice, isByteSlice := value.([]byte)
 		if !isByteSlice {
