@@ -28,7 +28,8 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 		if !ok {
 			return nil, fmt.Errorf("expected float64 got %T with value: %v", value, value)
 		}
-		// pgx returns reals as float64 even though they are always 32 bits
+		// pgx returns `real`s as float64 even though they are always 32 bits
+		// https://www.postgresql.org/docs/current/datatype-numeric.html#DATATYPE-NUMERIC
 		return float32(float64Value), nil
 	case schema.UserDefinedText:
 		stringSlice, isOk := value.(string)
