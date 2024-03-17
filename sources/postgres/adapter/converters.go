@@ -19,6 +19,7 @@ type MoneyConverter struct{}
 func (MoneyConverter) ToField(name string) transferDbz.Field {
 	return transferDbz.Field{
 		FieldName:    name,
+		Type:         "bytes",
 		DebeziumType: string(transferDbz.KafkaDecimalType),
 		Parameters: map[string]any{
 			"scale": fmt.Sprint(moneyScale),

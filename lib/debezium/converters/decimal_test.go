@@ -15,6 +15,7 @@ func TestDecimalConverter_ToField(t *testing.T) {
 		// Without precision
 		converter := NewDecimalConverter(2, nil)
 		expected := debezium.Field{
+			Type:         "bytes",
 			FieldName:    "col",
 			DebeziumType: "org.apache.kafka.connect.data.Decimal",
 			Parameters: map[string]any{
@@ -27,6 +28,7 @@ func TestDecimalConverter_ToField(t *testing.T) {
 		// With precision
 		converter := NewDecimalConverter(2, ptr.ToInt(3))
 		expected := debezium.Field{
+			Type:         "bytes",
 			FieldName:    "col",
 			DebeziumType: "org.apache.kafka.connect.data.Decimal",
 			Parameters: map[string]any{

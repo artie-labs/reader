@@ -139,6 +139,7 @@ func TestValueConverterForType(t *testing.T) {
 				Precision: ptr.ToInt(5),
 			},
 			expected: debezium.Field{
+				Type:         "bytes",
 				DebeziumType: "org.apache.kafka.connect.data.Decimal",
 				FieldName:    colName,
 				Parameters: map[string]interface{}{
