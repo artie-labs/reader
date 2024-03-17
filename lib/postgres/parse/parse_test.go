@@ -128,18 +128,6 @@ func TestParse(t *testing.T) {
 			expectedErr: "failed to cast uuid into *uuid.UUID",
 		},
 		{
-			name:        "inet - not a string",
-			dataType:    schema.Inet,
-			value:       1234,
-			expectedErr: "expected string got int with value: 1234",
-		},
-		{
-			name:          "inet - string",
-			dataType:      schema.Inet,
-			value:         "124.0.0.1/32",
-			expectedValue: "124.0.0.1/32",
-		},
-		{
 			name:          "json",
 			dataType:      schema.JSON,
 			value:         []byte(`{"foo":"bar"}`),

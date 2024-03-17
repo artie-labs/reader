@@ -19,7 +19,7 @@ func castColumn(col schema.Column) (string, error) {
 	case schema.Array:
 		return fmt.Sprintf(`ARRAY_TO_JSON(%s)::TEXT as "%s"`, colName, col.Name), nil
 	case schema.Int16, schema.Int32, schema.Int64, schema.Real, schema.Double, schema.UUID,
-		schema.UserDefinedText, schema.Text, schema.Inet,
+		schema.UserDefinedText, schema.Text,
 		schema.Money, schema.VariableNumeric, schema.Numeric,
 		schema.Boolean, schema.Bit, schema.Bytea,
 		schema.Time, schema.Date, schema.Timestamp, schema.Interval, schema.HStore, schema.JSON,

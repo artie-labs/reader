@@ -34,7 +34,6 @@ const (
 	Timestamp
 	Interval
 	UUID
-	Inet
 	Array
 	JSON
 	HStore
@@ -127,7 +126,7 @@ func ParseColumnDataType(colKind string, precision, scale *int, udtName *string)
 	case "uuid":
 		return UUID, nil, nil
 	case "inet":
-		return Inet, nil, nil
+		return Text, nil, nil
 	case "array":
 		return Array, nil, nil
 	case "json", "jsonb":

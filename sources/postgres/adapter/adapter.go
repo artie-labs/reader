@@ -111,8 +111,6 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 		return PgIntervalConverter{}, nil
 	case schema.UUID:
 		return converters.UUIDConverter{}, nil
-	case schema.Inet:
-		return PgInetConverter{}, nil
 	case schema.Array:
 		return converters.ArrayConverter{}, nil
 	case schema.JSON:
