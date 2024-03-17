@@ -37,7 +37,7 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 		}
 
 		return nil, fmt.Errorf("value: %v not of string type for Numeric or VariableNumeric", value)
-	case schema.Time, schema.TimeWithTimeZone:
+	case schema.Time:
 		stringValue, ok := value.(string)
 		if !ok {
 			return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
@@ -50,6 +50,12 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 			return nil, fmt.Errorf("parsed time value %s is not valid", stringValue)
 		}
 		return timeValue, nil
+	case schema.TimeWithTimeZone:
+		stringValue, ok := value.(string)
+		if !ok {
+			return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
+		}
+		return stringValue, nil
 	case schema.Interval:
 		stringValue, ok := value.(string)
 		if !ok {

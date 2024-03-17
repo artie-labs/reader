@@ -133,6 +133,48 @@ func TestPgTimeConverter_Convert(t *testing.T) {
 	}
 }
 
+func TestPgTimeTzConverter_ToField(t *testing.T) {
+	converter := PgTimeTzConverter{}
+	expected := transferDbz.Field{
+		FieldName:    "col",
+		Type:         "string",
+		DebeziumType: "io.debezium.time.ZonedTime",
+	}
+	assert.Equal(t, expected, converter.ToField("col"))
+}
+
+func TestPgTimeTzConverter_Convert(t *testing.T) {
+	converter := PgTimeTzConverter{}
+	{
+		// Invalid type
+		_, err := converter.Convert(1234)
+		assert.ErrorContains(t, err, "expected string got int with value: 1234")
+	}
+	{
+		// Malformed time
+		_, err := converter.Convert("asdf")
+		assert.ErrorContains(t, err, `parsing time "asdf" as "15:04:05-07": cannot parse "asdf" as "15"`)
+	}
+	{
+		// Time - UTC
+		value, err := converter.Convert("12:00:00+00")
+		assert.NoError(t, err)
+		assert.Equal(t, "12:00:00Z", value)
+	}
+	{
+		// Time - -07
+		value, err := converter.Convert("12:00:00-07")
+		assert.NoError(t, err)
+		assert.Equal(t, "19:00:00Z", value)
+	}
+	{
+		// Time - +07
+		value, err := converter.Convert("12:00:00+07")
+		assert.NoError(t, err)
+		assert.Equal(t, "05:00:00Z", value)
+	}
+}
+
 func TestPgIntervalConverter_ToField(t *testing.T) {
 	converter := PgIntervalConverter{}
 	expected := transferDbz.Field{

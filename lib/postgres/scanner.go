@@ -31,13 +31,13 @@ var supportedPrimaryKeyDataType []schema.DataType = []schema.DataType{
 	schema.Text,
 	schema.UserDefinedText,
 	schema.Time,
+	schema.TimeWithTimeZone,
 	schema.Date,
 	schema.Timestamp,
 	schema.Interval,
 	schema.UUID,
 	schema.Inet,
 	schema.JSON,
-	// schema.TimeWithTimeZone - fails: without the original timezone offset the query doesn't match any rows
 	// schema.Array - fails: this doesn't work: need to serialize to Postgres array format "{1,2,3}"
 	// schema.HStore - fails: operator does not exist: hstore >= unknown (SQLSTATE 42883)
 	// schema.Point - can't be used as a primary key

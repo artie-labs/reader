@@ -66,6 +66,30 @@ func (PgTimeConverter) Convert(value any) (any, error) {
 	return int32(milliseconds), nil
 }
 
+type PgTimeTzConverter struct{}
+
+func (PgTimeTzConverter) ToField(name string) transferDbz.Field {
+	return transferDbz.Field{
+		FieldName:    name,
+		Type:         "string",
+		DebeziumType: string(transferDbz.TimeWithTimezone),
+	}
+}
+
+func (PgTimeTzConverter) Convert(value any) (any, error) {
+	stringValue, ok := value.(string)
+	if !ok {
+		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
+	}
+
+	timeValue, err := time.Parse("15:04:05-07", stringValue)
+	if err != nil {
+		return nil, err
+	}
+
+	return timeValue.UTC().Format("15:04:05Z"), nil
+}
+
 // TODO: Replace this with `converters.TimestampConverter` once we've run it for a while and not seen error logs
 type PgTimestampConverter struct{}
 
