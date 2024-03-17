@@ -64,7 +64,6 @@ func (VariableNumericConverter) Convert(value any) (any, error) {
 	}
 
 	scale := debezium.GetScale(stringValue)
-
 	return VariableScaleDecimal{
 		Scale: int32(scale),
 		Value: debezium.EncodeDecimalToBytes(stringValue, scale),
