@@ -506,11 +506,11 @@ const expectedPayloadTemplate = `{
 						"parameters": null
 					},
 					{
-						"type": "int32",
+						"type": "string",
 						"optional": false,
 						"default": null,
 						"field": "c_time_with_timezone",
-						"name": "io.debezium.time.Time",
+						"name": "io.debezium.time.ZonedTime",
 						"parameters": null
 					},
 					{
@@ -691,7 +691,7 @@ const expectedPayloadTemplate = `{
 			"c_serial": 1000000123,
 			"c_smallint": 32767,
 			"c_text": "QWERTYUIOP",
-			"c_time_with_timezone": 38057000,
+			"c_time_with_timezone": "10:34:17Z",
 			"c_time_without_timezone": 45296000,
 			"c_timestamp_with_timezone": "2001-02-16T13:38:40Z",
 			"c_timestamp_without_timezone": "2001-02-16T20:38:40Z",
@@ -899,7 +899,7 @@ CREATE TABLE %s (
 	c_date date,
 	c_double_precision double precision,
 	c_inet inet,
-	c_integer integer,
+	-- c_integer integer, - integer is already tested by the other tests
 	c_interval interval,
 	c_jsonb jsonb,
 	c_macaddr macaddr,
@@ -911,6 +911,7 @@ CREATE TABLE %s (
 	c_serial serial,
 	c_text text,
 	c_time_without_timezone time WITHOUT TIME ZONE,
+	c_time_with_timezone time WITH TIME ZONE,
 	c_timestamp_without_timezone timestamp WITHOUT TIME ZONE,
 	c_timestamp_with_timezone timestamp WITH TIME ZONE,
 	c_uuid uuid,
@@ -923,9 +924,9 @@ CREATE TABLE %s (
 	c_daterange daterange,
 	PRIMARY KEY (
 		c_bigint, c_bigserial, c_bit, c_boolean, c_bytea, c_character, c_character_varying, c_cidr, c_date, c_double_precision,
-		c_inet, c_integer, c_interval, c_jsonb, c_macaddr, c_macaddr8, c_money, c_numeric, c_real, c_smallint, c_serial,
-		c_text, c_time_without_timezone, c_timestamp_without_timezone, c_timestamp_with_timezone, c_uuid, c_int4range,
-		c_int8range, c_numrange, c_tsrange, c_tstzrange, c_daterange
+		c_inet, c_interval, c_jsonb, c_macaddr, c_macaddr8, c_money, c_numeric, c_real, c_smallint, c_serial,
+		c_text, c_time_without_timezone, c_time_with_timezone, c_timestamp_without_timezone, c_timestamp_with_timezone,
+		c_uuid, c_int4range, c_int8range, c_numrange, c_tsrange, c_tstzrange, c_daterange
 	)
 )
 `
@@ -954,8 +955,6 @@ INSERT INTO %s VALUES (
 		123.456,
 	-- c_inet
 		'192.168.1.5',
-	-- c_integer
-		12345,
 	-- c_interval
 		'2 mon 3 day 4 hours',
 	-- c_jsonb
@@ -978,6 +977,8 @@ INSERT INTO %s VALUES (
 		'QWERTYUIOP',
 	-- c_time_without_timezone
 		'20:38:21',
+	-- c_time_with_timezone
+		'02:38:21+07',
 	-- c_timestamp_without_timezone
 		'2001-02-16 20:38:40.123123',
 	-- c_timestamp_with_timezone
