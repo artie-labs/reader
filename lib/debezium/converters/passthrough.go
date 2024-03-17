@@ -78,10 +78,12 @@ func (FloatPassthrough) ToField(name string) debezium.Field {
 
 func (FloatPassthrough) Convert(value any) (any, error) {
 	switch castValue := value.(type) {
-	case float32, float64:
+	case float32:
 		return castValue, nil
+	case float64:
+		return float32(castValue), nil
 	}
-	return nil, fmt.Errorf("expected float32/float64 got %T with value: %v", value, value)
+	return 0, fmt.Errorf("expected float32/float64 got %T with value: %v", value, value)
 }
 
 // float32, float64 -> float64

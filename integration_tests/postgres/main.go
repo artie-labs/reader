@@ -687,7 +687,7 @@ const expectedPayloadTemplate = `{
 				"x": 12.34,
 				"y": 56.78
 			},
-			"c_real": 45.678001403808594,
+			"c_real": 45.678,
 			"c_serial": 1000000123,
 			"c_smallint": 32767,
 			"c_text": "QWERTYUIOP",
