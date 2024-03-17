@@ -228,7 +228,7 @@ const expectedPayloadTemplate = `{
 						}
 					},
 					{
-						"type": "",
+						"type": "bytes",
 						"optional": false,
 						"default": null,
 						"field": "c_numeric",
