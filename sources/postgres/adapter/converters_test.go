@@ -29,9 +29,9 @@ func TestMoneyConverter_ToField(t *testing.T) {
 func TestMoneyConverter_Convert(t *testing.T) {
 	decimalField := converters.NewDecimalConverter(moneyScale, nil).ToField("")
 	decodeValue := func(value any) string {
-		stringValue, ok := value.([]byte)
+		bytes, ok := value.([]byte)
 		assert.True(t, ok)
-		val, err := decimalField.DecodeDecimal(base64.StdEncoding.EncodeToString(stringValue))
+		val, err := decimalField.DecodeDecimal(base64.StdEncoding.EncodeToString(bytes))
 		assert.NoError(t, err)
 		return val.String()
 	}

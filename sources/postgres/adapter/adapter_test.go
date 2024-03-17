@@ -230,7 +230,7 @@ func TestValueConverterForType_Convert(t *testing.T) {
 			name:          "numeric (postgres.Numeric) - variable numeric",
 			col:           schema.Column{Name: "variable_numeric_col", Type: schema.VariableNumeric},
 			value:         "123.98",
-			expectedValue: converters.VariableScaleDecimal{Scale: 2, Value: []uint8{0x30, 0x6e}},
+			expectedValue: converters.VariableScaleDecimal{Scale: 2, Value: []byte{0x30, 0x6e}},
 		},
 		{
 			name:          "string",
