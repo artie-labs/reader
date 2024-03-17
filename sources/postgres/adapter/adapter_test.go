@@ -1,12 +1,13 @@
 package adapter
 
 import (
-	"fmt"
+	"encoding/base64"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/transfer/lib/debezium"
@@ -229,7 +230,7 @@ func TestValueConverterForType_Convert(t *testing.T) {
 			name:          "numeric (postgres.Numeric) - variable numeric",
 			col:           schema.Column{Name: "variable_numeric_col", Type: schema.VariableNumeric},
 			value:         "123.98",
-			expectedValue: map[string]string{"scale": "2", "value": "MG4="},
+			expectedValue: converters.VariableScaleDecimal{Scale: 2, Value: []uint8{0x30, 0x6e}},
 		},
 		{
 			name:          "string",
@@ -261,8 +262,10 @@ func TestValueConverterForType_Convert(t *testing.T) {
 		} else {
 			assert.NoError(t, actualErr, tc.name)
 			if tc.numericValue {
+				bytes, ok := actualValue.([]byte)
+				assert.True(t, ok)
 				field := converter.ToField(tc.col.Name)
-				val, err := field.DecodeDecimal(fmt.Sprint(actualValue))
+				val, err := field.DecodeDecimal(base64.StdEncoding.EncodeToString(bytes))
 				assert.NoError(t, err, tc.name)
 				assert.Equal(t, tc.expectedValue, val.String(), tc.name)
 			} else {

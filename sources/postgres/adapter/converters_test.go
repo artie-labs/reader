@@ -1,6 +1,7 @@
 package adapter
 
 import (
+	"encoding/base64"
 	"math"
 	"testing"
 	"time"
@@ -26,10 +27,11 @@ func TestMoneyConverter_ToField(t *testing.T) {
 }
 
 func TestMoneyConverter_Convert(t *testing.T) {
+	decimalField := converters.NewDecimalConverter(moneyScale, nil).ToField("")
 	decodeValue := func(value any) string {
-		stringValue, ok := value.(string)
+		stringValue, ok := value.([]byte)
 		assert.True(t, ok)
-		val, err := converters.NewDecimalConverter(moneyScale, nil).ToField("").DecodeDecimal(stringValue)
+		val, err := decimalField.DecodeDecimal(base64.StdEncoding.EncodeToString(stringValue))
 		assert.NoError(t, err)
 		return val.String()
 	}
@@ -39,35 +41,35 @@ func TestMoneyConverter_Convert(t *testing.T) {
 		// int
 		converted, err := converter.Convert(1234)
 		assert.NoError(t, err)
-		assert.Equal(t, "AeII", converted)
+		assert.Equal(t, []byte{0x1, 0xe2, 0x8}, converted)
 		assert.Equal(t, "1234.00", decodeValue(converted))
 	}
 	{
 		// float
 		converted, err := converter.Convert(1234.56)
 		assert.NoError(t, err)
-		assert.Equal(t, "AeJA", converted)
+		assert.Equal(t, []byte{0x1, 0xe2, 0x40}, converted)
 		assert.Equal(t, "1234.56", decodeValue(converted))
 	}
 	{
 		// string
 		converted, err := converter.Convert("1234.56")
 		assert.NoError(t, err)
-		assert.Equal(t, "AeJA", converted)
+		assert.Equal(t, []byte{0x1, 0xe2, 0x40}, converted)
 		assert.Equal(t, "1234.56", decodeValue(converted))
 	}
 	{
 		// string with $ and comma
 		converted, err := converter.Convert("$1,234.567")
 		assert.NoError(t, err)
-		assert.Equal(t, "AeJA", converted)
+		assert.Equal(t, []byte{0x1, 0xe2, 0x40}, converted)
 		assert.Equal(t, "1234.56", decodeValue(converted))
 	}
 	{
 		// string with $, comma, and no cents
 		converted, err := converter.Convert("$1000,234")
 		assert.NoError(t, err)
-		assert.Equal(t, "BfY8aA==", converted)
+		assert.Equal(t, []byte{0x5, 0xf6, 0x3c, 0x68}, converted)
 		assert.Equal(t, "1000234.00", decodeValue(converted))
 	}
 }

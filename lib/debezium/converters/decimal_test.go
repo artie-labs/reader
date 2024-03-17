@@ -1,8 +1,8 @@
 package converters
 
 import (
+	"encoding/base64"
 	"fmt"
-	"strconv"
 	"testing"
 
 	"github.com/artie-labs/transfer/lib/debezium"
@@ -45,8 +45,9 @@ func TestDecimalConverter_Convert(t *testing.T) {
 	{
 		converted, err := converter.Convert("1.23")
 		assert.NoError(t, err)
-
-		actualValue, err := converter.ToField("").DecodeDecimal(fmt.Sprint(converted))
+		bytes, ok := converted.([]byte)
+		assert.True(t, ok)
+		actualValue, err := converter.ToField("").DecodeDecimal(base64.StdEncoding.EncodeToString(bytes))
 		assert.NoError(t, err)
 		assert.Equal(t, "1.23", fmt.Sprint(actualValue))
 	}
@@ -72,14 +73,12 @@ func TestVariableNumericConverter_Convert(t *testing.T) {
 		// Happy path
 		converted, err := converter.Convert("12.34")
 		assert.NoError(t, err)
-		convertedMap, ok := converted.(map[string]string)
+		convertedMap, ok := converted.(VariableScaleDecimal)
 		assert.True(t, ok)
-		assert.Equal(t, map[string]string{"scale": "2", "value": "BNI="}, convertedMap)
+		assert.Equal(t, VariableScaleDecimal{Scale: 2, Value: []byte{0x4, 0xd2}}, convertedMap)
 
-		scale, err := strconv.Atoi(convertedMap["scale"])
-		assert.NoError(t, err)
-
-		actualValue, err := NewDecimalConverter(scale, nil).ToField("").DecodeDecimal(convertedMap["value"])
+		decimalConverter := NewDecimalConverter(int(convertedMap.Scale), nil).ToField("")
+		actualValue, err := decimalConverter.DecodeDecimal(base64.StdEncoding.EncodeToString(convertedMap.Value))
 		assert.NoError(t, err)
 		assert.Equal(t, "12.34", fmt.Sprint(actualValue))
 	}

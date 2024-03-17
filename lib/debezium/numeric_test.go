@@ -1,6 +1,7 @@
 package debezium
 
 import (
+	"encoding/base64"
 	"testing"
 
 	"github.com/artie-labs/transfer/lib/debezium"
@@ -101,15 +102,14 @@ func TestEncodeDecimalToBase64(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		actualEncodedValue, err := EncodeDecimalToBase64(tc.value, tc.scale)
-		assert.NoError(t, err, tc.name)
+		actualEncodedValue := EncodeDecimalToBytes(tc.value, tc.scale)
 		field := debezium.Field{
 			Parameters: map[string]any{
 				"scale": tc.scale,
 			},
 		}
 
-		actualValue, err := field.DecodeDecimal(actualEncodedValue)
+		actualValue, err := field.DecodeDecimal(base64.StdEncoding.EncodeToString(actualEncodedValue))
 		assert.NoError(t, err, tc.name)
 		assert.Equal(t, tc.value, actualValue.String(), tc.name)
 	}
