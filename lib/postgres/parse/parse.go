@@ -23,6 +23,13 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 			return valString, nil
 		}
 		return nil, fmt.Errorf("value: %v not of string type for bit", value)
+	case schema.Real:
+		float64Value, ok := value.(float64)
+		if !ok {
+			return nil, fmt.Errorf("expected float64 got %T with value: %v", value, value)
+		}
+		// pgx returns reals as float64 even though they are always 32 bits
+		return float32(float64Value), nil
 	case schema.UserDefinedText:
 		stringSlice, isOk := value.(string)
 		if !isOk {
