@@ -98,7 +98,7 @@ func TestValueConverterForType_ToField(t *testing.T) {
 				Precision: 10,
 			},
 			expected: debezium.Field{
-				Type:         "",
+				Type:         "bytes",
 				FieldName:    "numeric_col",
 				DebeziumType: string(debezium.KafkaDecimalType),
 				Parameters:   map[string]any{"scale": "2", "connect.decimal.precision": "10"},
