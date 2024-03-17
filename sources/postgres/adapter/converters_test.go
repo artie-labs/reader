@@ -16,6 +16,7 @@ func TestMoneyConverter_ToField(t *testing.T) {
 	converter := MoneyConverter{}
 	expected := transferDbz.Field{
 		FieldName:    "col",
+		Type:         "bytes",
 		DebeziumType: "org.apache.kafka.connect.data.Decimal",
 		Parameters: map[string]any{
 			"scale": "2",
