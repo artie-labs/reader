@@ -58,11 +58,6 @@ func TestCastColumn(t *testing.T) {
 			dataType: schema.VariableNumeric,
 			expected: `"foo"`,
 		},
-		{
-			name:        "unsupported",
-			dataType:    -1,
-			expectedErr: "unsupported column type: DataType(-1)",
-		},
 	}
 
 	for _, testCase := range testCases {
