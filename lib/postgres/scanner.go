@@ -152,16 +152,17 @@ func castColumn(col schema.Column) (string, error) {
 	}
 }
 
-func scanTableQuery(
-	schema string,
-	tableName string,
-	primaryKeys []primary_key.Key,
-	columns []schema.Column,
-	inclusiveLowerBound bool,
-	limit uint,
-) (string, []any, error) {
-	castedColumns := make([]string, len(columns))
-	for idx, col := range columns {
+func queryPlaceholders(offset, count int) []string {
+	result := make([]string, count)
+	for i := range count {
+		result[i] = fmt.Sprintf("$%d", 1+offset+i)
+	}
+	return result
+}
+
+func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error) {
+	castedColumns := make([]string, len(s.columns))
+	for idx, col := range s.columns {
 		var err error
 		castedColumns[idx], err = castColumn(col)
 		if err != nil {
@@ -182,7 +183,7 @@ func scanTableQuery(
 	}
 
 	lowerBoundComparison := ">"
-	if inclusiveLowerBound {
+	if isFirstBatch {
 		lowerBoundComparison = ">="
 	}
 
@@ -190,20 +191,16 @@ func scanTableQuery(
 		// SELECT
 		strings.Join(castedColumns, ","),
 		// FROM
-		pgx.Identifier{schema, tableName}.Sanitize(),
+		pgx.Identifier{s.schema, s.tableName}.Sanitize(),
 		// WHERE row(pk) > row($1)
-		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(QueryPlaceholders(0, len(startingValues)), ","),
+		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(queryPlaceholders(0, len(startingValues)), ","),
 		// AND row(pk) <= row($2)
-		strings.Join(quotedKeyNames, ","), strings.Join(QueryPlaceholders(len(startingValues), len(endingValues)), ","),
+		strings.Join(quotedKeyNames, ","), strings.Join(queryPlaceholders(len(startingValues), len(endingValues)), ","),
 		// ORDER BY
 		strings.Join(quotedKeyNames, ","),
 		// LIMIT
-		limit,
+		batchSize,
 	), slices.Concat(startingValues, endingValues), nil
-}
-
-func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error) {
-	return scanTableQuery(s.schema, s.tableName, primaryKeys, s.columns, isFirstBatch, batchSize)
 }
 
 func (s scanAdapter) ParseRow(values []any) error {
