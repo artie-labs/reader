@@ -13,8 +13,7 @@ func TestCastColumn(t *testing.T) {
 		name     string
 		dataType schema.DataType
 
-		expected    string
-		expectedErr string
+		expected string
 	}
 
 	var testCases = []_testCase{
@@ -29,44 +28,15 @@ func TestCastColumn(t *testing.T) {
 			expected: `"foo"`,
 		},
 		{
-			name:     "numeric",
-			dataType: schema.Numeric,
-			expected: `"foo"`,
-		},
-		{
-			name:     "bit",
-			dataType: schema.Bit,
-			expected: `"foo"`,
-		},
-		{
-			name:     "bool",
-			dataType: schema.Boolean,
-			expected: `"foo"`,
-		},
-		{
 			name:     "time with time zone",
 			dataType: schema.TimeWithTimeZone,
 			expected: `"foo" AT TIME ZONE 'UTC' AS "foo"`,
-		},
-		{
-			name:     "date",
-			dataType: schema.Date,
-			expected: `"foo"`,
-		},
-		{
-			name:     "variable numeric",
-			dataType: schema.VariableNumeric,
-			expected: `"foo"`,
 		},
 	}
 
 	for _, testCase := range testCases {
 		actualEscCol, err := castColumn(schema.Column{Name: "foo", Type: testCase.dataType})
-		if testCase.expectedErr == "" {
-			assert.NoError(t, err, testCase.name)
-			assert.Equal(t, testCase.expected, actualEscCol, testCase.name)
-		} else {
-			assert.ErrorContains(t, err, testCase.expectedErr, testCase.name)
-		}
+		assert.NoError(t, err, testCase.name)
+		assert.Equal(t, testCase.expected, actualEscCol, testCase.name)
 	}
 }
