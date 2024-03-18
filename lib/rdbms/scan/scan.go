@@ -90,10 +90,9 @@ func (s *Scanner) Next() ([]map[string]any, error) {
 	if len(rows) == 0 || s.primaryKeys.IsExhausted() {
 		s.done = true
 	} else {
-		var startingValuesChanged bool
-
 		// Update the starting keys so that the next scan will pick off where we last left off.
 		lastRow := rows[len(rows)-1]
+		var startingValuesChanged bool
 		for _, pk := range s.primaryKeys.Keys() {
 			changed, err := s.primaryKeys.UpdateStartingValue(pk.Name, lastRow[pk.Name])
 			if err != nil {
