@@ -20,32 +20,32 @@ func TestBuildScanTableQuery(t *testing.T) {
 	}
 	{
 		// exclusive lower bound
-		query, parameters, err := buildScanTableQuery(buildScanTableQueryArgs{
-			TableName:   "table",
-			PrimaryKeys: keys,
-			Columns: []schema.Column{
+		query, parameters, err := buildScanTableQuery(
+			"table",
+			keys,
+			[]schema.Column{
 				{Name: "foo"},
 				{Name: "bar"},
 			},
-			InclusiveLowerBound: false,
-			Limit:               12,
-		})
+			false,
+			12,
+		)
 		assert.NoError(t, err)
 		assert.Equal(t, "SELECT `foo`,`bar` FROM `table` WHERE (`foo`) > (?) AND (`foo`) <= (?) ORDER BY `foo` LIMIT 12", query)
 		assert.Equal(t, []any{"a", "b"}, parameters)
 	}
 	{
 		// inclusive upper and lower bounds
-		query, parameters, err := buildScanTableQuery(buildScanTableQueryArgs{
-			TableName:   "table",
-			PrimaryKeys: keys,
-			Columns: []schema.Column{
+		query, parameters, err := buildScanTableQuery(
+			"table",
+			keys,
+			[]schema.Column{
 				{Name: "foo"},
 				{Name: "bar"},
 			},
-			InclusiveLowerBound: true,
-			Limit:               12,
-		})
+			true,
+			12,
+		)
 		assert.NoError(t, err)
 		assert.Equal(t, "SELECT `foo`,`bar` FROM `table` WHERE (`foo`) >= (?) AND (`foo`) <= (?) ORDER BY `foo` LIMIT 12", query)
 		assert.Equal(t, []any{"a", "b"}, parameters)
