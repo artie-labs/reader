@@ -1,7 +1,6 @@
 package debezium
 
 import (
-	"encoding/base64"
 	"math/big"
 	"strings"
 )
@@ -21,7 +20,7 @@ func GetScale(value string) int {
 	return scale
 }
 
-func EncodeDecimalToBase64(value string, scale int) (string, error) {
+func EncodeDecimalToBytes(value string, scale int) []byte {
 	scaledValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(scale)), nil)
 	bigFloatValue := new(big.Float)
 	bigFloatValue.SetString(value)
@@ -56,8 +55,5 @@ func EncodeDecimalToBase64(value string, scale int) (string, error) {
 			data = append([]byte{0x00}, data...)
 		}
 	}
-
-	// Encode to base64
-	encoded := base64.StdEncoding.EncodeToString(data)
-	return encoded, nil
+	return data
 }

@@ -679,7 +679,7 @@ const expectedPayloadTemplate = `{
 			"c_money": "T30t",
 			"c_numeric": "AYHN",
 			"c_numeric_variable": {
-				"scale": "5",
+				"scale": 5,
 				"value": "QX3UWQ=="
 			},
 			"c_numrange": "[11.1,22.2)",

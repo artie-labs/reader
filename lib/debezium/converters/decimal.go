@@ -39,8 +39,7 @@ func (d decimalConverter) Convert(value any) (any, error) {
 	if !isOk {
 		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
 	}
-
-	return debezium.EncodeDecimalToBase64(castValue, d.scale)
+	return debezium.EncodeDecimalToBytes(castValue, d.scale), nil
 }
 
 type VariableNumericConverter struct{}
@@ -53,6 +52,11 @@ func (VariableNumericConverter) ToField(name string) transferDBZ.Field {
 	}
 }
 
+type VariableScaleDecimal struct {
+	Scale int32  `json:"scale"`
+	Value []byte `json:"value"`
+}
+
 func (VariableNumericConverter) Convert(value any) (any, error) {
 	stringValue, ok := value.(string)
 	if !ok {
@@ -60,14 +64,8 @@ func (VariableNumericConverter) Convert(value any) (any, error) {
 	}
 
 	scale := debezium.GetScale(stringValue)
-
-	encodedValue, err := debezium.EncodeDecimalToBase64(stringValue, scale)
-	if err != nil {
-		return nil, fmt.Errorf("failed to encode decimal to b64: %w", err)
-	}
-
-	return map[string]string{
-		"scale": fmt.Sprint(scale),
-		"value": encodedValue,
+	return VariableScaleDecimal{
+		Scale: int32(scale),
+		Value: debezium.EncodeDecimalToBytes(stringValue, scale),
 	}, nil
 }

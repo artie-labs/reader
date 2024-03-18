@@ -29,12 +29,7 @@ func (MoneyConverter) ToField(name string) transferDbz.Field {
 
 func (MoneyConverter) Convert(value any) (any, error) {
 	stringValue := stringutil.ParseMoneyIntoString(fmt.Sprint(value))
-
-	stringValue, err := debezium.EncodeDecimalToBase64(stringValue, moneyScale)
-	if err != nil {
-		return nil, fmt.Errorf("failed to encode decimal to b64: %w", err)
-	}
-	return stringValue, nil
+	return debezium.EncodeDecimalToBytes(stringValue, moneyScale), nil
 }
 
 type PgTimeConverter struct{}
