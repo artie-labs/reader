@@ -104,7 +104,7 @@ func (s *Scanner) Next() ([]map[string]any, error) {
 		}
 
 		if !s.isFirstBatch && !startingValuesChanged {
-			// Detect sitiations where the scanner is stuck in a loop.
+			// Detect situations where the scanner is stuck in a loop.
 			// The second batch will use a > comparision instead of a > comparision for the lower bound.
 			return nil, fmt.Errorf("primarky key start values did not change, scanner is stuck in a loop")
 		}
