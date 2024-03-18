@@ -138,7 +138,7 @@ func TestKeys_UpdateStartingValue(t *testing.T) {
 			startingVal:     startVal2,
 			expectedChanged: true,
 			expectedKeys: []Key{
-				{Name: "Key1", StartingValue: "Start2", EndingValue: "End1"},
+				{Name: "Key1", StartingValue: startVal2, EndingValue: "End1"},
 			},
 		},
 	}
