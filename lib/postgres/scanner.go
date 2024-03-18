@@ -137,18 +137,18 @@ func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any,
 }
 
 // castColumn will take a colName and return the escaped version of what we should be using to call Postgres.
-func castColumn(col schema.Column) (string, error) {
+func castColumn(col schema.Column) string {
 	colName := pgx.Identifier{col.Name}.Sanitize()
 	switch col.Type {
 	case schema.TimeWithTimeZone:
 		// If we don't convert `time with time zone` to UTC we end up with strings like `10:23:54-02`
 		// And pgtype.Time doesn't parse the offset propertly.
 		// See https://github.com/jackc/pgx/issues/1940
-		return fmt.Sprintf(`%s AT TIME ZONE 'UTC' AS "%s"`, colName, col.Name), nil
+		return fmt.Sprintf(`%s AT TIME ZONE 'UTC' AS "%s"`, colName, col.Name)
 	case schema.Array:
-		return fmt.Sprintf(`ARRAY_TO_JSON(%s)::TEXT as "%s"`, colName, col.Name), nil
+		return fmt.Sprintf(`ARRAY_TO_JSON(%s)::TEXT as "%s"`, colName, col.Name)
 	default:
-		return colName, nil
+		return colName
 	}
 }
 
@@ -162,12 +162,8 @@ func queryPlaceholders(offset, count int) []string {
 
 func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error) {
 	castedColumns := make([]string, len(s.columns))
-	for idx, col := range s.columns {
-		var err error
-		castedColumns[idx], err = castColumn(col)
-		if err != nil {
-			return "", nil, err
-		}
+	for i, col := range s.columns {
+		castedColumns[i] = castColumn(col)
 	}
 
 	startingValues := make([]any, len(primaryKeys))
