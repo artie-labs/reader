@@ -60,7 +60,7 @@ func (k *Keys) LoadValues(startingValues, endingValues []any) error {
 	return nil
 }
 
-// UpdateStartingValue sets the starting value for a primary key and returnes whether the starting value changed.
+// UpdateStartingValue sets the starting value for a primary key and returns whether the value changed.
 func (k *Keys) UpdateStartingValue(keyName string, startingVal any) (bool, error) {
 	idx := slices.IndexFunc(k.keys, func(x Key) bool { return x.Name == keyName })
 	if idx < 0 {
