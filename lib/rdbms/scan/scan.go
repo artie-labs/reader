@@ -87,6 +87,7 @@ func (s *Scanner) Next() ([]map[string]any, error) {
 		return nil, err
 	}
 
+	wasFirstBatch := s.isFirstBatch
 	s.isFirstBatch = false
 
 	if len(rows) == 0 || s.primaryKeys.IsExhausted() {
@@ -94,10 +95,20 @@ func (s *Scanner) Next() ([]map[string]any, error) {
 	} else {
 		// Update the starting keys so that the next scan will pick off where we last left off.
 		lastRow := rows[len(rows)-1]
+		var startingValuesChanged bool
 		for _, pk := range s.primaryKeys.Keys() {
-			if err := s.primaryKeys.UpdateStartingValue(pk.Name, lastRow[pk.Name]); err != nil {
+			changed, err := s.primaryKeys.UpdateStartingValue(pk.Name, lastRow[pk.Name])
+			if err != nil {
+				s.done = true
 				return nil, err
 			}
+			startingValuesChanged = startingValuesChanged || changed
+		}
+
+		if !wasFirstBatch && !startingValuesChanged {
+			// Detect situations where the scanner is stuck in a loop.
+			// Typically the second batch will use a > comparison instead of a >= comparison for the lower bound.
+			return nil, fmt.Errorf("primarky key start values did not change, scanner is likely stuck in a loop")
 		}
 	}
 
