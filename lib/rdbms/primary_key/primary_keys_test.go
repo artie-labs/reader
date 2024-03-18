@@ -8,15 +8,15 @@ import (
 
 func TestNewKeys(t *testing.T) {
 	// ensure upsert doesn't mutate original arguments to `NewKeys`
-	{
-		keysArray := []Key{{Name: "foo", StartingValue: 20}, {Name: "bar"}}
-		keys := NewKeys(keysArray)
-		assert.NoError(t, keys.UpdateStartingValue("foo", "new starting value"))
-		assert.Equal(t, "foo", keys.keys[0].Name)
-		assert.Equal(t, "new starting value", keys.keys[0].StartingValue)
-		assert.Equal(t, "foo", keysArray[0].Name)
-		assert.Equal(t, 20, keysArray[0].StartingValue)
-	}
+	keysArray := []Key{{Name: "foo", StartingValue: 20}, {Name: "bar"}}
+	keys := NewKeys(keysArray)
+	changed, err := keys.UpdateStartingValue("foo", "new starting value")
+	assert.NoError(t, err)
+	assert.True(t, changed)
+	assert.Equal(t, "foo", keys.keys[0].Name)
+	assert.Equal(t, "new starting value", keys.keys[0].StartingValue)
+	assert.Equal(t, "foo", keysArray[0].Name)
+	assert.Equal(t, 20, keysArray[0].StartingValue)
 }
 
 func TestPrimaryKeys_LoadValues(t *testing.T) {
@@ -94,10 +94,11 @@ func TestPrimaryKeys_LoadValues(t *testing.T) {
 func TestKeys_UpdateStartingValue(t *testing.T) {
 	type _tc struct {
 		name        string
-		keys        *Keys
+		keys        []Key
 		keyName     string
 		startingVal any
 
+		changed      bool
 		expectedKeys []Key
 		expectedErr  string
 	}
@@ -107,22 +108,33 @@ func TestKeys_UpdateStartingValue(t *testing.T) {
 	tcs := []_tc{
 		{
 			name: "Key doesn't exist",
-			keys: &Keys{
-				keys: []Key{
-					{Name: "Key1", StartingValue: "Start1", EndingValue: "End1"},
-				},
+			keys: []Key{
+				{Name: "Key1", StartingValue: "Start1", EndingValue: "End1"},
 			},
 			keyName:     "Key2",
 			startingVal: startVal2,
 			expectedErr: "no key named Key2",
 		},
 		{
-			name: "Update existing key",
-			keys: &Keys{
-				keys: []Key{
-					{Name: "Key1", StartingValue: "Start1", EndingValue: "End1"},
-				},
+			name: "Update existing key with existing start value",
+			keys: []Key{
+				{Name: "Key1", StartingValue: "Start1", EndingValue: "End1"},
+				{Name: "Key2", StartingValue: 2, EndingValue: 2},
 			},
+			changed:     false,
+			keyName:     "Key1",
+			startingVal: "Start1",
+			expectedKeys: []Key{
+				{Name: "Key1", StartingValue: "Start1", EndingValue: "End1"},
+				{Name: "Key2", StartingValue: 2, EndingValue: 2},
+			},
+		},
+		{
+			name: "Update existing key with new value",
+			keys: []Key{
+				{Name: "Key1", StartingValue: "Start1", EndingValue: "End1"},
+			},
+			changed:     true,
 			keyName:     "Key1",
 			startingVal: startVal2,
 			expectedKeys: []Key{
@@ -132,12 +144,14 @@ func TestKeys_UpdateStartingValue(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		err := tc.keys.UpdateStartingValue(tc.keyName, tc.startingVal)
+		keys := &Keys{tc.keys}
+		changed, err := keys.UpdateStartingValue(tc.keyName, tc.startingVal)
 		if tc.expectedErr != "" {
 			assert.ErrorContains(t, err, tc.expectedErr, tc.name)
 		} else {
 			assert.NoError(t, err)
-			assert.Equal(t, tc.expectedKeys, tc.keys.keys, tc.name)
+			assert.Equal(t, tc.expectedKeys, keys.keys, tc.name)
+			assert.Equal(t, tc.changed, changed)
 		}
 	}
 }
