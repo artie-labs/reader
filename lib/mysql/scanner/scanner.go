@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/artie-labs/reader/lib/mysql"
@@ -123,8 +124,51 @@ func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any,
 	}
 }
 
+func queryPlaceholders(count int) []string {
+	result := make([]string, count)
+	for i := range count {
+		result[i] = "?"
+	}
+	return result
+}
+
 func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error) {
-	return buildScanTableQuery(s.tableName, primaryKeys, s.columns, isFirstBatch, batchSize)
+	colNames := make([]string, len(s.columns))
+	for idx, col := range s.columns {
+		colNames[idx] = schema.QuoteIdentifier(col.Name)
+	}
+
+	var startingValues = make([]any, len(primaryKeys))
+	var endingValues = make([]any, len(startingValues))
+	for i, pk := range primaryKeys {
+		startingValues[i] = pk.StartingValue
+		endingValues[i] = pk.EndingValue
+	}
+
+	quotedKeyNames := make([]string, len(primaryKeys))
+	for i, key := range primaryKeys {
+		quotedKeyNames[i] = schema.QuoteIdentifier(key.Name)
+	}
+
+	lowerBoundComparison := ">"
+	if isFirstBatch {
+		lowerBoundComparison = ">="
+	}
+
+	return fmt.Sprintf(`SELECT %s FROM %s WHERE (%s) %s (%s) AND (%s) <= (%s) ORDER BY %s LIMIT %d`,
+		// SELECT
+		strings.Join(colNames, ","),
+		// FROM
+		schema.QuoteIdentifier(s.tableName),
+		// WHERE (pk) > (123)
+		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(queryPlaceholders(len(startingValues)), ","),
+		// AND NOT (pk) <= (123)
+		strings.Join(quotedKeyNames, ","), strings.Join(queryPlaceholders(len(endingValues)), ","),
+		// ORDER BY
+		strings.Join(quotedKeyNames, ","),
+		// LIMIT
+		batchSize,
+	), slices.Concat(startingValues, endingValues), nil
 }
 
 func (s scanAdapter) ParseRow(values []any) error {
