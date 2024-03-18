@@ -5,8 +5,15 @@ import (
 	"time"
 
 	"github.com/artie-labs/reader/lib/mysql/schema"
+	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestQueryPlaceholders(t *testing.T) {
+	assert.Equal(t, []string{}, queryPlaceholders(0))
+	assert.Equal(t, []string{"?"}, queryPlaceholders(1))
+	assert.Equal(t, []string{"?", "?"}, queryPlaceholders(2))
+}
 
 func TestScanAdapter_ParsePrimaryKeyValue(t *testing.T) {
 	{
@@ -226,5 +233,32 @@ func TestScanAdapter_ParsePrimaryKeyValue(t *testing.T) {
 		} else {
 			assert.ErrorContains(t, err, testCase.expectedErr, testCase.name)
 		}
+	}
+}
+
+func TestScanAdapter_BuildQuery(t *testing.T) {
+	adapter := scanAdapter{
+		tableName: "table",
+		columns: []schema.Column{
+			{Name: "foo"},
+			{Name: "bar"},
+		},
+	}
+	keys := []primary_key.Key{
+		{Name: "foo", StartingValue: "a", EndingValue: "b"},
+	}
+	{
+		// exclusive lower bound
+		query, parameters, err := adapter.BuildQuery(keys, false, 12)
+		assert.NoError(t, err)
+		assert.Equal(t, "SELECT `foo`,`bar` FROM `table` WHERE (`foo`) > (?) AND (`foo`) <= (?) ORDER BY `foo` LIMIT 12", query)
+		assert.Equal(t, []any{"a", "b"}, parameters)
+	}
+	{
+		// inclusive upper and lower bounds
+		query, parameters, err := adapter.BuildQuery(keys, true, 12)
+		assert.NoError(t, err)
+		assert.Equal(t, "SELECT `foo`,`bar` FROM `table` WHERE (`foo`) >= (?) AND (`foo`) <= (?) ORDER BY `foo` LIMIT 12", query)
+		assert.Equal(t, []any{"a", "b"}, parameters)
 	}
 }
