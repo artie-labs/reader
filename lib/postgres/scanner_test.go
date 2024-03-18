@@ -59,28 +59,14 @@ func TestScanTableQuery(t *testing.T) {
 
 	{
 		// inclusive lower bound
-		query, parameters, err := scanTableQuery(scanTableQueryArgs{
-			Schema:              "schema",
-			TableName:           "table",
-			PrimaryKeys:         primaryKeys,
-			InclusiveLowerBound: true,
-			Limit:               1,
-			Columns:             cols,
-		})
+		query, parameters, err := scanTableQuery("schema", "table", primaryKeys, cols, true, 1)
 		assert.NoError(t, err)
 		assert.Equal(t, `SELECT "a","b","c","e","f",ARRAY_TO_JSON("g")::TEXT as "g" FROM "schema"."table" WHERE row("a","b","c") >= row($1,$2,$3) AND row("a","b","c") <= row($4,$5,$6) ORDER BY "a","b","c" LIMIT 1`, query)
 		assert.Equal(t, []any{int64(1), int64(2), "3", int64(4), int64(5), "6"}, parameters)
 	}
 	{
 		// exclusive lower bound
-		query, parameters, err := scanTableQuery(scanTableQueryArgs{
-			Schema:              "schema",
-			TableName:           "table",
-			PrimaryKeys:         primaryKeys,
-			InclusiveLowerBound: false,
-			Limit:               2,
-			Columns:             cols,
-		})
+		query, parameters, err := scanTableQuery("schema", "table", primaryKeys, cols, false, 2)
 		assert.NoError(t, err)
 		assert.Equal(t, `SELECT "a","b","c","e","f",ARRAY_TO_JSON("g")::TEXT as "g" FROM "schema"."table" WHERE row("a","b","c") > row($1,$2,$3) AND row("a","b","c") <= row($4,$5,$6) ORDER BY "a","b","c" LIMIT 2`, query)
 		assert.Equal(t, []any{int64(1), int64(2), "3", int64(4), int64(5), "6"}, parameters)
