@@ -121,9 +121,9 @@ func TestKeys_UpdateStartingValue(t *testing.T) {
 				{Name: "Key1", StartingValue: "Start1", EndingValue: "End1"},
 				{Name: "Key2", StartingValue: 2, EndingValue: 2},
 			},
-			expectedChanged: false,
 			keyName:         "Key1",
 			startingVal:     "Start1",
+			expectedChanged: false,
 			expectedKeys: []Key{
 				{Name: "Key1", StartingValue: "Start1", EndingValue: "End1"},
 				{Name: "Key2", StartingValue: 2, EndingValue: 2},
@@ -134,9 +134,9 @@ func TestKeys_UpdateStartingValue(t *testing.T) {
 			keys: []Key{
 				{Name: "Key1", StartingValue: "Start1", EndingValue: "End1"},
 			},
-			expectedChanged: true,
 			keyName:         "Key1",
 			startingVal:     startVal2,
+			expectedChanged: true,
 			expectedKeys: []Key{
 				{Name: "Key1", StartingValue: "Start2", EndingValue: "End1"},
 			},
