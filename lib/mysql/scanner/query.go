@@ -17,34 +17,31 @@ func queryPlaceholders(count int) []string {
 	return result
 }
 
-type buildScanTableQueryArgs struct {
-	TableName           string
-	PrimaryKeys         []primary_key.Key
-	Columns             []schema.Column
-	InclusiveLowerBound bool
-	Limit               uint
-}
-
-func buildScanTableQuery(args buildScanTableQueryArgs) (string, []any, error) {
-	colNames := make([]string, len(args.Columns))
-	for idx, col := range args.Columns {
+func buildScanTableQuery(tableName string,
+	primaryKeys []primary_key.Key,
+	columns []schema.Column,
+	inclusiveLowerBound bool,
+	limit uint,
+) (string, []any, error) {
+	colNames := make([]string, len(columns))
+	for idx, col := range columns {
 		colNames[idx] = schema.QuoteIdentifier(col.Name)
 	}
 
-	var startingValues = make([]any, len(args.PrimaryKeys))
+	var startingValues = make([]any, len(primaryKeys))
 	var endingValues = make([]any, len(startingValues))
-	for i, pk := range args.PrimaryKeys {
+	for i, pk := range primaryKeys {
 		startingValues[i] = pk.StartingValue
 		endingValues[i] = pk.EndingValue
 	}
 
-	quotedKeyNames := make([]string, len(args.PrimaryKeys))
-	for i, key := range args.PrimaryKeys {
+	quotedKeyNames := make([]string, len(primaryKeys))
+	for i, key := range primaryKeys {
 		quotedKeyNames[i] = schema.QuoteIdentifier(key.Name)
 	}
 
 	lowerBoundComparison := ">"
-	if args.InclusiveLowerBound {
+	if inclusiveLowerBound {
 		lowerBoundComparison = ">="
 	}
 
@@ -52,7 +49,7 @@ func buildScanTableQuery(args buildScanTableQueryArgs) (string, []any, error) {
 		// SELECT
 		strings.Join(colNames, ","),
 		// FROM
-		schema.QuoteIdentifier(args.TableName),
+		schema.QuoteIdentifier(tableName),
 		// WHERE (pk) > (123)
 		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(queryPlaceholders(len(startingValues)), ","),
 		// AND NOT (pk) <= (123)
@@ -60,6 +57,6 @@ func buildScanTableQuery(args buildScanTableQueryArgs) (string, []any, error) {
 		// ORDER BY
 		strings.Join(quotedKeyNames, ","),
 		// LIMIT
-		args.Limit,
+		limit,
 	), slices.Concat(startingValues, endingValues), nil
 }

@@ -124,13 +124,7 @@ func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any,
 }
 
 func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error) {
-	return buildScanTableQuery(buildScanTableQueryArgs{
-		TableName:           s.tableName,
-		PrimaryKeys:         primaryKeys,
-		Columns:             s.columns,
-		InclusiveLowerBound: isFirstBatch,
-		Limit:               batchSize,
-	})
+	return buildScanTableQuery(s.tableName, primaryKeys, s.columns, isFirstBatch, batchSize)
 }
 
 func (s scanAdapter) ParseRow(values []any) error {
