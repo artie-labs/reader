@@ -36,9 +36,8 @@ func TestCastColumn(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		actualEscCol, err := castColumn(schema.Column{Name: "foo", Type: testCase.dataType})
-		assert.NoError(t, err, testCase.name)
-		assert.Equal(t, testCase.expected, actualEscCol, testCase.name)
+		actual := castColumn(schema.Column{Name: "foo", Type: testCase.dataType})
+		assert.Equal(t, testCase.expected, actual, testCase.name)
 	}
 }
 
