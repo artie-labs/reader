@@ -98,9 +98,9 @@ func TestKeys_UpdateStartingValue(t *testing.T) {
 		keyName     string
 		startingVal any
 
-		changed      bool
-		expectedKeys []Key
-		expectedErr  string
+		expectedChanged bool
+		expectedKeys    []Key
+		expectedErr     string
 	}
 
 	startVal2 := "Start2"
@@ -121,9 +121,9 @@ func TestKeys_UpdateStartingValue(t *testing.T) {
 				{Name: "Key1", StartingValue: "Start1", EndingValue: "End1"},
 				{Name: "Key2", StartingValue: 2, EndingValue: 2},
 			},
-			changed:     false,
-			keyName:     "Key1",
-			startingVal: "Start1",
+			expectedChanged: false,
+			keyName:         "Key1",
+			startingVal:     "Start1",
 			expectedKeys: []Key{
 				{Name: "Key1", StartingValue: "Start1", EndingValue: "End1"},
 				{Name: "Key2", StartingValue: 2, EndingValue: 2},
@@ -134,9 +134,9 @@ func TestKeys_UpdateStartingValue(t *testing.T) {
 			keys: []Key{
 				{Name: "Key1", StartingValue: "Start1", EndingValue: "End1"},
 			},
-			changed:     true,
-			keyName:     "Key1",
-			startingVal: startVal2,
+			expectedChanged: true,
+			keyName:         "Key1",
+			startingVal:     startVal2,
 			expectedKeys: []Key{
 				{Name: "Key1", StartingValue: "Start2", EndingValue: "End1"},
 			},
@@ -151,7 +151,7 @@ func TestKeys_UpdateStartingValue(t *testing.T) {
 		} else {
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expectedKeys, keys.keys, tc.name)
-			assert.Equal(t, tc.changed, changed)
+			assert.Equal(t, tc.expectedChanged, changed)
 		}
 	}
 }
