@@ -149,9 +149,9 @@ func TestKeys_UpdateStartingValue(t *testing.T) {
 		if tc.expectedErr != "" {
 			assert.ErrorContains(t, err, tc.expectedErr, tc.name)
 		} else {
-			assert.NoError(t, err)
+			assert.NoError(t, err, tc.name)
 			assert.Equal(t, tc.expectedKeys, keys.keys, tc.name)
-			assert.Equal(t, tc.expectedChanged, changed)
+			assert.Equal(t, tc.expectedChanged, changed, tc.name)
 		}
 	}
 }
