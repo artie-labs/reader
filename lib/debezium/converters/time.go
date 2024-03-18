@@ -91,7 +91,7 @@ func (TimestampConverter) Convert(value any) (any, error) {
 		return nil, nil
 	}
 
-	return timeValue, nil
+	return timeValue.Format(time.RFC3339Nano), nil
 }
 
 type YearConverter struct{}

@@ -144,7 +144,7 @@ func TestTimestampConverter_Convert(t *testing.T) {
 		// time.Time
 		value, err := converter.Convert(time.Date(2001, 2, 3, 4, 5, 0, 0, time.UTC))
 		assert.NoError(t, err)
-		assert.Equal(t, time.Date(2001, 2, 3, 4, 5, 0, 0, time.UTC), value)
+		assert.Equal(t, "2001-02-03T04:05:00Z", value)
 	}
 }
 
