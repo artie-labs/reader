@@ -42,7 +42,7 @@ func (t *Table) GetPrimaryKeysBounds(db *sql.DB) ([]primary_key.Key, error) {
 		return nil, fmt.Errorf("missing primary key columns: %w", err)
 	}
 
-	primaryKeysBounds, err := schema.GetPrimaryKeysBounds(db, t.Schema, t.Name, keyColumns, castColumn)
+	primaryKeysBounds, err := schema.GetPrimaryKeysBounds(db, t.Schema, t.Name, keyColumns)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve bounds for primary keys: %w", err)
 	}

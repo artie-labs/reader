@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/artie-labs/transfer/lib/ptr"
-	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -142,12 +141,8 @@ func TestParseColumnDataType(t *testing.T) {
 }
 
 func TestBuildPkValuesQuery(t *testing.T) {
-	var cast = func(c Column) (string, error) {
-		return pgx.Identifier{c.Name}.Sanitize(), nil
-	}
-
 	{
-		query, err := buildPkValuesQuery(buildPkValuesQueryArgs{
+		query := buildPkValuesQuery(buildPkValuesQueryArgs{
 			Keys: []Column{
 				{Name: "a", Type: Text},
 				{Name: "b", Type: Text},
@@ -155,14 +150,12 @@ func TestBuildPkValuesQuery(t *testing.T) {
 			},
 			Schema:    "schema",
 			TableName: "table",
-			CastFunc:  cast,
 		})
-		assert.NoError(t, err)
 		assert.Equal(t, `SELECT "a","b","c" FROM "schema"."table" ORDER BY "a","b","c" LIMIT 1`, query)
 	}
 	// Descending
 	{
-		query, err := buildPkValuesQuery(buildPkValuesQueryArgs{
+		query := buildPkValuesQuery(buildPkValuesQueryArgs{
 			Keys: []Column{
 				{Name: "a", Type: Text},
 				{Name: "b", Type: Text},
@@ -170,10 +163,8 @@ func TestBuildPkValuesQuery(t *testing.T) {
 			},
 			Schema:     "schema",
 			TableName:  "table",
-			CastFunc:   cast,
 			Descending: true,
 		})
-		assert.NoError(t, err)
 		assert.Equal(t, `SELECT "a","b","c" FROM "schema"."table" ORDER BY "a" DESC,"b" DESC,"c" DESC LIMIT 1`, query)
 	}
 }

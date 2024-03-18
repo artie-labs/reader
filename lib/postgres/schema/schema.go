@@ -195,17 +195,12 @@ type buildPkValuesQueryArgs struct {
 	Schema     string
 	TableName  string
 	Descending bool
-	CastFunc   func(c Column) (string, error)
 }
 
-func buildPkValuesQuery(args buildPkValuesQueryArgs) (string, error) {
+func buildPkValuesQuery(args buildPkValuesQueryArgs) string {
 	castedColumns := make([]string, len(args.Keys))
 	for i, col := range args.Keys {
-		var err error
-		castedColumns[i], err = args.CastFunc(col)
-		if err != nil {
-			return "", err
-		}
+		castedColumns[i] = pgx.Identifier{col.Name}.Sanitize()
 	}
 
 	var fragments []string
@@ -217,26 +212,22 @@ func buildPkValuesQuery(args buildPkValuesQueryArgs) (string, error) {
 		fragments = append(fragments, fragment)
 	}
 	return fmt.Sprintf(`SELECT %s FROM %s ORDER BY %s LIMIT 1`, strings.Join(castedColumns, ","),
-		pgx.Identifier{args.Schema, args.TableName}.Sanitize(), strings.Join(fragments, ",")), nil
+		pgx.Identifier{args.Schema, args.TableName}.Sanitize(), strings.Join(fragments, ","))
 }
 
-func getPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column, cast func(c Column) (string, error), descending bool) ([]any, error) {
+func getPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column, descending bool) ([]any, error) {
 	result := make([]any, len(primaryKeys))
 	resultPtrs := make([]any, len(primaryKeys))
 	for i := range result {
 		resultPtrs[i] = &result[i]
 	}
 
-	query, err := buildPkValuesQuery(buildPkValuesQueryArgs{
+	query := buildPkValuesQuery(buildPkValuesQueryArgs{
 		Keys:       primaryKeys,
 		Schema:     schema,
 		TableName:  table,
-		CastFunc:   cast,
 		Descending: descending,
 	})
-	if err != nil {
-		return nil, err
-	}
 	if descending {
 		slog.Info("Find max pk query", slog.String("query", query))
 	} else {
@@ -257,13 +248,13 @@ type Bounds struct {
 	Max any
 }
 
-func GetPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []Column, cast func(c Column) (string, error)) ([]Bounds, error) {
-	minValues, err := getPrimaryKeyValues(db, schema, table, primaryKeys, cast, false)
+func GetPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []Column) ([]Bounds, error) {
+	minValues, err := getPrimaryKeyValues(db, schema, table, primaryKeys, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve lower bounds for primary keys: %w", err)
 	}
 
-	maxValues, err := getPrimaryKeyValues(db, schema, table, primaryKeys, cast, true)
+	maxValues, err := getPrimaryKeyValues(db, schema, table, primaryKeys, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve upper bounds for primary keys: %w", err)
 	}
