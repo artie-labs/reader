@@ -7,7 +7,6 @@ import (
 
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 	"github.com/artie-labs/transfer/lib/retry"
-	"gorm.io/gorm/logger"
 )
 
 const (
@@ -107,7 +106,7 @@ func (s *Scanner) Next() ([]map[string]any, error) {
 
 func (s *Scanner) scan() ([]map[string]any, error) {
 	query, parameters := s.adapter.BuildQuery(s.primaryKeys.Keys(), s.isFirstBatch, s.batchSize)
-	logger.Info("Scan query", slog.String("query", query), slog.Any("parameters", parameters))
+	slog.Info("Scan query", slog.String("query", query), slog.Any("parameters", parameters))
 
 	rows, err := retry.WithRetriesAndResult(s.retryCfg, func(_ int, _ error) (*sql.Rows, error) {
 		return s.db.Query(query, parameters...)
