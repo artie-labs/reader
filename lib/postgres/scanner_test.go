@@ -65,15 +65,13 @@ func TestScanAdapter_BuildQuery(t *testing.T) {
 
 	{
 		// inclusive lower bound
-		query, parameters, err := adapter.BuildQuery(primaryKeys, true, 1)
-		assert.NoError(t, err)
+		query, parameters := adapter.BuildQuery(primaryKeys, true, 1)
 		assert.Equal(t, `SELECT "a","b","c","e","f",ARRAY_TO_JSON("g")::TEXT as "g" FROM "schema"."table" WHERE row("a","b","c") >= row($1,$2,$3) AND row("a","b","c") <= row($4,$5,$6) ORDER BY "a","b","c" LIMIT 1`, query)
 		assert.Equal(t, []any{int64(1), int64(2), "3", int64(4), int64(5), "6"}, parameters)
 	}
 	{
 		// exclusive lower bound
-		query, parameters, err := adapter.BuildQuery(primaryKeys, false, 2)
-		assert.NoError(t, err)
+		query, parameters := adapter.BuildQuery(primaryKeys, false, 2)
 		assert.Equal(t, `SELECT "a","b","c","e","f",ARRAY_TO_JSON("g")::TEXT as "g" FROM "schema"."table" WHERE row("a","b","c") > row($1,$2,$3) AND row("a","b","c") <= row($4,$5,$6) ORDER BY "a","b","c" LIMIT 2`, query)
 		assert.Equal(t, []any{int64(1), int64(2), "3", int64(4), int64(5), "6"}, parameters)
 	}

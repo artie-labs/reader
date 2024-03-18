@@ -23,7 +23,7 @@ type ScannerConfig struct {
 
 type ScanAdapter interface {
 	ParsePrimaryKeyValue(columnName string, value string) (any, error)
-	BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error)
+	BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any)
 	ParseRow(row []any) error
 }
 
@@ -105,16 +105,8 @@ func (s *Scanner) Next() ([]map[string]any, error) {
 }
 
 func (s *Scanner) scan() ([]map[string]any, error) {
-	query, parameters, err := s.adapter.BuildQuery(s.primaryKeys.Keys(), s.isFirstBatch, s.batchSize)
-	if err != nil {
-		return nil, fmt.Errorf("failed to build scan query: %w", err)
-	}
-
-	logger := slog.With(slog.String("query", query))
-	if len(parameters) > 0 {
-		logger = logger.With(slog.Any("parameters", parameters))
-	}
-	logger.Info("Scan query")
+	query, parameters := s.adapter.BuildQuery(s.primaryKeys.Keys(), s.isFirstBatch, s.batchSize)
+	slog.Info("Scan query", slog.String("query", query), slog.Any("parameters", parameters))
 
 	rows, err := retry.WithRetriesAndResult(s.retryCfg, func(_ int, _ error) (*sql.Rows, error) {
 		return s.db.Query(query, parameters...)

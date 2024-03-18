@@ -249,15 +249,13 @@ func TestScanAdapter_BuildQuery(t *testing.T) {
 	}
 	{
 		// exclusive lower bound
-		query, parameters, err := adapter.BuildQuery(keys, false, 12)
-		assert.NoError(t, err)
+		query, parameters := adapter.BuildQuery(keys, false, 12)
 		assert.Equal(t, "SELECT `foo`,`bar` FROM `table` WHERE (`foo`) > (?) AND (`foo`) <= (?) ORDER BY `foo` LIMIT 12", query)
 		assert.Equal(t, []any{"a", "b"}, parameters)
 	}
 	{
 		// inclusive upper and lower bounds
-		query, parameters, err := adapter.BuildQuery(keys, true, 12)
-		assert.NoError(t, err)
+		query, parameters := adapter.BuildQuery(keys, true, 12)
 		assert.Equal(t, "SELECT `foo`,`bar` FROM `table` WHERE (`foo`) >= (?) AND (`foo`) <= (?) ORDER BY `foo` LIMIT 12", query)
 		assert.Equal(t, []any{"a", "b"}, parameters)
 	}
