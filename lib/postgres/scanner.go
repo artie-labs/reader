@@ -44,58 +44,6 @@ var supportedPrimaryKeyDataType []schema.DataType = []schema.DataType{
 	// schema.Geography - fails: parse error - invalid geometry (SQLSTATE XX000)
 }
 
-type scanTableQueryArgs struct {
-	Schema              string
-	TableName           string
-	PrimaryKeys         []primary_key.Key
-	Columns             []schema.Column
-	InclusiveLowerBound bool
-	Limit               uint
-}
-
-func scanTableQuery(args scanTableQueryArgs) (string, []any, error) {
-	castedColumns := make([]string, len(args.Columns))
-	for idx, col := range args.Columns {
-		var err error
-		castedColumns[idx], err = castColumn(col)
-		if err != nil {
-			return "", nil, err
-		}
-	}
-
-	startingValues := make([]any, len(args.PrimaryKeys))
-	endingValues := make([]any, len(args.PrimaryKeys))
-	for i, pk := range args.PrimaryKeys {
-		startingValues[i] = pk.StartingValue
-		endingValues[i] = pk.EndingValue
-	}
-
-	quotedKeyNames := make([]string, len(args.PrimaryKeys))
-	for i, key := range args.PrimaryKeys {
-		quotedKeyNames[i] = pgx.Identifier{key.Name}.Sanitize()
-	}
-
-	lowerBoundComparison := ">"
-	if args.InclusiveLowerBound {
-		lowerBoundComparison = ">="
-	}
-
-	return fmt.Sprintf(`SELECT %s FROM %s WHERE row(%s) %s row(%s) AND row(%s) <= row(%s) ORDER BY %s LIMIT %d`,
-		// SELECT
-		strings.Join(castedColumns, ","),
-		// FROM
-		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
-		// WHERE row(pk) > row($1)
-		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(QueryPlaceholders(0, len(startingValues)), ","),
-		// AND row(pk) <= row($2)
-		strings.Join(quotedKeyNames, ","), strings.Join(QueryPlaceholders(len(startingValues), len(endingValues)), ","),
-		// ORDER BY
-		strings.Join(quotedKeyNames, ","),
-		// LIMIT
-		args.Limit,
-	), slices.Concat(startingValues, endingValues), nil
-}
-
 func NewScanner(db *sql.DB, table Table, columns []schema.Column, cfg scan.ScannerConfig) (*scan.Scanner, error) {
 	for _, key := range table.PrimaryKeys {
 		column, err := column.GetColumnByName(columns, key)
@@ -186,6 +134,74 @@ func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any,
 	default:
 		return nil, fmt.Errorf("primary key value parsing not implemented for DataType(%d)", column.Type)
 	}
+}
+
+// castColumn will take a colName and return the escaped version of what we should be using to call Postgres.
+func castColumn(col schema.Column) (string, error) {
+	colName := pgx.Identifier{col.Name}.Sanitize()
+	switch col.Type {
+	case schema.TimeWithTimeZone:
+		// If we don't convert `time with time zone` to UTC we end up with strings like `10:23:54-02`
+		// And pgtype.Time doesn't parse the offset propertly.
+		// See https://github.com/jackc/pgx/issues/1940
+		return fmt.Sprintf(`%s AT TIME ZONE 'UTC' AS "%s"`, colName, col.Name), nil
+	case schema.Array:
+		return fmt.Sprintf(`ARRAY_TO_JSON(%s)::TEXT as "%s"`, colName, col.Name), nil
+	default:
+		return colName, nil
+	}
+}
+
+type scanTableQueryArgs struct {
+	Schema              string
+	TableName           string
+	PrimaryKeys         []primary_key.Key
+	Columns             []schema.Column
+	InclusiveLowerBound bool
+	Limit               uint
+}
+
+func scanTableQuery(args scanTableQueryArgs) (string, []any, error) {
+	castedColumns := make([]string, len(args.Columns))
+	for idx, col := range args.Columns {
+		var err error
+		castedColumns[idx], err = castColumn(col)
+		if err != nil {
+			return "", nil, err
+		}
+	}
+
+	startingValues := make([]any, len(args.PrimaryKeys))
+	endingValues := make([]any, len(args.PrimaryKeys))
+	for i, pk := range args.PrimaryKeys {
+		startingValues[i] = pk.StartingValue
+		endingValues[i] = pk.EndingValue
+	}
+
+	quotedKeyNames := make([]string, len(args.PrimaryKeys))
+	for i, key := range args.PrimaryKeys {
+		quotedKeyNames[i] = pgx.Identifier{key.Name}.Sanitize()
+	}
+
+	lowerBoundComparison := ">"
+	if args.InclusiveLowerBound {
+		lowerBoundComparison = ">="
+	}
+
+	return fmt.Sprintf(`SELECT %s FROM %s WHERE row(%s) %s row(%s) AND row(%s) <= row(%s) ORDER BY %s LIMIT %d`,
+		// SELECT
+		strings.Join(castedColumns, ","),
+		// FROM
+		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
+		// WHERE row(pk) > row($1)
+		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(QueryPlaceholders(0, len(startingValues)), ","),
+		// AND row(pk) <= row($2)
+		strings.Join(quotedKeyNames, ","), strings.Join(QueryPlaceholders(len(startingValues), len(endingValues)), ","),
+		// ORDER BY
+		strings.Join(quotedKeyNames, ","),
+		// LIMIT
+		args.Limit,
+	), slices.Concat(startingValues, endingValues), nil
 }
 
 func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error) {
