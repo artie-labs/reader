@@ -67,12 +67,9 @@ func (k *Keys) UpdateStartingValue(keyName string, startingVal any) (bool, error
 		return false, fmt.Errorf("no key named %s", keyName)
 	}
 
-	if equal(k.keys[idx].StartingValue, startingVal) {
-		return false, nil
-	}
-
+	changed := !equal(k.keys[idx].StartingValue, startingVal)
 	k.keys[idx].StartingValue = startingVal
-	return true, nil
+	return changed, nil
 }
 
 func (k *Keys) KeyNames() []string {
