@@ -17,7 +17,8 @@ func queryPlaceholders(count int) []string {
 	return result
 }
 
-func buildScanTableQuery(tableName string,
+func buildScanTableQuery(
+	tableName string,
 	primaryKeys []primary_key.Key,
 	columns []schema.Column,
 	inclusiveLowerBound bool,
