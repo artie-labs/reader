@@ -152,18 +152,16 @@ func castColumn(col schema.Column) (string, error) {
 	}
 }
 
-type scanTableQueryArgs struct {
-	Schema              string
-	TableName           string
-	PrimaryKeys         []primary_key.Key
-	Columns             []schema.Column
-	InclusiveLowerBound bool
-	Limit               uint
-}
-
-func scanTableQuery(args scanTableQueryArgs) (string, []any, error) {
-	castedColumns := make([]string, len(args.Columns))
-	for idx, col := range args.Columns {
+func scanTableQuery(
+	schema string,
+	tableName string,
+	primaryKeys []primary_key.Key,
+	columns []schema.Column,
+	inclusiveLowerBound bool,
+	limit uint,
+) (string, []any, error) {
+	castedColumns := make([]string, len(columns))
+	for idx, col := range columns {
 		var err error
 		castedColumns[idx], err = castColumn(col)
 		if err != nil {
@@ -171,20 +169,20 @@ func scanTableQuery(args scanTableQueryArgs) (string, []any, error) {
 		}
 	}
 
-	startingValues := make([]any, len(args.PrimaryKeys))
-	endingValues := make([]any, len(args.PrimaryKeys))
-	for i, pk := range args.PrimaryKeys {
+	startingValues := make([]any, len(primaryKeys))
+	endingValues := make([]any, len(primaryKeys))
+	for i, pk := range primaryKeys {
 		startingValues[i] = pk.StartingValue
 		endingValues[i] = pk.EndingValue
 	}
 
-	quotedKeyNames := make([]string, len(args.PrimaryKeys))
-	for i, key := range args.PrimaryKeys {
+	quotedKeyNames := make([]string, len(primaryKeys))
+	for i, key := range primaryKeys {
 		quotedKeyNames[i] = pgx.Identifier{key.Name}.Sanitize()
 	}
 
 	lowerBoundComparison := ">"
-	if args.InclusiveLowerBound {
+	if inclusiveLowerBound {
 		lowerBoundComparison = ">="
 	}
 
@@ -192,7 +190,7 @@ func scanTableQuery(args scanTableQueryArgs) (string, []any, error) {
 		// SELECT
 		strings.Join(castedColumns, ","),
 		// FROM
-		pgx.Identifier{args.Schema, args.TableName}.Sanitize(),
+		pgx.Identifier{schema, tableName}.Sanitize(),
 		// WHERE row(pk) > row($1)
 		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(QueryPlaceholders(0, len(startingValues)), ","),
 		// AND row(pk) <= row($2)
@@ -200,19 +198,12 @@ func scanTableQuery(args scanTableQueryArgs) (string, []any, error) {
 		// ORDER BY
 		strings.Join(quotedKeyNames, ","),
 		// LIMIT
-		args.Limit,
+		limit,
 	), slices.Concat(startingValues, endingValues), nil
 }
 
 func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error) {
-	return scanTableQuery(scanTableQueryArgs{
-		Schema:              s.schema,
-		TableName:           s.tableName,
-		PrimaryKeys:         primaryKeys,
-		Columns:             s.columns,
-		InclusiveLowerBound: isFirstBatch,
-		Limit:               batchSize,
-	})
+	return scanTableQuery(s.schema, s.tableName, primaryKeys, s.columns, isFirstBatch, batchSize)
 }
 
 func (s scanAdapter) ParseRow(values []any) error {
