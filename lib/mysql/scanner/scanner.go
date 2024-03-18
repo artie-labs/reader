@@ -132,7 +132,7 @@ func queryPlaceholders(count int) []string {
 	return result
 }
 
-func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error) {
+func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any) {
 	colNames := make([]string, len(s.columns))
 	for idx, col := range s.columns {
 		colNames[idx] = schema.QuoteIdentifier(col.Name)
@@ -168,7 +168,7 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 		strings.Join(quotedKeyNames, ","),
 		// LIMIT
 		batchSize,
-	), slices.Concat(startingValues, endingValues), nil
+	), slices.Concat(startingValues, endingValues)
 }
 
 func (s scanAdapter) ParseRow(values []any) error {

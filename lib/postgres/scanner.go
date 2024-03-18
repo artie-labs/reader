@@ -160,7 +160,7 @@ func queryPlaceholders(offset, count int) []string {
 	return result
 }
 
-func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error) {
+func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any) {
 	castedColumns := make([]string, len(s.columns))
 	for i, col := range s.columns {
 		castedColumns[i] = castColumn(col)
@@ -196,7 +196,7 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 		strings.Join(quotedKeyNames, ","),
 		// LIMIT
 		batchSize,
-	), slices.Concat(startingValues, endingValues), nil
+	), slices.Concat(startingValues, endingValues)
 }
 
 func (s scanAdapter) ParseRow(values []any) error {
