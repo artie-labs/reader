@@ -9,6 +9,39 @@ import (
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
 
+func TestCastColumn(t *testing.T) {
+	type _testCase struct {
+		name     string
+		dataType schema.DataType
+
+		expected string
+	}
+
+	var testCases = []_testCase{
+		{
+			name:     "array",
+			dataType: schema.Array,
+			expected: `ARRAY_TO_JSON("foo")::TEXT as "foo"`,
+		},
+		{
+			name:     "text",
+			dataType: schema.Text,
+			expected: `"foo"`,
+		},
+		{
+			name:     "time with time zone",
+			dataType: schema.TimeWithTimeZone,
+			expected: `"foo" AT TIME ZONE 'UTC' AS "foo"`,
+		},
+	}
+
+	for _, testCase := range testCases {
+		actualEscCol, err := castColumn(schema.Column{Name: "foo", Type: testCase.dataType})
+		assert.NoError(t, err, testCase.name)
+		assert.Equal(t, testCase.expected, actualEscCol, testCase.name)
+	}
+}
+
 func TestScanTableQuery(t *testing.T) {
 	primaryKeys := []primary_key.Key{
 		{Name: "a", StartingValue: int64(1), EndingValue: int64(4)},
