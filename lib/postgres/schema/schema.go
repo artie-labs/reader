@@ -198,9 +198,9 @@ type buildPkValuesQueryArgs struct {
 }
 
 func buildPkValuesQuery(args buildPkValuesQueryArgs) string {
-	castedColumns := make([]string, len(args.Keys))
+	escapedColumns := make([]string, len(args.Keys))
 	for i, col := range args.Keys {
-		castedColumns[i] = pgx.Identifier{col.Name}.Sanitize()
+		escapedColumns[i] = pgx.Identifier{col.Name}.Sanitize()
 	}
 
 	var fragments []string
@@ -211,7 +211,7 @@ func buildPkValuesQuery(args buildPkValuesQueryArgs) string {
 		}
 		fragments = append(fragments, fragment)
 	}
-	return fmt.Sprintf(`SELECT %s FROM %s ORDER BY %s LIMIT 1`, strings.Join(castedColumns, ","),
+	return fmt.Sprintf(`SELECT %s FROM %s ORDER BY %s LIMIT 1`, strings.Join(escapedColumns, ","),
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(), strings.Join(fragments, ","))
 }
 
