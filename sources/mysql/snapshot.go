@@ -18,9 +18,8 @@ import (
 )
 
 type Source struct {
-	cfg    config.MySQL
-	db     *sql.DB
-	dbName string
+	cfg config.MySQL
+	db  *sql.DB
 }
 
 func Load(cfg config.MySQL) (*Source, error) {
@@ -29,9 +28,8 @@ func Load(cfg config.MySQL) (*Source, error) {
 		return nil, fmt.Errorf("failed to connect to MySQL: %w", err)
 	}
 	return &Source{
-		cfg:    cfg,
-		db:     db,
-		dbName: cfg.Database,
+		cfg: cfg,
+		db:  db,
 	}, nil
 }
 
@@ -52,7 +50,7 @@ func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, 
 	logger := slog.With(slog.String("table", tableCfg.Name))
 	snapshotStartTime := time.Now()
 
-	adapter, err := adapter.NewMySQLAdapter(s.db, s.dbName, tableCfg)
+	adapter, err := adapter.NewMySQLAdapter(s.db, s.cfg.Database, tableCfg)
 	if err != nil {
 		return fmt.Errorf("failed to create MySQL adapter: %w", err)
 	}
