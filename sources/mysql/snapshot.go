@@ -47,7 +47,7 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 }
 
 func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, tableCfg config.MySQLTable) error {
-	logger := slog.With(slog.String("table", tableCfg.Name))
+	logger := slog.With(slog.String("table", tableCfg.Name), slog.String("database", s.cfg.Database))
 	snapshotStartTime := time.Now()
 
 	adapter, err := adapter.NewMySQLAdapter(s.db, s.cfg.Database, tableCfg)
