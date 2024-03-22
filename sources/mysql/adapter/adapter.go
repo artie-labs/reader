@@ -20,13 +20,14 @@ const defaultErrorRetries = 10
 
 type mysqlAdapter struct {
 	db              *sql.DB
+	dbName          string
 	table           mysql.Table
 	columns         []schema.Column
 	fieldConverters []transformer.FieldConverter
 	scannerCfg      scan.ScannerConfig
 }
 
-func NewMySQLAdapter(db *sql.DB, tableCfg config.MySQLTable) (mysqlAdapter, error) {
+func NewMySQLAdapter(db *sql.DB, dbName string, tableCfg config.MySQLTable) (mysqlAdapter, error) {
 	slog.Info("Loading metadata for table")
 	table, err := mysql.LoadTable(db, tableCfg.Name)
 	if err != nil {
@@ -38,10 +39,10 @@ func NewMySQLAdapter(db *sql.DB, tableCfg config.MySQLTable) (mysqlAdapter, erro
 		return mysqlAdapter{}, err
 	}
 
-	return newMySQLAdapter(db, *table, columns, tableCfg.ToScannerConfig(defaultErrorRetries))
+	return newMySQLAdapter(db, dbName, *table, columns, tableCfg.ToScannerConfig(defaultErrorRetries))
 }
 
-func newMySQLAdapter(db *sql.DB, table mysql.Table, columns []schema.Column, scannerCfg scan.ScannerConfig) (mysqlAdapter, error) {
+func newMySQLAdapter(db *sql.DB, dbName string, table mysql.Table, columns []schema.Column, scannerCfg scan.ScannerConfig) (mysqlAdapter, error) {
 	fieldConverters := make([]transformer.FieldConverter, len(columns))
 	for i, col := range columns {
 		converter, err := valueConverterForType(col.Type, col.Opts)
@@ -53,6 +54,7 @@ func newMySQLAdapter(db *sql.DB, table mysql.Table, columns []schema.Column, sca
 
 	return mysqlAdapter{
 		db:              db,
+		dbName:          dbName,
 		table:           table,
 		columns:         columns,
 		fieldConverters: fieldConverters,
@@ -65,7 +67,7 @@ func (m mysqlAdapter) TableName() string {
 }
 
 func (m mysqlAdapter) TopicSuffix() string {
-	return strings.ReplaceAll(m.table.Name, `"`, ``)
+	return fmt.Sprintf("%s.%s", m.dbName, strings.ReplaceAll(m.table.Name, `"`, ``))
 }
 
 func (m mysqlAdapter) FieldConverters() []transformer.FieldConverter {
