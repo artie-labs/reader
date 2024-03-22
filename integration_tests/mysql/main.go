@@ -49,22 +49,22 @@ func main() {
 		logger.Fatal("Unable to change sql_mode", slog.Any("err", err))
 	}
 
-	if err = testTypes(db); err != nil {
+	if err = testTypes(db, mysqlCfg.Database); err != nil {
 		logger.Fatal("Types test failed", slog.Any("err", err))
 	}
 
-	if err = testScan(db); err != nil {
+	if err = testScan(db, mysqlCfg.Database); err != nil {
 		logger.Fatal("Scan test failed", slog.Any("err", err))
 	}
 }
 
-func readTable(db *sql.DB, tableName string, batchSize int) ([]lib.RawMessage, error) {
+func readTable(db *sql.DB, dbName, tableName string, batchSize int) ([]lib.RawMessage, error) {
 	tableCfg := config.MySQLTable{
 		Name:      tableName,
 		BatchSize: uint(batchSize),
 	}
 
-	dbzAdapter, err := adapter.NewMySQLAdapter(db, tableCfg)
+	dbzAdapter, err := adapter.NewMySQLAdapter(db, dbName, tableCfg)
 	if err != nil {
 		return nil, err
 	}
@@ -441,12 +441,12 @@ const expectedPayloadTemplate = `{
 }`
 
 // testTypes checks that MySQL data types are handled correctly.
-func testTypes(db *sql.DB) error {
+func testTypes(db *sql.DB, dbName string) error {
 	tempTableName, dropTableFunc := utils.CreateTemporaryTable(db, testTypesCreateTableQuery)
 	defer dropTableFunc()
 
 	// Check reading an empty table
-	_, err := readTable(db, tempTableName, 100)
+	_, err := readTable(db, dbName, tempTableName, 100)
 	if err == nil {
 		return fmt.Errorf("expected an error")
 	} else if !errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
@@ -458,7 +458,7 @@ func testTypes(db *sql.DB) error {
 		return fmt.Errorf("unable to insert data: %w", err)
 	}
 
-	rows, err := readTable(db, tempTableName, 100)
+	rows, err := readTable(db, dbName, tempTableName, 100)
 	if err != nil {
 		return err
 	}
@@ -526,7 +526,7 @@ INSERT INTO %s VALUES
 `
 
 // testScan checks that we're fetching all the data from MySQL.
-func testScan(db *sql.DB) error {
+func testScan(db *sql.DB, dbName string) error {
 	tempTableName, dropTableFunc := utils.CreateTemporaryTable(db, testScanCreateTableQuery)
 	defer dropTableFunc()
 
@@ -592,7 +592,7 @@ func testScan(db *sql.DB) error {
 
 	for _, batchSize := range []int{1, 2, 5, 6, 24, 25, 26} {
 		slog.Info(fmt.Sprintf("Testing scan with batch size of %d...", batchSize))
-		rows, err := readTable(db, tempTableName, batchSize)
+		rows, err := readTable(db, dbName, tempTableName, batchSize)
 		if err != nil {
 			return err
 		}

@@ -47,10 +47,10 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 }
 
 func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, tableCfg config.MySQLTable) error {
-	logger := slog.With(slog.String("table", tableCfg.Name))
+	logger := slog.With(slog.String("table", tableCfg.Name), slog.String("database", s.cfg.Database))
 	snapshotStartTime := time.Now()
 
-	adapter, err := adapter.NewMySQLAdapter(s.db, tableCfg)
+	adapter, err := adapter.NewMySQLAdapter(s.db, s.cfg.Database, tableCfg)
 	if err != nil {
 		return fmt.Errorf("failed to create MySQL adapter: %w", err)
 	}
