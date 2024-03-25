@@ -27,7 +27,7 @@ func TestIsExceedMaxMessageBytesErr(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		actual := IsExceedMaxMessageBytesErr(tc.err)
+		actual := isExceedMaxMessageBytesErr(tc.err)
 		assert.Equal(t, tc.expected, actual, tc.err)
 	}
 }

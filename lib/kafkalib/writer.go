@@ -103,7 +103,7 @@ func (w *BatchWriter) WriteMessages(ctx context.Context, msgs []kafka.Message) e
 				)
 				time.Sleep(sleepDuration)
 
-				if RetryableError(kafkaErr) {
+				if retryableError(kafkaErr) {
 					if reloadErr := w.reload(ctx); reloadErr != nil {
 						slog.Warn("Failed to reload kafka writer", slog.Any("err", reloadErr))
 					}
@@ -116,7 +116,7 @@ func (w *BatchWriter) WriteMessages(ctx context.Context, msgs []kafka.Message) e
 				break
 			}
 
-			if IsExceedMaxMessageBytesErr(kafkaErr) {
+			if isExceedMaxMessageBytesErr(kafkaErr) {
 				slog.Info("Skipping this chunk since the batch exceeded the server")
 				kafkaErr = nil
 				break
