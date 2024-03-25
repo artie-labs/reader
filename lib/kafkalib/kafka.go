@@ -14,7 +14,7 @@ import (
 	"github.com/artie-labs/reader/config"
 )
 
-func NewWriter(ctx context.Context, cfg config.Kafka) (*kafka.Writer, error) {
+func newWriter(ctx context.Context, cfg config.Kafka) (*kafka.Writer, error) {
 	slog.Info("Setting kafka bootstrap URLs", slog.Any("urls", cfg.BootstrapAddresses()))
 	writer := &kafka.Writer{
 		Addr:                   kafka.TCP(cfg.BootstrapAddresses()...),

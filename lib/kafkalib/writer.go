@@ -32,7 +32,7 @@ func NewBatchWriter(ctx context.Context, cfg config.Kafka, statsD mtr.Client) (*
 		return nil, fmt.Errorf("kafka topic prefix cannot be empty")
 	}
 
-	writer, err := NewWriter(ctx, cfg)
+	writer, err := newWriter(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (b *BatchWriter) reload(ctx context.Context) error {
 		return err
 	}
 
-	writer, err := NewWriter(ctx, b.cfg)
+	writer, err := newWriter(ctx, b.cfg)
 	if err != nil {
 		return err
 	}
