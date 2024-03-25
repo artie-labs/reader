@@ -18,7 +18,7 @@ func TestPostgresAdapter_TableName(t *testing.T) {
 		Schema: "schema",
 		Name:   "table1",
 	}
-	assert.Equal(t, "table1", postgresAdapter{table: table}.TableName())
+	assert.Equal(t, "table1", PostgresAdapter{table: table}.TableName())
 }
 
 func TestPostgresAdapter_TopicSuffix(t *testing.T) {
@@ -45,7 +45,7 @@ func TestPostgresAdapter_TopicSuffix(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		adapter := postgresAdapter{table: tc.table}
+		adapter := PostgresAdapter{table: tc.table}
 		assert.Equal(t, tc.expectedTopicName, adapter.TopicSuffix())
 	}
 }

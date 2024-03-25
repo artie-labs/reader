@@ -18,7 +18,7 @@ import (
 
 const defaultErrorRetries = 10
 
-type mysqlAdapter struct {
+type MySQLAdapter struct {
 	db              *sql.DB
 	dbName          string
 	table           mysql.Table
@@ -27,32 +27,32 @@ type mysqlAdapter struct {
 	scannerCfg      scan.ScannerConfig
 }
 
-func NewMySQLAdapter(db *sql.DB, dbName string, tableCfg config.MySQLTable) (mysqlAdapter, error) {
+func NewMySQLAdapter(db *sql.DB, dbName string, tableCfg config.MySQLTable) (MySQLAdapter, error) {
 	slog.Info("Loading metadata for table")
 	table, err := mysql.LoadTable(db, tableCfg.Name)
 	if err != nil {
-		return mysqlAdapter{}, fmt.Errorf("failed to load metadata for table %s: %w", tableCfg.Name, err)
+		return MySQLAdapter{}, fmt.Errorf("failed to load metadata for table %s: %w", tableCfg.Name, err)
 	}
 
 	columns, err := column.FilterOutExcludedColumns(table.Columns, tableCfg.ExcludeColumns, table.PrimaryKeys)
 	if err != nil {
-		return mysqlAdapter{}, err
+		return MySQLAdapter{}, err
 	}
 
 	return newMySQLAdapter(db, dbName, *table, columns, tableCfg.ToScannerConfig(defaultErrorRetries))
 }
 
-func newMySQLAdapter(db *sql.DB, dbName string, table mysql.Table, columns []schema.Column, scannerCfg scan.ScannerConfig) (mysqlAdapter, error) {
+func newMySQLAdapter(db *sql.DB, dbName string, table mysql.Table, columns []schema.Column, scannerCfg scan.ScannerConfig) (MySQLAdapter, error) {
 	fieldConverters := make([]transformer.FieldConverter, len(columns))
 	for i, col := range columns {
 		converter, err := valueConverterForType(col.Type, col.Opts)
 		if err != nil {
-			return mysqlAdapter{}, fmt.Errorf("failed to build value converter for column %s: %w", col.Name, err)
+			return MySQLAdapter{}, fmt.Errorf("failed to build value converter for column %s: %w", col.Name, err)
 		}
 		fieldConverters[i] = transformer.FieldConverter{Name: col.Name, ValueConverter: converter}
 	}
 
-	return mysqlAdapter{
+	return MySQLAdapter{
 		db:              db,
 		dbName:          dbName,
 		table:           table,
@@ -62,23 +62,23 @@ func newMySQLAdapter(db *sql.DB, dbName string, table mysql.Table, columns []sch
 	}, nil
 }
 
-func (m mysqlAdapter) TableName() string {
+func (m MySQLAdapter) TableName() string {
 	return m.table.Name
 }
 
-func (m mysqlAdapter) TopicSuffix() string {
+func (m MySQLAdapter) TopicSuffix() string {
 	return fmt.Sprintf("%s.%s", m.dbName, strings.ReplaceAll(m.table.Name, `"`, ``))
 }
 
-func (m mysqlAdapter) FieldConverters() []transformer.FieldConverter {
+func (m MySQLAdapter) FieldConverters() []transformer.FieldConverter {
 	return m.fieldConverters
 }
 
-func (m mysqlAdapter) NewIterator() (transformer.RowsIterator, error) {
+func (m MySQLAdapter) NewIterator() (transformer.RowsIterator, error) {
 	return scanner.NewScanner(m.db, m.table, m.columns, m.scannerCfg)
 }
 
-func (m mysqlAdapter) PartitionKeys() []string {
+func (m MySQLAdapter) PartitionKeys() []string {
 	return m.table.PrimaryKeys
 }
 

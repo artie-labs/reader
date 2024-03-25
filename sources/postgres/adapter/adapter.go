@@ -17,7 +17,7 @@ import (
 
 const defaultErrorRetries = 10
 
-type postgresAdapter struct {
+type PostgresAdapter struct {
 	db              *sql.DB
 	table           postgres.Table
 	columns         []schema.Column
@@ -25,28 +25,28 @@ type postgresAdapter struct {
 	scannerCfg      scan.ScannerConfig
 }
 
-func NewPostgresAdapter(db *sql.DB, tableCfg config.PostgreSQLTable) (postgresAdapter, error) {
+func NewPostgresAdapter(db *sql.DB, tableCfg config.PostgreSQLTable) (PostgresAdapter, error) {
 	slog.Info("Loading metadata for table")
 	table, err := postgres.LoadTable(db, tableCfg.Schema, tableCfg.Name)
 	if err != nil {
-		return postgresAdapter{}, fmt.Errorf("failed to load metadata for table %s.%s: %w", tableCfg.Schema, tableCfg.Name, err)
+		return PostgresAdapter{}, fmt.Errorf("failed to load metadata for table %s.%s: %w", tableCfg.Schema, tableCfg.Name, err)
 	}
 
 	columns, err := column.FilterOutExcludedColumns(table.Columns, tableCfg.ExcludeColumns, table.PrimaryKeys)
 	if err != nil {
-		return postgresAdapter{}, err
+		return PostgresAdapter{}, err
 	}
 
 	fieldConverters := make([]transformer.FieldConverter, len(columns))
 	for i, col := range columns {
 		converter, err := valueConverterForType(col.Type, col.Opts)
 		if err != nil {
-			return postgresAdapter{}, fmt.Errorf("failed to build value converter for column %s: %w", col.Name, err)
+			return PostgresAdapter{}, fmt.Errorf("failed to build value converter for column %s: %w", col.Name, err)
 		}
 		fieldConverters[i] = transformer.FieldConverter{Name: col.Name, ValueConverter: converter}
 	}
 
-	return postgresAdapter{
+	return PostgresAdapter{
 		db:              db,
 		table:           *table,
 		columns:         columns,
@@ -55,23 +55,23 @@ func NewPostgresAdapter(db *sql.DB, tableCfg config.PostgreSQLTable) (postgresAd
 	}, nil
 }
 
-func (p postgresAdapter) TableName() string {
+func (p PostgresAdapter) TableName() string {
 	return p.table.Name
 }
 
-func (p postgresAdapter) TopicSuffix() string {
+func (p PostgresAdapter) TopicSuffix() string {
 	return fmt.Sprintf("%s.%s", p.table.Schema, strings.ReplaceAll(p.table.Name, `"`, ``))
 }
 
-func (p postgresAdapter) FieldConverters() []transformer.FieldConverter {
+func (p PostgresAdapter) FieldConverters() []transformer.FieldConverter {
 	return p.fieldConverters
 }
 
-func (p postgresAdapter) NewIterator() (transformer.RowsIterator, error) {
+func (p PostgresAdapter) NewIterator() (transformer.RowsIterator, error) {
 	return postgres.NewScanner(p.db, p.table, p.columns, p.scannerCfg)
 }
 
-func (p postgresAdapter) PartitionKeys() []string {
+func (p PostgresAdapter) PartitionKeys() []string {
 	return p.table.PrimaryKeys
 }
 

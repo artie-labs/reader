@@ -52,7 +52,7 @@ func TestDebeziumTransformer(t *testing.T) {
 	// test zero batches
 	{
 		dbzTransformer := transformer.NewDebeziumTransformerWithIterator(
-			postgresAdapter{table: table},
+			PostgresAdapter{table: table},
 			&MockRowIterator{batches: [][]map[string]any{}},
 		)
 		assert.False(t, dbzTransformer.HasNext())
@@ -61,7 +61,7 @@ func TestDebeziumTransformer(t *testing.T) {
 	// test an iterator that returns an error
 	{
 		dbzTransformer := transformer.NewDebeziumTransformerWithIterator(
-			postgresAdapter{table: table},
+			PostgresAdapter{table: table},
 			&ErrorRowIterator{},
 		)
 
@@ -73,7 +73,7 @@ func TestDebeziumTransformer(t *testing.T) {
 	// test two batches each with two rows
 	{
 		dbzTransformer := transformer.NewDebeziumTransformerWithIterator(
-			postgresAdapter{
+			PostgresAdapter{
 				table: table,
 				fieldConverters: []transformer.FieldConverter{
 					{Name: "a", ValueConverter: converters.StringPassthrough{}},
@@ -130,7 +130,7 @@ func TestDebeziumTransformer_NilOptionalSchema(t *testing.T) {
 	}
 
 	dbzTransformer := transformer.NewDebeziumTransformerWithIterator(
-		postgresAdapter{
+		PostgresAdapter{
 			table: table,
 			fieldConverters: []transformer.FieldConverter{
 				{Name: "user_id", ValueConverter: converters.Int16Passthrough{}},
