@@ -19,7 +19,7 @@ func TestNewMessage(t *testing.T) {
 		},
 	}
 
-	msg, err := NewMessage("topic", map[string]any{"key": "value"}, payload)
+	msg, err := newMessage("topic", map[string]any{"key": "value"}, payload)
 	assert.NoError(t, err)
 	assert.Equal(t, "topic", msg.Topic)
 	assert.Equal(t, `{"key":"value"}`, string(msg.Key))
