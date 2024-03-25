@@ -106,7 +106,7 @@ func (b *BatchWriter) WriteMessages(ctx context.Context, msgs []kafka.Message) e
 				)
 				time.Sleep(sleepDuration)
 
-				if retryableError(kafkaErr) {
+				if isRetryableError(kafkaErr) {
 					if reloadErr := b.reload(ctx); reloadErr != nil {
 						slog.Warn("Failed to reload kafka writer", slog.Any("err", reloadErr))
 					}
