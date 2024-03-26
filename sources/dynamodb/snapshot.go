@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/destinations"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/dynamo"
-	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/s3lib"
 )
@@ -28,7 +28,7 @@ func (s *SnapshotStore) Close() error {
 	return nil
 }
 
-func (s *SnapshotStore) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
+func (s *SnapshotStore) Run(ctx context.Context, writer destinations.DestinationWriter) error {
 	if err := s.scanFilesOverBucket(); err != nil {
 		return fmt.Errorf("scanning files over bucket failed: %w", err)
 	}
@@ -64,7 +64,7 @@ func (s *SnapshotStore) scanFilesOverBucket() error {
 	return nil
 }
 
-func (s *SnapshotStore) streamAndPublish(ctx context.Context, writer kafkalib.BatchWriter) error {
+func (s *SnapshotStore) streamAndPublish(ctx context.Context, writer destinations.DestinationWriter) error {
 	keys, err := s.retrievePrimaryKeys()
 	if err != nil {
 		return fmt.Errorf("failed to retrieve primary keys: %w", err)

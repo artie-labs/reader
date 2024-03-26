@@ -11,6 +11,7 @@ import (
 	"github.com/segmentio/kafka-go"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/destinations"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/iterator"
 	"github.com/artie-labs/reader/lib/mtr"
@@ -134,12 +135,7 @@ func (b *BatchWriter) WriteMessages(ctx context.Context, msgs []kafka.Message) e
 	return nil
 }
 
-type messageIterator interface {
-	HasNext() bool
-	Next() ([]lib.RawMessage, error)
-}
-
-func (b *BatchWriter) WriteIterator(ctx context.Context, iter messageIterator) (int, error) {
+func (b *BatchWriter) WriteIterator(ctx context.Context, iter destinations.RawMessageIterator) (int, error) {
 	start := time.Now()
 	var count int
 	for iter.HasNext() {

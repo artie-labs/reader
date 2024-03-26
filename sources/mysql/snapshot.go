@@ -11,8 +11,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/destinations"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
-	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/reader/sources/mysql/adapter"
 )
@@ -37,7 +37,7 @@ func (s Source) Close() error {
 	return s.db.Close()
 }
 
-func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
+func (s *Source) Run(ctx context.Context, writer destinations.DestinationWriter) error {
 	for _, tableCfg := range s.cfg.Tables {
 		if err := s.snapshotTable(ctx, writer, *tableCfg); err != nil {
 			return err
@@ -46,7 +46,7 @@ func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
 	return nil
 }
 
-func (s Source) snapshotTable(ctx context.Context, writer kafkalib.BatchWriter, tableCfg config.MySQLTable) error {
+func (s Source) snapshotTable(ctx context.Context, writer destinations.DestinationWriter, tableCfg config.MySQLTable) error {
 	logger := slog.With(slog.String("table", tableCfg.Name), slog.String("database", s.cfg.Database))
 	snapshotStartTime := time.Now()
 

@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib/kafkalib"
+	"github.com/artie-labs/reader/destinations"
 )
 
 type Source struct {
@@ -49,7 +49,7 @@ func (s *Source) Close() error {
 	return nil
 }
 
-func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
+func (s *Source) Run(ctx context.Context, writer destinations.DestinationWriter) error {
 	for _, collection := range s.cfg.Collections {
 		snapshotStartTime := time.Now()
 

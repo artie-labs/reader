@@ -11,8 +11,8 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/destinations"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
-	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/reader/sources/postgres/adapter"
 )
@@ -38,7 +38,7 @@ func (s *Source) Close() error {
 	return s.db.Close()
 }
 
-func (s *Source) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
+func (s *Source) Run(ctx context.Context, writer destinations.DestinationWriter) error {
 	for _, tableCfg := range s.cfg.Tables {
 		logger := slog.With(slog.String("schema", tableCfg.Schema), slog.String("table", tableCfg.Name))
 		snapshotStartTime := time.Now()

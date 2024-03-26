@@ -9,19 +9,19 @@ import (
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
 
+	"github.com/artie-labs/reader/destinations"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/dynamo"
-	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 )
 
-func (s *StreamStore) ListenToChannel(ctx context.Context, writer kafkalib.BatchWriter) {
+func (s *StreamStore) ListenToChannel(ctx context.Context, writer destinations.DestinationWriter) {
 	for shard := range s.shardChan {
 		go s.processShard(ctx, shard, writer)
 	}
 }
 
-func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.Shard, writer kafkalib.BatchWriter) {
+func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.Shard, writer destinations.DestinationWriter) {
 	var attempts int
 
 	// Is there another go-routine processing this shard?

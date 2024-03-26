@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib/kafkalib"
+	"github.com/artie-labs/reader/destinations"
 	"github.com/artie-labs/reader/sources/dynamodb/offsets"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
@@ -27,7 +27,7 @@ func (s *StreamStore) Close() error {
 	return nil
 }
 
-func (s *StreamStore) Run(ctx context.Context, writer kafkalib.BatchWriter) error {
+func (s *StreamStore) Run(ctx context.Context, writer destinations.DestinationWriter) error {
 	ticker := time.NewTicker(shardScannerInterval)
 
 	// Start to subscribe to the channel
