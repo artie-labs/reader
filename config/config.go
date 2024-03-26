@@ -127,7 +127,7 @@ func (s *Settings) Validate() error {
 			return fmt.Errorf("postgres validation failed: %w", err)
 		}
 	default:
-		return fmt.Errorf("invalid source: %s ", s.Source)
+		return fmt.Errorf("invalid source: '%s'", s.Source)
 	}
 
 	switch s.Destination {
@@ -140,7 +140,7 @@ func (s *Settings) Validate() error {
 			return fmt.Errorf("kafka validation failed: %w", err)
 		}
 	default:
-		return fmt.Errorf("invalid destination: %s ", s.Source)
+		return fmt.Errorf("invalid destination: '%s'", s.Destination)
 	}
 
 	return nil
