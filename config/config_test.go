@@ -1,13 +1,16 @@
 package config
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v3"
 )
 
-func TestSettings_Validate(t *testing.T) {
-	dynamoCfg := &DynamoDB{
+func dynamoDBCfg() *DynamoDB {
+	return &DynamoDB{
 		OffsetFile:         "offset.txt",
 		AwsRegion:          "us-east-1",
 		AwsAccessKeyID:     "key-id",
@@ -15,7 +18,9 @@ func TestSettings_Validate(t *testing.T) {
 		StreamArn:          "arn:aws:dynamodb:us-east-1:123456789012:table/TableName/stream/2020-01-01T00:00:00.000",
 		TableName:          "TableName",
 	}
+}
 
+func TestSettings_Validate(t *testing.T) {
 	type _tc struct {
 		name        string
 		settings    *Settings
@@ -47,24 +52,24 @@ func TestSettings_Validate(t *testing.T) {
 		},
 		{
 			name:        "nil destination",
-			settings:    &Settings{Source: SourceDynamo, DynamoDB: dynamoCfg},
+			settings:    &Settings{Source: SourceDynamo, DynamoDB: dynamoDBCfg()},
 			expectedErr: "invalid destination: ''",
 		},
 		{
 			name:        "invalid destination",
-			settings:    &Settings{Source: SourceDynamo, DynamoDB: dynamoCfg, Destination: "foo"},
+			settings:    &Settings{Source: SourceDynamo, DynamoDB: dynamoDBCfg(), Destination: "foo"},
 			expectedErr: "invalid destination: 'foo'",
 		},
 		{
 			name:        "nil kafka",
-			settings:    &Settings{Source: SourceDynamo, DynamoDB: dynamoCfg, Destination: DestinationKafka},
+			settings:    &Settings{Source: SourceDynamo, DynamoDB: dynamoDBCfg(), Destination: DestinationKafka},
 			expectedErr: "kafka config is nil",
 		},
 		{
 			name: "valid",
 			settings: &Settings{
 				Source:      SourceDynamo,
-				DynamoDB:    dynamoCfg,
+				DynamoDB:    dynamoDBCfg(),
 				Destination: DestinationKafka,
 				Kafka: &Kafka{
 					BootstrapServers: "localhost:9092",
@@ -82,5 +87,74 @@ func TestSettings_Validate(t *testing.T) {
 			assert.NoError(t, err, tc.name)
 		}
 
+	}
+}
+
+func TestReadConfig(t *testing.T) {
+	{
+		// Missing file
+		_, err := ReadConfig(filepath.Join(t.TempDir(), "foo.yaml"))
+		assert.ErrorContains(t, err, "foo.yaml: no such file or directory")
+	}
+	{
+		// Malformed file
+		filename := filepath.Join(t.TempDir(), "foo.yaml")
+		assert.NoError(t, os.WriteFile(filename, []byte("hello"), os.ModePerm))
+		_, err := ReadConfig(filename)
+		assert.ErrorContains(t, err, "failed to unmarshal config file")
+	}
+	{
+		// Well-formed empty file
+		filename := filepath.Join(t.TempDir(), "foo.yaml")
+		assert.NoError(t, os.WriteFile(filename, []byte("{}"), os.ModePerm))
+		_, err := ReadConfig(filename)
+		assert.ErrorContains(t, err, "dynamodb config is nil")
+	}
+	{
+		// Well-formed file with source and destination omitted
+		filename := filepath.Join(t.TempDir(), "foo.yaml")
+		settings := Settings{
+			DynamoDB: dynamoDBCfg(),
+			Kafka: &Kafka{
+				BootstrapServers: "asdf",
+				TopicPrefix:      "prefix",
+			},
+		}
+		bytes, err := yaml.Marshal(settings)
+		assert.NoError(t, err)
+		assert.NoError(t, os.WriteFile(filename, bytes, os.ModePerm))
+		settingsOut, err := ReadConfig(filename)
+		assert.NoError(t, err)
+		assert.Equal(t, settingsOut.Source, SourceDynamo)
+		assert.Equal(t, settingsOut.Destination, DestinationKafka)
+	}
+	{
+		// Well-formed file with explicit source and destination
+		filename := filepath.Join(t.TempDir(), "foo.yaml")
+		settings := Settings{
+			Source: SourcePostgreSQL,
+			PostgreSQL: &PostgreSQL{
+				Host:     "host",
+				Port:     5432,
+				Username: "user",
+				Password: "pass",
+				Database: "database",
+				Tables: []*PostgreSQLTable{
+					{Name: "table", Schema: "schema"},
+				},
+			},
+			Destination: DestinationKafka,
+			Kafka: &Kafka{
+				BootstrapServers: "asdf",
+				TopicPrefix:      "prefix",
+			},
+		}
+		bytes, err := yaml.Marshal(settings)
+		assert.NoError(t, err)
+		assert.NoError(t, os.WriteFile(filename, bytes, os.ModePerm))
+		settingsOut, err := ReadConfig(filename)
+		assert.NoError(t, err)
+		assert.Equal(t, settingsOut.Source, SourcePostgreSQL)
+		assert.Equal(t, settingsOut.Destination, DestinationKafka)
 	}
 }
