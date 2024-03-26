@@ -36,7 +36,7 @@ func setUpMetrics(cfg *config.Metrics) (mtr.Client, error) {
 
 func buildSource(cfg *config.Settings) (sources.Source, error) {
 	switch cfg.Source {
-	case "", config.SourceDynamo:
+	case config.SourceDynamo:
 		return dynamodb.Load(*cfg.DynamoDB)
 	case config.SourceMongoDB:
 		return mongo.Load(*cfg.MongoDB)
