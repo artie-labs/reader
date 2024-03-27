@@ -218,8 +218,8 @@ func TestValueConverterForType(t *testing.T) {
 			name:     "datetime",
 			dataType: schema.DateTime,
 			expected: debezium.Field{
-				Type:         "string",
-				DebeziumType: "io.debezium.time.Timestamp",
+				Type:         "int64",
+				DebeziumType: "io.debezium.time.MicroTimestamp",
 				FieldName:    colName,
 			},
 		},
@@ -228,7 +228,7 @@ func TestValueConverterForType(t *testing.T) {
 			dataType: schema.Timestamp,
 			expected: debezium.Field{
 				Type:         "string",
-				DebeziumType: "io.debezium.time.Timestamp",
+				DebeziumType: "io.debezium.time.ZonedTimestamp",
 				FieldName:    colName,
 			},
 		},
