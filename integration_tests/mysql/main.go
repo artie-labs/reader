@@ -289,11 +289,11 @@ const expectedPayloadTemplate = `{
 						"parameters": null
 					},
 					{
-						"type": "string",
+						"type": "int64",
 						"optional": false,
 						"default": null,
 						"field": "c_datetime",
-						"name": "io.debezium.time.Timestamp",
+						"name": "io.debezium.time.MicroTimestamp",
 						"parameters": null
 					},
 					{
@@ -301,7 +301,7 @@ const expectedPayloadTemplate = `{
 						"optional": false,
 						"default": null,
 						"field": "c_timestamp",
-						"name": "io.debezium.time.Timestamp",
+						"name": "io.debezium.time.ZonedTimestamp",
 						"parameters": null
 					},
 					{
@@ -409,7 +409,7 @@ const expectedPayloadTemplate = `{
 			"c_char": "X",
 			"c_date": 18263,
 			"c_date_0000_00_00": null,
-			"c_datetime": "2001-02-03T04:05:06Z",
+			"c_datetime": 981173106000000,
 			"c_decimal": "EtRQ",
 			"c_double": 45.678,
 			"c_enum": "medium",

@@ -121,8 +121,35 @@ func TestDateConverter_Convert(t *testing.T) {
 	}
 }
 
-func TestTimestampConverter_Convert(t *testing.T) {
-	converter := TimestampConverter{}
+func TestMicroTimestampConverter_Convert(t *testing.T) {
+	converter := MicroTimestampConverter{}
+	{
+		// Invalid type
+		_, err := converter.Convert(1234)
+		assert.ErrorContains(t, err, "expected time.Time got int with value: 1234")
+	}
+	{
+		// Date > 9999
+		value, err := converter.Convert(time.Date(9_9999, 2, 3, 4, 5, 0, 0, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, value, int64(3093499310700000000))
+	}
+	{
+		// Date < 0
+		value, err := converter.Convert(time.Date(-1, 2, 3, 4, 5, 0, 0, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, int64(-62195889300000000), value)
+	}
+	{
+		// time.Time
+		value, err := converter.Convert(time.Date(2001, 2, 3, 4, 5, 0, 0, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, int64(981173100000000), value)
+	}
+}
+
+func TestZonedTimestampConverter_Convert(t *testing.T) {
+	converter := ZonedTimestampConverter{}
 	{
 		// Invalid type
 		_, err := converter.Convert(1234)
