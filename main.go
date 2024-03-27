@@ -100,6 +100,6 @@ func main() {
 	defer source.Close()
 
 	if err = source.Run(ctx, writer); err != nil {
-		logger.Fatal(fmt.Sprintf("Failed to run %s snapshot", cfg.Source), slog.Any("err", err))
+		logger.Fatal(fmt.Sprintf("Failed to run %s -> %s", cfg.Source, cfg.Destination), slog.Any("err", err))
 	}
 }
