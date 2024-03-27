@@ -3,10 +3,10 @@ package sources
 import (
 	"context"
 
-	"github.com/artie-labs/reader/lib/kafkalib"
+	"github.com/artie-labs/reader/destinations"
 )
 
 type Source interface {
 	Close() error
-	Run(ctx context.Context, writer kafkalib.BatchWriter) error
+	Run(ctx context.Context, writer destinations.DestinationWriter) error
 }

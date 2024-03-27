@@ -9,6 +9,7 @@ import (
 	"github.com/artie-labs/transfer/lib/telemetry/metrics"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/destinations"
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/mtr"
@@ -33,22 +34,9 @@ func setUpMetrics(cfg *config.Metrics) (mtr.Client, error) {
 	return client, nil
 }
 
-func setUpKafka(ctx context.Context, cfg *config.Kafka, statsD mtr.Client) (*kafkalib.BatchWriter, error) {
-	if cfg == nil {
-		return nil, fmt.Errorf("kafka configuration is not set")
-	}
-	slog.Info("Kafka config",
-		slog.Bool("aws", cfg.AwsEnabled),
-		slog.String("kafkaBootstrapServer", cfg.BootstrapServers),
-		slog.Any("publishSize", cfg.GetPublishSize()),
-		slog.Uint64("maxRequestSize", cfg.MaxRequestSize),
-	)
-	return kafkalib.NewBatchWriter(ctx, *cfg, statsD)
-}
-
 func buildSource(cfg *config.Settings) (sources.Source, error) {
 	switch cfg.Source {
-	case "", config.SourceDynamo:
+	case config.SourceDynamo:
 		return dynamodb.Load(*cfg.DynamoDB)
 	case config.SourceMongoDB:
 		return mongo.Load(*cfg.MongoDB)
@@ -56,8 +44,28 @@ func buildSource(cfg *config.Settings) (sources.Source, error) {
 		return mysql.Load(*cfg.MySQL)
 	case config.SourcePostgreSQL:
 		return postgres.Load(*cfg.PostgreSQL)
+	default:
+		panic(fmt.Sprintf("unknown source: %s", cfg.Source)) // should never happen
 	}
-	panic(fmt.Sprintf("Unknown source: %s", cfg.Source)) // should never happen
+}
+
+func buildDestination(ctx context.Context, cfg *config.Settings, statsD mtr.Client) (destinations.DestinationWriter, error) {
+	switch cfg.Destination {
+	case config.DestinationKafka:
+		kafkaCfg := cfg.Kafka
+		if kafkaCfg == nil {
+			return nil, fmt.Errorf("kafka configuration is not set")
+		}
+		slog.Info("Kafka config",
+			slog.Bool("aws", kafkaCfg.AwsEnabled),
+			slog.String("kafkaBootstrapServer", kafkaCfg.BootstrapServers),
+			slog.Any("publishSize", kafkaCfg.GetPublishSize()),
+			slog.Uint64("maxRequestSize", kafkaCfg.MaxRequestSize),
+		)
+		return kafkalib.NewBatchWriter(ctx, *kafkaCfg, statsD)
+	default:
+		panic(fmt.Sprintf("unknown destination: %s", cfg.Destination)) // should never happen
+	}
 }
 
 func main() {
@@ -80,19 +88,22 @@ func main() {
 		logger.Fatal("Failed to set up metrics", slog.Any("err", err))
 	}
 
-	writer, err := setUpKafka(ctx, cfg.Kafka, statsD)
+	writer, err := buildDestination(ctx, cfg, statsD)
 	if err != nil {
-		logger.Fatal("Failed to set up kafka", slog.Any("err", err))
+		logger.Fatal(fmt.Sprintf("Failed to init '%s' destination", cfg.Destination), slog.Any("err", err))
 	}
 
 	source, err := buildSource(cfg)
 	if err != nil {
-		logger.Fatal(fmt.Sprintf("Failed to init %s", cfg.Source), slog.Any("err", err))
+		logger.Fatal(fmt.Sprintf("Failed to init '%s' source", cfg.Source), slog.Any("err", err))
 	}
 	defer source.Close()
 
-	err = source.Run(ctx, *writer)
-	if err != nil {
-		logger.Fatal(fmt.Sprintf("Failed to run %s snapshot", cfg.Source), slog.Any("err", err))
+	if err = source.Run(ctx, writer); err != nil {
+		logger.Fatal("Failed to run",
+			slog.Any("err", err),
+			slog.String("source", string(cfg.Source)),
+			slog.String("destination", string(cfg.Destination)),
+		)
 	}
 }

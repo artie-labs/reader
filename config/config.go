@@ -62,11 +62,16 @@ type Metrics struct {
 type Source string
 
 const (
-	SourceInvalid    Source = "invalid"
 	SourceDynamo     Source = "dynamodb"
 	SourceMongoDB    Source = "mongodb"
 	SourceMySQL      Source = "mysql"
 	SourcePostgreSQL Source = "postgresql"
+)
+
+type Destination string
+
+const (
+	DestinationKafka Destination = "kafka"
 )
 
 type Settings struct {
@@ -76,9 +81,11 @@ type Settings struct {
 	MySQL      *MySQL      `yaml:"mysql,omitempty"`
 	PostgreSQL *PostgreSQL `yaml:"postgresql,omitempty"`
 
+	Destination Destination `yaml:"destination"`
+	Kafka       *Kafka      `yaml:"kafka"`
+
 	Reporting *Reporting `yaml:"reporting"`
 	Metrics   *Metrics   `yaml:"metrics"`
-	Kafka     *Kafka     `yaml:"kafka"`
 }
 
 func (s *Settings) Validate() error {
@@ -86,17 +93,8 @@ func (s *Settings) Validate() error {
 		return fmt.Errorf("config is nil")
 	}
 
-	if s.Kafka == nil {
-		return fmt.Errorf("kafka config is nil")
-	}
-
-	if err := s.Kafka.Validate(); err != nil {
-		return fmt.Errorf("kafka validation failed: %w", err)
-	}
-
 	switch s.Source {
-	// By default, if you don't pass in a source -- it will be dynamodb for backwards compatibility
-	case SourceDynamo, "":
+	case SourceDynamo:
 		if s.DynamoDB == nil {
 			return fmt.Errorf("dynamodb config is nil")
 		}
@@ -128,7 +126,21 @@ func (s *Settings) Validate() error {
 		if err := s.PostgreSQL.Validate(); err != nil {
 			return fmt.Errorf("postgres validation failed: %w", err)
 		}
+	default:
+		return fmt.Errorf("invalid source: '%s'", s.Source)
+	}
 
+	switch s.Destination {
+	case DestinationKafka:
+		if s.Kafka == nil {
+			return fmt.Errorf("kafka config is nil")
+		}
+
+		if err := s.Kafka.Validate(); err != nil {
+			return fmt.Errorf("kafka validation failed: %w", err)
+		}
+	default:
+		return fmt.Errorf("invalid destination: '%s'", s.Destination)
 	}
 
 	return nil
@@ -144,6 +156,16 @@ func ReadConfig(fp string) (*Settings, error) {
 	err = yaml.Unmarshal(bytes, &settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config file: %w", err)
+	}
+
+	if settings.Source == "" {
+		// By default, if you don't pass in a source -- it will be dynamodb for backwards compatibility
+		settings.Source = SourceDynamo
+	}
+
+	if settings.Destination == "" {
+		// By default, if you don't pass in a destination -- it will be Kafka for backwards compatibility
+		settings.Destination = DestinationKafka
 	}
 
 	if err = settings.Validate(); err != nil {
