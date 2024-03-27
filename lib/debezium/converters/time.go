@@ -67,18 +67,37 @@ func (DateConverter) Convert(value any) (any, error) {
 	return int32(timeValue.Unix() / (60 * 60 * 24)), nil
 }
 
-type TimestampConverter struct{}
+type MicroTimestampConverter struct{}
 
-func (TimestampConverter) ToField(name string) debezium.Field {
+func (MicroTimestampConverter) ToField(name string) debezium.Field {
+	// Represents the number of microseconds since the epoch, and does not include timezone information.
 	return debezium.Field{
-		FieldName: name,
-		// NOTE: We are returning string here because we want the right layout to be used by our Typing library
-		Type:         "string",
-		DebeziumType: string(debezium.Timestamp),
+		FieldName:    name,
+		Type:         "int64",
+		DebeziumType: string(debezium.MicroTimestamp),
 	}
 }
 
-func (TimestampConverter) Convert(value any) (any, error) {
+func (MicroTimestampConverter) Convert(value any) (any, error) {
+	timeValue, ok := value.(time.Time)
+	if !ok {
+		return nil, fmt.Errorf("expected time.Time got %T with value: %v", value, value)
+	}
+	return timeValue.UnixMicro(), nil
+}
+
+type ZonedTimestampConverter struct{}
+
+func (ZonedTimestampConverter) ToField(name string) debezium.Field {
+	// A string representation of a timestamp with timezone information, where the timezone is GMT.
+	return debezium.Field{
+		FieldName:    name,
+		Type:         "string",
+		DebeziumType: string(debezium.DateTimeWithTimezone),
+	}
+}
+
+func (ZonedTimestampConverter) Convert(value any) (any, error) {
 	timeValue, ok := value.(time.Time)
 	if !ok {
 		return nil, fmt.Errorf("expected time.Time got %T with value: %v", value, value)

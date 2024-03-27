@@ -293,15 +293,15 @@ const expectedPayloadTemplate = `{
 						"optional": false,
 						"default": null,
 						"field": "c_datetime",
-						"name": "io.debezium.time.Timestamp",
+						"name": "io.debezium.time.ZonedTimestamp",
 						"parameters": null
 					},
 					{
-						"type": "string",
+						"type": "int64",
 						"optional": false,
 						"default": null,
 						"field": "c_timestamp",
-						"name": "io.debezium.time.Timestamp",
+						"name": "io.debezium.time.MicroTimestamp",
 						"parameters": null
 					},
 					{
@@ -422,7 +422,7 @@ const expectedPayloadTemplate = `{
 			"c_smallint": 2,
 			"c_text": "ZXCV",
 			"c_time": 14706000000,
-			"c_timestamp": "2001-02-03T04:05:06Z",
+			"c_timestamp": 981173106000000,
 			"c_tinyint": 1,
 			"c_varbinary": "Qk5N",
 			"c_varchar": "GHJKL",
