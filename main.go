@@ -100,6 +100,10 @@ func main() {
 	defer source.Close()
 
 	if err = source.Run(ctx, writer); err != nil {
-		logger.Fatal("Failed to run", slog.Any("err", err))
+		logger.Fatal("Failed to run",
+			slog.Any("err", err),
+			slog.String("source", string(cfg.Source)),
+			slog.String("destination", string(cfg.Destination)),
+		)
 	}
 }
