@@ -11,7 +11,6 @@ import (
 	"github.com/segmentio/kafka-go"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/destinations"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/iterator"
 	"github.com/artie-labs/reader/lib/mtr"
@@ -133,23 +132,4 @@ func (b *BatchWriter) WriteMessages(ctx context.Context, msgs []kafka.Message) e
 		}
 	}
 	return nil
-}
-
-func (b *BatchWriter) WriteIterator(ctx context.Context, iter destinations.RawMessageIterator) (int, error) {
-	start := time.Now()
-	var count int
-	for iter.HasNext() {
-		msgs, err := iter.Next()
-		if err != nil {
-			return 0, fmt.Errorf("failed to iterate over messages: %w", err)
-
-		} else if len(msgs) > 0 {
-			if err = b.WriteRawMessages(ctx, msgs); err != nil {
-				return 0, fmt.Errorf("failed to write messages to kafka: %w", err)
-			}
-			count += len(msgs)
-			slog.Info("Scanning progress", slog.Duration("timing", time.Since(start)), slog.Int("count", count))
-		}
-	}
-	return count, nil
 }

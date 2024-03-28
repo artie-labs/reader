@@ -8,5 +8,5 @@ import (
 
 type Source interface {
 	Close() error
-	Run(ctx context.Context, writer destinations.DestinationWriter) error
+	Run(ctx context.Context, destination destinations.Destination) error
 }

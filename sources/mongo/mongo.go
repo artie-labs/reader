@@ -13,6 +13,7 @@ import (
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/destinations"
+	"github.com/artie-labs/reader/lib/writer"
 )
 
 type Source struct {
@@ -49,7 +50,9 @@ func (s *Source) Close() error {
 	return nil
 }
 
-func (s *Source) Run(ctx context.Context, writer destinations.DestinationWriter) error {
+func (s *Source) Run(ctx context.Context, destination destinations.Destination) error {
+	_writer := writer.New(destination)
+
 	for _, collection := range s.cfg.Collections {
 		snapshotStartTime := time.Now()
 
@@ -60,7 +63,7 @@ func (s *Source) Run(ctx context.Context, writer destinations.DestinationWriter)
 		)
 
 		iterator := newIterator(s.db, collection, s.cfg)
-		count, err := writer.WriteIterator(ctx, iterator)
+		count, err := _writer.Write(ctx, iterator)
 		if err != nil {
 			return fmt.Errorf("failed to snapshot for collection %s: %w", collection.Name, err)
 		}
