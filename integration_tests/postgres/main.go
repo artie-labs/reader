@@ -516,11 +516,11 @@ const expectedPayloadTemplate = `{
 						"parameters": null
 					},
 					{
-						"type": "string",
+						"type": "int64",
 						"optional": false,
 						"default": null,
 						"field": "c_timestamp_without_timezone",
-						"name": "io.debezium.time.Timestamp",
+						"name": "io.debezium.time.MicroTimestamp",
 						"parameters": null
 					},
 					{
@@ -528,7 +528,7 @@ const expectedPayloadTemplate = `{
 						"optional": false,
 						"default": null,
 						"field": "c_timestamp_with_timezone",
-						"name": "io.debezium.time.Timestamp",
+						"name": "io.debezium.time.ZonedTimestamp",
 						"parameters": null
 					},
 					{
@@ -696,7 +696,7 @@ const expectedPayloadTemplate = `{
 			"c_time_with_timezone": 38057000,
 			"c_time_without_timezone": 45296000,
 			"c_timestamp_with_timezone": "2001-02-16T13:38:40Z",
-			"c_timestamp_without_timezone": "2001-02-16T20:38:40Z",
+			"c_timestamp_without_timezone": 982355920000000,
 			"c_tsrange": "[\"2010-01-01 14:30:00\",\"2010-01-01 15:30:00\")",
 			"c_tstzrange": "[\"2001-02-16 08:38:40+00\",\"2001-03-20 08:38:40+00\")",
 			"c_uuid": "e7082e96-7190-4cc3-8ab4-bd27f1269f08",

@@ -32,6 +32,7 @@ const (
 	TimeWithTimeZone
 	Date
 	Timestamp
+	TimestampWithTimeZone
 	Interval
 	UUID
 	Array
@@ -119,8 +120,10 @@ func ParseColumnDataType(colKind string, precision, scale *int, udtName *string)
 		return TimeWithTimeZone, nil, nil
 	case "date":
 		return Date, nil, nil
-	case "timestamp without time zone", "timestamp with time zone":
+	case "timestamp without time zone":
 		return Timestamp, nil, nil
+	case "timestamp with time zone":
+		return TimestampWithTimeZone, nil, nil
 	case "interval":
 		return Interval, nil, nil
 	case "uuid":

@@ -5,8 +5,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/typing/ext"
 	"github.com/stretchr/testify/assert"
 )
+
+func parseUsingTransfer(converter ValueConverter, value int64) (*ext.ExtendedTime, error) {
+	return debezium.FromDebeziumTypeToTime(
+		debezium.SupportedDebeziumType(converter.ToField("foo").DebeziumType),
+		value)
+}
 
 func TestMicroTimeConverter_Convert(t *testing.T) {
 	converter := MicroTimeConverter{}
@@ -38,6 +46,15 @@ func TestMicroTimeConverter_Convert(t *testing.T) {
 		value, err := converter.Convert("01:00:00")
 		assert.NoError(t, err)
 		assert.Equal(t, int64(1000_000*60*60), value)
+	}
+	{
+		// Transfer parsing
+		value, err := converter.Convert("01:02:03")
+		assert.NoError(t, err)
+		transferValue, err := parseUsingTransfer(converter, value.(int64))
+		assert.NoError(t, err)
+		assert.Equal(t, time.Date(1970, time.January, 1, 1, 2, 3, 0, time.UTC), transferValue.Time)
+		assert.Equal(t, ext.TimeKindType, transferValue.NestedKind.Type)
 	}
 }
 
@@ -119,10 +136,56 @@ func TestDateConverter_Convert(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, int32(-719_893), days)
 	}
+	{
+		// Transfer parsing
+		value, err := converter.Convert("2023-05-03")
+		assert.NoError(t, err)
+		transferValue, err := parseUsingTransfer(converter, int64(value.(int32)))
+		assert.NoError(t, err)
+		assert.Equal(t, time.Date(2023, time.May, 3, 0, 0, 0, 0, time.UTC), transferValue.Time)
+		assert.Equal(t, ext.DateKindType, transferValue.NestedKind.Type)
+	}
 }
 
-func TestTimestampConverter_Convert(t *testing.T) {
-	converter := TimestampConverter{}
+func TestMicroTimestampConverter_Convert(t *testing.T) {
+	converter := MicroTimestampConverter{}
+	{
+		// Invalid type
+		_, err := converter.Convert(1234)
+		assert.ErrorContains(t, err, "expected time.Time got int with value: 1234")
+	}
+	{
+		// Date > 9999
+		value, err := converter.Convert(time.Date(9_9999, 2, 3, 4, 5, 0, 0, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, value, int64(3093499310700000000))
+	}
+	{
+		// Date < 0
+		value, err := converter.Convert(time.Date(-1, 2, 3, 4, 5, 0, 0, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, int64(-62195889300000000), value)
+	}
+	{
+		// time.Time
+		value, err := converter.Convert(time.Date(2001, 2, 3, 4, 5, 0, 0, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, int64(981173100000000), value)
+	}
+	{
+		// Transfer parsing
+		timeValue := time.Date(2001, 2, 3, 4, 5, 0, 0, time.UTC)
+		value, err := converter.Convert(timeValue)
+		assert.NoError(t, err)
+		transferValue, err := parseUsingTransfer(converter, value.(int64))
+		assert.NoError(t, err)
+		assert.Equal(t, timeValue, transferValue.Time)
+		assert.Equal(t, ext.DateTimeKindType, transferValue.NestedKind.Type)
+	}
+}
+
+func TestZonedTimestampConverter_Convert(t *testing.T) {
+	converter := ZonedTimestampConverter{}
 	{
 		// Invalid type
 		_, err := converter.Convert(1234)
