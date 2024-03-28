@@ -86,7 +86,7 @@ func TestWriter_Write(t *testing.T) {
 		assert.Len(t, destination.messages, 3)
 	}
 	{
-		// Destionation error
+		// Destination error
 		destination := &mockDestination{emitError: true}
 		writer := New(destination)
 		iterator := &mockIterator{batches: [][]lib.RawMessage{{{TopicSuffix: "a"}}}}
