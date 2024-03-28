@@ -16,7 +16,7 @@ type mockDestination struct {
 
 func (m *mockDestination) WriteRawMessages(ctx context.Context, msgs []lib.RawMessage) error {
 	if m.emitError {
-		return fmt.Errorf("test write raw messages error")
+		return fmt.Errorf("test write-raw-messages error")
 	}
 	m.messages = append(m.messages, msgs...)
 	return nil
@@ -84,6 +84,9 @@ func TestWriter_Write(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, 3, count)
 		assert.Len(t, destination.messages, 3)
+		assert.Equal(t, destination.messages[0].TopicSuffix, "a")
+		assert.Equal(t, destination.messages[1].TopicSuffix, "b")
+		assert.Equal(t, destination.messages[2].TopicSuffix, "c")
 	}
 	{
 		// Destination error
@@ -91,7 +94,7 @@ func TestWriter_Write(t *testing.T) {
 		writer := New(destination)
 		iterator := &mockIterator{batches: [][]lib.RawMessage{{{TopicSuffix: "a"}}}}
 		_, err := writer.Write(context.Background(), iterator)
-		assert.ErrorContains(t, err, "failed to write messages: test write raw messages error")
+		assert.ErrorContains(t, err, "failed to write messages: test write-raw-messages error")
 		assert.Empty(t, destination.messages)
 	}
 }
