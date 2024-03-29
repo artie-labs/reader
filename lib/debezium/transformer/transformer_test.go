@@ -58,8 +58,7 @@ func (m mockAdatper) NewIterator() (RowsIterator, error) {
 	return m.iter, nil
 }
 
-type errorIterator struct {
-}
+type errorIterator struct{}
 
 func (m *errorIterator) HasNext() bool {
 	return true
@@ -197,7 +196,7 @@ func TestDebeziumTransformer_Next(t *testing.T) {
 		transformer, err := NewDebeziumTransformer(mockAdatper{
 			fieldConverters: fieldConverters,
 			partitionKeys:   []string{"foo"},
-			iter:            lib.NewBatchIterator([][]Row{{{"foo": "bar"}}}),
+			iter:            lib.NewSingleBatchIterator([]Row{{"foo": "bar"}}),
 		},
 		)
 		assert.NoError(t, err)
