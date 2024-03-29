@@ -8,6 +8,7 @@ import (
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/debezium/converters"
 )
 
@@ -57,33 +58,21 @@ func (m mockAdatper) NewIterator() (RowsIterator, error) {
 	return m.iter, nil
 }
 
-type mockIterator struct {
-	returnErr bool
-	index     int
-	batches   [][]Row
+type errorIterator struct {
 }
 
-func (m *mockIterator) HasNext() bool {
-	return m.index < len(m.batches)
+func (m *errorIterator) HasNext() bool {
+	return true
 }
 
-func (m *mockIterator) Next() ([]Row, error) {
-	if m.returnErr {
-		return nil, fmt.Errorf("test iteration error")
-	}
-
-	if !m.HasNext() {
-		return nil, fmt.Errorf("done")
-	}
-	result := m.batches[m.index]
-	m.index++
-	return result, nil
+func (m *errorIterator) Next() ([]Row, error) {
+	return nil, fmt.Errorf("test iteration error")
 }
 
 func TestDebeziumTransformer_Iteration(t *testing.T) {
 	{
 		// Empty iterator
-		transformer, err := NewDebeziumTransformer(mockAdatper{iter: &mockIterator{}})
+		transformer, err := NewDebeziumTransformer(mockAdatper{iter: lib.NewBatchIterator([][]Row{})})
 		assert.NoError(t, err)
 		assert.False(t, transformer.HasNext())
 		rows, err := transformer.Next()
@@ -93,7 +82,7 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 	{
 		// One empty batch
 		batches := [][]Row{{}}
-		transformer, err := NewDebeziumTransformer(mockAdatper{iter: &mockIterator{batches: batches}})
+		transformer, err := NewDebeziumTransformer(mockAdatper{iter: lib.NewBatchIterator(batches)})
 		assert.NoError(t, err)
 		assert.True(t, transformer.HasNext())
 		rows, err := transformer.Next()
@@ -116,7 +105,7 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 		}}
 		transformer, err := NewDebeziumTransformer(mockAdatper{
 			fieldConverters: fieldConverters,
-			iter:            &mockIterator{batches: batches},
+			iter:            lib.NewBatchIterator(batches),
 		})
 		assert.NoError(t, err)
 		// First batch
@@ -153,7 +142,7 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 		}
 		transformer, err := NewDebeziumTransformer(mockAdatper{
 			fieldConverters: fieldConverters,
-			iter:            &mockIterator{batches: batches},
+			iter:            lib.NewBatchIterator(batches),
 		})
 		assert.NoError(t, err)
 		// First batch
@@ -192,7 +181,7 @@ func TestDebeziumTransformer_Next(t *testing.T) {
 			mockAdatper{
 				fieldConverters: fieldConverters,
 				partitionKeys:   []string{"foo"},
-				iter:            &mockIterator{batches: [][]Row{{{"foo": "bar"}}}, returnErr: true},
+				iter:            &errorIterator{},
 			},
 		)
 		assert.NoError(t, err)
@@ -208,7 +197,7 @@ func TestDebeziumTransformer_Next(t *testing.T) {
 		transformer, err := NewDebeziumTransformer(mockAdatper{
 			fieldConverters: fieldConverters,
 			partitionKeys:   []string{"foo"},
-			iter:            &mockIterator{batches: [][]Row{{{"foo": "bar"}}}},
+			iter:            lib.NewBatchIterator([][]Row{{{"foo": "bar"}}}),
 		},
 		)
 		assert.NoError(t, err)
@@ -229,7 +218,7 @@ func TestDebeziumTransformer_Next(t *testing.T) {
 		transformer, err := NewDebeziumTransformer(mockAdatper{
 			fieldConverters: fieldConverters,
 			partitionKeys:   []string{"foo", "qux"},
-			iter:            &mockIterator{batches: batches},
+			iter:            lib.NewBatchIterator(batches),
 		},
 		)
 		assert.NoError(t, err)
@@ -277,7 +266,7 @@ func TestDebeziumTransformer_CreatePayload(t *testing.T) {
 		fieldConverters := []FieldConverter{
 			{Name: "qux", ValueConverter: testConverter{intField: true, returnErr: true}},
 		}
-		transformer, err := NewDebeziumTransformer(mockAdatper{fieldConverters: fieldConverters, iter: &mockIterator{}})
+		transformer, err := NewDebeziumTransformer(mockAdatper{fieldConverters: fieldConverters, iter: lib.NewBatchIterator([][]Row{})})
 		assert.NoError(t, err)
 		_, err = transformer.createPayload(Row{"qux": "quux"})
 		assert.ErrorContains(t, err, `failed to convert row value for key "qux": test error`)
@@ -288,7 +277,7 @@ func TestDebeziumTransformer_CreatePayload(t *testing.T) {
 			{Name: "foo", ValueConverter: testConverter{intField: false}},
 			{Name: "qux", ValueConverter: testConverter{intField: true}},
 		}
-		transformer, err := NewDebeziumTransformer(mockAdatper{fieldConverters: fieldConverters, iter: &mockIterator{}})
+		transformer, err := NewDebeziumTransformer(mockAdatper{fieldConverters: fieldConverters, iter: lib.NewBatchIterator([][]Row{})})
 		assert.NoError(t, err)
 		payload, err := transformer.createPayload(Row{"foo": "bar", "qux": "quux"})
 		assert.NoError(t, err)

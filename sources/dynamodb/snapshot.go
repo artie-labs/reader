@@ -13,6 +13,7 @@ import (
 	"github.com/artie-labs/reader/lib/dynamo"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/s3lib"
+	"github.com/artie-labs/reader/lib/writer"
 )
 
 type SnapshotStore struct {
@@ -33,7 +34,7 @@ func (s *SnapshotStore) Run(ctx context.Context, destination destinations.Destin
 		return fmt.Errorf("scanning files over bucket failed: %w", err)
 	}
 
-	if err := s.streamAndPublish(ctx, destination); err != nil {
+	if err := s.streamAndPublish(ctx, writer.New(destination)); err != nil {
 		return fmt.Errorf("stream and publish failed: %w", err)
 	}
 
@@ -64,7 +65,7 @@ func (s *SnapshotStore) scanFilesOverBucket() error {
 	return nil
 }
 
-func (s *SnapshotStore) streamAndPublish(ctx context.Context, destination destinations.Destination) error {
+func (s *SnapshotStore) streamAndPublish(ctx context.Context, _writer writer.Writer) error {
 	keys, err := s.retrievePrimaryKeys()
 	if err != nil {
 		return fmt.Errorf("failed to retrieve primary keys: %w", err)
@@ -92,7 +93,7 @@ func (s *SnapshotStore) streamAndPublish(ctx context.Context, destination destin
 			messages = append(messages, dynamoMsg.RawMessage())
 		}
 
-		if err = destination.WriteRawMessages(ctx, messages); err != nil {
+		if _, err := _writer.Write(ctx, lib.NewSingleBatchIterator(messages)); err != nil {
 			return fmt.Errorf("failed to publish messages: %w", err)
 		}
 
