@@ -79,7 +79,7 @@ func TestWriter_Write(t *testing.T) {
 		// Destination error
 		destination := &mockDestination{emitError: true}
 		writer := New(destination)
-		iterator := lib.NewBatchIterator([][]lib.RawMessage{{{TopicSuffix: "a"}}})
+		iterator := lib.NewSingleBatchIterator([]lib.RawMessage{{TopicSuffix: "a"}})
 		_, err := writer.Write(context.Background(), iterator)
 		assert.ErrorContains(t, err, "failed to write messages: test write-raw-messages error")
 		assert.Empty(t, destination.messages)
