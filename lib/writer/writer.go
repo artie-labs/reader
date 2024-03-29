@@ -17,10 +17,11 @@ type RawMessageIterator interface {
 
 type Writer struct {
 	destination destinations.Destination
+	logProgress bool
 }
 
-func New(destination destinations.Destination) Writer {
-	return Writer{destination}
+func New(destination destinations.Destination, logProgress bool) Writer {
+	return Writer{destination, logProgress}
 }
 
 // Write writes all the messages from an iterator to the destination.
@@ -37,6 +38,8 @@ func (w *Writer) Write(ctx context.Context, iter RawMessageIterator) (int, error
 				return 0, fmt.Errorf("failed to write messages: %w", err)
 			}
 			count += len(msgs)
+		}
+		if w.logProgress {
 			slog.Info("Write progress",
 				slog.Duration("timing", time.Since(start)),
 				slog.Int("batchSize", len(msgs)),
