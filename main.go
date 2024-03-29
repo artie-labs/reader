@@ -107,14 +107,15 @@ func main() {
 	logProgress := !isStreamingMode
 	_writer := writer.New(destination, logProgress)
 
+	mode := "snapshot"
 	if isStreamingMode {
-		slog.Info("Starting stream...")
-	} else {
-		slog.Info("Starting snapshot...")
+		mode = "stream"
 	}
 
+	slog.Info(fmt.Sprintf("Starting %s...", mode))
+
 	if err = source.Run(ctx, _writer); err != nil {
-		logger.Fatal("Failed to run",
+		logger.Fatal(fmt.Sprintf("Failed to %s", mode),
 			slog.Any("err", err),
 			slog.String("source", string(cfg.Source)),
 			slog.String("destination", string(cfg.Destination)),
