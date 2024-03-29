@@ -3,10 +3,10 @@ package sources
 import (
 	"context"
 
-	"github.com/artie-labs/reader/destinations"
+	"github.com/artie-labs/reader/lib/writer"
 )
 
 type Source interface {
 	Close() error
-	Run(ctx context.Context, destination destinations.Destination) error
+	Run(ctx context.Context, _writer writer.Writer) error
 }

@@ -21,13 +21,13 @@ import (
 const jitterSleepBaseMs = 50
 const shardScannerInterval = 5 * time.Minute
 
-func Load(cfg config.DynamoDB) (sources.Source, error) {
+func Load(cfg config.DynamoDB) (sources.Source, bool, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      ptr.ToString(cfg.AwsRegion),
 		Credentials: credentials.NewStaticCredentials(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, ""),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create session: %w", err)
+		return nil, false, fmt.Errorf("failed to create session: %w", err)
 	}
 
 	if cfg.Snapshot {
@@ -37,7 +37,7 @@ func Load(cfg config.DynamoDB) (sources.Source, error) {
 			cfg:            &cfg,
 			dynamoDBClient: dynamodb.New(sess),
 			s3Client:       s3lib.NewClient(sess),
-		}, nil
+		}, false, nil
 	} else {
 		return &StreamStore{
 			tableName: cfg.TableName,
@@ -46,6 +46,6 @@ func Load(cfg config.DynamoDB) (sources.Source, error) {
 			storage:   offsets.NewStorage(cfg.OffsetFile, nil, nil),
 			streams:   dynamodbstreams.New(sess),
 			shardChan: make(chan *dynamodbstreams.Shard),
-		}, nil
+		}, true, nil
 	}
 }

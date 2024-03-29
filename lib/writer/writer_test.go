@@ -36,7 +36,7 @@ func TestWriter_Write(t *testing.T) {
 	{
 		// Empty iterator
 		destination := &mockDestination{}
-		writer := New(destination)
+		writer := New(destination, false)
 		iterator := lib.NewBatchIterator([][]lib.RawMessage{})
 		count, err := writer.Write(context.Background(), iterator)
 		assert.NoError(t, err)
@@ -46,7 +46,7 @@ func TestWriter_Write(t *testing.T) {
 	{
 		// Iteration error
 		destination := &mockDestination{}
-		writer := New(destination)
+		writer := New(destination, false)
 		iterator := &errorIterator{}
 		_, err := writer.Write(context.Background(), iterator)
 		assert.ErrorContains(t, err, "failed to iterate over messages: test iteration error")
@@ -55,7 +55,7 @@ func TestWriter_Write(t *testing.T) {
 	{
 		// Two empty batches
 		destination := &mockDestination{}
-		writer := New(destination)
+		writer := New(destination, false)
 		iterator := lib.NewBatchIterator([][]lib.RawMessage{{}, {}})
 		count, err := writer.Write(context.Background(), iterator)
 		assert.NoError(t, err)
@@ -65,7 +65,7 @@ func TestWriter_Write(t *testing.T) {
 	{
 		// Three batches, two non-empty
 		destination := &mockDestination{}
-		writer := New(destination)
+		writer := New(destination, false)
 		iterator := lib.NewBatchIterator([][]lib.RawMessage{{{TopicSuffix: "a"}}, {}, {{TopicSuffix: "b"}, {TopicSuffix: "c"}}})
 		count, err := writer.Write(context.Background(), iterator)
 		assert.NoError(t, err)
@@ -78,7 +78,7 @@ func TestWriter_Write(t *testing.T) {
 	{
 		// Destination error
 		destination := &mockDestination{emitError: true}
-		writer := New(destination)
+		writer := New(destination, false)
 		iterator := lib.NewSingleBatchIterator([]lib.RawMessage{{TopicSuffix: "a"}})
 		_, err := writer.Write(context.Background(), iterator)
 		assert.ErrorContains(t, err, "failed to write messages: test write-raw-messages error")

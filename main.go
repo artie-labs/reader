@@ -13,6 +13,7 @@ import (
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/mtr"
+	"github.com/artie-labs/reader/lib/writer"
 	"github.com/artie-labs/reader/sources"
 	"github.com/artie-labs/reader/sources/dynamodb"
 	"github.com/artie-labs/reader/sources/mongo"
@@ -34,19 +35,23 @@ func setUpMetrics(cfg *config.Metrics) (mtr.Client, error) {
 	return client, nil
 }
 
-func buildSource(cfg *config.Settings) (sources.Source, error) {
+func buildSource(cfg *config.Settings) (sources.Source, bool, error) {
+	var source sources.Source
+	var isStreamingMode bool
+	var err error
 	switch cfg.Source {
 	case config.SourceDynamo:
-		return dynamodb.Load(*cfg.DynamoDB)
+		source, isStreamingMode, err = dynamodb.Load(*cfg.DynamoDB)
 	case config.SourceMongoDB:
-		return mongo.Load(*cfg.MongoDB)
+		source, err = mongo.Load(*cfg.MongoDB)
 	case config.SourceMySQL:
-		return mysql.Load(*cfg.MySQL)
+		source, err = mysql.Load(*cfg.MySQL)
 	case config.SourcePostgreSQL:
-		return postgres.Load(*cfg.PostgreSQL)
+		source, err = postgres.Load(*cfg.PostgreSQL)
 	default:
 		panic(fmt.Sprintf("unknown source: %s", cfg.Source)) // should never happen
 	}
+	return source, isStreamingMode, err
 }
 
 func buildDestination(ctx context.Context, cfg *config.Settings, statsD mtr.Client) (destinations.Destination, error) {
@@ -93,14 +98,24 @@ func main() {
 		logger.Fatal(fmt.Sprintf("Failed to init '%s' destination", cfg.Destination), slog.Any("err", err))
 	}
 
-	source, err := buildSource(cfg)
+	source, isStreamingMode, err := buildSource(cfg)
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("Failed to init '%s' source", cfg.Source), slog.Any("err", err))
 	}
 	defer source.Close()
 
-	if err = source.Run(ctx, destination); err != nil {
-		logger.Fatal("Failed to run",
+	logProgress := !isStreamingMode
+	_writer := writer.New(destination, logProgress)
+
+	mode := "snapshot"
+	if isStreamingMode {
+		mode = "stream"
+	}
+
+	slog.Info(fmt.Sprintf("Starting %s...", mode))
+
+	if err = source.Run(ctx, _writer); err != nil {
+		logger.Fatal(fmt.Sprintf("Failed to %s", mode),
 			slog.Any("err", err),
 			slog.String("source", string(cfg.Source)),
 			slog.String("destination", string(cfg.Destination)),

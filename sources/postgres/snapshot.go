@@ -11,7 +11,6 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/destinations"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/reader/lib/writer"
@@ -39,9 +38,7 @@ func (s *Source) Close() error {
 	return s.db.Close()
 }
 
-func (s *Source) Run(ctx context.Context, destination destinations.Destination) error {
-	_writer := writer.New(destination)
-
+func (s *Source) Run(ctx context.Context, _writer writer.Writer) error {
 	for _, tableCfg := range s.cfg.Tables {
 		logger := slog.With(slog.String("schema", tableCfg.Schema), slog.String("table", tableCfg.Name))
 		snapshotStartTime := time.Now()
