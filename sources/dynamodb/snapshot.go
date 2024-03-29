@@ -93,6 +93,7 @@ func (s *SnapshotStore) streamAndPublish(ctx context.Context, _writer writer.Wri
 			messages = append(messages, dynamoMsg.RawMessage())
 		}
 
+		// TODO: Create an actual iterator over the files that is passed to the writer.
 		if _, err := _writer.Write(ctx, lib.NewSingleBatchIterator(messages)); err != nil {
 			return fmt.Errorf("failed to publish messages: %w", err)
 		}
