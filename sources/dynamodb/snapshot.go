@@ -28,12 +28,12 @@ func (s *SnapshotStore) Close() error {
 	return nil
 }
 
-func (s *SnapshotStore) Run(ctx context.Context, writer destinations.DestinationWriter) error {
+func (s *SnapshotStore) Run(ctx context.Context, destination destinations.Destination) error {
 	if err := s.scanFilesOverBucket(); err != nil {
 		return fmt.Errorf("scanning files over bucket failed: %w", err)
 	}
 
-	if err := s.streamAndPublish(ctx, writer); err != nil {
+	if err := s.streamAndPublish(ctx, destination); err != nil {
 		return fmt.Errorf("stream and publish failed: %w", err)
 	}
 
@@ -64,7 +64,7 @@ func (s *SnapshotStore) scanFilesOverBucket() error {
 	return nil
 }
 
-func (s *SnapshotStore) streamAndPublish(ctx context.Context, writer destinations.DestinationWriter) error {
+func (s *SnapshotStore) streamAndPublish(ctx context.Context, destination destinations.Destination) error {
 	keys, err := s.retrievePrimaryKeys()
 	if err != nil {
 		return fmt.Errorf("failed to retrieve primary keys: %w", err)
@@ -92,7 +92,7 @@ func (s *SnapshotStore) streamAndPublish(ctx context.Context, writer destination
 			messages = append(messages, dynamoMsg.RawMessage())
 		}
 
-		if err = writer.WriteRawMessages(ctx, messages); err != nil {
+		if err = destination.WriteRawMessages(ctx, messages); err != nil {
 			return fmt.Errorf("failed to publish messages: %w", err)
 		}
 

@@ -14,6 +14,7 @@ import (
 	"github.com/artie-labs/reader/destinations"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/rdbms"
+	"github.com/artie-labs/reader/lib/writer"
 	"github.com/artie-labs/reader/sources/mysql/adapter"
 )
 
@@ -37,16 +38,18 @@ func (s Source) Close() error {
 	return s.db.Close()
 }
 
-func (s *Source) Run(ctx context.Context, writer destinations.DestinationWriter) error {
+func (s *Source) Run(ctx context.Context, destination destinations.Destination) error {
+	_writer := writer.New(destination)
+
 	for _, tableCfg := range s.cfg.Tables {
-		if err := s.snapshotTable(ctx, writer, *tableCfg); err != nil {
+		if err := s.snapshotTable(ctx, _writer, *tableCfg); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (s Source) snapshotTable(ctx context.Context, writer destinations.DestinationWriter, tableCfg config.MySQLTable) error {
+func (s Source) snapshotTable(ctx context.Context, _writer writer.Writer, tableCfg config.MySQLTable) error {
 	logger := slog.With(slog.String("table", tableCfg.Name), slog.String("database", s.cfg.Database))
 	snapshotStartTime := time.Now()
 
@@ -66,7 +69,7 @@ func (s Source) snapshotTable(ctx context.Context, writer destinations.Destinati
 	}
 
 	logger.Info("Scanning table...", slog.Any("batchSize", tableCfg.GetBatchSize()))
-	count, err := writer.WriteIterator(ctx, dbzTransformer)
+	count, err := _writer.Write(ctx, dbzTransformer)
 	if err != nil {
 		return fmt.Errorf("failed to snapshot for table %s: %w", tableCfg.Name, err)
 	}

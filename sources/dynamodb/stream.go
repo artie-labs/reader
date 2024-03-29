@@ -27,11 +27,11 @@ func (s *StreamStore) Close() error {
 	return nil
 }
 
-func (s *StreamStore) Run(ctx context.Context, writer destinations.DestinationWriter) error {
+func (s *StreamStore) Run(ctx context.Context, destination destinations.Destination) error {
 	ticker := time.NewTicker(shardScannerInterval)
 
 	// Start to subscribe to the channel
-	go s.ListenToChannel(ctx, writer)
+	go s.ListenToChannel(ctx, destination)
 
 	// Scan it for the first time manually, so we don't have to wait 5 mins
 	if err := s.scanForNewShards(); err != nil {

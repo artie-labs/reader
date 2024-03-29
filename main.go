@@ -49,7 +49,7 @@ func buildSource(cfg *config.Settings) (sources.Source, error) {
 	}
 }
 
-func buildDestination(ctx context.Context, cfg *config.Settings, statsD mtr.Client) (destinations.DestinationWriter, error) {
+func buildDestination(ctx context.Context, cfg *config.Settings, statsD mtr.Client) (destinations.Destination, error) {
 	switch cfg.Destination {
 	case config.DestinationKafka:
 		kafkaCfg := cfg.Kafka
@@ -88,7 +88,7 @@ func main() {
 		logger.Fatal("Failed to set up metrics", slog.Any("err", err))
 	}
 
-	writer, err := buildDestination(ctx, cfg, statsD)
+	destination, err := buildDestination(ctx, cfg, statsD)
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("Failed to init '%s' destination", cfg.Destination), slog.Any("err", err))
 	}
@@ -99,7 +99,7 @@ func main() {
 	}
 	defer source.Close()
 
-	if err = source.Run(ctx, writer); err != nil {
+	if err = source.Run(ctx, destination); err != nil {
 		logger.Fatal("Failed to run",
 			slog.Any("err", err),
 			slog.String("source", string(cfg.Source)),

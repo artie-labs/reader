@@ -15,13 +15,13 @@ import (
 	"github.com/artie-labs/reader/lib/logger"
 )
 
-func (s *StreamStore) ListenToChannel(ctx context.Context, writer destinations.DestinationWriter) {
+func (s *StreamStore) ListenToChannel(ctx context.Context, destination destinations.Destination) {
 	for shard := range s.shardChan {
-		go s.processShard(ctx, shard, writer)
+		go s.processShard(ctx, shard, destination)
 	}
 }
 
-func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.Shard, writer destinations.DestinationWriter) {
+func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.Shard, destination destinations.Destination) {
 	var attempts int
 
 	// Is there another go-routine processing this shard?
@@ -97,7 +97,7 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 			messages = append(messages, msg.RawMessage())
 		}
 
-		if err = writer.WriteRawMessages(ctx, messages); err != nil {
+		if err = destination.WriteRawMessages(ctx, messages); err != nil {
 			logger.Panic("Failed to publish messages, exiting...", slog.Any("err", err))
 		}
 
