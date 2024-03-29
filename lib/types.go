@@ -46,12 +46,12 @@ type batchIterator[T any] struct {
 	batches [][]T
 }
 
-// Returns an iterator that returns multiple batches.
+// Returns an iterator that produces multiple batches.
 func NewBatchIterator[T any](batches [][]T) *batchIterator[T] {
 	return &batchIterator[T]{batches: batches}
 }
 
-// Returns an iterator that returns  a single batch.
+// Returns an iterator that produces a single batch.
 func NewSingleBatchIterator[T any](batches []T) *batchIterator[T] {
 	return NewBatchIterator([][]T{batches})
 }
