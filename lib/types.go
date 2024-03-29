@@ -1,6 +1,8 @@
 package lib
 
 import (
+	"fmt"
+
 	"github.com/artie-labs/transfer/lib/cdc/mongo"
 	"github.com/artie-labs/transfer/lib/cdc/util"
 )
@@ -37,4 +39,32 @@ func (r RawMessage) GetPayload() any {
 	}
 
 	return r.payload
+}
+
+type batchIterator[T any] struct {
+	index   int
+	batches [][]T
+}
+
+// Returns an iterator that produces multiple batches.
+func NewBatchIterator[T any](batches [][]T) *batchIterator[T] {
+	return &batchIterator[T]{batches: batches}
+}
+
+// Returns an iterator that produces a single batch.
+func NewSingleBatchIterator[T any](batches []T) *batchIterator[T] {
+	return NewBatchIterator([][]T{batches})
+}
+
+func (bi *batchIterator[T]) HasNext() bool {
+	return bi.index < len(bi.batches)
+}
+
+func (bi *batchIterator[T]) Next() ([]T, error) {
+	if !bi.HasNext() {
+		return nil, fmt.Errorf("iterator has finished")
+	}
+	result := bi.batches[bi.index]
+	bi.index++
+	return result, nil
 }

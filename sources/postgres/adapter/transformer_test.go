@@ -7,6 +7,7 @@ import (
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/postgres"
@@ -21,21 +22,6 @@ func (m *ErrorRowIterator) HasNext() bool {
 
 func (m *ErrorRowIterator) Next() ([]map[string]any, error) {
 	return nil, fmt.Errorf("mock error")
-}
-
-type MockRowIterator struct {
-	batches [][]map[string]any
-	index   int
-}
-
-func (m *MockRowIterator) HasNext() bool {
-	return m.index < len(m.batches)
-}
-
-func (m *MockRowIterator) Next() ([]map[string]any, error) {
-	result := m.batches[m.index]
-	m.index++
-	return result, nil
 }
 
 func TestDebeziumTransformer(t *testing.T) {
@@ -53,7 +39,7 @@ func TestDebeziumTransformer(t *testing.T) {
 	{
 		dbzTransformer := transformer.NewDebeziumTransformerWithIterator(
 			PostgresAdapter{table: table},
-			&MockRowIterator{batches: [][]map[string]any{}},
+			lib.NewBatchIterator([][]transformer.Row{}),
 		)
 		assert.False(t, dbzTransformer.HasNext())
 	}
@@ -80,12 +66,10 @@ func TestDebeziumTransformer(t *testing.T) {
 					{Name: "b", ValueConverter: converters.StringPassthrough{}},
 				},
 			},
-			&MockRowIterator{
-				batches: [][]map[string]any{
-					{{"a": "1", "b": "11"}, {"a": "2", "b": "12"}},
-					{{"a": "3", "b": "13"}, {"a": "4", "b": "14"}},
-				},
-			},
+			lib.NewBatchIterator([][]transformer.Row{
+				{{"a": "1", "b": "11"}, {"a": "2", "b": "12"}},
+				{{"a": "3", "b": "13"}, {"a": "4", "b": "14"}},
+			}),
 		)
 
 		assert.True(t, dbzTransformer.HasNext())
@@ -124,7 +108,7 @@ func TestDebeziumTransformer_NilOptionalSchema(t *testing.T) {
 		},
 	}
 
-	rowData := map[string]any{
+	rowData := transformer.Row{
 		"user_id": int16(123),
 		"name":    "Robin",
 	}
@@ -137,7 +121,7 @@ func TestDebeziumTransformer_NilOptionalSchema(t *testing.T) {
 				{Name: "name", ValueConverter: converters.StringPassthrough{}},
 			},
 		},
-		&MockRowIterator{batches: [][]map[string]any{{rowData}}},
+		lib.NewSingleBatchIterator([]transformer.Row{rowData}),
 	)
 
 	rows, err := dbzTransformer.Next()

@@ -9,19 +9,19 @@ import (
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
 
-	"github.com/artie-labs/reader/destinations"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/dynamo"
 	"github.com/artie-labs/reader/lib/logger"
+	"github.com/artie-labs/reader/lib/writer"
 )
 
-func (s *StreamStore) ListenToChannel(ctx context.Context, destination destinations.Destination) {
+func (s *StreamStore) ListenToChannel(ctx context.Context, _writer writer.Writer) {
 	for shard := range s.shardChan {
-		go s.processShard(ctx, shard, destination)
+		go s.processShard(ctx, shard, _writer)
 	}
 }
 
-func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.Shard, destination destinations.Destination) {
+func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.Shard, _writer writer.Writer) {
 	var attempts int
 
 	// Is there another go-routine processing this shard?
@@ -97,7 +97,8 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 			messages = append(messages, msg.RawMessage())
 		}
 
-		if err = destination.WriteRawMessages(ctx, messages); err != nil {
+		// TODO: Create an actual iterator over the shards that is passed to the writer.
+		if _, err = _writer.Write(ctx, lib.NewSingleBatchIterator(messages)); err != nil {
 			logger.Panic("Failed to publish messages, exiting...", slog.Any("err", err))
 		}
 
