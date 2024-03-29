@@ -37,12 +37,12 @@ func (w *Writer) Write(ctx context.Context, iter RawMessageIterator) (int, error
 				return 0, fmt.Errorf("failed to write messages: %w", err)
 			}
 			count += len(msgs)
+			slog.Info("Write progress",
+				slog.Duration("timing", time.Since(start)),
+				slog.Int("batchSize", len(msgs)),
+				slog.Int("total", count),
+			)
 		}
-		slog.Info("Write progress",
-			slog.Duration("timing", time.Since(start)),
-			slog.Int("batchSize", len(msgs)),
-			slog.Int("total", count),
-		)
 	}
 	return count, nil
 }
