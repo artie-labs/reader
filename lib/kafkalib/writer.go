@@ -96,7 +96,7 @@ func (b *BatchWriter) WriteMessages(ctx context.Context, msgs []kafka.Message) e
 
 		var kafkaErr error
 		chunk := iter.Next()
-		for attempts := 0; attempts < 10; attempts++ {
+		for attempts := range 10 {
 			if attempts > 0 {
 				sleepDuration := jitter.Jitter(baseJitterMs, maxJitterMs, attempts-1)
 				slog.Info("Failed to publish to kafka",

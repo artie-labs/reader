@@ -2,6 +2,7 @@ package dynamodb
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -14,6 +15,8 @@ import (
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/writer"
 )
+
+const maxAttempts = 50
 
 func (s *StreamStore) ListenToChannel(ctx context.Context, _writer writer.Writer) {
 	for shard := range s.shardChan {
@@ -108,6 +111,10 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 			s.storage.SetLastProcessedSequenceNumber(*shard.ShardId, *lastRecord.Dynamodb.SequenceNumber)
 		} else {
 			attempts += 1
+		}
+
+		if attempts >= maxAttempts {
+			logger.Panic(fmt.Sprintf("Failed to publish messages after %d attempts, exiting...", attempts))
 		}
 
 		time.Sleep(jitter.Jitter(jitterSleepBaseMs, jitter.DefaultMaxMs, attempts))
