@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/destinations"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/dynamo"
 	"github.com/artie-labs/reader/lib/logger"
@@ -29,12 +28,12 @@ func (s *SnapshotStore) Close() error {
 	return nil
 }
 
-func (s *SnapshotStore) Run(ctx context.Context, destination destinations.Destination) error {
+func (s *SnapshotStore) Run(ctx context.Context, _writer writer.Writer) error {
 	if err := s.scanFilesOverBucket(); err != nil {
 		return fmt.Errorf("scanning files over bucket failed: %w", err)
 	}
 
-	if err := s.streamAndPublish(ctx, writer.New(destination)); err != nil {
+	if err := s.streamAndPublish(ctx, _writer); err != nil {
 		return fmt.Errorf("stream and publish failed: %w", err)
 	}
 

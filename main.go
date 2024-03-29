@@ -13,6 +13,7 @@ import (
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/mtr"
+	"github.com/artie-labs/reader/lib/writer"
 	"github.com/artie-labs/reader/sources"
 	"github.com/artie-labs/reader/sources/dynamodb"
 	"github.com/artie-labs/reader/sources/mongo"
@@ -99,7 +100,7 @@ func main() {
 	}
 	defer source.Close()
 
-	if err = source.Run(ctx, destination); err != nil {
+	if err = source.Run(ctx, writer.New(destination)); err != nil {
 		logger.Fatal("Failed to run",
 			slog.Any("err", err),
 			slog.String("source", string(cfg.Source)),
