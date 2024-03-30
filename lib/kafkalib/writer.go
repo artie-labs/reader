@@ -87,25 +87,14 @@ func (b *BatchWriter) reload(ctx context.Context) error {
 	return nil
 }
 
-func (b *BatchWriter) buildKafkaMessages(rawMsgs []lib.RawMessage) ([]kafka.Message, error) {
-	var kafkaMsgs []kafka.Message
-	for _, rawMsg := range rawMsgs {
-		topic := fmt.Sprintf("%s.%s", b.cfg.TopicPrefix, rawMsg.TopicSuffix)
-		kafkaMsg, err := newMessage(topic, rawMsg.PartitionKey, rawMsg.GetPayload())
-		if err != nil {
-			return nil, err
-		}
-
-		kafkaMsgs = append(kafkaMsgs, kafkaMsg)
-	}
-
-	return kafkaMsgs, nil
-}
-
 func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMessage) error {
-	msgs, err := b.buildKafkaMessages(rawMsgs)
-	if err != nil {
-		return fmt.Errorf("failed to encode kafka messages: %w", err)
+	var msgs []kafka.Message
+	for _, rawMsg := range rawMsgs {
+		kafkaMsg, err := newMessage(b.cfg, rawMsg)
+		if err != nil {
+			return fmt.Errorf("failed to encode kafka messages: %w", err)
+		}
+		msgs = append(msgs, kafkaMsg)
 	}
 
 	chunkSize := b.cfg.GetPublishSize()
