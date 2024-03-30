@@ -1,4 +1,4 @@
-package lib
+package iterator
 
 import (
 	"testing"
@@ -6,17 +6,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_BatchIterator(t *testing.T) {
+func Test_MultiBatchIterator(t *testing.T) {
 	{
 		// No batches
-		iter := NewBatchIterator([][]string{})
+		iter := MultiBatchIterator([][]string{})
 		assert.False(t, iter.HasNext())
 		_, err := iter.Next()
 		assert.ErrorContains(t, err, "iterator has finished")
 	}
 	{
 		// One empty batch
-		iter := NewBatchIterator([][]string{{}})
+		iter := MultiBatchIterator([][]string{{}})
 		assert.True(t, iter.HasNext())
 		batch, err := iter.Next()
 		assert.NoError(t, err)
@@ -27,7 +27,7 @@ func Test_BatchIterator(t *testing.T) {
 	}
 	{
 		// Two non-empty batches one empty batch
-		iter := NewBatchIterator([][]string{{"a", "b"}, {}, {"c", "d"}})
+		iter := MultiBatchIterator([][]string{{"a", "b"}, {}, {"c", "d"}})
 		assert.True(t, iter.HasNext())
 		{
 			batch, err := iter.Next()
@@ -58,7 +58,7 @@ func Test_BatchIterator(t *testing.T) {
 func Test_SingleBatchIterator(t *testing.T) {
 	{
 		// Empty batch
-		iter := NewSingleBatchIterator([]string{})
+		iter := SingleBatchIterator([]string{})
 		assert.True(t, iter.HasNext())
 		batch, err := iter.Next()
 		assert.NoError(t, err)
@@ -69,7 +69,7 @@ func Test_SingleBatchIterator(t *testing.T) {
 	}
 	{
 		// Non-empty batch
-		iter := NewSingleBatchIterator([]string{"a", "b", "c", "d"})
+		iter := SingleBatchIterator([]string{"a", "b", "c", "d"})
 		assert.True(t, iter.HasNext())
 		batch, err := iter.Next()
 		assert.NoError(t, err)

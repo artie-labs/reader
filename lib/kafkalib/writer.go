@@ -88,14 +88,17 @@ func (b *BatchWriter) WriteMessages(ctx context.Context, msgs []kafka.Message) e
 		return nil
 	}
 
-	iter := iterator.NewBatchIterator(msgs, int(chunkSize))
+	iter := iterator.BatchIterator(msgs, int(chunkSize))
 	for iter.HasNext() {
 		tags := map[string]string{
 			"what": "error",
 		}
 
 		var kafkaErr error
-		chunk := iter.Next()
+		chunk, err := iter.Next()
+		if err != nil {
+			return err
+		}
 		for attempts := 0; attempts < 10; attempts++ {
 			if attempts > 0 {
 				sleepDuration := jitter.Jitter(baseJitterMs, maxJitterMs, attempts-1)

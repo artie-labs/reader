@@ -11,6 +11,7 @@ import (
 
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/dynamo"
+	"github.com/artie-labs/reader/lib/iterator"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/writer"
 )
@@ -98,7 +99,7 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 		}
 
 		// TODO: Create an actual iterator over the shards that is passed to the writer.
-		if _, err = _writer.Write(ctx, lib.NewSingleBatchIterator(messages)); err != nil {
+		if _, err = _writer.Write(ctx, iterator.SingleBatchIterator(messages)); err != nil {
 			logger.Panic("Failed to publish messages, exiting...", slog.Any("err", err))
 		}
 

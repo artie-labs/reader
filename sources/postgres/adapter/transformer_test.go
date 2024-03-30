@@ -7,9 +7,9 @@ import (
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
+	"github.com/artie-labs/reader/lib/iterator"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
@@ -39,7 +39,7 @@ func TestDebeziumTransformer(t *testing.T) {
 	{
 		dbzTransformer := transformer.NewDebeziumTransformerWithIterator(
 			PostgresAdapter{table: table},
-			lib.NewBatchIterator([][]transformer.Row{}),
+			iterator.MultiBatchIterator([][]transformer.Row{}),
 		)
 		assert.False(t, dbzTransformer.HasNext())
 	}
@@ -66,7 +66,7 @@ func TestDebeziumTransformer(t *testing.T) {
 					{Name: "b", ValueConverter: converters.StringPassthrough{}},
 				},
 			},
-			lib.NewBatchIterator([][]transformer.Row{
+			iterator.MultiBatchIterator([][]transformer.Row{
 				{{"a": "1", "b": "11"}, {"a": "2", "b": "12"}},
 				{{"a": "3", "b": "13"}, {"a": "4", "b": "14"}},
 			}),
@@ -121,7 +121,7 @@ func TestDebeziumTransformer_NilOptionalSchema(t *testing.T) {
 				{Name: "name", ValueConverter: converters.StringPassthrough{}},
 			},
 		},
-		lib.NewSingleBatchIterator([]transformer.Row{rowData}),
+		iterator.SingleBatchIterator([]transformer.Row{rowData}),
 	)
 
 	rows, err := dbzTransformer.Next()

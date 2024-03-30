@@ -10,6 +10,7 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/dynamo"
+	"github.com/artie-labs/reader/lib/iterator"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/s3lib"
 	"github.com/artie-labs/reader/lib/writer"
@@ -93,7 +94,7 @@ func (s *SnapshotStore) streamAndPublish(ctx context.Context, _writer writer.Wri
 		}
 
 		// TODO: Create an actual iterator over the files that is passed to the writer.
-		if _, err := _writer.Write(ctx, lib.NewSingleBatchIterator(messages)); err != nil {
+		if _, err := _writer.Write(ctx, iterator.SingleBatchIterator(messages)); err != nil {
 			return fmt.Errorf("failed to publish messages: %w", err)
 		}
 

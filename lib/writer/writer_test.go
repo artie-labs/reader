@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/artie-labs/reader/lib"
+	"github.com/artie-labs/reader/lib/iterator"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -37,7 +38,7 @@ func TestWriter_Write(t *testing.T) {
 		// Empty iterator
 		destination := &mockDestination{}
 		writer := New(destination, false)
-		iterator := lib.NewBatchIterator([][]lib.RawMessage{})
+		iterator := iterator.MultiBatchIterator([][]lib.RawMessage{})
 		count, err := writer.Write(context.Background(), iterator)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, count)
@@ -56,7 +57,7 @@ func TestWriter_Write(t *testing.T) {
 		// Two empty batches
 		destination := &mockDestination{}
 		writer := New(destination, false)
-		iterator := lib.NewBatchIterator([][]lib.RawMessage{{}, {}})
+		iterator := iterator.MultiBatchIterator([][]lib.RawMessage{{}, {}})
 		count, err := writer.Write(context.Background(), iterator)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, count)
@@ -66,7 +67,7 @@ func TestWriter_Write(t *testing.T) {
 		// Three batches, two non-empty
 		destination := &mockDestination{}
 		writer := New(destination, false)
-		iterator := lib.NewBatchIterator([][]lib.RawMessage{{{TopicSuffix: "a"}}, {}, {{TopicSuffix: "b"}, {TopicSuffix: "c"}}})
+		iterator := iterator.MultiBatchIterator([][]lib.RawMessage{{{TopicSuffix: "a"}}, {}, {{TopicSuffix: "b"}, {TopicSuffix: "c"}}})
 		count, err := writer.Write(context.Background(), iterator)
 		assert.NoError(t, err)
 		assert.Equal(t, 3, count)
@@ -79,7 +80,7 @@ func TestWriter_Write(t *testing.T) {
 		// Destination error
 		destination := &mockDestination{emitError: true}
 		writer := New(destination, false)
-		iterator := lib.NewSingleBatchIterator([]lib.RawMessage{{TopicSuffix: "a"}})
+		iterator := iterator.SingleBatchIterator([]lib.RawMessage{{TopicSuffix: "a"}})
 		_, err := writer.Write(context.Background(), iterator)
 		assert.ErrorContains(t, err, "failed to write messages: test write-raw-messages error")
 		assert.Empty(t, destination.messages)
