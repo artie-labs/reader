@@ -33,12 +33,12 @@ func TestBatch(t *testing.T) {
 	{
 		iter := Batch([]int{1, 2}, 0)
 		assert.True(t, iter.HasNext())
-		next, err := iter.Next()
+		items, err := iter.Next()
 		assert.NoError(t, err)
-		assert.Equal(t, []int{1}, next)
-		next, err = iter.Next()
+		assert.Equal(t, []int{1}, items)
+		items, err = iter.Next()
 		assert.NoError(t, err)
-		assert.Equal(t, []int{2}, next)
+		assert.Equal(t, []int{2}, items)
 		assert.False(t, iter.HasNext())
 	}
 	// length of items is a multiple of n
