@@ -121,7 +121,7 @@ func TestDebeziumTransformer_NilOptionalSchema(t *testing.T) {
 				{Name: "name", ValueConverter: converters.StringPassthrough{}},
 			},
 		},
-		iterator.FromSlice([][]transformer.Row{{rowData}}),
+		iterator.Once([]transformer.Row{rowData}),
 	)
 
 	rows, err := dbzTransformer.Next()
