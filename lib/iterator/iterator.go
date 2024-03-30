@@ -2,6 +2,11 @@ package iterator
 
 import "fmt"
 
+type Iterator[T any] interface {
+	HasNext() bool
+	Next() (T, error)
+}
+
 type batchIterator[T any] struct {
 	items []T
 	index int
