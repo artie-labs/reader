@@ -38,7 +38,7 @@ func TestWriter_Write(t *testing.T) {
 		// Empty iterator
 		destination := &mockDestination{}
 		writer := New(destination, false)
-		iter := iterator.FromSlice([][]lib.RawMessage{})
+		iter := iterator.ForSlice([][]lib.RawMessage{})
 		count, err := writer.Write(context.Background(), iter)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, count)
@@ -57,7 +57,7 @@ func TestWriter_Write(t *testing.T) {
 		// Two empty batches
 		destination := &mockDestination{}
 		writer := New(destination, false)
-		iter := iterator.FromSlice([][]lib.RawMessage{{}, {}})
+		iter := iterator.ForSlice([][]lib.RawMessage{{}, {}})
 		count, err := writer.Write(context.Background(), iter)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, count)
@@ -67,7 +67,7 @@ func TestWriter_Write(t *testing.T) {
 		// Three batches, two non-empty
 		destination := &mockDestination{}
 		writer := New(destination, false)
-		iter := iterator.FromSlice([][]lib.RawMessage{
+		iter := iterator.ForSlice([][]lib.RawMessage{
 			{{TopicSuffix: "a"}},
 			{},
 			{{TopicSuffix: "b"}, {TopicSuffix: "c"}},

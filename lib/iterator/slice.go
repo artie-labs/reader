@@ -8,7 +8,7 @@ type sliceIterator[T any] struct {
 }
 
 // Returns an iterator that iterates over all the items in a slice.
-func FromSlice[T any](items []T) Iterator[T] {
+func ForSlice[T any](items []T) Iterator[T] {
 	return &sliceIterator[T]{items: items}
 }
 
@@ -28,5 +28,5 @@ func (it *sliceIterator[T]) Next() (T, error) {
 
 // Returns an iterator that emits a value once and then completes.
 func Once[T any](value T) Iterator[T] {
-	return FromSlice([]T{value})
+	return ForSlice([]T{value})
 }

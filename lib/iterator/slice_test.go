@@ -9,14 +9,14 @@ import (
 func TestSliceIterator(t *testing.T) {
 	{
 		// No items
-		iter := FromSlice([][]string{})
+		iter := ForSlice([][]string{})
 		assert.False(t, iter.HasNext())
 		_, err := iter.Next()
 		assert.ErrorContains(t, err, "iterator has finished")
 	}
 	{
 		// One empty slice
-		iter := FromSlice([][]string{{}})
+		iter := ForSlice([][]string{{}})
 		assert.True(t, iter.HasNext())
 		item, err := iter.Next()
 		assert.NoError(t, err)
@@ -27,7 +27,7 @@ func TestSliceIterator(t *testing.T) {
 	}
 	{
 		// Two non-empty slices + one empty slice
-		iter := FromSlice([][]string{{"a", "b"}, {}, {"c", "d"}})
+		iter := ForSlice([][]string{{"a", "b"}, {}, {"c", "d"}})
 		assert.True(t, iter.HasNext())
 		{
 			item, err := iter.Next()
