@@ -88,7 +88,7 @@ func (b *BatchWriter) WriteMessages(ctx context.Context, msgs []kafka.Message) e
 		return nil
 	}
 
-	iter := iterator.Batch(msgs, int(chunkSize))
+	iter := iterator.NewBatchIterator(msgs, int(chunkSize))
 	for iter.HasNext() {
 		tags := map[string]string{
 			"what": "error",

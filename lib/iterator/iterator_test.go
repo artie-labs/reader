@@ -6,17 +6,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBatch(t *testing.T) {
+func TestBatchIterator(t *testing.T) {
 	// length of items is 0
 	{
-		iter := Batch([]int{}, 2)
+		iter := NewBatchIterator([]int{}, 2)
 		assert.False(t, iter.HasNext())
 		_, err := iter.Next()
 		assert.ErrorContains(t, err, "iterator has finished")
 	}
 	// length of items is 1
 	{
-		iter := Batch([]int{1}, 2)
+		iter := NewBatchIterator([]int{1}, 2)
 		assert.True(t, iter.HasNext())
 		{
 			items, err := iter.Next()
@@ -31,7 +31,7 @@ func TestBatch(t *testing.T) {
 	}
 	// n is 0
 	{
-		iter := Batch([]int{1, 2}, 0)
+		iter := NewBatchIterator([]int{1, 2}, 0)
 		assert.True(t, iter.HasNext())
 		items, err := iter.Next()
 		assert.NoError(t, err)
@@ -43,7 +43,7 @@ func TestBatch(t *testing.T) {
 	}
 	// length of items is a multiple of n
 	{
-		iter := Batch([]int{1, 2, 3, 4}, 2)
+		iter := NewBatchIterator([]int{1, 2, 3, 4}, 2)
 		assert.True(t, iter.HasNext())
 		{
 			items, err := iter.Next()
@@ -64,7 +64,7 @@ func TestBatch(t *testing.T) {
 	}
 	// length of items is not a multiple of n
 	{
-		iter := Batch([]int{1, 2, 3, 4, 5}, 2)
+		iter := NewBatchIterator([]int{1, 2, 3, 4, 5}, 2)
 		assert.True(t, iter.HasNext())
 		{
 			items, err := iter.Next()
