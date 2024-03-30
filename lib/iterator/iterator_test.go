@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBatchIterator(t *testing.T) {
+func TestBatch(t *testing.T) {
 	// length of items is 0
 	{
 		iter := Batch([]int{}, 2)
