@@ -92,7 +92,7 @@ func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMes
 	for _, rawMsg := range rawMsgs {
 		kafkaMsg, err := newMessage(b.cfg.TopicPrefix, rawMsg)
 		if err != nil {
-			return fmt.Errorf("failed to encode kafka messages: %w", err)
+			return fmt.Errorf("failed to encode kafka message: %w", err)
 		}
 		msgs = append(msgs, kafkaMsg)
 	}
