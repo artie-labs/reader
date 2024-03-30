@@ -26,7 +26,7 @@ func (it *sliceIterator[T]) Next() (T, error) {
 	return item, nil
 }
 
-// Returns an iterator that produces a value once and then completes.
+// Returns an iterator that emits a value once and then completes.
 func Once[T any](value T) Iterator[T] {
 	return FromSlice([]T{value})
 }
