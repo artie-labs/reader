@@ -22,7 +22,6 @@ func TestBatchIterator(t *testing.T) {
 			items, err := iter.Next()
 			assert.NoError(t, err)
 			assert.Equal(t, []int{1}, items)
-
 			assert.Equal(t, 1, (iter.(*batchIterator[int])).index)
 		}
 		assert.False(t, iter.HasNext())
@@ -33,13 +32,19 @@ func TestBatchIterator(t *testing.T) {
 	{
 		iter := NewBatchIterator([]int{1, 2}, 0)
 		assert.True(t, iter.HasNext())
-		items, err := iter.Next()
-		assert.NoError(t, err)
-		assert.Equal(t, []int{1}, items)
-		items, err = iter.Next()
-		assert.NoError(t, err)
-		assert.Equal(t, []int{2}, items)
+		{
+			items, err := iter.Next()
+			assert.NoError(t, err)
+			assert.Equal(t, []int{1}, items)
+		}
+		{
+			items, err := iter.Next()
+			assert.NoError(t, err)
+			assert.Equal(t, []int{2}, items)
+		}
 		assert.False(t, iter.HasNext())
+		_, err := iter.Next()
+		assert.ErrorContains(t, err, "iterator has finished")
 	}
 	// length of items is a multiple of n
 	{
