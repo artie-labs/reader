@@ -8,12 +8,8 @@ import (
 
 	"github.com/artie-labs/reader/destinations"
 	"github.com/artie-labs/reader/lib"
+	"github.com/artie-labs/reader/lib/iterator"
 )
-
-type RawMessageIterator interface {
-	HasNext() bool
-	Next() ([]lib.RawMessage, error)
-}
 
 type Writer struct {
 	destination destinations.Destination
@@ -25,7 +21,7 @@ func New(destination destinations.Destination, logProgress bool) Writer {
 }
 
 // Write writes all the messages from an iterator to the destination.
-func (w *Writer) Write(ctx context.Context, iter RawMessageIterator) (int, error) {
+func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMessage]) (int, error) {
 	start := time.Now()
 	var count int
 	for iter.HasNext() {

@@ -10,14 +10,12 @@ import (
 
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/debezium/converters"
+	"github.com/artie-labs/reader/lib/iterator"
 )
 
 type Row = map[string]any
 
-type RowsIterator interface {
-	HasNext() bool
-	Next() ([]Row, error)
-}
+type RowsIterator = iterator.Iterator[[]Row]
 
 type FieldConverter struct {
 	Name           string
