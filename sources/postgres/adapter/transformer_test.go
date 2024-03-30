@@ -39,7 +39,7 @@ func TestDebeziumTransformer(t *testing.T) {
 	{
 		dbzTransformer := transformer.NewDebeziumTransformerWithIterator(
 			PostgresAdapter{table: table},
-			iterator.MultiBatchIterator([][]transformer.Row{}),
+			iterator.FromSlice([][]transformer.Row{}),
 		)
 		assert.False(t, dbzTransformer.HasNext())
 	}
@@ -66,7 +66,7 @@ func TestDebeziumTransformer(t *testing.T) {
 					{Name: "b", ValueConverter: converters.StringPassthrough{}},
 				},
 			},
-			iterator.MultiBatchIterator([][]transformer.Row{
+			iterator.FromSlice([][]transformer.Row{
 				{{"a": "1", "b": "11"}, {"a": "2", "b": "12"}},
 				{{"a": "3", "b": "13"}, {"a": "4", "b": "14"}},
 			}),
@@ -121,7 +121,7 @@ func TestDebeziumTransformer_NilOptionalSchema(t *testing.T) {
 				{Name: "name", ValueConverter: converters.StringPassthrough{}},
 			},
 		},
-		iterator.SingleBatchIterator([]transformer.Row{rowData}),
+		iterator.FromSlice([][]transformer.Row{{rowData}}),
 	)
 
 	rows, err := dbzTransformer.Next()

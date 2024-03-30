@@ -99,7 +99,7 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 		}
 
 		// TODO: Create an actual iterator over the shards that is passed to the writer.
-		if _, err = _writer.Write(ctx, iterator.SingleBatchIterator(messages)); err != nil {
+		if _, err = _writer.Write(ctx, iterator.Once(messages)); err != nil {
 			logger.Panic("Failed to publish messages, exiting...", slog.Any("err", err))
 		}
 
