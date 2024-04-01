@@ -2,13 +2,16 @@ package kafkalib
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/size"
+	awsCfg "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/segmentio/kafka-go"
+	"github.com/segmentio/kafka-go/sasl/aws_msk_iam_v2"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
@@ -20,6 +23,36 @@ const (
 	baseJitterMs = 300
 	maxJitterMs  = 5000
 )
+
+func newWriter(ctx context.Context, cfg config.Kafka) (*kafka.Writer, error) {
+	slog.Info("Setting kafka bootstrap URLs", slog.Any("urls", cfg.BootstrapAddresses()))
+	writer := &kafka.Writer{
+		Addr:                   kafka.TCP(cfg.BootstrapAddresses()...),
+		Compression:            kafka.Gzip,
+		Balancer:               &kafka.LeastBytes{},
+		WriteTimeout:           5 * time.Second,
+		AllowAutoTopicCreation: true,
+	}
+
+	if cfg.MaxRequestSize > 0 {
+		writer.BatchBytes = int64(cfg.MaxRequestSize)
+	}
+
+	if cfg.AwsEnabled {
+		saslCfg, err := awsCfg.LoadDefaultConfig(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load AWS configuration: %w", err)
+		}
+
+		writer.Transport = &kafka.Transport{
+			DialTimeout: 10 * time.Second,
+			SASL:        aws_msk_iam_v2.NewMechanism(saslCfg),
+			TLS:         &tls.Config{},
+		}
+	}
+
+	return writer, nil
+}
 
 type BatchWriter struct {
 	writer *kafka.Writer
@@ -54,31 +87,16 @@ func (b *BatchWriter) reload(ctx context.Context) error {
 	return nil
 }
 
-func (b *BatchWriter) buildKafkaMessages(rawMsgs []lib.RawMessage) ([]kafka.Message, error) {
-	var kafkaMsgs []kafka.Message
-	for _, rawMsg := range rawMsgs {
-		topic := fmt.Sprintf("%s.%s", b.cfg.TopicPrefix, rawMsg.TopicSuffix)
-		kafkaMsg, err := newMessage(topic, rawMsg.PartitionKey, rawMsg.GetPayload())
-		if err != nil {
-			return nil, err
-		}
-
-		kafkaMsgs = append(kafkaMsgs, kafkaMsg)
-	}
-
-	return kafkaMsgs, nil
-}
-
 func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMessage) error {
-	kafkaMsgs, err := b.buildKafkaMessages(rawMsgs)
-	if err != nil {
-		return fmt.Errorf("failed to encode kafka messages: %w", err)
+	var msgs []kafka.Message
+	for _, rawMsg := range rawMsgs {
+		kafkaMsg, err := newMessage(b.cfg.TopicPrefix, rawMsg)
+		if err != nil {
+			return fmt.Errorf("failed to encode kafka message: %w", err)
+		}
+		msgs = append(msgs, kafkaMsg)
 	}
 
-	return b.WriteMessages(ctx, kafkaMsgs)
-}
-
-func (b *BatchWriter) WriteMessages(ctx context.Context, msgs []kafka.Message) error {
 	chunkSize := b.cfg.GetPublishSize()
 	if chunkSize < 1 {
 		return fmt.Errorf("chunk size is too small")
@@ -99,7 +117,7 @@ func (b *BatchWriter) WriteMessages(ctx context.Context, msgs []kafka.Message) e
 		if err != nil {
 			return err
 		}
-		for attempts := 0; attempts < 10; attempts++ {
+		for attempts := range 10 {
 			if attempts > 0 {
 				sleepDuration := jitter.Jitter(baseJitterMs, maxJitterMs, attempts-1)
 				slog.Info("Failed to publish to kafka",
