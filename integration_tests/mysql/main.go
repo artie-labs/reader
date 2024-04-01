@@ -76,9 +76,13 @@ const testTypesCreateTableQuery = `
 CREATE TABLE %s (
 	pk INTEGER PRIMARY KEY NOT NULL,
 	c_tinyint TINYINT,
+	c_tinyint_unsigned TINYINT UNSIGNED,
 	c_smallint SMALLINT,
+	c_smallint_unsigned SMALLINT UNSIGNED,
 	c_mediumint MEDIUMINT,
+	c_mediumint_unsigned MEDIUMINT UNSIGNED,
 	c_int INT,
+	c_int_unsigned INT(15) UNSIGNED,
 	c_bigint BIGINT,
 	c_decimal DECIMAL(7, 5),
 	c_numeric NUMERIC(5, 3),
@@ -110,12 +114,20 @@ INSERT INTO %s VALUES (
 		1,
 	-- c_tinyint
 		1,
+	-- c_smallint_unsigned
+		2,
 	-- c_smallint
 		2,
+	-- c_smallint_unsigned
+		3,
 	-- c_mediumint
 		3,
+	-- c_mediumint_unsigned
+		4,
 	-- c_int
 		4,
+	-- c_int_unsigned
+    	55,
 	-- c_bigint
 		5,
 	-- c_decimal
@@ -190,7 +202,23 @@ const expectedPayloadTemplate = `{
 						"type": "int16",
 						"optional": false,
 						"default": null,
+						"field": "c_tinyint_unsigned",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "int16",
+						"optional": false,
+						"default": null,
 						"field": "c_smallint",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "int32",
+						"optional": false,
+						"default": null,
+						"field": "c_smallint_unsigned",
 						"name": "",
 						"parameters": null
 					},
@@ -206,7 +234,23 @@ const expectedPayloadTemplate = `{
 						"type": "int32",
 						"optional": false,
 						"default": null,
+						"field": "c_mediumint_unsigned",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "int32",
+						"optional": false,
+						"default": null,
 						"field": "c_int",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "int64",
+						"optional": false,
+						"default": null,
+						"field": "c_int_unsigned",
 						"name": "",
 						"parameters": null
 					},
@@ -415,15 +459,19 @@ const expectedPayloadTemplate = `{
 			"c_enum": "medium",
 			"c_float": 90.123,
 			"c_int": 4,
+			"c_int_unsigned": 55,
 			"c_json": "{\"key1\": \"value1\", \"key2\": \"value2\"}",
 			"c_mediumint": 3,
+			"c_mediumint_unsigned": 4,
 			"c_numeric": "AN3M",
 			"c_set": "one,two",
 			"c_smallint": 2,
+			"c_smallint_unsigned": 3,
 			"c_text": "ZXCV",
 			"c_time": 14706000000,
 			"c_timestamp": "2001-02-03T04:05:06Z",
 			"c_tinyint": 1,
+			"c_tinyint_unsigned": 2,
 			"c_varbinary": "Qk5N",
 			"c_varchar": "GHJKL",
 			"c_year": 2001,

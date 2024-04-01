@@ -106,12 +106,22 @@ func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 	return result, nil
 }
 
-func parseColumnDataType(s string) (DataType, *Opts, error) {
+func parseColumnDataType(originalS string) (DataType, *Opts, error) {
+	// Preserve the original value, so we can return the error message without the actual value being mutated.
+	s := originalS
 	var metadata string
+	var unsigned bool
+	if strings.HasSuffix(s, " unsigned") {
+		// If a number is unsigned, we'll bump them up by one (e.g. int32 -> int64)
+		unsigned = true
+		s = strings.TrimSuffix(s, " unsigned")
+	}
+
 	parenIndex := strings.Index(s, "(")
 	if parenIndex != -1 {
 		if s[len(s)-1] != ')' {
-			return -1, nil, fmt.Errorf("malformed data type: %s", s)
+			// Make sure the format looks like int (n) unsigned
+			return -1, nil, fmt.Errorf("malformed data type: %s", originalS)
 		}
 		metadata = s[parenIndex+1 : len(s)-1]
 		s = s[:parenIndex]
@@ -124,12 +134,28 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 			return Boolean, nil, nil
 		}
 
+		if unsigned {
+			return SmallInt, nil, nil
+		}
+
 		return TinyInt, nil, nil
 	case "smallint":
+		if unsigned {
+			return Int, nil, nil
+		}
+
 		return SmallInt, nil, nil
 	case "mediumint":
+		if unsigned {
+			return Int, nil, nil
+		}
+
 		return MediumInt, nil, nil
 	case "int":
+		if unsigned {
+			return BigInt, nil, nil
+		}
+
 		return Int, nil, nil
 	case "bigint":
 		return BigInt, nil, nil
@@ -194,7 +220,7 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 	case "json":
 		return JSON, nil, nil
 	default:
-		return -1, nil, fmt.Errorf("unknown data type: %s", s)
+		return -1, nil, fmt.Errorf("unknown data type: %s", originalS)
 	}
 }
 
