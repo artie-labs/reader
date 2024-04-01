@@ -29,7 +29,7 @@ func TestCollect(t *testing.T) {
 		assert.Equal(t, items, []int{1, 2, 3, 4})
 	}
 	{
-		// When [Next] throws an error.
+		// When [Iterator.Next] throws an error.
 		_, err := Collect(errorIterator{})
 		assert.ErrorContains(t, err, "error in Next()")
 	}
