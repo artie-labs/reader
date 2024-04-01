@@ -82,7 +82,7 @@ CREATE TABLE %s (
 	c_mediumint MEDIUMINT,
 	c_mediumint_unsigned MEDIUMINT UNSIGNED,
 	c_int INT,
-	c_unsigned_int INT(15) UNSIGNED,
+	c_int_unsigned INT(15) UNSIGNED,
 	c_bigint BIGINT,
 	c_decimal DECIMAL(7, 5),
 	c_numeric NUMERIC(5, 3),
@@ -126,7 +126,7 @@ INSERT INTO %s VALUES (
 		4,
 	-- c_int
 		4,
-	-- c_unsigned_int
+	-- c_int_unsigned
     	55,
 	-- c_bigint
 		5,
@@ -250,7 +250,7 @@ const expectedPayloadTemplate = `{
 						"type": "int64",
 						"optional": false,
 						"default": null,
-						"field": "c_unsigned_int",
+						"field": "c_int_unsigned",
 						"name": "",
 						"parameters": null
 					},
@@ -459,6 +459,7 @@ const expectedPayloadTemplate = `{
 			"c_enum": "medium",
 			"c_float": 90.123,
 			"c_int": 4,
+			"c_int_unsigned": 55,
 			"c_json": "{\"key1\": \"value1\", \"key2\": \"value2\"}",
 			"c_mediumint": 3,
 			"c_mediumint_unsigned": 4,
@@ -471,7 +472,6 @@ const expectedPayloadTemplate = `{
 			"c_timestamp": "2001-02-03T04:05:06Z",
 			"c_tinyint": 1,
 			"c_tinyint_unsigned": 2,
-			"c_unsigned_int": 55,
 			"c_varbinary": "Qk5N",
 			"c_varchar": "GHJKL",
 			"c_year": 2001,
