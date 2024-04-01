@@ -218,6 +218,15 @@ const expectedPayloadTemplate = `{
 						"optional": false,
 						"default": null,
 						"field": "c_bigint",
+						"field": "c_unsigned_int",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "int64",
+						"optional": false,
+						"default": null,
+						"field": "c_bigint",
 						"name": "",
 						"parameters": null
 					},
@@ -427,6 +436,7 @@ const expectedPayloadTemplate = `{
 			"c_time": 14706000000,
 			"c_timestamp": "2001-02-03T04:05:06Z",
 			"c_tinyint": 1,
+			"c_unsigned_int": 55,
 			"c_varbinary": "Qk5N",
 			"c_varchar": "GHJKL",
 			"c_year": 2001,
@@ -445,8 +455,8 @@ const expectedPayloadTemplate = `{
 
 // testTypes checks that MySQL data types are handled correctly.
 func testTypes(db *sql.DB, dbName string) error {
-	tempTableName, _ := utils.CreateTemporaryTable(db, testTypesCreateTableQuery)
-	//defer dropTableFunc()
+	tempTableName, dropTableFunc := utils.CreateTemporaryTable(db, testTypesCreateTableQuery)
+	defer dropTableFunc()
 
 	// Check reading an empty table
 	_, err := readTable(db, dbName, tempTableName, 100)
