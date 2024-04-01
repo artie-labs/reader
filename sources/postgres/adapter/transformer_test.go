@@ -41,9 +41,9 @@ func TestDebeziumTransformer(t *testing.T) {
 			PostgresAdapter{table: table},
 			iterator.ForSlice([][]transformer.Row{}),
 		)
-		batches, err := iterator.Collect(dbzTransformer)
+		results, err := iterator.Collect(dbzTransformer)
 		assert.NoError(t, err)
-		assert.Empty(t, batches)
+		assert.Empty(t, results)
 	}
 
 	// test an iterator that returns an error
