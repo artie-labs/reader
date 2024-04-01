@@ -15,6 +15,5 @@ func Collect[T any](iter Iterator[T]) ([]T, error) {
 		}
 		result = append(result, value)
 	}
-
 	return result, nil
 }
