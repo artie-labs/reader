@@ -111,6 +111,7 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 	parenIndex := strings.Index(s, "(")
 	if parenIndex != -1 {
 		if s[len(s)-1] != ')' {
+			// Make sure the format looks like int (n) unsigned
 			if strings.HasSuffix(s, " unsigned") {
 				if trimmed := strings.TrimSuffix(s, " unsigned"); trimmed[len(trimmed)-1] == ')' {
 					return BigInt, nil, nil
