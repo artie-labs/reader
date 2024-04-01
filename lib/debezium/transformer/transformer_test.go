@@ -82,10 +82,10 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 		batches := [][]Row{{}}
 		transformer, err := NewDebeziumTransformer(mockAdatper{iter: iterator.ForSlice(batches)})
 		assert.NoError(t, err)
-		batchesOut, err := iterator.Collect(transformer)
+		results, err := iterator.Collect(transformer)
 		assert.NoError(t, err)
-		assert.Len(t, batchesOut, 1)
-		assert.Empty(t, batchesOut[0])
+		assert.Len(t, results, 1)
+		assert.Empty(t, results[0])
 	}
 	{
 		// One non-empty batch
@@ -101,10 +101,10 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 			iter:            iterator.ForSlice(batches),
 		})
 		assert.NoError(t, err)
-		batchesOut, err := iterator.Collect(transformer)
+		results, err := iterator.Collect(transformer)
 		assert.NoError(t, err)
-		assert.Len(t, batchesOut, 1)
-		rows := batchesOut[0]
+		assert.Len(t, results, 1)
+		rows := results[0]
 		assert.Len(t, rows, 1)
 		payload, isOk := rows[0].GetPayload().(util.SchemaEventPayload)
 		assert.True(t, isOk)
@@ -132,19 +132,19 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 			iter:            iterator.ForSlice(batches),
 		})
 		assert.NoError(t, err)
-		batchesOut, err := iterator.Collect(transformer)
+		results, err := iterator.Collect(transformer)
 		assert.NoError(t, err)
-		assert.Len(t, batchesOut, 3)
+		assert.Len(t, results, 3)
 		// First batch
-		rows := batchesOut[0]
+		rows := results[0]
 		assert.Len(t, rows, 1)
 		payload, isOk := rows[0].GetPayload().(util.SchemaEventPayload)
 		assert.True(t, isOk)
 		assert.Equal(t, "converted-bar", payload.Payload.After["foo"])
 		// Second batch
-		assert.Empty(t, batchesOut[1], 0)
+		assert.Empty(t, results[1], 0)
 		// Third batch
-		rows = batchesOut[2]
+		rows = results[2]
 		assert.Len(t, rows, 1)
 		payload, isOk = rows[0].GetPayload().(util.SchemaEventPayload)
 		assert.True(t, isOk)
@@ -199,10 +199,10 @@ func TestDebeziumTransformer_Next(t *testing.T) {
 		},
 		)
 		assert.NoError(t, err)
-		batchesOut, err := iterator.Collect(transformer)
+		results, err := iterator.Collect(transformer)
 		assert.NoError(t, err)
-		assert.Len(t, batchesOut, 1)
-		rows := batchesOut[0]
+		assert.Len(t, results, 1)
+		rows := results[0]
 		assert.Len(t, rows, 1)
 		rawMessage := rows[0]
 		assert.Equal(t, Row{"foo": "bar", "qux": 12}, rawMessage.PartitionKey)
