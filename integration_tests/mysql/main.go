@@ -217,7 +217,6 @@ const expectedPayloadTemplate = `{
 						"type": "int64",
 						"optional": false,
 						"default": null,
-						"field": "c_bigint",
 						"field": "c_unsigned_int",
 						"name": "",
 						"parameters": null
