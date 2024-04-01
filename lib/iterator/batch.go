@@ -8,8 +8,8 @@ type batchIterator[T any] struct {
 	step  int
 }
 
-// Returns an iterater that splits a list of items into batches of the given step size.
-func NewBatchIterator[T any](items []T, step int) Iterator[[]T] {
+// Batched returns an iterator that splits a list of items into batches of the given step size.
+func Batched[T any](items []T, step int) Iterator[[]T] {
 	return &batchIterator[T]{
 		items: items,
 		index: 0,

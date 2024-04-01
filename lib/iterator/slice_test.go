@@ -16,14 +16,9 @@ func TestSliceIterator(t *testing.T) {
 	}
 	{
 		// One empty slice
-		iter := ForSlice([][]string{{}})
-		assert.True(t, iter.HasNext())
-		item, err := iter.Next()
+		items, err := Collect(ForSlice([]string{}))
 		assert.NoError(t, err)
-		assert.Empty(t, item)
-		assert.False(t, iter.HasNext())
-		_, err = iter.Next()
-		assert.ErrorContains(t, err, "iterator has finished")
+		assert.Empty(t, items)
 	}
 	{
 		// Two non-empty slices + one empty slice
@@ -56,12 +51,7 @@ func TestSliceIterator(t *testing.T) {
 }
 
 func TestOnce(t *testing.T) {
-	iter := Once(103)
-	assert.True(t, iter.HasNext())
-	item, err := iter.Next()
+	items, err := Collect(Once(103))
 	assert.NoError(t, err)
-	assert.Equal(t, 103, item)
-	assert.False(t, iter.HasNext())
-	_, err = iter.Next()
-	assert.ErrorContains(t, err, "iterator has finished")
+	assert.Equal(t, []int{103}, items)
 }

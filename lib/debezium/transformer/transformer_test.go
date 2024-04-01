@@ -73,25 +73,19 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 		// Empty iterator
 		transformer, err := NewDebeziumTransformer(mockAdatper{iter: iterator.ForSlice([][]Row{})})
 		assert.NoError(t, err)
-		assert.False(t, transformer.HasNext())
-		rows, err := transformer.Next()
+		items, err := iterator.Collect(transformer)
 		assert.NoError(t, err)
-		assert.Len(t, rows, 0)
+		assert.Empty(t, items)
 	}
 	{
 		// One empty batch
 		batches := [][]Row{{}}
 		transformer, err := NewDebeziumTransformer(mockAdatper{iter: iterator.ForSlice(batches)})
 		assert.NoError(t, err)
-		assert.True(t, transformer.HasNext())
-		rows, err := transformer.Next()
+		results, err := iterator.Collect(transformer)
 		assert.NoError(t, err)
-		assert.Len(t, rows, 0)
-		assert.False(t, transformer.HasNext())
-		// Subsequent calls to `.Next()` should be empty
-		rows, err = transformer.Next()
-		assert.NoError(t, err)
-		assert.Len(t, rows, 0)
+		assert.Len(t, results, 1)
+		assert.Empty(t, results[0])
 	}
 	{
 		// One non-empty batch
@@ -107,20 +101,14 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 			iter:            iterator.ForSlice(batches),
 		})
 		assert.NoError(t, err)
-		// First batch
-		assert.True(t, transformer.HasNext())
-		rows, err := transformer.Next()
+		results, err := iterator.Collect(transformer)
 		assert.NoError(t, err)
+		assert.Len(t, results, 1)
+		rows := results[0]
 		assert.Len(t, rows, 1)
 		payload, isOk := rows[0].GetPayload().(util.SchemaEventPayload)
 		assert.True(t, isOk)
 		assert.Equal(t, "converted-bar", payload.Payload.After["foo"])
-		// Second batch
-		assert.False(t, transformer.HasNext())
-		// Subsequent calls to `.Next()` should be empty
-		rows, err = transformer.Next()
-		assert.NoError(t, err)
-		assert.Len(t, rows, 0)
 	}
 	{
 		// Two non-empty batches, one empty batch
@@ -144,31 +132,23 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 			iter:            iterator.ForSlice(batches),
 		})
 		assert.NoError(t, err)
-		// First batch
-		assert.True(t, transformer.HasNext())
-		rows, err := transformer.Next()
+		results, err := iterator.Collect(transformer)
 		assert.NoError(t, err)
+		assert.Len(t, results, 3)
+		// First batch
+		rows := results[0]
 		assert.Len(t, rows, 1)
 		payload, isOk := rows[0].GetPayload().(util.SchemaEventPayload)
 		assert.True(t, isOk)
 		assert.Equal(t, "converted-bar", payload.Payload.After["foo"])
 		// Second batch
-		assert.True(t, transformer.HasNext())
-		rows, err = transformer.Next()
-		assert.NoError(t, err)
-		assert.Len(t, rows, 0)
+		assert.Empty(t, results[1], 0)
 		// Third batch
-		assert.True(t, transformer.HasNext())
-		rows, err = transformer.Next()
-		assert.NoError(t, err)
+		rows = results[2]
 		assert.Len(t, rows, 1)
 		payload, isOk = rows[0].GetPayload().(util.SchemaEventPayload)
 		assert.True(t, isOk)
 		assert.Equal(t, "converted-grault", payload.Payload.After["corge"])
-		// Subsequent calls to `.Next()` should be empty
-		rows, err = transformer.Next()
-		assert.NoError(t, err)
-		assert.Len(t, rows, 0)
 	}
 }
 
@@ -184,8 +164,7 @@ func TestDebeziumTransformer_Next(t *testing.T) {
 			},
 		)
 		assert.NoError(t, err)
-		assert.True(t, transformer.HasNext())
-		_, err = transformer.Next()
+		_, err = iterator.Collect(transformer)
 		assert.ErrorContains(t, err, `failed to scan: test iteration error`)
 	}
 	{
@@ -200,8 +179,7 @@ func TestDebeziumTransformer_Next(t *testing.T) {
 		},
 		)
 		assert.NoError(t, err)
-		assert.True(t, transformer.HasNext())
-		_, err = transformer.Next()
+		_, err = iterator.Collect(transformer)
 		assert.ErrorContains(t, err, `failed to create Debezium payload: failed to convert row value for key "foo": test error`)
 	}
 	{
@@ -221,9 +199,10 @@ func TestDebeziumTransformer_Next(t *testing.T) {
 		},
 		)
 		assert.NoError(t, err)
-		assert.True(t, transformer.HasNext())
-		rows, err := transformer.Next()
+		results, err := iterator.Collect(transformer)
 		assert.NoError(t, err)
+		assert.Len(t, results, 1)
+		rows := results[0]
 		assert.Len(t, rows, 1)
 		rawMessage := rows[0]
 		assert.Equal(t, Row{"foo": "bar", "qux": 12}, rawMessage.PartitionKey)

@@ -106,7 +106,7 @@ func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMes
 		return nil
 	}
 
-	iter := iterator.NewBatchIterator(msgs, int(chunkSize))
+	iter := iterator.Batched(msgs, int(chunkSize))
 	for iter.HasNext() {
 		tags := map[string]string{
 			"what": "error",
