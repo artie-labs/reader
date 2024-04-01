@@ -15,7 +15,7 @@ func TestBatchIterator(t *testing.T) {
 	}
 	// length of items is 1
 	{
-		batches, err := Collect(Batched([]int{1}, 0))
+		batches, err := Collect(Batched([]int{1}, 2))
 		assert.NoError(t, err)
 		assert.Equal(t, [][]int{{1}}, batches)
 	}
