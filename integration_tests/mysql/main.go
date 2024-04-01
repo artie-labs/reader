@@ -79,6 +79,7 @@ CREATE TABLE %s (
 	c_smallint SMALLINT,
 	c_mediumint MEDIUMINT,
 	c_int INT,
+	c_unsigned_int INT(5) UNSIGNED,
 	c_bigint BIGINT,
 	c_decimal DECIMAL(7, 5),
 	c_numeric NUMERIC(5, 3),
@@ -116,6 +117,8 @@ INSERT INTO %s VALUES (
 		3,
 	-- c_int
 		4,
+	-- c_unsigned_int
+    	55,
 	-- c_bigint
 		5,
 	-- c_decimal
