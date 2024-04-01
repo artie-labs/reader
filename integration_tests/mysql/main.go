@@ -79,7 +79,7 @@ CREATE TABLE %s (
 	c_smallint SMALLINT,
 	c_mediumint MEDIUMINT,
 	c_int INT,
-	c_unsigned_int INT(5) UNSIGNED,
+	c_unsigned_int INT(15) UNSIGNED,
 	c_bigint BIGINT,
 	c_decimal DECIMAL(7, 5),
 	c_numeric NUMERIC(5, 3),
@@ -445,8 +445,8 @@ const expectedPayloadTemplate = `{
 
 // testTypes checks that MySQL data types are handled correctly.
 func testTypes(db *sql.DB, dbName string) error {
-	tempTableName, dropTableFunc := utils.CreateTemporaryTable(db, testTypesCreateTableQuery)
-	defer dropTableFunc()
+	tempTableName, _ := utils.CreateTemporaryTable(db, testTypesCreateTableQuery)
+	//defer dropTableFunc()
 
 	// Check reading an empty table
 	_, err := readTable(db, dbName, tempTableName, 100)

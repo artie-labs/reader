@@ -47,6 +47,11 @@ func TestParseColumnDataType(t *testing.T) {
 			expectedOpts: nil,
 		},
 		{
+			input:        "int unsigned",
+			expectedType: BigInt,
+			expectedOpts: nil,
+		},
+		{
 			input:       "int(10 unsigned",
 			expectedErr: "malformed data type: int(10 unsigned",
 		},

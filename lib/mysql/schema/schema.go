@@ -107,7 +107,6 @@ func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 }
 
 func parseColumnDataType(s string) (DataType, *Opts, error) {
-	fmt.Println("?????", s)
 	var metadata string
 	parenIndex := strings.Index(s, "(")
 	if parenIndex != -1 {
@@ -124,8 +123,6 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 		s = s[:parenIndex]
 	}
 
-	fmt.Println("sss", s)
-
 	switch s {
 	case "tinyint":
 		// Boolean, bool are aliases for tinyint(1)
@@ -140,10 +137,9 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 		return MediumInt, nil, nil
 	case "int":
 		return Int, nil, nil
-	case "bigint":
+	case "bigint", "int unsigned":
 		return BigInt, nil, nil
 	case "decimal", "numeric":
-		fmt.Println("### here?", s)
 		parts := strings.Split(metadata, ",")
 		if len(parts) != 2 {
 			return -1, nil, fmt.Errorf("invalid decimal metadata: %s", metadata)
@@ -204,7 +200,6 @@ func parseColumnDataType(s string) (DataType, *Opts, error) {
 	case "json":
 		return JSON, nil, nil
 	default:
-		fmt.Println("s", s)
 		return -1, nil, fmt.Errorf("unknown data type: %s", s)
 	}
 }
