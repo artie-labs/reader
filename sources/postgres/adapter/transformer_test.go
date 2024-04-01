@@ -72,11 +72,11 @@ func TestDebeziumTransformer(t *testing.T) {
 			}),
 		)
 
-		batchesOut, err := iterator.Collect(dbzTransformer)
+		results, err := iterator.Collect(dbzTransformer)
 		assert.NoError(t, err)
-		assert.Len(t, batchesOut, 2)
+		assert.Len(t, results, 2)
 
-		msgs1 := batchesOut[0]
+		msgs1 := results[0]
 		assert.Len(t, msgs1, 2)
 		assert.Equal(t, "schema.table", msgs1[0].TopicSuffix)
 		assert.Equal(t, map[string]any{"a": "1"}, msgs1[0].PartitionKey)
@@ -85,7 +85,7 @@ func TestDebeziumTransformer(t *testing.T) {
 		assert.Equal(t, map[string]any{"a": "2"}, msgs1[1].PartitionKey)
 		assert.Equal(t, map[string]any{"a": "2", "b": "12"}, msgs1[1].GetPayload().(util.SchemaEventPayload).Payload.After)
 
-		msgs2 := batchesOut[1]
+		msgs2 := results[1]
 		assert.Len(t, msgs2, 2)
 		assert.Equal(t, "schema.table", msgs2[0].TopicSuffix)
 		assert.Equal(t, map[string]any{"a": "3"}, msgs2[0].PartitionKey)
@@ -122,10 +122,10 @@ func TestDebeziumTransformer_NilOptionalSchema(t *testing.T) {
 		iterator.Once([]transformer.Row{rowData}),
 	)
 
-	batches, err := iterator.Collect(dbzTransformer)
+	results, err := iterator.Collect(dbzTransformer)
 	assert.NoError(t, err)
-	assert.Len(t, batches, 1)
-	rows := batches[0]
+	assert.Len(t, results, 1)
+	rows := results[0]
 	assert.Len(t, rows, 1)
 	payload := rows[0].GetPayload().(util.SchemaEventPayload)
 
