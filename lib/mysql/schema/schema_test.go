@@ -58,7 +58,7 @@ func TestParseColumnDataType(t *testing.T) {
 		},
 		{
 			input:        "mediumint unsigned",
-			expectedType: MediumInt,
+			expectedType: Int,
 			expectedOpts: nil,
 		},
 		{

@@ -146,6 +146,10 @@ func parseColumnDataType(originalS string) (DataType, *Opts, error) {
 
 		return SmallInt, nil, nil
 	case "mediumint":
+		if unsigned {
+			return Int, nil, nil
+		}
+
 		return MediumInt, nil, nil
 	case "int":
 		if unsigned {
