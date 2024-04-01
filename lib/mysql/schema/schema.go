@@ -146,10 +146,6 @@ func parseColumnDataType(originalS string) (DataType, *Opts, error) {
 
 		return SmallInt, nil, nil
 	case "mediumint":
-		if unsigned {
-			return Int, nil, nil
-		}
-
 		return MediumInt, nil, nil
 	case "int":
 		if unsigned {
@@ -157,7 +153,7 @@ func parseColumnDataType(originalS string) (DataType, *Opts, error) {
 		}
 
 		return Int, nil, nil
-	case "bigint", "int unsigned":
+	case "bigint":
 		return BigInt, nil, nil
 	case "decimal", "numeric":
 		parts := strings.Split(metadata, ",")
