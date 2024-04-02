@@ -9,6 +9,7 @@ import (
 
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
+	"github.com/artie-labs/reader/lib/iterator"
 	"github.com/artie-labs/transfer/lib/cdc/util"
 )
 
@@ -31,16 +32,7 @@ func ReadTable(db *sql.DB, dbzAdapter transformer.Adapter) ([]lib.RawMessage, er
 	if err != nil {
 		return nil, err
 	}
-
-	rows := []lib.RawMessage{}
-	for dbzTransformer.HasNext() {
-		batch, err := dbzTransformer.Next()
-		if err != nil {
-			return nil, err
-		}
-		rows = append(rows, batch...)
-	}
-	return rows, nil
+	return iterator.Collect(iterator.Flatten(dbzTransformer))
 }
 
 func GetPayload(message lib.RawMessage) util.SchemaEventPayload {
