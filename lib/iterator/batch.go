@@ -35,6 +35,5 @@ func (bi *batchIterator[T]) Next() ([]T, error) {
 			break
 		}
 	}
-
 	return buffer, nil
 }
