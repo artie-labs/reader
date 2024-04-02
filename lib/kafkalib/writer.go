@@ -115,7 +115,7 @@ func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMes
 		}
 
 		var kafkaErr error
-		chunk, err := iter.Next()
+		batch, err := iter.Next()
 		if err != nil {
 			return err
 		}
@@ -136,22 +136,22 @@ func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMes
 				}
 			}
 
-			kafkaErr = b.writer.WriteMessages(ctx, chunk...)
+			kafkaErr = b.writer.WriteMessages(ctx, batch...)
 			if kafkaErr == nil {
 				tags["what"] = "success"
 				break
 			}
 
 			if isExceedMaxMessageBytesErr(kafkaErr) {
-				slog.Info("Skipping this chunk since the batch exceeded the server")
+				slog.Info("Skipping this chunk since the message size was too big for the server")
 				kafkaErr = nil
 				break
 			}
 		}
 
-		b.statsD.Count("kafka.publish", int64(len(chunk)), tags)
+		b.statsD.Count("kafka.publish", int64(len(batch)), tags)
 		if kafkaErr != nil {
-			return fmt.Errorf("failed to write message: %w, approxSize: %d", kafkaErr, size.GetApproxSize(chunk))
+			return fmt.Errorf("failed to write message: %w, approxSize: %d", kafkaErr, size.GetApproxSize(batch))
 		}
 	}
 	return nil
