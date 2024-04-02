@@ -106,7 +106,7 @@ func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMes
 		return fmt.Errorf("chunk size is too small")
 	}
 
-	iter := iterator.Batch(iterator.ForSlice(msgs), int(chunkSize))
+	iter := iterator.Batched(iterator.ForSlice(msgs), int(chunkSize))
 	for iter.HasNext() {
 		tags := map[string]string{
 			"what": "error",

@@ -7,8 +7,8 @@ type batchIterator[T any] struct {
 	step int
 }
 
-// Batch returns an iterator that splits a list of items into batches of the given step size.
-func Batch[T any](iter Iterator[T], step int) Iterator[[]T] {
+// Batched returns an iterator that splits a list of items into batches of the given step size.
+func Batched[T any](iter Iterator[T], step int) Iterator[[]T] {
 	return &batchIterator[T]{
 		iter: iter,
 		step: max(step, 1),
