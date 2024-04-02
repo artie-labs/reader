@@ -1,8 +1,6 @@
 package iterator
 
-import (
-	"fmt"
-)
+import "fmt"
 
 type batchIterator[T any] struct {
 	iter Iterator[T]
