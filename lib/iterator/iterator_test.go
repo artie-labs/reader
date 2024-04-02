@@ -93,7 +93,7 @@ func TestFlatten(t *testing.T) {
 	}
 	{
 		// Empty and non-empty batches with differing amounts of items.
-		iter := ForSlice([][]int{{6, 7, 8, 9}, {}, {1, 2, 3}, {4}, {}, {}, {3, 2}})
+		iter := ForSlice([][]int{{}, {6, 7, 8, 9}, {}, {1, 2, 3}, {4}, {}, {}, {3, 2}, {}})
 		items, err := Collect(Flatten(iter))
 		assert.NoError(t, err)
 		assert.Equal(t, items, []int{6, 7, 8, 9, 1, 2, 3, 4, 3, 2})

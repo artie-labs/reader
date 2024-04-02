@@ -71,7 +71,7 @@ func (fi *flatIterator[T]) Next() (T, error) {
 	return value, nil
 }
 
-// Flatten takes an [Iterator] of slices and produces new iterator over the items in all the slices.
+// Flatten takes an [Iterator] of slices and produces new iterator over all the items in all the slices.
 func Flatten[T any](iter Iterator[[]T]) Iterator[T] {
 	return &flatIterator[T]{iter: iter}
 }
