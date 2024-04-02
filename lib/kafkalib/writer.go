@@ -66,14 +66,14 @@ func NewBatchWriter(ctx context.Context, cfg config.Kafka, statsD mtr.Client) (*
 		return nil, fmt.Errorf("kafka topic prefix cannot be empty")
 	}
 
-	writer, err := newWriter(ctx, cfg)
-	if err != nil {
-		return nil, err
-	}
-
 	batchSize := cfg.GetPublishSize()
 	if batchSize < 1 {
 		return nil, fmt.Errorf("kafka publish size must be greater than zero")
+	}
+
+	writer, err := newWriter(ctx, cfg)
+	if err != nil {
+		return nil, err
 	}
 
 	return &BatchWriter{writer, batchSize, cfg, statsD}, nil
