@@ -75,7 +75,6 @@ func NewBatchWriter(ctx context.Context, cfg config.Kafka, statsD mtr.Client) (*
 	if err != nil {
 		return nil, err
 	}
-
 	return &BatchWriter{writer, batchSize, cfg, statsD}, nil
 }
 
