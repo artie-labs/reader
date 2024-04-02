@@ -143,7 +143,7 @@ func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMes
 			}
 
 			if isExceedMaxMessageBytesErr(kafkaErr) {
-				slog.Info("Skipping this chunk since the message size was too big for the server")
+				slog.Info("Skipping this batch since the message exceeded the server max")
 				kafkaErr = nil
 				break
 			}
