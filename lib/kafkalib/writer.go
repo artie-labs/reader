@@ -88,6 +88,10 @@ func (b *BatchWriter) reload(ctx context.Context) error {
 }
 
 func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMessage) error {
+	if len(rawMsgs) == 0 {
+		return nil
+	}
+
 	var msgs []kafka.Message
 	for _, rawMsg := range rawMsgs {
 		kafkaMsg, err := newMessage(b.cfg.TopicPrefix, rawMsg)
@@ -102,11 +106,7 @@ func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMes
 		return fmt.Errorf("chunk size is too small")
 	}
 
-	if len(msgs) == 0 {
-		return nil
-	}
-
-	iter := iterator.Batched(msgs, int(chunkSize))
+	iter := iterator.Batch(iterator.ForSlice(msgs), int(chunkSize))
 	for iter.HasNext() {
 		tags := map[string]string{
 			"what": "error",
