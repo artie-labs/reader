@@ -24,16 +24,16 @@ func (bi *batchIterator[T]) Next() ([]T, error) {
 		return nil, fmt.Errorf("batch iterator has finished")
 	}
 
-	var buffer []T
+	var batch []T
 	for bi.HasNext() {
 		item, err := bi.iter.Next()
 		if err != nil {
 			return nil, err
 		}
-		buffer = append(buffer, item)
-		if len(buffer) >= bi.step {
+		batch = append(batch, item)
+		if len(batch) >= bi.step {
 			break
 		}
 	}
-	return buffer, nil
+	return batch, nil
 }
