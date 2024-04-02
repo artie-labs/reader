@@ -55,10 +55,9 @@ func newWriter(ctx context.Context, cfg config.Kafka) (*kafka.Writer, error) {
 }
 
 type BatchWriter struct {
-	writer    *kafka.Writer
-	batchSize uint
-	cfg       config.Kafka
-	statsD    mtr.Client
+	writer *kafka.Writer
+	cfg    config.Kafka
+	statsD mtr.Client
 }
 
 func NewBatchWriter(ctx context.Context, cfg config.Kafka, statsD mtr.Client) (*BatchWriter, error) {
@@ -66,8 +65,7 @@ func NewBatchWriter(ctx context.Context, cfg config.Kafka, statsD mtr.Client) (*
 		return nil, fmt.Errorf("kafka topic prefix cannot be empty")
 	}
 
-	batchSize := cfg.GetPublishSize()
-	if batchSize < 1 {
+	if cfg.GetPublishSize() < 1 {
 		return nil, fmt.Errorf("kafka publish size must be greater than zero")
 	}
 
@@ -75,7 +73,7 @@ func NewBatchWriter(ctx context.Context, cfg config.Kafka, statsD mtr.Client) (*
 	if err != nil {
 		return nil, err
 	}
-	return &BatchWriter{writer, batchSize, cfg, statsD}, nil
+	return &BatchWriter{writer, cfg, statsD}, nil
 }
 
 func (b *BatchWriter) reload(ctx context.Context) error {
@@ -107,7 +105,7 @@ func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMes
 		msgs = append(msgs, kafkaMsg)
 	}
 
-	iter := iterator.Batched(msgs, int(b.batchSize))
+	iter := iterator.Batched(msgs, int(b.cfg.GetPublishSize()))
 	for iter.HasNext() {
 		tags := map[string]string{
 			"what": "error",
