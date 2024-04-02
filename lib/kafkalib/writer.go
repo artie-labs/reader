@@ -65,6 +65,10 @@ func NewBatchWriter(ctx context.Context, cfg config.Kafka, statsD mtr.Client) (*
 		return nil, fmt.Errorf("kafka topic prefix cannot be empty")
 	}
 
+	if cfg.GetPublishSize() < 1 {
+		return nil, fmt.Errorf("kafka publish size must be greater than zero")
+	}
+
 	writer, err := newWriter(ctx, cfg)
 	if err != nil {
 		return nil, err
@@ -88,6 +92,10 @@ func (b *BatchWriter) reload(ctx context.Context) error {
 }
 
 func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMessage) error {
+	if len(rawMsgs) == 0 {
+		return nil
+	}
+
 	var msgs []kafka.Message
 	for _, rawMsg := range rawMsgs {
 		kafkaMsg, err := newMessage(b.cfg.TopicPrefix, rawMsg)
@@ -97,23 +105,14 @@ func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMes
 		msgs = append(msgs, kafkaMsg)
 	}
 
-	chunkSize := b.cfg.GetPublishSize()
-	if chunkSize < 1 {
-		return fmt.Errorf("chunk size is too small")
-	}
-
-	if len(msgs) == 0 {
-		return nil
-	}
-
-	iter := iterator.Batched(msgs, int(chunkSize))
+	iter := iterator.Batched(msgs, int(b.cfg.GetPublishSize()))
 	for iter.HasNext() {
 		tags := map[string]string{
 			"what": "error",
 		}
 
 		var kafkaErr error
-		chunk, err := iter.Next()
+		batch, err := iter.Next()
 		if err != nil {
 			return err
 		}
@@ -134,22 +133,22 @@ func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMes
 				}
 			}
 
-			kafkaErr = b.writer.WriteMessages(ctx, chunk...)
+			kafkaErr = b.writer.WriteMessages(ctx, batch...)
 			if kafkaErr == nil {
 				tags["what"] = "success"
 				break
 			}
 
 			if isExceedMaxMessageBytesErr(kafkaErr) {
-				slog.Info("Skipping this chunk since the batch exceeded the server")
+				slog.Info("Skipping this batch since the message size exceeded the server max")
 				kafkaErr = nil
 				break
 			}
 		}
 
-		b.statsD.Count("kafka.publish", int64(len(chunk)), tags)
+		b.statsD.Count("kafka.publish", int64(len(batch)), tags)
 		if kafkaErr != nil {
-			return fmt.Errorf("failed to write message: %w, approxSize: %d", kafkaErr, size.GetApproxSize(chunk))
+			return fmt.Errorf("failed to write message: %w, approxSize: %d", kafkaErr, size.GetApproxSize(batch))
 		}
 	}
 	return nil
