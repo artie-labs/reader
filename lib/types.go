@@ -28,5 +28,4 @@ func (r RawMessage) PartitionKey() map[string]any {
 
 func (r RawMessage) Event() cdc.Event {
 	return r.event
-
 }

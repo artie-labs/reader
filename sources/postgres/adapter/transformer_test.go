@@ -127,8 +127,8 @@ func TestDebeziumTransformer_NilOptionalSchema(t *testing.T) {
 	assert.Len(t, results, 1)
 	rows := results[0]
 	assert.Len(t, rows, 1)
-
 	payload := rows[0].Event().(*util.SchemaEventPayload)
+
 	assert.Equal(t, "r", payload.Payload.Operation)
 	assert.Equal(t, rowData, payload.Payload.After)
 	assert.Equal(t, "foo", payload.GetTableName())
