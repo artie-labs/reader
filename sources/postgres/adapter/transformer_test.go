@@ -2,9 +2,9 @@ package adapter
 
 import (
 	"fmt"
+	"github.com/artie-labs/transfer/lib/cdc/util"
 	"testing"
 
-	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/lib/debezium/converters"
@@ -80,19 +80,19 @@ func TestDebeziumTransformer(t *testing.T) {
 		assert.Len(t, msgs1, 2)
 		assert.Equal(t, "schema.table", msgs1[0].TopicSuffix)
 		assert.Equal(t, map[string]any{"a": "1"}, msgs1[0].PartitionKey)
-		assert.Equal(t, map[string]any{"a": "1", "b": "11"}, msgs1[0].GetPayload().(*util.SchemaEventPayload).Payload.After)
+		assert.Equal(t, map[string]any{"a": "1", "b": "11"}, msgs1[0].GetEvent().(*util.SchemaEventPayload).Payload.After)
 		assert.Equal(t, "schema.table", msgs1[1].TopicSuffix)
 		assert.Equal(t, map[string]any{"a": "2"}, msgs1[1].PartitionKey)
-		assert.Equal(t, map[string]any{"a": "2", "b": "12"}, msgs1[1].GetPayload().(*util.SchemaEventPayload).Payload.After)
+		assert.Equal(t, map[string]any{"a": "2", "b": "12"}, msgs1[1].GetEvent().(*util.SchemaEventPayload).Payload.After)
 
 		msgs2 := results[1]
 		assert.Len(t, msgs2, 2)
 		assert.Equal(t, "schema.table", msgs2[0].TopicSuffix)
 		assert.Equal(t, map[string]any{"a": "3"}, msgs2[0].PartitionKey)
-		assert.Equal(t, map[string]any{"a": "3", "b": "13"}, msgs2[0].GetPayload().(*util.SchemaEventPayload).Payload.After)
+		assert.Equal(t, map[string]any{"a": "3", "b": "13"}, msgs2[0].GetEvent().(*util.SchemaEventPayload).Payload.After)
 		assert.Equal(t, "schema.table", msgs2[1].TopicSuffix)
 		assert.Equal(t, map[string]any{"a": "4"}, msgs2[1].PartitionKey)
-		assert.Equal(t, map[string]any{"a": "4", "b": "14"}, msgs2[1].GetPayload().(*util.SchemaEventPayload).Payload.After)
+		assert.Equal(t, map[string]any{"a": "4", "b": "14"}, msgs2[1].GetEvent().(*util.SchemaEventPayload).Payload.After)
 	}
 }
 
@@ -127,7 +127,7 @@ func TestDebeziumTransformer_NilOptionalSchema(t *testing.T) {
 	assert.Len(t, results, 1)
 	rows := results[0]
 	assert.Len(t, rows, 1)
-	payload := rows[0].GetPayload().(*util.SchemaEventPayload)
+	payload := rows[0].GetEvent().(*util.SchemaEventPayload)
 
 	assert.Equal(t, "r", payload.Payload.Operation)
 	assert.Equal(t, rowData, payload.Payload.After)

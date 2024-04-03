@@ -12,7 +12,7 @@ func TestNewMessage(t *testing.T) {
 	rawMessage := lib.NewRawMessage(
 		"topic-suffix",
 		map[string]any{"key": "value"},
-		util.SchemaEventPayload{
+		&util.SchemaEventPayload{
 			Payload: util.Payload{
 				After: map[string]any{"a": "b"},
 				Source: util.Source{
