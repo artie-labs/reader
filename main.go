@@ -13,6 +13,7 @@ import (
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/mtr"
+	"github.com/artie-labs/reader/lib/transfer"
 	"github.com/artie-labs/reader/lib/writer"
 	"github.com/artie-labs/reader/sources"
 	"github.com/artie-labs/reader/sources/dynamodb"
@@ -68,6 +69,11 @@ func buildDestination(ctx context.Context, cfg *config.Settings, statsD mtr.Clie
 			slog.Uint64("maxRequestSize", kafkaCfg.MaxRequestSize),
 		)
 		return kafkalib.NewBatchWriter(ctx, *kafkaCfg, statsD)
+	case config.DestinationTransfer:
+		if cfg.Transfer == nil {
+			return nil, fmt.Errorf("transfer configuration is not set")
+		}
+		return transfer.NewWriter(*cfg.Transfer, statsD)
 	default:
 		panic(fmt.Sprintf("unknown destination: %s", cfg.Destination)) // should never happen
 	}
