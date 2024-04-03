@@ -153,3 +153,7 @@ func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMes
 	}
 	return nil
 }
+
+func (b *BatchWriter) OnFinish() error {
+	return nil
+}

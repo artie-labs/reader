@@ -8,4 +8,5 @@ import (
 
 type Destination interface {
 	WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMessage) error
+	OnFinish() error
 }

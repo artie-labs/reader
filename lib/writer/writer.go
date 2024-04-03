@@ -43,5 +43,10 @@ func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMess
 			)
 		}
 	}
+	
+	if err := w.destination.OnFinish(); err != nil {
+		return 0, fmt.Errorf("failed running onFinish: %w", err)
+	}
+
 	return count, nil
 }
