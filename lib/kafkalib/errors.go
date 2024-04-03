@@ -10,5 +10,20 @@ func isExceedMaxMessageBytesErr(err error) bool {
 // isRetryableError - returns true if the error is retryable
 // If it's retryable, you need to reload the Kafka client.
 func isRetryableError(err error) bool {
-	return err != nil && strings.Contains(err.Error(), "Topic Authorization Failed: the client is not authorized to access the requested topic")
+	if err == nil {
+		return false
+	}
+
+	retryableErrs := []string{
+		"Topic Authorization Failed: the client is not authorized to access the requested topic",
+		"i/o timeout",
+	}
+
+	for _, retryableErr := range retryableErrs {
+		if strings.Contains(err.Error(), retryableErr) {
+			return true
+		}
+	}
+
+	return false
 }

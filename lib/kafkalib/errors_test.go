@@ -31,3 +31,34 @@ func TestIsExceedMaxMessageBytesErr(t *testing.T) {
 		assert.Equal(t, tc.expected, actual, tc.err)
 	}
 }
+
+func TestIsRetryableError(t *testing.T) {
+	type _tc struct {
+		err      error
+		expected bool
+	}
+
+	tcs := []_tc{
+		{
+			err:      fmt.Errorf(""),
+			expected: false,
+		},
+		{
+			err:      nil,
+			expected: false,
+		},
+		{
+			err:      fmt.Errorf("Topic Authorization Failed: the client is not authorized to access the requested topic"),
+			expected: true,
+		},
+		{
+			err:      fmt.Errorf("read tcp 112.31.20.27:48164->112.31.37.44:9098: i/o timeout"),
+			expected: true,
+		},
+	}
+
+	for _, tc := range tcs {
+		actual := isRetryableError(tc.err)
+		assert.Equal(t, tc.expected, actual, tc.err)
+	}
+}
