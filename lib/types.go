@@ -10,7 +10,6 @@ type RawMessage struct {
 	TopicSuffix  string
 	PartitionKey map[string]any
 	payload      cdc.Event
-	mongo        bool
 }
 
 func NewRawMessage(topicSuffix string, partitionKey map[string]any, payload util.SchemaEventPayload) RawMessage {
@@ -26,7 +25,6 @@ func NewMongoMessage(topicSuffix string, partitionKey map[string]any, payload mo
 		TopicSuffix:  topicSuffix,
 		PartitionKey: partitionKey,
 		payload:      &payload,
-		mongo:        true,
 	}
 }
 
