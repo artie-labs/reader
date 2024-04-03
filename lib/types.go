@@ -9,10 +9,8 @@ import (
 type RawMessage struct {
 	TopicSuffix  string
 	PartitionKey map[string]any
-	payload      *util.SchemaEventPayload
-	mongoPayload *mongo.SchemaEventPayload
-
-	mongo bool
+	payload      cdc.Event
+	mongo        bool
 }
 
 func NewRawMessage(topicSuffix string, partitionKey map[string]any, payload util.SchemaEventPayload) RawMessage {
@@ -27,15 +25,11 @@ func NewMongoMessage(topicSuffix string, partitionKey map[string]any, payload mo
 	return RawMessage{
 		TopicSuffix:  topicSuffix,
 		PartitionKey: partitionKey,
-		mongoPayload: &payload,
+		payload:      &payload,
 		mongo:        true,
 	}
 }
 
 func (r RawMessage) GetPayload() cdc.Event {
-	if r.mongo {
-		return r.mongoPayload
-	}
-
 	return r.payload
 }
