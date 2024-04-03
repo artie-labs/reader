@@ -25,7 +25,7 @@ func TestParseMessagePartitionKey(t *testing.T) {
 	rawMsg, err := msg.toRawMessage(config.Collection{}, "database")
 	assert.NoError(t, err)
 
-	rawMsgBytes, err := json.Marshal(rawMsg.PartitionKey)
+	rawMsgBytes, err := json.Marshal(rawMsg.PartitionKey())
 	assert.NoError(t, err)
 
 	var dbz transferMongo.Debezium
@@ -67,14 +67,14 @@ func TestParseMessage(t *testing.T) {
 	rawMsg, err := msg.toRawMessage(config.Collection{}, "database")
 	assert.NoError(t, err)
 
-	rawPkBytes, err := json.Marshal(rawMsg.PartitionKey)
+	rawPkBytes, err := json.Marshal(rawMsg.PartitionKey())
 	assert.NoError(t, err)
 
 	var dbz transferMongo.Debezium
 	pkMap, err := dbz.GetPrimaryKey(rawPkBytes, &kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt})
 	assert.NoError(t, err)
 
-	rawMsgBytes, err := json.Marshal(rawMsg.GetEvent())
+	rawMsgBytes, err := json.Marshal(rawMsg.Event())
 	assert.NoError(t, err)
 	kvMap, err := dbz.GetEventFromBytes(typing.Settings{}, rawMsgBytes)
 	assert.NoError(t, err)

@@ -517,11 +517,11 @@ func testTypes(db *sql.DB, dbName string) error {
 	row := rows[0]
 
 	expectedPartitionKey := map[string]any{"pk": int64(1)}
-	if !maps.Equal(row.PartitionKey, expectedPartitionKey) {
-		return fmt.Errorf("partition key %v does not match %v", row.PartitionKey, expectedPartitionKey)
+	if !maps.Equal(row.PartitionKey(), expectedPartitionKey) {
+		return fmt.Errorf("partition key %v does not match %v", row.PartitionKey(), expectedPartitionKey)
 	}
 
-	valueBytes, err := json.MarshalIndent(row.GetEvent(), "", "\t")
+	valueBytes, err := json.MarshalIndent(row.Event(), "", "\t")
 	if err != nil {
 		return fmt.Errorf("failed to marshal payload")
 	}
@@ -648,8 +648,8 @@ func testScan(db *sql.DB, dbName string) error {
 			return fmt.Errorf("expected %d rows, got %d, batch size %d", len(expectedPartitionKeys), len(rows), batchSize)
 		}
 		for i, row := range rows {
-			if !maps.Equal(row.PartitionKey, expectedPartitionKeys[i]) {
-				return fmt.Errorf("partition keys are different for row %d, batch size %d, %v != %v", i, batchSize, row.PartitionKey, expectedPartitionKeys[i])
+			if !maps.Equal(row.PartitionKey(), expectedPartitionKeys[i]) {
+				return fmt.Errorf("partition keys are different for row %d, batch size %d, %v != %v", i, batchSize, row.PartitionKey(), expectedPartitionKeys[i])
 			}
 			textValue := utils.GetPayload(row).Payload.After["c_text_value"]
 			if textValue != expectedValues[i] {
