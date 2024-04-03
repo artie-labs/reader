@@ -70,9 +70,6 @@ func buildDestination(ctx context.Context, cfg *config.Settings, statsD mtr.Clie
 		)
 		return kafkalib.NewBatchWriter(ctx, *kafkaCfg, statsD)
 	case config.DestinationTransfer:
-		if cfg.Transfer == nil {
-			return nil, fmt.Errorf("transfer configuration is not set")
-		}
 		return transfer.NewWriter(*cfg.Transfer, statsD)
 	default:
 		panic(fmt.Sprintf("unknown destination: %s", cfg.Destination)) // should never happen

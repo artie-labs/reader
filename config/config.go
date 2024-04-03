@@ -142,6 +142,22 @@ func (s *Settings) Validate() error {
 		if err := s.Kafka.Validate(); err != nil {
 			return fmt.Errorf("kafka validation failed: %w", err)
 		}
+	case DestinationTransfer:
+		if s.Transfer == nil {
+			return fmt.Errorf("transfer config is nil")
+		}
+
+		toipicConfigs, err := s.Transfer.TopicConfigs()
+		if err != nil {
+			return fmt.Errorf("failed to get topic configs: %w", err)
+		}
+		for _, topicConfig := range toipicConfigs {
+			topicConfig.Load()
+		}
+
+		if err := s.Transfer.Validate(); err != nil {
+			return fmt.Errorf("transfer validation failed: %w", err)
+		}
 	default:
 		return fmt.Errorf("invalid destination: '%s'", s.Destination)
 	}
