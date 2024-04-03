@@ -3,8 +3,9 @@ package kafkalib
 import (
 	"context"
 	"errors"
-	"github.com/segmentio/kafka-go"
 	"strings"
+
+	"github.com/segmentio/kafka-go"
 )
 
 func isExceedMaxMessageBytesErr(err error) bool {
