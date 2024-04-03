@@ -43,12 +43,12 @@ func ReadTable(db *sql.DB, dbzAdapter transformer.Adapter) ([]lib.RawMessage, er
 	return rows, nil
 }
 
-func GetPayload(message lib.RawMessage) util.SchemaEventPayload {
-	payloadTyped, ok := message.Event().(*util.SchemaEventPayload)
+func GetEvent(message lib.RawMessage) util.SchemaEventPayload {
+	event, ok := message.Event().(*util.SchemaEventPayload)
 	if !ok {
-		panic("payload is not of type *util.SchemaEventPayload")
+		panic("event is not of type *util.SchemaEventPayload")
 	}
-	return *payloadTyped
+	return *event
 }
 
 func CheckDifference(name, expected, actual string) bool {
