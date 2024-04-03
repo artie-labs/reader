@@ -1,6 +1,11 @@
 package kafkalib
 
-import "strings"
+import (
+	"context"
+	"errors"
+	"github.com/segmentio/kafka-go"
+	"strings"
+)
 
 func isExceedMaxMessageBytesErr(err error) bool {
 	return err != nil && strings.Contains(err.Error(),
@@ -14,13 +19,13 @@ func isRetryableError(err error) bool {
 		return false
 	}
 
-	retryableErrs := []string{
-		"Topic Authorization Failed: the client is not authorized to access the requested topic",
-		"i/o timeout",
+	retryableErrs := []error{
+		context.DeadlineExceeded,
+		kafka.TopicAuthorizationFailed,
 	}
 
 	for _, retryableErr := range retryableErrs {
-		if strings.Contains(err.Error(), retryableErr) {
+		if errors.Is(err, retryableErr) {
 			return true
 		}
 	}
