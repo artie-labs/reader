@@ -41,7 +41,7 @@ func TestDebeziumTransformer(t *testing.T) {
 			PostgresAdapter{table: table},
 			iterator.ForSlice([][]transformer.Row{}),
 		)
-		results, err := iterator.Collect(dbzTransformer)
+		results, err := iterator.Collect(iterator.ToFunctionalIterator(dbzTransformer))
 		assert.NoError(t, err)
 		assert.Empty(t, results)
 	}
@@ -52,7 +52,7 @@ func TestDebeziumTransformer(t *testing.T) {
 			PostgresAdapter{table: table},
 			&ErrorRowIterator{},
 		)
-		_, err := iterator.Collect(dbzTransformer)
+		_, err := iterator.Collect(iterator.ToFunctionalIterator(dbzTransformer))
 		assert.ErrorContains(t, err, "mock error")
 	}
 
@@ -72,7 +72,7 @@ func TestDebeziumTransformer(t *testing.T) {
 			}),
 		)
 
-		results, err := iterator.Collect(dbzTransformer)
+		results, err := iterator.Collect(iterator.ToFunctionalIterator(dbzTransformer))
 		assert.NoError(t, err)
 		assert.Len(t, results, 2)
 
@@ -122,7 +122,7 @@ func TestDebeziumTransformer_NilOptionalSchema(t *testing.T) {
 		iterator.Once([]transformer.Row{rowData}),
 	)
 
-	results, err := iterator.Collect(dbzTransformer)
+	results, err := iterator.Collect(iterator.ToFunctionalIterator(dbzTransformer))
 	assert.NoError(t, err)
 	assert.Len(t, results, 1)
 	rows := results[0]

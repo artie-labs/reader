@@ -73,7 +73,7 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 		// Empty iterator
 		transformer, err := NewDebeziumTransformer(mockAdatper{iter: iterator.ForSlice([][]Row{})})
 		assert.NoError(t, err)
-		items, err := iterator.Collect(transformer)
+		items, err := iterator.Collect(iterator.ToFunctionalIterator(transformer))
 		assert.NoError(t, err)
 		assert.Empty(t, items)
 	}
@@ -82,7 +82,7 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 		batches := [][]Row{{}}
 		transformer, err := NewDebeziumTransformer(mockAdatper{iter: iterator.ForSlice(batches)})
 		assert.NoError(t, err)
-		results, err := iterator.Collect(transformer)
+		results, err := iterator.Collect(iterator.ToFunctionalIterator(transformer))
 		assert.NoError(t, err)
 		assert.Len(t, results, 1)
 		assert.Empty(t, results[0])
@@ -101,7 +101,7 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 			iter:            iterator.ForSlice(batches),
 		})
 		assert.NoError(t, err)
-		results, err := iterator.Collect(transformer)
+		results, err := iterator.Collect(iterator.ToFunctionalIterator(transformer))
 		assert.NoError(t, err)
 		assert.Len(t, results, 1)
 		rows := results[0]
@@ -132,7 +132,7 @@ func TestDebeziumTransformer_Iteration(t *testing.T) {
 			iter:            iterator.ForSlice(batches),
 		})
 		assert.NoError(t, err)
-		results, err := iterator.Collect(transformer)
+		results, err := iterator.Collect(iterator.ToFunctionalIterator(transformer))
 		assert.NoError(t, err)
 		assert.Len(t, results, 3)
 		// First batch
@@ -164,7 +164,7 @@ func TestDebeziumTransformer_Next(t *testing.T) {
 			},
 		)
 		assert.NoError(t, err)
-		_, err = iterator.Collect(transformer)
+		_, err = iterator.Collect(iterator.ToFunctionalIterator(transformer))
 		assert.ErrorContains(t, err, `failed to scan: test iteration error`)
 	}
 	{
@@ -179,7 +179,7 @@ func TestDebeziumTransformer_Next(t *testing.T) {
 		},
 		)
 		assert.NoError(t, err)
-		_, err = iterator.Collect(transformer)
+		_, err = iterator.Collect(iterator.ToFunctionalIterator(transformer))
 		assert.ErrorContains(t, err, `failed to create Debezium payload: failed to convert row value for key "foo": test error`)
 	}
 	{
@@ -199,7 +199,7 @@ func TestDebeziumTransformer_Next(t *testing.T) {
 		},
 		)
 		assert.NoError(t, err)
-		results, err := iterator.Collect(transformer)
+		results, err := iterator.Collect(iterator.ToFunctionalIterator(transformer))
 		assert.NoError(t, err)
 		assert.Len(t, results, 1)
 		rows := results[0]

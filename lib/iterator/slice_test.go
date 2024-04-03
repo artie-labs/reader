@@ -16,7 +16,7 @@ func TestSliceIterator(t *testing.T) {
 	}
 	{
 		// One empty slice
-		items, err := Collect(ForSlice([]string{}))
+		items, err := Collect(ToFunctionalIterator(ForSlice([]string{})))
 		assert.NoError(t, err)
 		assert.Empty(t, items)
 	}
@@ -51,7 +51,7 @@ func TestSliceIterator(t *testing.T) {
 }
 
 func TestOnce(t *testing.T) {
-	items, err := Collect(Once(103))
+	items, err := Collect(ToFunctionalIterator(Once(103)))
 	assert.NoError(t, err)
 	assert.Equal(t, []int{103}, items)
 }

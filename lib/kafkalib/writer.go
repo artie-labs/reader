@@ -106,16 +106,19 @@ func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMes
 	}
 
 	iter := iterator.Batched(msgs, int(b.cfg.GetPublishSize()))
-	for iter.HasNext() {
+	for {
+		batch, err, ok := iter()
+		if !ok {
+			break
+		} else if err != nil {
+			return err
+		}
+
 		tags := map[string]string{
 			"what": "error",
 		}
 
 		var kafkaErr error
-		batch, err := iter.Next()
-		if err != nil {
-			return err
-		}
 		for attempts := range 10 {
 			if attempts > 0 {
 				sleepDuration := jitter.Jitter(baseJitterMs, maxJitterMs, attempts-1)
