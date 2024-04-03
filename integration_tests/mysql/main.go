@@ -521,7 +521,7 @@ func testTypes(db *sql.DB, dbName string) error {
 		return fmt.Errorf("partition key %v does not match %v", row.PartitionKey, expectedPartitionKey)
 	}
 
-	valueBytes, err := json.MarshalIndent(row.GetPayload(), "", "\t")
+	valueBytes, err := json.MarshalIndent(row.GetEvent(), "", "\t")
 	if err != nil {
 		return fmt.Errorf("failed to marshal payload")
 	}

@@ -74,7 +74,7 @@ func TestParseMessage(t *testing.T) {
 	pkMap, err := dbz.GetPrimaryKey(rawPkBytes, &kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt})
 	assert.NoError(t, err)
 
-	rawMsgBytes, err := json.Marshal(rawMsg.GetPayload())
+	rawMsgBytes, err := json.Marshal(rawMsg.GetEvent())
 	assert.NoError(t, err)
 	kvMap, err := dbz.GetEventFromBytes(typing.Settings{}, rawMsgBytes)
 	assert.NoError(t, err)

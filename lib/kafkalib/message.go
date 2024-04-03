@@ -9,7 +9,7 @@ import (
 )
 
 func newMessage(topicPrefix string, rawMessage lib.RawMessage) (kafka.Message, error) {
-	valueBytes, err := json.Marshal(rawMessage.GetPayload())
+	valueBytes, err := json.Marshal(rawMessage.GetEvent())
 	if err != nil {
 		return kafka.Message{}, err
 	}

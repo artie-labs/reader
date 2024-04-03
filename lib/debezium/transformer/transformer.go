@@ -91,8 +91,9 @@ func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 			return nil, fmt.Errorf("failed to create Debezium payload: %w", err)
 		}
 
-		result = append(result, lib.NewRawMessage(d.adapter.TopicSuffix(), d.partitionKey(row), payload))
+		result = append(result, lib.NewRawMessage(d.adapter.TopicSuffix(), d.partitionKey(row), &payload))
 	}
+
 	return result, nil
 }
 

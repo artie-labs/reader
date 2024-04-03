@@ -18,7 +18,7 @@ type mgoMessage struct {
 }
 
 func (m *mgoMessage) toRawMessage(collection config.Collection, database string) (lib.RawMessage, error) {
-	evt := mongo.SchemaEventPayload{
+	evt := &mongo.SchemaEventPayload{
 		Schema: debezium.Schema{},
 		Payload: mongo.Payload{
 			After: &m.jsonExtendedString,
@@ -35,7 +35,7 @@ func (m *mgoMessage) toRawMessage(collection config.Collection, database string)
 		"payload": m.pkMap,
 	}
 
-	return lib.NewMongoMessage(collection.TopicSuffix(database), pkMap, evt), nil
+	return lib.NewRawMessage(collection.TopicSuffix(database), pkMap, evt), nil
 }
 
 func parseMessage(result bson.M) (*mgoMessage, error) {
