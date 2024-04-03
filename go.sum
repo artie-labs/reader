@@ -8,8 +8,8 @@ github.com/alecthomas/assert/v2 v2.4.0 h1:/ZiZ0NnriAWPYYO+4eOjgzNELrFQLaHNr92mHS
 github.com/alecthomas/assert/v2 v2.4.0/go.mod h1:fw5suVxB+wfYJ3291t0hRTqtGzFYdSwstnRQdaQx2DM=
 github.com/alecthomas/repr v0.3.0 h1:NeYzUPfjjlqHY4KtzgKJiWd6sVq2eNUPTi34PiFGjY8=
 github.com/alecthomas/repr v0.3.0/go.mod h1:Fr0507jx4eOXV7AlPV6AVZLYrLIuIeSOWtW57eE/O/4=
-github.com/artie-labs/transfer v1.22.25 h1:moMChsC2VSRde1HPaiH7RiEMivehUW+Hjizx/QsLacE=
-github.com/artie-labs/transfer v1.22.25/go.mod h1:9LhQoqe7FfJgI/PQ+ljQA2JADXF0UWunetZpyhInGZM=
+github.com/artie-labs/transfer v1.22.26 h1:3deNeKltHL31g5a4AJTwicVq/+0am4i02345zqwMRaA=
+github.com/artie-labs/transfer v1.22.26/go.mod h1:QB950RoGF4sO/9qEHeos+KEMObTHduzZ3EVo0Y8poZM=
 github.com/aws/aws-sdk-go v1.44.327 h1:ZS8oO4+7MOBLhkdwIhgtVeDzCeWOlTfKJS7EgggbIEY=
 github.com/aws/aws-sdk-go v1.44.327/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
 github.com/aws/aws-sdk-go-v2 v1.16.12/go.mod h1:C+Ym0ag2LIghJbXhfXZ0YEEp49rBWowxKzJLUoob0ts=
