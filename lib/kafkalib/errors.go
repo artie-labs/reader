@@ -1,6 +1,12 @@
 package kafkalib
 
-import "strings"
+import (
+	"context"
+	"errors"
+	"strings"
+
+	"github.com/segmentio/kafka-go"
+)
 
 func isExceedMaxMessageBytesErr(err error) bool {
 	return err != nil && strings.Contains(err.Error(),
@@ -10,5 +16,20 @@ func isExceedMaxMessageBytesErr(err error) bool {
 // isRetryableError - returns true if the error is retryable
 // If it's retryable, you need to reload the Kafka client.
 func isRetryableError(err error) bool {
-	return err != nil && strings.Contains(err.Error(), "Topic Authorization Failed: the client is not authorized to access the requested topic")
+	if err == nil {
+		return false
+	}
+
+	retryableErrs := []error{
+		context.DeadlineExceeded,
+		kafka.TopicAuthorizationFailed,
+	}
+
+	for _, retryableErr := range retryableErrs {
+		if errors.Is(err, retryableErr) {
+			return true
+		}
+	}
+
+	return false
 }

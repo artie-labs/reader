@@ -1,7 +1,9 @@
 package kafkalib
 
 import (
+	"context"
 	"fmt"
+	"github.com/segmentio/kafka-go"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,6 +30,37 @@ func TestIsExceedMaxMessageBytesErr(t *testing.T) {
 
 	for _, tc := range tcs {
 		actual := isExceedMaxMessageBytesErr(tc.err)
+		assert.Equal(t, tc.expected, actual, tc.err)
+	}
+}
+
+func TestIsRetryableError(t *testing.T) {
+	type _tc struct {
+		err      error
+		expected bool
+	}
+
+	tcs := []_tc{
+		{
+			err:      fmt.Errorf(""),
+			expected: false,
+		},
+		{
+			err:      nil,
+			expected: false,
+		},
+		{
+			err:      kafka.TopicAuthorizationFailed,
+			expected: true,
+		},
+		{
+			err:      context.DeadlineExceeded,
+			expected: true,
+		},
+	}
+
+	for _, tc := range tcs {
+		actual := isRetryableError(tc.err)
 		assert.Equal(t, tc.expected, actual, tc.err)
 	}
 }
