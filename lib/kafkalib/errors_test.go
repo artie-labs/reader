@@ -1,7 +1,9 @@
 package kafkalib
 
 import (
+	"context"
 	"fmt"
+	"github.com/segmentio/kafka-go"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -48,11 +50,11 @@ func TestIsRetryableError(t *testing.T) {
 			expected: false,
 		},
 		{
-			err:      fmt.Errorf("Topic Authorization Failed: the client is not authorized to access the requested topic"),
+			err:      kafka.TopicAuthorizationFailed,
 			expected: true,
 		},
 		{
-			err:      fmt.Errorf("read tcp 112.31.20.27:48164->112.31.37.44:9098: i/o timeout"),
+			err:      context.DeadlineExceeded,
 			expected: true,
 		},
 	}
