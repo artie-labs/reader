@@ -743,16 +743,16 @@ func testTypes(db *sql.DB) error {
 	row := rows[0]
 
 	expectedPartitionKey := map[string]any{"pk": int64(1)}
-	if !maps.Equal(row.PartitionKey, expectedPartitionKey) {
-		return fmt.Errorf("partition key %v does not match %v", row.PartitionKey, expectedPartitionKey)
+	if !maps.Equal(row.PartitionKey(), expectedPartitionKey) {
+		return fmt.Errorf("partition key %v does not match %v", row.PartitionKey(), expectedPartitionKey)
 	}
 
-	valueBytes, err := json.MarshalIndent(row.GetPayload(), "", "\t")
+	valueBytes, err := json.MarshalIndent(row.Event(), "", "\t")
 	if err != nil {
 		return fmt.Errorf("failed to marshal payload")
 	}
 
-	expectedPayload := fmt.Sprintf(expectedPayloadTemplate, utils.GetPayload(row).Payload.Source.TsMs, tempTableName)
+	expectedPayload := fmt.Sprintf(expectedPayloadTemplate, utils.GetEvent(row).Payload.Source.TsMs, tempTableName)
 	if utils.CheckDifference("payload", expectedPayload, string(valueBytes)) {
 		return fmt.Errorf("payload does not match")
 	}
@@ -874,10 +874,10 @@ func testScan(db *sql.DB) error {
 			return fmt.Errorf("expected %d rows, got %d, batch size %d", len(expectedPartitionKeys), len(rows), batchSize)
 		}
 		for i, row := range rows {
-			if !maps.Equal(row.PartitionKey, expectedPartitionKeys[i]) {
-				return fmt.Errorf("partition keys are different for row %d, batch size %d, %v != %v", i, batchSize, row.PartitionKey, expectedPartitionKeys[i])
+			if !maps.Equal(row.PartitionKey(), expectedPartitionKeys[i]) {
+				return fmt.Errorf("partition keys are different for row %d, batch size %d, %v != %v", i, batchSize, row.PartitionKey(), expectedPartitionKeys[i])
 			}
-			textValue := utils.GetPayload(row).Payload.After["c_text_value"]
+			textValue := utils.GetEvent(row).Payload.After["c_text_value"]
 			if textValue != expectedValues[i] {
 				return fmt.Errorf("row values are different for row %d, batch size %d, %v != %v", i, batchSize, textValue, expectedValues[i])
 			}

@@ -4,19 +4,18 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	awsCfg "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/segmentio/kafka-go/sasl/aws_msk_iam_v2"
 	"log/slog"
 	"time"
-
-	"github.com/artie-labs/transfer/lib/jitter"
-	"github.com/artie-labs/transfer/lib/size"
-	awsCfg "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/segmentio/kafka-go"
-	"github.com/segmentio/kafka-go/sasl/aws_msk_iam_v2"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/iterator"
 	"github.com/artie-labs/reader/lib/mtr"
+	"github.com/artie-labs/transfer/lib/jitter"
+	"github.com/artie-labs/transfer/lib/size"
+	"github.com/segmentio/kafka-go"
 )
 
 const (

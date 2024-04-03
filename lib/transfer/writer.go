@@ -44,7 +44,7 @@ func (b *BatchWriter) WriteRawMessages(_ context.Context, rawMsgs []lib.RawMessa
 	}
 
 	for _, rawMsg := range rawMsgs {
-		evt := event.ToMemoryEvent(rawMsg.GetPayload(), rawMsg.PartitionKey, b.tc, config.Replication)
+		evt := event.ToMemoryEvent(rawMsg.Event(), rawMsg.PartitionKey(), b.tc, config.Replication)
 		shouldFlush, _, err := evt.Save(b.cfg, b.inMemDB, b.tc, artie.Message{})
 		if err != nil {
 			return fmt.Errorf("failed to save event: %w", err)

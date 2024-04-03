@@ -23,6 +23,10 @@ func (m *mockDestination) WriteRawMessages(ctx context.Context, msgs []lib.RawMe
 	return nil
 }
 
+func (m *mockDestination) OnFinish() error {
+	return nil
+}
+
 type errorIterator struct{}
 
 func (m *errorIterator) HasNext() bool {
@@ -68,23 +72,26 @@ func TestWriter_Write(t *testing.T) {
 		destination := &mockDestination{}
 		writer := New(destination, false)
 		iter := iterator.ForSlice([][]lib.RawMessage{
-			{{TopicSuffix: "a"}},
+			{lib.NewRawMessage("a", nil, nil)},
 			{},
-			{{TopicSuffix: "b"}, {TopicSuffix: "c"}},
+			{
+				lib.NewRawMessage("b", nil, nil),
+				lib.NewRawMessage("c", nil, nil),
+			},
 		})
 		count, err := writer.Write(context.Background(), iter)
 		assert.NoError(t, err)
 		assert.Equal(t, 3, count)
 		assert.Len(t, destination.messages, 3)
-		assert.Equal(t, destination.messages[0].TopicSuffix, "a")
-		assert.Equal(t, destination.messages[1].TopicSuffix, "b")
-		assert.Equal(t, destination.messages[2].TopicSuffix, "c")
+		assert.Equal(t, destination.messages[0].TopicSuffix(), "a")
+		assert.Equal(t, destination.messages[1].TopicSuffix(), "b")
+		assert.Equal(t, destination.messages[2].TopicSuffix(), "c")
 	}
 	{
 		// Destination error
 		destination := &mockDestination{emitError: true}
 		writer := New(destination, false)
-		iter := iterator.Once([]lib.RawMessage{{TopicSuffix: "a"}})
+		iter := iterator.Once([]lib.RawMessage{lib.NewRawMessage("a", nil, nil)})
 		_, err := writer.Write(context.Background(), iter)
 		assert.ErrorContains(t, err, "failed to write messages: test write-raw-messages error")
 		assert.Empty(t, destination.messages)

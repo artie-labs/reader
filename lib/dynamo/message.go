@@ -84,8 +84,8 @@ func transformNewImage(data map[string]*dynamodb.AttributeValue) map[string]any 
 	return transformed
 }
 
-func (m *Message) artieMessage() util.SchemaEventPayload {
-	return util.SchemaEventPayload{
+func (m *Message) artieMessage() *util.SchemaEventPayload {
+	return &util.SchemaEventPayload{
 		Payload: util.Payload{
 			After: m.rowData,
 			Source: util.Source{
