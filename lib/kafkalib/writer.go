@@ -4,14 +4,14 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	awsCfg "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/segmentio/kafka-go/sasl/aws_msk_iam_v2"
 	"log/slog"
 	"time"
 
+	awsCfg "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/segmentio/kafka-go/sasl/aws_msk_iam_v2"
+
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
-	"github.com/artie-labs/reader/lib/iterator"
 	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/size"
@@ -104,17 +104,12 @@ func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMes
 		msgs = append(msgs, kafkaMsg)
 	}
 
-	iter := iterator.Batched(msgs, int(b.cfg.GetPublishSize()))
-	for iter.HasNext() {
+	for _, batch := range batched(msgs, int(b.cfg.GetPublishSize())) {
 		tags := map[string]string{
 			"what": "error",
 		}
 
 		var kafkaErr error
-		batch, err := iter.Next()
-		if err != nil {
-			return err
-		}
 		for attempts := range 10 {
 			if attempts > 0 {
 				sleepDuration := jitter.Jitter(baseJitterMs, maxJitterMs, attempts-1)
