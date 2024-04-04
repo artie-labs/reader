@@ -17,17 +17,17 @@ func TestBatched(t *testing.T) {
 		batches := Batched([]int{1}, 2)
 		assert.Equal(t, [][]int{{1}}, batches)
 	}
-	// // n is 0
+	// n is 0
 	{
 		batches := Batched([]int{1, 2}, 0)
 		assert.Equal(t, [][]int{{1}, {2}}, batches)
 	}
-	// // length of items is a multiple of n
+	// length of items is a multiple of n
 	{
 		batches := Batched([]int{1, 2, 3, 4}, 2)
 		assert.Equal(t, [][]int{{1, 2}, {3, 4}}, batches)
 	}
-	// // length of items is not a multiple of n
+	// length of items is not a multiple of n
 	{
 		batches := Batched([]int{1, 2, 3, 4, 5}, 2)
 		assert.Equal(t, [][]int{{1, 2}, {3, 4}, {5}}, batches)
