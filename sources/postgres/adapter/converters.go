@@ -3,13 +3,13 @@ package adapter
 import (
 	"fmt"
 	"math"
+	"strings"
 	"time"
 
 	transferDbz "github.com/artie-labs/transfer/lib/debezium"
 	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/artie-labs/reader/lib/debezium"
-	"github.com/artie-labs/reader/lib/stringutil"
 )
 
 const moneyScale = 2
@@ -28,7 +28,9 @@ func (MoneyConverter) ToField(name string) transferDbz.Field {
 }
 
 func (MoneyConverter) Convert(value any) (any, error) {
-	stringValue := stringutil.ParseMoneyIntoString(fmt.Sprint(value))
+	// ParseMoneyIntoString will change $4,000 to 4000
+	stringValue := strings.Replace(fmt.Sprint(value), "$", "", 1)
+	stringValue = strings.ReplaceAll(stringValue, ",", "")
 	return debezium.EncodeDecimalToBytes(stringValue, moneyScale), nil
 }
 
