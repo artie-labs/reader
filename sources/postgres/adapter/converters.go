@@ -27,8 +27,8 @@ func (MoneyConverter) ToField(name string) transferDbz.Field {
 	}
 }
 
+// Convert will change $4,000 to 4000.
 func (MoneyConverter) Convert(value any) (any, error) {
-	// ParseMoneyIntoString will change $4,000 to 4000
 	stringValue := strings.Replace(fmt.Sprint(value), "$", "", 1)
 	stringValue = strings.ReplaceAll(stringValue, ",", "")
 	return debezium.EncodeDecimalToBytes(stringValue, moneyScale), nil
