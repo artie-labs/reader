@@ -12,6 +12,7 @@ import (
 
 type DestinationWriter interface {
 	WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMessage) error
+	OnComplete() error
 }
 
 type Writer struct {
