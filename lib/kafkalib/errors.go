@@ -34,15 +34,5 @@ func isRetryableError(err error) bool {
 		return false
 	}
 
-	retryableErrs := []error{
-		kafka.TopicAuthorizationFailed,
-	}
-
-	for _, retryableErr := range retryableErrs {
-		if errors.Is(err, retryableErr) {
-			return true
-		}
-	}
-
-	return false
+	return errors.Is(err, kafka.TopicAuthorizationFailed)
 }
