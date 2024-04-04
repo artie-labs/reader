@@ -13,7 +13,7 @@ import (
 	"github.com/artie-labs/reader/lib/iterator"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/s3lib"
-	"github.com/artie-labs/reader/lib/writer"
+	"github.com/artie-labs/reader/writers"
 )
 
 type SnapshotStore struct {
@@ -29,12 +29,12 @@ func (s *SnapshotStore) Close() error {
 	return nil
 }
 
-func (s *SnapshotStore) Run(ctx context.Context, _writer writer.Writer) error {
+func (s *SnapshotStore) Run(ctx context.Context, writer writers.Writer) error {
 	if err := s.scanFilesOverBucket(); err != nil {
 		return fmt.Errorf("scanning files over bucket failed: %w", err)
 	}
 
-	if err := s.streamAndPublish(ctx, _writer); err != nil {
+	if err := s.streamAndPublish(ctx, writer); err != nil {
 		return fmt.Errorf("stream and publish failed: %w", err)
 	}
 
@@ -65,7 +65,7 @@ func (s *SnapshotStore) scanFilesOverBucket() error {
 	return nil
 }
 
-func (s *SnapshotStore) streamAndPublish(ctx context.Context, _writer writer.Writer) error {
+func (s *SnapshotStore) streamAndPublish(ctx context.Context, writer writers.Writer) error {
 	keys, err := s.retrievePrimaryKeys()
 	if err != nil {
 		return fmt.Errorf("failed to retrieve primary keys: %w", err)
@@ -94,7 +94,7 @@ func (s *SnapshotStore) streamAndPublish(ctx context.Context, _writer writer.Wri
 		}
 
 		// TODO: Create an actual iterator over the files that is passed to the writer.
-		if _, err := _writer.Write(ctx, iterator.Once(messages)); err != nil {
+		if _, err := writer.Write(ctx, iterator.Once(messages)); err != nil {
 			return fmt.Errorf("failed to publish messages: %w", err)
 		}
 

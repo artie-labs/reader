@@ -9,16 +9,15 @@ import (
 	"github.com/artie-labs/transfer/lib/telemetry/metrics"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/destinations"
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/mtr"
-	"github.com/artie-labs/reader/lib/writer"
 	"github.com/artie-labs/reader/sources"
 	"github.com/artie-labs/reader/sources/dynamodb"
 	"github.com/artie-labs/reader/sources/mongo"
 	"github.com/artie-labs/reader/sources/mysql"
 	"github.com/artie-labs/reader/sources/postgres"
+	"github.com/artie-labs/reader/writers"
 )
 
 func setUpMetrics(cfg *config.Metrics) (mtr.Client, error) {
@@ -54,7 +53,7 @@ func buildSource(cfg *config.Settings) (sources.Source, bool, error) {
 	return source, isStreamingMode, err
 }
 
-func buildDestination(ctx context.Context, cfg *config.Settings, statsD mtr.Client) (destinations.Destination, error) {
+func buildDestinationWriter(ctx context.Context, cfg *config.Settings, statsD mtr.Client) (writers.DestinationWriter, error) {
 	switch cfg.Destination {
 	case config.DestinationKafka:
 		kafkaCfg := cfg.Kafka
@@ -93,7 +92,7 @@ func main() {
 		logger.Fatal("Failed to set up metrics", slog.Any("err", err))
 	}
 
-	destination, err := buildDestination(ctx, cfg, statsD)
+	destinationWriter, err := buildDestinationWriter(ctx, cfg, statsD)
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("Failed to init '%s' destination", cfg.Destination), slog.Any("err", err))
 	}
@@ -105,7 +104,7 @@ func main() {
 	defer source.Close()
 
 	logProgress := !isStreamingMode
-	_writer := writer.New(destination, logProgress)
+	_writer := writers.New(destinationWriter, logProgress)
 
 	mode := "snapshot"
 	if isStreamingMode {

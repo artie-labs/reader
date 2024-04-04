@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib/writer"
 	"github.com/artie-labs/reader/sources/dynamodb/offsets"
+	"github.com/artie-labs/reader/writers"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
 )
@@ -27,11 +27,11 @@ func (s *StreamStore) Close() error {
 	return nil
 }
 
-func (s *StreamStore) Run(ctx context.Context, _writer writer.Writer) error {
+func (s *StreamStore) Run(ctx context.Context, writer writers.Writer) error {
 	ticker := time.NewTicker(shardScannerInterval)
 
 	// Start to subscribe to the channel
-	go s.ListenToChannel(ctx, _writer)
+	go s.ListenToChannel(ctx, writer)
 
 	// Scan it for the first time manually, so we don't have to wait 5 mins
 	if err := s.scanForNewShards(); err != nil {

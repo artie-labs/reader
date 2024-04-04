@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib/writer"
+	"github.com/artie-labs/reader/writers"
 )
 
 type Source struct {
@@ -49,7 +49,7 @@ func (s *Source) Close() error {
 	return nil
 }
 
-func (s *Source) Run(ctx context.Context, _writer writer.Writer) error {
+func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
 	for _, collection := range s.cfg.Collections {
 		snapshotStartTime := time.Now()
 
@@ -60,7 +60,7 @@ func (s *Source) Run(ctx context.Context, _writer writer.Writer) error {
 		)
 
 		iterator := newIterator(s.db, collection, s.cfg)
-		count, err := _writer.Write(ctx, iterator)
+		count, err := writer.Write(ctx, iterator)
 		if err != nil {
 			return fmt.Errorf("failed to snapshot for collection %s: %w", collection.Name, err)
 		}

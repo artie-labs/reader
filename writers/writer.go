@@ -1,4 +1,4 @@
-package writer
+package writers
 
 import (
 	"context"
@@ -6,17 +6,20 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/artie-labs/reader/destinations"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/iterator"
 )
 
+type DestinationWriter interface {
+	WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMessage) error
+}
+
 type Writer struct {
-	destination destinations.Destination
+	destination DestinationWriter
 	logProgress bool
 }
 
-func New(destination destinations.Destination, logProgress bool) Writer {
+func New(destination DestinationWriter, logProgress bool) Writer {
 	return Writer{destination, logProgress}
 }
 
