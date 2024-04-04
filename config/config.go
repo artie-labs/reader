@@ -151,6 +151,10 @@ func (s *Settings) Validate() error {
 		if err != nil {
 			return fmt.Errorf("transfer topic configs are invalid: %w", err)
 		}
+		if len(toipicConfigs) != 1 {
+			return fmt.Errorf("expected exactly one transfer config, got %d", len(toipicConfigs))
+		}
+
 		for _, topicConfig := range toipicConfigs {
 			topicConfig.Load()
 		}
