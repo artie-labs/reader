@@ -66,6 +66,10 @@ func TestIsRetryableError(t *testing.T) {
 			err:      context.DeadlineExceeded,
 			expected: true,
 		},
+		{
+			err:      kafka.MessageSizeTooLarge,
+			expected: false,
+		},
 	}
 
 	for _, tc := range tcs {
