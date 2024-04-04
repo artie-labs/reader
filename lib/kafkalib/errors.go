@@ -1,7 +1,6 @@
 package kafkalib
 
 import (
-	"context"
 	"errors"
 	"log/slog"
 	"strings"
@@ -35,16 +34,5 @@ func isRetryableError(err error) bool {
 		return false
 	}
 
-	retryableErrs := []error{
-		context.DeadlineExceeded,
-		kafka.TopicAuthorizationFailed,
-	}
-
-	for _, retryableErr := range retryableErrs {
-		if errors.Is(err, retryableErr) {
-			return true
-		}
-	}
-
-	return false
+	return errors.Is(err, kafka.TopicAuthorizationFailed)
 }

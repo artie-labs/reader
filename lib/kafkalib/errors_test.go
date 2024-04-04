@@ -1,7 +1,6 @@
 package kafkalib
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -60,10 +59,6 @@ func TestIsRetryableError(t *testing.T) {
 		},
 		{
 			err:      kafka.TopicAuthorizationFailed,
-			expected: true,
-		},
-		{
-			err:      context.DeadlineExceeded,
 			expected: true,
 		},
 		{
