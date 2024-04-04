@@ -149,7 +149,7 @@ func (s *Settings) Validate() error {
 
 		toipicConfigs, err := s.Transfer.TopicConfigs()
 		if err != nil {
-			return fmt.Errorf("failed to get topic configs: %w", err)
+			return fmt.Errorf("transfer topic configs are invalid: %w", err)
 		}
 		for _, topicConfig := range toipicConfigs {
 			topicConfig.Load()
@@ -158,6 +158,11 @@ func (s *Settings) Validate() error {
 		if err := s.Transfer.Validate(); err != nil {
 			return fmt.Errorf("transfer validation failed: %w", err)
 		}
+
+		if s.Transfer.Mode != transferCfg.Replication {
+			return fmt.Errorf("transfer mode must be replication")
+		}
+
 	default:
 		return fmt.Errorf("invalid destination: '%s'", s.Destination)
 	}
