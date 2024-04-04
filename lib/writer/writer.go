@@ -12,11 +12,11 @@ import (
 )
 
 type Writer struct {
-	destination destinations.Destination
+	destination destinations.DestinationWriter
 	logProgress bool
 }
 
-func New(destination destinations.Destination, logProgress bool) Writer {
+func New(destination destinations.DestinationWriter, logProgress bool) Writer {
 	return Writer{destination, logProgress}
 }
 

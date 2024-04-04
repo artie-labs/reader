@@ -6,7 +6,7 @@ import (
 	"github.com/artie-labs/reader/lib"
 )
 
-type Destination interface {
+type DestinationWriter interface {
 	WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMessage) error
 	OnFinish() error
 }
