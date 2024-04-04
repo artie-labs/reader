@@ -1,7 +1,7 @@
 package kafkalib
 
-// Batched splits a slice of items into a slice of step-sized slices.
-func Batched[T any](items []T, step int) [][]T {
+// batched splits a slice of items into a slice of step-sized slices.
+func batched[T any](items []T, step int) [][]T {
 	step = max(step, 1)
 	var result [][]T
 	for index := 0; index < len(items); {

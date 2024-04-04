@@ -104,7 +104,7 @@ func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMes
 		msgs = append(msgs, kafkaMsg)
 	}
 
-	for _, batch := range Batched(msgs, int(b.cfg.GetPublishSize())) {
+	for _, batch := range batched(msgs, int(b.cfg.GetPublishSize())) {
 		tags := map[string]string{
 			"what": "error",
 		}
