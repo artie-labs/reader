@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	transferCfg "github.com/artie-labs/transfer/lib/config"
 	"gopkg.in/yaml.v3"
 
 	"github.com/artie-labs/reader/constants"
@@ -71,7 +72,8 @@ const (
 type Destination string
 
 const (
-	DestinationKafka Destination = "kafka"
+	DestinationKafka    Destination = "kafka"
+	DestinationTransfer Destination = "transfer"
 )
 
 type Settings struct {
@@ -81,8 +83,9 @@ type Settings struct {
 	MySQL      *MySQL      `yaml:"mysql,omitempty"`
 	PostgreSQL *PostgreSQL `yaml:"postgresql,omitempty"`
 
-	Destination Destination `yaml:"destination"`
-	Kafka       *Kafka      `yaml:"kafka"`
+	Destination Destination         `yaml:"destination"`
+	Kafka       *Kafka              `yaml:"kafka,omitempty"`
+	Transfer    *transferCfg.Config `yaml:"transfer,omitempty"`
 
 	Reporting *Reporting `yaml:"reporting"`
 	Metrics   *Metrics   `yaml:"metrics"`
@@ -138,6 +141,30 @@ func (s *Settings) Validate() error {
 
 		if err := s.Kafka.Validate(); err != nil {
 			return fmt.Errorf("kafka validation failed: %w", err)
+		}
+	case DestinationTransfer:
+		if s.Transfer == nil {
+			return fmt.Errorf("transfer config is nil")
+		}
+
+		topicConfigs, err := s.Transfer.TopicConfigs()
+		if err != nil {
+			return fmt.Errorf("transfer topic configs are invalid: %w", err)
+		}
+		if len(topicConfigs) != 1 {
+			return fmt.Errorf("expected exactly one transfer config, got %d", len(topicConfigs))
+		}
+
+		for _, topicConfig := range topicConfigs {
+			topicConfig.Load()
+		}
+
+		if err := s.Transfer.Validate(); err != nil {
+			return fmt.Errorf("transfer validation failed: %w", err)
+		}
+
+		if s.Transfer.Mode != transferCfg.Replication {
+			return fmt.Errorf("transfer mode must be replication")
 		}
 	default:
 		return fmt.Errorf("invalid destination: '%s'", s.Destination)

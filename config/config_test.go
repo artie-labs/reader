@@ -5,6 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	transferCfg "github.com/artie-labs/transfer/lib/config"
+	transferConstants "github.com/artie-labs/transfer/lib/config/constants"
+	"github.com/artie-labs/transfer/lib/kafkalib"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
 )
@@ -66,7 +69,7 @@ func TestSettings_Validate(t *testing.T) {
 			expectedErr: "kafka config is nil",
 		},
 		{
-			name: "valid",
+			name: "valid kafka destination",
 			settings: &Settings{
 				Source:      SourceDynamo,
 				DynamoDB:    dynamoDBCfg(),
@@ -74,6 +77,50 @@ func TestSettings_Validate(t *testing.T) {
 				Kafka: &Kafka{
 					BootstrapServers: "localhost:9092",
 					TopicPrefix:      "test",
+				},
+			},
+		},
+		{
+			name:        "nil transfer",
+			settings:    &Settings{Source: SourceDynamo, DynamoDB: dynamoDBCfg(), Destination: DestinationTransfer},
+			expectedErr: "transfer config is nil",
+		},
+		{
+			name: "invalid transfer destination",
+			settings: &Settings{
+				Source:      SourceDynamo,
+				DynamoDB:    dynamoDBCfg(),
+				Destination: DestinationTransfer,
+				Transfer:    &transferCfg.Config{},
+			},
+			expectedErr: "transfer topic configs are invalid: unsupported queue",
+		},
+		{
+			name: "valid transfer destination",
+			settings: &Settings{
+				Source:      SourceDynamo,
+				DynamoDB:    dynamoDBCfg(),
+				Destination: DestinationTransfer,
+				Transfer: &transferCfg.Config{
+					Mode:                 transferCfg.Replication,
+					Queue:                transferConstants.Kafka,
+					FlushIntervalSeconds: 10,
+					FlushSizeKb:          1,
+					BufferRows:           25_000,
+					Kafka: &transferCfg.Kafka{
+						BootstrapServer: "not-used",
+						GroupID:         "group-id",
+						TopicConfigs: []*kafkalib.TopicConfig{
+							{
+								Database:     "db",
+								Schema:       "schema",
+								Topic:        "unused",
+								CDCFormat:    "unused",
+								CDCKeyFormat: kafkalib.JSONKeyFmt,
+							},
+						},
+					},
+					Output: transferConstants.Snowflake,
 				},
 			},
 		},

@@ -18,6 +18,7 @@ import (
 	"github.com/artie-labs/reader/sources/mysql"
 	"github.com/artie-labs/reader/sources/postgres"
 	"github.com/artie-labs/reader/writers"
+	"github.com/artie-labs/reader/writers/transfer"
 )
 
 func setUpMetrics(cfg *config.Metrics) (mtr.Client, error) {
@@ -67,6 +68,8 @@ func buildDestinationWriter(ctx context.Context, cfg *config.Settings, statsD mt
 			slog.Uint64("maxRequestSize", kafkaCfg.MaxRequestSize),
 		)
 		return kafkalib.NewBatchWriter(ctx, *kafkaCfg, statsD)
+	case config.DestinationTransfer:
+		return transfer.NewWriter(*cfg.Transfer, statsD)
 	default:
 		panic(fmt.Sprintf("unknown destination: %s", cfg.Destination)) // should never happen
 	}
