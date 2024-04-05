@@ -11,7 +11,7 @@ type JSONConverter struct{}
 func (JSONConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
-		Type:         "string",
+		Type:         debezium.String,
 		DebeziumType: string(debezium.JSON),
 	}
 }

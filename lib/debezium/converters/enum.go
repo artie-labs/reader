@@ -11,7 +11,7 @@ type EnumConverter struct{}
 func (EnumConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
-		Type:         "string",
+		Type:         debezium.String,
 		DebeziumType: "io.debezium.data.Enum",
 	}
 }
@@ -29,7 +29,7 @@ type EnumSetConverter struct{}
 func (EnumSetConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
-		Type:         "string",
+		Type:         debezium.String,
 		DebeziumType: "io.debezium.data.EnumSet",
 	}
 }

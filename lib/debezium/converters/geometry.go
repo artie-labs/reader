@@ -13,7 +13,7 @@ type geomConverter struct {
 func (g geomConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
-		Type:         "struct",
+		Type:         debezium.Struct,
 		DebeziumType: string(g.debeziumType),
 	}
 }
