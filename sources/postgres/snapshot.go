@@ -13,8 +13,8 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/rdbms"
-	"github.com/artie-labs/reader/lib/writer"
 	"github.com/artie-labs/reader/sources/postgres/adapter"
+	"github.com/artie-labs/reader/writers"
 )
 
 type Source struct {
@@ -38,7 +38,7 @@ func (s *Source) Close() error {
 	return s.db.Close()
 }
 
-func (s *Source) Run(ctx context.Context, _writer writer.Writer) error {
+func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
 	for _, tableCfg := range s.cfg.Tables {
 		logger := slog.With(slog.String("schema", tableCfg.Schema), slog.String("table", tableCfg.Name))
 		snapshotStartTime := time.Now()
@@ -59,7 +59,7 @@ func (s *Source) Run(ctx context.Context, _writer writer.Writer) error {
 		}
 
 		logger.Info("Scanning table...", slog.Any("batchSize", tableCfg.GetBatchSize()))
-		count, err := _writer.Write(ctx, dbzTransformer)
+		count, err := writer.Write(ctx, dbzTransformer)
 		if err != nil {
 			return fmt.Errorf("failed to snapshot for table %s: %w", tableCfg.Name, err)
 		}

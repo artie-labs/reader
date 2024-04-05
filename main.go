@@ -9,17 +9,16 @@ import (
 	"github.com/artie-labs/transfer/lib/telemetry/metrics"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/destinations"
-	"github.com/artie-labs/reader/destinations/transfer"
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/mtr"
-	"github.com/artie-labs/reader/lib/writer"
 	"github.com/artie-labs/reader/sources"
 	"github.com/artie-labs/reader/sources/dynamodb"
 	"github.com/artie-labs/reader/sources/mongo"
 	"github.com/artie-labs/reader/sources/mysql"
 	"github.com/artie-labs/reader/sources/postgres"
+	"github.com/artie-labs/reader/writers"
+	"github.com/artie-labs/reader/writers/transfer"
 )
 
 func setUpMetrics(cfg *config.Metrics) (mtr.Client, error) {
@@ -55,7 +54,7 @@ func buildSource(cfg *config.Settings) (sources.Source, bool, error) {
 	return source, isStreamingMode, err
 }
 
-func buildDestinationWriter(ctx context.Context, cfg *config.Settings, statsD mtr.Client) (destinations.DestinationWriter, error) {
+func buildDestinationWriter(ctx context.Context, cfg *config.Settings, statsD mtr.Client) (writers.DestinationWriter, error) {
 	switch cfg.Destination {
 	case config.DestinationKafka:
 		kafkaCfg := cfg.Kafka
@@ -108,7 +107,7 @@ func main() {
 	defer source.Close()
 
 	logProgress := !isStreamingMode
-	_writer := writer.New(destinationWriter, logProgress)
+	writer := writers.New(destinationWriter, logProgress)
 
 	mode := "snapshot"
 	if isStreamingMode {
@@ -117,7 +116,7 @@ func main() {
 
 	slog.Info(fmt.Sprintf("Starting %s...", mode))
 
-	if err = source.Run(ctx, _writer); err != nil {
+	if err = source.Run(ctx, writer); err != nil {
 		logger.Fatal(fmt.Sprintf("Failed to %s", mode),
 			slog.Any("err", err),
 			slog.String("source", string(cfg.Source)),

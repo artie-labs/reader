@@ -60,13 +60,13 @@ func NewWriter(cfg config.Config, statsD mtr.Client) (*Writer, error) {
 	}, nil
 }
 
-func (w *Writer) WriteRawMessages(_ context.Context, rawMsgs []lib.RawMessage) error {
-	if len(rawMsgs) == 0 {
+func (w *Writer) Write(_ context.Context, messages []lib.RawMessage) error {
+	if len(messages) == 0 {
 		return nil
 	}
 
 	var events []event.Event
-	for _, rawMsg := range rawMsgs {
+	for _, rawMsg := range messages {
 		evt := rawMsg.Event()
 		if payload, ok := evt.(*util.SchemaEventPayload); ok {
 			var err error
@@ -149,7 +149,7 @@ func (w *Writer) Flush(reason string) error {
 	return nil
 }
 
-func (w *Writer) OnFinish() error {
+func (w *Writer) OnComplete() error {
 	if err := w.Flush("complete"); err != nil {
 		return err
 	}

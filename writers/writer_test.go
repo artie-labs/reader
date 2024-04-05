@@ -1,4 +1,4 @@
-package writer
+package writers
 
 import (
 	"context"
@@ -15,7 +15,7 @@ type mockDestination struct {
 	emitError bool
 }
 
-func (m *mockDestination) WriteRawMessages(ctx context.Context, msgs []lib.RawMessage) error {
+func (m *mockDestination) Write(ctx context.Context, msgs []lib.RawMessage) error {
 	if m.emitError {
 		return fmt.Errorf("test write-raw-messages error")
 	}
@@ -23,7 +23,7 @@ func (m *mockDestination) WriteRawMessages(ctx context.Context, msgs []lib.RawMe
 	return nil
 }
 
-func (m *mockDestination) OnFinish() error {
+func (m *mockDestination) OnComplete() error {
 	return nil
 }
 

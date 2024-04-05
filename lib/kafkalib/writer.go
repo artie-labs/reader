@@ -3,6 +3,7 @@ package kafkalib
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"time"
@@ -90,7 +91,7 @@ func (b *BatchWriter) reload(ctx context.Context) error {
 	return nil
 }
 
-func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMessage) error {
+func (b *BatchWriter) Write(ctx context.Context, rawMsgs []lib.RawMessage) error {
 	if len(rawMsgs) == 0 {
 		return nil
 	}
@@ -148,6 +149,24 @@ func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMes
 	return nil
 }
 
-func (b *BatchWriter) OnFinish() error {
+func (b *BatchWriter) OnComplete() error {
 	return nil
+}
+
+func newMessage(topicPrefix string, rawMessage lib.RawMessage) (kafka.Message, error) {
+	valueBytes, err := json.Marshal(rawMessage.Event())
+	if err != nil {
+		return kafka.Message{}, err
+	}
+
+	keyBytes, err := json.Marshal(rawMessage.PartitionKey())
+	if err != nil {
+		return kafka.Message{}, err
+	}
+
+	return kafka.Message{
+		Topic: fmt.Sprintf("%s.%s", topicPrefix, rawMessage.TopicSuffix()),
+		Key:   keyBytes,
+		Value: valueBytes,
+	}, nil
 }
