@@ -120,19 +120,22 @@ func (w *Writer) Write(_ context.Context, messages []lib.RawMessage) error {
 	return nil
 }
 
-func (w *Writer) getTableData() (string, *models.TableData) {
+func (w *Writer) getTableData() (string, *models.TableData, error) {
 	tableData := w.inMemDB.TableData()
 	if len(tableData) != 1 {
-		panic("expected exactly one table")
+		return "", nil, fmt.Errorf("expected exactly one table")
 	}
 	for k, v := range tableData {
-		return k, v
+		return k, v, nil
 	}
-	panic("can't happen")
+	return "", nil, fmt.Errorf("expected exactly one table")
 }
 
 func (w *Writer) flush(reason string) error {
-	tableName, tableData := w.getTableData()
+	tableName, tableData, err := w.getTableData()
+	if err != nil {
+		return err
+	}
 
 	if tableData.ShouldSkipUpdate() {
 		return nil // No need to flush.
