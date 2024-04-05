@@ -14,7 +14,7 @@ func (MicroTimeConverter) ToField(name string) debezium.Field {
 	// Represents the number of microseconds past midnight, and does not include timezone information.
 	return debezium.Field{
 		FieldName:    name,
-		Type:         "int64",
+		Type:         debezium.Int64,
 		DebeziumType: string(debezium.TimeMicro),
 	}
 }
@@ -40,7 +40,7 @@ type DateConverter struct{}
 func (DateConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
-		Type:         "int32",
+		Type:         debezium.Int32,
 		DebeziumType: string(debezium.Date),
 	}
 }
@@ -73,7 +73,7 @@ func (MicroTimestampConverter) ToField(name string) debezium.Field {
 	// Represents the number of microseconds since the epoch, and does not include timezone information.
 	return debezium.Field{
 		FieldName:    name,
-		Type:         "int64",
+		Type:         debezium.Int64,
 		DebeziumType: string(debezium.MicroTimestamp),
 	}
 }
@@ -92,7 +92,7 @@ func (ZonedTimestampConverter) ToField(name string) debezium.Field {
 	// A string representation of a timestamp with timezone information, where the timezone is GMT.
 	return debezium.Field{
 		FieldName:    name,
-		Type:         "string",
+		Type:         debezium.String,
 		DebeziumType: string(debezium.DateTimeWithTimezone),
 	}
 }
@@ -118,7 +118,7 @@ type YearConverter struct{}
 func (YearConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
-		Type:         "int32",
+		Type:         debezium.Int32,
 		DebeziumType: "io.debezium.time.Year",
 	}
 }

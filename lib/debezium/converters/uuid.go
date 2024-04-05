@@ -11,7 +11,7 @@ type UUIDConverter struct{}
 func (UUIDConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
-		Type:         "string",
+		Type:         debezium.String,
 		DebeziumType: "io.debezium.data.Uuid",
 	}
 }

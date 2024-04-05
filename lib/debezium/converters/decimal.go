@@ -20,7 +20,7 @@ func NewDecimalConverter(scale int, precision *int) decimalConverter {
 func (d decimalConverter) ToField(name string) transferDBZ.Field {
 	field := transferDBZ.Field{
 		FieldName:    name,
-		Type:         "bytes",
+		Type:         transferDBZ.Bytes,
 		DebeziumType: string(transferDBZ.KafkaDecimalType),
 		Parameters: map[string]any{
 			"scale": fmt.Sprint(d.scale),
@@ -47,7 +47,7 @@ type VariableNumericConverter struct{}
 func (VariableNumericConverter) ToField(name string) transferDBZ.Field {
 	return transferDBZ.Field{
 		FieldName:    name,
-		Type:         "struct",
+		Type:         transferDBZ.Struct,
 		DebeziumType: string(transferDBZ.KafkaVariableNumericType),
 	}
 }
