@@ -10,37 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetScale(t *testing.T) {
-	type _testCase struct {
-		name          string
-		value         string
-		expectedScale int
-	}
-
-	testCases := []_testCase{
-		{
-			name:          "0 scale",
-			value:         "5",
-			expectedScale: 0,
-		},
-		{
-			name:          "2 scale",
-			value:         "9.99",
-			expectedScale: 2,
-		},
-		{
-			name:          "5 scale",
-			value:         "9.12345",
-			expectedScale: 5,
-		},
-	}
-
-	for _, testCase := range testCases {
-		actualScale := getScale(testCase.value)
-		assert.Equal(t, testCase.expectedScale, actualScale, testCase.name)
-	}
-}
-
 func TestEncodeDecimalToBase64(t *testing.T) {
 	type _tc struct {
 		name  string
@@ -144,6 +113,37 @@ func TestDecimalConverter_ToField(t *testing.T) {
 			},
 		}
 		assert.Equal(t, expected, converter.ToField("col"))
+	}
+}
+
+func TestGetScale(t *testing.T) {
+	type _testCase struct {
+		name          string
+		value         string
+		expectedScale int
+	}
+
+	testCases := []_testCase{
+		{
+			name:          "0 scale",
+			value:         "5",
+			expectedScale: 0,
+		},
+		{
+			name:          "2 scale",
+			value:         "9.99",
+			expectedScale: 2,
+		},
+		{
+			name:          "5 scale",
+			value:         "9.12345",
+			expectedScale: 5,
+		},
+	}
+
+	for _, testCase := range testCases {
+		actualScale := getScale(testCase.value)
+		assert.Equal(t, testCase.expectedScale, actualScale, testCase.name)
 	}
 }
 

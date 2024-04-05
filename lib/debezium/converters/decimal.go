@@ -8,21 +8,6 @@ import (
 	"github.com/artie-labs/transfer/lib/debezium"
 )
 
-func getScale(value string) int {
-	// Find the index of the decimal point
-	i := strings.IndexRune(value, '.')
-
-	if i == -1 {
-		// No decimal point: scale is 0
-		return 0
-	}
-
-	// The scale is the number of digits after the decimal point
-	scale := len(value[i+1:])
-
-	return scale
-}
-
 func EncodeDecimalToBytes(value string, scale int) []byte {
 	scaledValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(scale)), nil)
 	bigFloatValue := new(big.Float)
@@ -93,6 +78,21 @@ func (d decimalConverter) Convert(value any) (any, error) {
 		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
 	}
 	return EncodeDecimalToBytes(castValue, d.scale), nil
+}
+
+func getScale(value string) int {
+	// Find the index of the decimal point
+	i := strings.IndexRune(value, '.')
+
+	if i == -1 {
+		// No decimal point: scale is 0
+		return 0
+	}
+
+	// The scale is the number of digits after the decimal point
+	scale := len(value[i+1:])
+
+	return scale
 }
 
 type VariableNumericConverter struct{}
