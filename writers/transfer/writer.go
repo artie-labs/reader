@@ -18,7 +18,6 @@ import (
 	"github.com/artie-labs/transfer/lib/kafkalib"
 	"github.com/artie-labs/transfer/models"
 	"github.com/artie-labs/transfer/models/event"
-	"golang.org/x/exp/maps"
 )
 
 // toJSONTypes converts data to JSON and back so that the format is consistent with what is in Kafka.
@@ -124,11 +123,13 @@ func (w *Writer) Write(_ context.Context, messages []lib.RawMessage) error {
 
 func (w *Writer) GetTableData() (string, *models.TableData) {
 	tableData := w.inMemDB.TableData()
-	keys := maps.Keys(tableData)
-	if len(keys) != 1 {
+	if len(tableData) != 1 {
 		panic("expected exactly one table")
 	}
-	return keys[0], tableData[keys[0]]
+	for k, v := range tableData {
+		return k, v
+	}
+	panic("can not happen")
 }
 
 func (w *Writer) Flush(reason string) error {
