@@ -164,7 +164,6 @@ func (w *Writer) flush(reason string) error {
 	if err := w.destination.Append(tableData.TableData); err != nil {
 		tags["what"] = "merge_fail"
 		tags["retryable"] = fmt.Sprint(w.destination.IsRetryableError(err))
-
 		return fmt.Errorf("failed to append data to destination: %w", err)
 	}
 	w.inMemDB.ClearTableConfig(tableName)
