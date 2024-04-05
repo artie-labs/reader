@@ -14,7 +14,7 @@ func (g geomConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
 		Type:         debezium.Struct,
-		DebeziumType: string(g.debeziumType),
+		DebeziumType: g.debeziumType,
 	}
 }
 

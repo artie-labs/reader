@@ -12,7 +12,7 @@ func (JSONConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
 		Type:         debezium.String,
-		DebeziumType: string(debezium.JSON),
+		DebeziumType: debezium.JSON,
 	}
 }
 

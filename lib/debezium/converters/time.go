@@ -15,7 +15,7 @@ func (MicroTimeConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
 		Type:         debezium.Int64,
-		DebeziumType: string(debezium.TimeMicro),
+		DebeziumType: debezium.TimeMicro,
 	}
 }
 
@@ -41,7 +41,7 @@ func (DateConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
 		Type:         debezium.Int32,
-		DebeziumType: string(debezium.Date),
+		DebeziumType: debezium.Date,
 	}
 }
 
@@ -74,7 +74,7 @@ func (MicroTimestampConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
 		Type:         debezium.Int64,
-		DebeziumType: string(debezium.MicroTimestamp),
+		DebeziumType: debezium.MicroTimestamp,
 	}
 }
 
@@ -93,7 +93,7 @@ func (ZonedTimestampConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
 		Type:         debezium.String,
-		DebeziumType: string(debezium.DateTimeWithTimezone),
+		DebeziumType: debezium.DateTimeWithTimezone,
 	}
 }
 
@@ -119,7 +119,7 @@ func (YearConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
 		Type:         debezium.Int32,
-		DebeziumType: "io.debezium.time.Year",
+		DebeziumType: debezium.Year,
 	}
 }
 

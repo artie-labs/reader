@@ -12,7 +12,7 @@ func (UUIDConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
 		Type:         debezium.String,
-		DebeziumType: "io.debezium.data.Uuid",
+		DebeziumType: debezium.UUID,
 	}
 }
 
