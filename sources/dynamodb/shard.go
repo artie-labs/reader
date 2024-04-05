@@ -13,16 +13,16 @@ import (
 	"github.com/artie-labs/reader/lib/dynamo"
 	"github.com/artie-labs/reader/lib/iterator"
 	"github.com/artie-labs/reader/lib/logger"
-	"github.com/artie-labs/reader/lib/writer"
+	"github.com/artie-labs/reader/writers"
 )
 
-func (s *StreamStore) ListenToChannel(ctx context.Context, _writer writer.Writer) {
+func (s *StreamStore) ListenToChannel(ctx context.Context, writer writers.Writer) {
 	for shard := range s.shardChan {
-		go s.processShard(ctx, shard, _writer)
+		go s.processShard(ctx, shard, writer)
 	}
 }
 
-func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.Shard, _writer writer.Writer) {
+func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.Shard, writer writers.Writer) {
 	var attempts int
 
 	// Is there another go-routine processing this shard?
@@ -99,7 +99,7 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 		}
 
 		// TODO: Create an actual iterator over the shards that is passed to the writer.
-		if _, err = _writer.Write(ctx, iterator.Once(messages)); err != nil {
+		if _, err = writer.Write(ctx, iterator.Once(messages)); err != nil {
 			logger.Panic("Failed to publish messages, exiting...", slog.Any("err", err))
 		}
 

@@ -1,4 +1,4 @@
-package writer
+package writers
 
 import (
 	"context"
@@ -6,18 +6,22 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/artie-labs/reader/destinations"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/iterator"
 )
 
-type Writer struct {
-	destination destinations.Destination
-	logProgress bool
+type DestinationWriter interface {
+	Write(ctx context.Context, rawMsgs []lib.RawMessage) error
+	OnComplete() error
 }
 
-func New(destination destinations.Destination, logProgress bool) Writer {
-	return Writer{destination, logProgress}
+type Writer struct {
+	destinationWriter DestinationWriter
+	logProgress       bool
+}
+
+func New(destinationWriter DestinationWriter, logProgress bool) Writer {
+	return Writer{destinationWriter, logProgress}
 }
 
 // Write writes all the messages from an iterator to the destination.
@@ -30,7 +34,7 @@ func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMess
 			return 0, fmt.Errorf("failed to iterate over messages: %w", err)
 
 		} else if len(msgs) > 0 {
-			if err = w.destination.WriteRawMessages(ctx, msgs); err != nil {
+			if err = w.destinationWriter.Write(ctx, msgs); err != nil {
 				return 0, fmt.Errorf("failed to write messages: %w", err)
 			}
 			count += len(msgs)
@@ -43,5 +47,10 @@ func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMess
 			)
 		}
 	}
+
+	if err := w.destinationWriter.OnComplete(); err != nil {
+		return 0, fmt.Errorf("failed running destination OnComplete: %w", err)
+	}
+
 	return count, nil
 }

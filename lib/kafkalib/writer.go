@@ -91,7 +91,7 @@ func (b *BatchWriter) reload(ctx context.Context) error {
 	return nil
 }
 
-func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMessage) error {
+func (b *BatchWriter) Write(ctx context.Context, rawMsgs []lib.RawMessage) error {
 	if len(rawMsgs) == 0 {
 		return nil
 	}
@@ -146,6 +146,10 @@ func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMes
 			return fmt.Errorf("failed to write message: %w, approxSize: %d", kafkaErr, size.GetApproxSize(batch))
 		}
 	}
+	return nil
+}
+
+func (b *BatchWriter) OnComplete() error {
 	return nil
 }
 
