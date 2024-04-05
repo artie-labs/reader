@@ -20,7 +20,7 @@ import (
 	"github.com/artie-labs/transfer/models/event"
 )
 
-// toJSONTypes converts data to JSON and back so that the format is consistent with what is in Kafka.
+// toJSONTypes converts data to JSON and back so that the format is consistent with what Kafka emits.
 func toJSONTypes(data map[string]any) (map[string]any, error) {
 	dataBytes, err := json.Marshal(data)
 	if err != nil {
