@@ -12,7 +12,7 @@ func (EnumConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
 		Type:         debezium.String,
-		DebeziumType: "io.debezium.data.Enum",
+		DebeziumType: debezium.Enum,
 	}
 }
 
@@ -30,7 +30,7 @@ func (EnumSetConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
 		Type:         debezium.String,
-		DebeziumType: "io.debezium.data.EnumSet",
+		DebeziumType: debezium.EnumSet,
 	}
 }
 

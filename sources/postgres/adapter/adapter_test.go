@@ -87,7 +87,7 @@ func TestValueConverterForType_ToField(t *testing.T) {
 			expected: debezium.Field{
 				Type:         "struct",
 				FieldName:    "numeric_col",
-				DebeziumType: string(debezium.KafkaVariableNumericType),
+				DebeziumType: debezium.KafkaVariableNumericType,
 			},
 		},
 		{
@@ -101,7 +101,7 @@ func TestValueConverterForType_ToField(t *testing.T) {
 			expected: debezium.Field{
 				Type:         "bytes",
 				FieldName:    "numeric_col",
-				DebeziumType: string(debezium.KafkaDecimalType),
+				DebeziumType: debezium.KafkaDecimalType,
 				Parameters:   map[string]any{"scale": "2", "connect.decimal.precision": "10"},
 			},
 		},
@@ -140,7 +140,7 @@ func TestValueConverterForType_ToField(t *testing.T) {
 			expected: debezium.Field{
 				Type:         "int32",
 				FieldName:    "time",
-				DebeziumType: string(debezium.Time),
+				DebeziumType: debezium.Time,
 			},
 		},
 		{
@@ -150,7 +150,7 @@ func TestValueConverterForType_ToField(t *testing.T) {
 			expected: debezium.Field{
 				Type:         "int32",
 				FieldName:    "time",
-				DebeziumType: string(debezium.Time),
+				DebeziumType: debezium.Time,
 			},
 		},
 		{
@@ -160,7 +160,7 @@ func TestValueConverterForType_ToField(t *testing.T) {
 			expected: debezium.Field{
 				Type:         "int32",
 				FieldName:    "date_col",
-				DebeziumType: string(debezium.Date),
+				DebeziumType: debezium.Date,
 			},
 		},
 		{

@@ -19,8 +19,8 @@ type MoneyConverter struct{}
 func (MoneyConverter) ToField(name string) transferDbz.Field {
 	return transferDbz.Field{
 		FieldName:    name,
-		Type:         "bytes",
-		DebeziumType: string(transferDbz.KafkaDecimalType),
+		Type:         transferDbz.Bytes,
+		DebeziumType: transferDbz.KafkaDecimalType,
 		Parameters: map[string]any{
 			"scale": fmt.Sprint(moneyScale),
 		},
@@ -40,8 +40,8 @@ func (PgTimeConverter) ToField(name string) transferDbz.Field {
 	// Represents the number of milliseconds past midnight, and does not include timezone information.
 	return transferDbz.Field{
 		FieldName:    name,
-		Type:         "int32",
-		DebeziumType: string(transferDbz.Time),
+		Type:         transferDbz.Int32,
+		DebeziumType: transferDbz.Time,
 	}
 }
 
@@ -67,7 +67,7 @@ func (PgIntervalConverter) ToField(name string) transferDbz.Field {
 	// The approximate number of microseconds for a time interval using the 365.25 / 12.0 formula for days per month average.
 	return transferDbz.Field{
 		FieldName:    name,
-		Type:         "int64",
+		Type:         transferDbz.Int64,
 		DebeziumType: "io.debezium.time.MicroDuration",
 	}
 }
