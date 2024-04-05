@@ -44,7 +44,7 @@ func messageToMemoryEvent(message lib.RawMessage, topicConfig *kafkalib.TopicCon
 			return event.Event{}, err
 		}
 	case *mongo.SchemaEventPayload:
-		// The Mongo after payload is a string so no need to sanitize it.
+		// The Mongo [cdc.Event.After.Payload] is a string so no need to sanitize it.
 	default:
 		return event.Event{}, fmt.Errorf("unsupported event type: %T", evt)
 	}
