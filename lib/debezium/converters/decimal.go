@@ -8,7 +8,7 @@ import (
 	"github.com/artie-labs/transfer/lib/debezium"
 )
 
-func GetScale(value string) int {
+func getScale(value string) int {
 	// Find the index of the decimal point
 	i := strings.IndexRune(value, '.')
 
@@ -116,7 +116,7 @@ func (VariableNumericConverter) Convert(value any) (any, error) {
 		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
 	}
 
-	scale := GetScale(stringValue)
+	scale := getScale(stringValue)
 	return VariableScaleDecimal{
 		Scale: int32(scale),
 		Value: EncodeDecimalToBytes(stringValue, scale),

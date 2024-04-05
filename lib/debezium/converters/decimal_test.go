@@ -36,7 +36,7 @@ func TestGetScale(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		actualScale := GetScale(testCase.value)
+		actualScale := getScale(testCase.value)
 		assert.Equal(t, testCase.expectedScale, actualScale, testCase.name)
 	}
 }
