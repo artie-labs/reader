@@ -23,7 +23,7 @@ func (m *mockDestination) Write(ctx context.Context, msgs []lib.RawMessage) erro
 	return nil
 }
 
-func (b *mockDestination) OnComplete() error {
+func (m *mockDestination) OnComplete() error {
 	return nil
 }
 
