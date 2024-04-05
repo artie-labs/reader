@@ -6,21 +6,21 @@ import (
 	"strings"
 	"time"
 
-	transferDbz "github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/artie-labs/reader/lib/debezium"
+	"github.com/artie-labs/reader/lib/debezium/converters"
 )
 
 const moneyScale = 2
 
 type MoneyConverter struct{}
 
-func (MoneyConverter) ToField(name string) transferDbz.Field {
-	return transferDbz.Field{
+func (MoneyConverter) ToField(name string) debezium.Field {
+	return debezium.Field{
 		FieldName:    name,
-		Type:         transferDbz.Bytes,
-		DebeziumType: transferDbz.KafkaDecimalType,
+		Type:         debezium.Bytes,
+		DebeziumType: debezium.KafkaDecimalType,
 		Parameters: map[string]any{
 			"scale": fmt.Sprint(moneyScale),
 		},
@@ -31,17 +31,17 @@ func (MoneyConverter) ToField(name string) transferDbz.Field {
 func (MoneyConverter) Convert(value any) (any, error) {
 	stringValue := strings.Replace(fmt.Sprint(value), "$", "", 1)
 	stringValue = strings.ReplaceAll(stringValue, ",", "")
-	return debezium.EncodeDecimalToBytes(stringValue, moneyScale), nil
+	return converters.EncodeDecimalToBytes(stringValue, moneyScale), nil
 }
 
 type PgTimeConverter struct{}
 
-func (PgTimeConverter) ToField(name string) transferDbz.Field {
+func (PgTimeConverter) ToField(name string) debezium.Field {
 	// Represents the number of milliseconds past midnight, and does not include timezone information.
-	return transferDbz.Field{
+	return debezium.Field{
 		FieldName:    name,
-		Type:         transferDbz.Int32,
-		DebeziumType: transferDbz.Time,
+		Type:         debezium.Int32,
+		DebeziumType: debezium.Time,
 	}
 }
 
@@ -63,11 +63,11 @@ func (PgTimeConverter) Convert(value any) (any, error) {
 
 type PgIntervalConverter struct{}
 
-func (PgIntervalConverter) ToField(name string) transferDbz.Field {
+func (PgIntervalConverter) ToField(name string) debezium.Field {
 	// The approximate number of microseconds for a time interval using the 365.25 / 12.0 formula for days per month average.
-	return transferDbz.Field{
+	return debezium.Field{
 		FieldName:    name,
-		Type:         transferDbz.Int64,
+		Type:         debezium.Int64,
 		DebeziumType: "io.debezium.time.MicroDuration",
 	}
 }
