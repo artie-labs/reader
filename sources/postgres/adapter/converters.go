@@ -68,7 +68,7 @@ func (PgIntervalConverter) ToField(name string) transferDbz.Field {
 	return transferDbz.Field{
 		FieldName:    name,
 		Type:         transferDbz.Int64,
-		DebeziumType: "io.debezium.time.MicroDuration",
+		DebeziumType: transferDbz.MicroDuration,
 	}
 }
 

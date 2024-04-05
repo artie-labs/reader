@@ -15,7 +15,7 @@ func (MicroTimeConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
 		Type:         debezium.Int64,
-		DebeziumType: debezium.TimeMicro,
+		DebeziumType: debezium.MicroTime,
 	}
 }
 
