@@ -166,7 +166,6 @@ func (s *Settings) Validate() error {
 		if s.Transfer.Mode != transferCfg.Replication {
 			return fmt.Errorf("transfer mode must be replication")
 		}
-
 	default:
 		return fmt.Errorf("invalid destination: '%s'", s.Destination)
 	}
