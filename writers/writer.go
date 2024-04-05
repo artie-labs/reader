@@ -16,12 +16,12 @@ type DestinationWriter interface {
 }
 
 type Writer struct {
-	destination DestinationWriter
-	logProgress bool
+	destinationWriter DestinationWriter
+	logProgress       bool
 }
 
-func New(destination DestinationWriter, logProgress bool) Writer {
-	return Writer{destination, logProgress}
+func New(destinationWriter DestinationWriter, logProgress bool) Writer {
+	return Writer{destinationWriter, logProgress}
 }
 
 // Write writes all the messages from an iterator to the destination.
@@ -34,7 +34,7 @@ func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMess
 			return 0, fmt.Errorf("failed to iterate over messages: %w", err)
 
 		} else if len(msgs) > 0 {
-			if err = w.destination.WriteRawMessages(ctx, msgs); err != nil {
+			if err = w.destinationWriter.WriteRawMessages(ctx, msgs); err != nil {
 				return 0, fmt.Errorf("failed to write messages: %w", err)
 			}
 			count += len(msgs)
@@ -48,7 +48,7 @@ func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMess
 		}
 	}
 
-	if err := w.destination.OnComplete(); err != nil {
+	if err := w.destinationWriter.OnComplete(); err != nil {
 		return 0, fmt.Errorf("failed running destination OnComplete: %w", err)
 	}
 
