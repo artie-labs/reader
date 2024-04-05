@@ -29,6 +29,7 @@ func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMess
 	start := time.Now()
 	var count int
 	for iter.HasNext() {
+		iterStart := time.Now()
 		msgs, err := iter.Next()
 		if err != nil {
 			return 0, fmt.Errorf("failed to iterate over messages: %w", err)
@@ -41,9 +42,10 @@ func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMess
 		}
 		if w.logProgress {
 			slog.Info("Write progress",
-				slog.Duration("timing", time.Since(start)),
+				slog.Duration("totalDuration", time.Since(start)),
+				slog.Int("totalSize", count),
+				slog.Duration("batchDuration", time.Since(iterStart)),
 				slog.Int("batchSize", len(msgs)),
-				slog.Int("total", count),
 			)
 		}
 	}
