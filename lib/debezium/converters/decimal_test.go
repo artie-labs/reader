@@ -116,6 +116,19 @@ func TestDecimalConverter_ToField(t *testing.T) {
 	}
 }
 
+func TestDecimalConverter_Convert(t *testing.T) {
+	converter := NewDecimalConverter(2, nil)
+	{
+		converted, err := converter.Convert("1.23")
+		assert.NoError(t, err)
+		bytes, ok := converted.([]byte)
+		assert.True(t, ok)
+		actualValue, err := converter.ToField("").DecodeDecimal(base64.StdEncoding.EncodeToString(bytes))
+		assert.NoError(t, err)
+		assert.Equal(t, "1.23", fmt.Sprint(actualValue))
+	}
+}
+
 func TestGetScale(t *testing.T) {
 	type _testCase struct {
 		name          string
@@ -147,18 +160,6 @@ func TestGetScale(t *testing.T) {
 	}
 }
 
-func TestDecimalConverter_Convert(t *testing.T) {
-	converter := NewDecimalConverter(2, nil)
-	{
-		converted, err := converter.Convert("1.23")
-		assert.NoError(t, err)
-		bytes, ok := converted.([]byte)
-		assert.True(t, ok)
-		actualValue, err := converter.ToField("").DecodeDecimal(base64.StdEncoding.EncodeToString(bytes))
-		assert.NoError(t, err)
-		assert.Equal(t, "1.23", fmt.Sprint(actualValue))
-	}
-}
 func TestVariableNumericConverter_ToField(t *testing.T) {
 	converter := VariableNumericConverter{}
 	expected := debezium.Field{
