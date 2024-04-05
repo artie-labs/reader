@@ -53,7 +53,6 @@ func messageToMemoryEvent(message lib.RawMessage, topicConfig *kafkalib.TopicCon
 }
 
 type Writer struct {
-	// TODO: How do we generate this
 	cfg         config.Config
 	statsD      mtr.Client
 	inMemDB     *models.DatabaseData
