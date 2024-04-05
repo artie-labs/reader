@@ -11,7 +11,7 @@ import (
 )
 
 type DestinationWriter interface {
-	WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMessage) error
+	Write(ctx context.Context, rawMsgs []lib.RawMessage) error
 	OnComplete() error
 }
 
@@ -34,7 +34,7 @@ func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMess
 			return 0, fmt.Errorf("failed to iterate over messages: %w", err)
 
 		} else if len(msgs) > 0 {
-			if err = w.destinationWriter.WriteRawMessages(ctx, msgs); err != nil {
+			if err = w.destinationWriter.Write(ctx, msgs); err != nil {
 				return 0, fmt.Errorf("failed to write messages: %w", err)
 			}
 			count += len(msgs)
