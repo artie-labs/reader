@@ -112,7 +112,7 @@ func (w *Writer) Write(_ context.Context, messages []lib.RawMessage) error {
 		}
 
 		if shouldFlush {
-			if err := w.Flush(flushReason); err != nil {
+			if err := w.flush(flushReason); err != nil {
 				return err
 			}
 		}
@@ -121,7 +121,7 @@ func (w *Writer) Write(_ context.Context, messages []lib.RawMessage) error {
 	return nil
 }
 
-func (w *Writer) GetTableData() (string, *models.TableData) {
+func (w *Writer) getTableData() (string, *models.TableData) {
 	tableData := w.inMemDB.TableData()
 	if len(tableData) != 1 {
 		panic("expected exactly one table")
@@ -132,8 +132,8 @@ func (w *Writer) GetTableData() (string, *models.TableData) {
 	panic("can not happen")
 }
 
-func (w *Writer) Flush(reason string) error {
-	tableName, tableData := w.GetTableData()
+func (w *Writer) flush(reason string) error {
+	tableName, tableData := w.getTableData()
 
 	start := time.Now()
 	tags := map[string]string{
@@ -166,7 +166,7 @@ func (w *Writer) Flush(reason string) error {
 }
 
 func (w *Writer) OnComplete() error {
-	if err := w.Flush("complete"); err != nil {
+	if err := w.flush("complete"); err != nil {
 		return err
 	}
 	// TODO: Run de-duplicate logic here.
