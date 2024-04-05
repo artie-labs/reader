@@ -128,11 +128,15 @@ func (w *Writer) getTableData() (string, *models.TableData) {
 	for k, v := range tableData {
 		return k, v
 	}
-	panic("can not happen")
+	panic("can't happen")
 }
 
 func (w *Writer) flush(reason string) error {
 	tableName, tableData := w.getTableData()
+
+	if tableData.ShouldSkipUpdate() {
+		return nil // No need to flush.
+	}
 
 	start := time.Now()
 	tags := map[string]string{
@@ -168,6 +172,6 @@ func (w *Writer) OnComplete() error {
 	if err := w.flush("complete"); err != nil {
 		return err
 	}
-	// TODO: Run de-duplicate logic here.
+	// TODO: Run de-duplicate logic here as long as some amount of messages were written to the destination.
 	return nil
 }
