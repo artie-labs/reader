@@ -42,10 +42,10 @@ func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMess
 		}
 		if w.logProgress {
 			slog.Info("Write progress",
-				slog.Duration("totalDuration", time.Since(start)),
 				slog.Int("totalSize", count),
-				slog.Duration("batchDuration", time.Since(iterStart)),
+				slog.Duration("totalDuration", time.Since(start)),
 				slog.Int("batchSize", len(msgs)),
+				slog.Duration("batchDuration", time.Since(iterStart)),
 			)
 		}
 	}
