@@ -23,6 +23,10 @@ func (m *mockDestination) WriteRawMessages(ctx context.Context, msgs []lib.RawMe
 	return nil
 }
 
+func (b *mockDestination) OnComplete() error {
+	return nil
+}
+
 type errorIterator struct{}
 
 func (m *errorIterator) HasNext() bool {

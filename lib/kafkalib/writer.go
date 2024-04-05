@@ -149,6 +149,10 @@ func (b *BatchWriter) WriteRawMessages(ctx context.Context, rawMsgs []lib.RawMes
 	return nil
 }
 
+func (b *BatchWriter) OnComplete() error {
+	return nil
+}
+
 func newMessage(topicPrefix string, rawMessage lib.RawMessage) (kafka.Message, error) {
 	valueBytes, err := json.Marshal(rawMessage.Event())
 	if err != nil {
