@@ -12,7 +12,7 @@ type BooleanPassthrough struct{}
 func (BooleanPassthrough) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName: name,
-		Type:      "boolean",
+		Type:      debezium.Boolean,
 	}
 }
 
@@ -30,7 +30,7 @@ type Int16Passthrough struct{}
 func (Int16Passthrough) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName: name,
-		Type:      "int16",
+		Type:      debezium.Int16,
 	}
 }
 
@@ -44,7 +44,7 @@ type Int32Passthrough struct{}
 func (Int32Passthrough) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName: name,
-		Type:      "int32",
+		Type:      debezium.Int32,
 	}
 }
 
@@ -58,7 +58,7 @@ type Int64Passthrough struct{}
 func (Int64Passthrough) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName: name,
-		Type:      "int64",
+		Type:      debezium.Int64,
 	}
 }
 
@@ -72,7 +72,7 @@ type FloatPassthrough struct{}
 func (FloatPassthrough) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName: name,
-		Type:      "float",
+		Type:      debezium.Float,
 	}
 }
 
@@ -90,7 +90,7 @@ type DoublePassthrough struct{}
 func (DoublePassthrough) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName: name,
-		Type:      "double",
+		Type:      debezium.Double,
 	}
 }
 
@@ -110,7 +110,7 @@ type StringPassthrough struct{}
 func (StringPassthrough) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName: name,
-		Type:      "string",
+		Type:      debezium.String,
 	}
 }
 
@@ -128,7 +128,7 @@ type BytesPassthrough struct{}
 func (BytesPassthrough) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName: name,
-		Type:      "bytes",
+		Type:      debezium.Bytes,
 	}
 }
 

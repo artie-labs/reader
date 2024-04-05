@@ -11,7 +11,7 @@ type MapConverter struct{}
 func (MapConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName: name,
-		Type:      "map",
+		Type:      debezium.Map,
 	}
 }
 

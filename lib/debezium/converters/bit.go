@@ -11,7 +11,7 @@ type BitConverter struct{}
 func (BitConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName: name,
-		Type:      "boolean",
+		Type:      debezium.Boolean,
 	}
 }
 

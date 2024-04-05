@@ -11,7 +11,7 @@ type ArrayConverter struct{}
 func (ArrayConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName: name,
-		Type:      "array",
+		Type:      debezium.Array,
 	}
 }
 
