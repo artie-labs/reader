@@ -9,6 +9,7 @@ import (
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/transfer/lib/artie"
+	"github.com/artie-labs/transfer/lib/cdc/mongo"
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/artie-labs/transfer/lib/config"
 	"github.com/artie-labs/transfer/lib/config/constants"
@@ -31,6 +32,25 @@ func toJSONTypes(data map[string]any) (map[string]any, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+func messageToMemoryEvent(message lib.RawMessage, topicConfig *kafkalib.TopicConfig) (event.Event, error) {
+	evt := message.Event()
+
+	switch typedEvent := evt.(type) {
+	case *util.SchemaEventPayload:
+		var err error
+		typedEvent.Payload.After, err = toJSONTypes(typedEvent.Payload.After)
+		if err != nil {
+			return event.Event{}, err
+		}
+	case *mongo.SchemaEventPayload:
+		// The Mongo after payload is a string so no need to sanitize it.
+	default:
+		return event.Event{}, fmt.Errorf("unsupported event type: %T", evt)
+	}
+
+	return event.ToMemoryEvent(evt, message.PartitionKey(), topicConfig, config.Replication), nil
 }
 
 type Writer struct {
@@ -66,17 +86,12 @@ func (w *Writer) Write(_ context.Context, messages []lib.RawMessage) error {
 	}
 
 	var events []event.Event
-	for _, rawMsg := range messages {
-		evt := rawMsg.Event()
-		if payload, ok := evt.(*util.SchemaEventPayload); ok {
-			var err error
-			payload.Payload.After, err = toJSONTypes(payload.Payload.After)
-			if err != nil {
-				return err
-			}
+	for _, message := range messages {
+		evt, err := messageToMemoryEvent(message, w.tc)
+		if err != nil {
+			return err
 		}
-
-		events = append(events, event.ToMemoryEvent(evt, rawMsg.PartitionKey(), w.tc, config.Replication))
+		events = append(events, evt)
 	}
 
 	tags := map[string]string{
