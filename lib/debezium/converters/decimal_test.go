@@ -46,7 +46,7 @@ func TestDecimalConverter_Convert(t *testing.T) {
 		assert.NoError(t, err)
 		bytes, ok := converted.([]byte)
 		assert.True(t, ok)
-		actualValue := debezium.DecodeDecimal(bytes, nil, 2)
+		actualValue, err := converter.ToField("").DecodeDecimal(bytes)
 		assert.NoError(t, err)
 		assert.Equal(t, "1.23", fmt.Sprint(actualValue))
 	}
@@ -108,7 +108,7 @@ func TestVariableNumericConverter_Convert(t *testing.T) {
 		assert.True(t, ok)
 		assert.Equal(t, VariableScaleDecimal{Scale: 2, Value: []byte{0x4, 0xd2}}, convertedMap)
 
-		actualValue := debezium.DecodeDecimal(convertedMap.Value, nil, 2)
+		actualValue := debezium.DecodeDecimal(convertedMap.Value, nil, int(convertedMap.Scale))
 		assert.NoError(t, err)
 		assert.Equal(t, "12.34", fmt.Sprint(actualValue))
 	}
