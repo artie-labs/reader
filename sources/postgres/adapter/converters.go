@@ -8,8 +8,6 @@ import (
 
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/jackc/pgx/v5/pgtype"
-
-	"github.com/artie-labs/reader/lib/debezium/converters"
 )
 
 const moneyScale = 2
@@ -31,7 +29,7 @@ func (MoneyConverter) ToField(name string) debezium.Field {
 func (MoneyConverter) Convert(value any) (any, error) {
 	stringValue := strings.Replace(fmt.Sprint(value), "$", "", 1)
 	stringValue = strings.ReplaceAll(stringValue, ",", "")
-	return converters.EncodeDecimalToBytes(stringValue, moneyScale), nil
+	return debezium.EncodeDecimal(stringValue, moneyScale), nil
 }
 
 type PgTimeConverter struct{}

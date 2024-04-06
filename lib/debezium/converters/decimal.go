@@ -2,49 +2,10 @@ package converters
 
 import (
 	"fmt"
-	"math/big"
 	"strings"
 
 	"github.com/artie-labs/transfer/lib/debezium"
 )
-
-func EncodeDecimalToBytes(value string, scale int) []byte {
-	scaledValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(scale)), nil)
-	bigFloatValue := new(big.Float)
-	bigFloatValue.SetString(value)
-	bigFloatValue.Mul(bigFloatValue, new(big.Float).SetInt(scaledValue))
-
-	// Extract the scaled integer value.
-	bigIntValue, _ := bigFloatValue.Int(nil)
-	data := bigIntValue.Bytes()
-	if bigIntValue.Sign() < 0 {
-		// Convert to two's complement if the number is negative
-		bigIntValue = bigIntValue.Neg(bigIntValue)
-		data = bigIntValue.Bytes()
-
-		// Inverting bits for two's complement.
-		for i := range data {
-			data[i] = ^data[i]
-		}
-
-		// Adding one to complete two's complement.
-		twoComplement := new(big.Int).SetBytes(data)
-		twoComplement.Add(twoComplement, big.NewInt(1))
-
-		data = twoComplement.Bytes()
-		if data[0]&0x80 == 0 {
-			// 0xff is -1 in Java
-			// https://stackoverflow.com/questions/1677957/why-byte-b-byte-0xff-is-equals-to-integer-1
-			data = append([]byte{0xff}, data...)
-		}
-	} else {
-		// For positive values, prepend a zero if the highest bit is set to ensure it's interpreted as positive.
-		if len(data) > 0 && data[0]&0x80 != 0 {
-			data = append([]byte{0x00}, data...)
-		}
-	}
-	return data
-}
 
 type decimalConverter struct {
 	scale     int
@@ -77,7 +38,7 @@ func (d decimalConverter) Convert(value any) (any, error) {
 	if !isOk {
 		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
 	}
-	return EncodeDecimalToBytes(castValue, d.scale), nil
+	return debezium.EncodeDecimal(castValue, d.scale), nil
 }
 
 func getScale(value string) int {
@@ -90,9 +51,7 @@ func getScale(value string) int {
 	}
 
 	// The scale is the number of digits after the decimal point
-	scale := len(value[i+1:])
-
-	return scale
+	return len(value[i+1:])
 }
 
 type VariableNumericConverter struct{}
@@ -119,6 +78,6 @@ func (VariableNumericConverter) Convert(value any) (any, error) {
 	scale := getScale(stringValue)
 	return VariableScaleDecimal{
 		Scale: int32(scale),
-		Value: EncodeDecimalToBytes(stringValue, scale),
+		Value: debezium.EncodeDecimal(stringValue, scale),
 	}, nil
 }

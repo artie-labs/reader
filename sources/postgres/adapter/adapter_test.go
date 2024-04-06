@@ -1,7 +1,6 @@
 package adapter
 
 import (
-	"encoding/base64"
 	"testing"
 	"time"
 
@@ -265,7 +264,7 @@ func TestValueConverterForType_Convert(t *testing.T) {
 				bytes, ok := actualValue.([]byte)
 				assert.True(t, ok)
 				field := converter.ToField(tc.col.Name)
-				val, err := field.DecodeDecimal(base64.StdEncoding.EncodeToString(bytes))
+				val, err := field.DecodeDecimal(bytes)
 				assert.NoError(t, err, tc.name)
 				assert.Equal(t, tc.expectedValue, val.String(), tc.name)
 			} else {
