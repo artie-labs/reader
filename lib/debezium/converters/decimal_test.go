@@ -112,7 +112,12 @@ func TestVariableNumericConverter_Convert(t *testing.T) {
 		assert.ErrorContains(t, err, "expected string got int with value: 1234")
 	}
 	{
-		// Malformed value
+		// Malformed value - emty string.
+		_, err := converter.Convert("")
+		assert.ErrorContains(t, err, "unable to use '' as a floating-point number")
+	}
+	{
+		// Malformed value - not a floating point.
 		_, err := converter.Convert("malformed")
 		assert.ErrorContains(t, err, "unable to use 'malformed' as a floating-point number")
 	}
