@@ -2,15 +2,12 @@ package transfer
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/transfer/lib/artie"
-	"github.com/artie-labs/transfer/lib/cdc/mongo"
-	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/artie-labs/transfer/lib/config"
 	"github.com/artie-labs/transfer/lib/config/constants"
 	"github.com/artie-labs/transfer/lib/destination"
@@ -19,38 +16,6 @@ import (
 	"github.com/artie-labs/transfer/models"
 	"github.com/artie-labs/transfer/models/event"
 )
-
-// toJSONTypes converts data to JSON and back so that the format is consistent with what Kafka emits.
-func toJSONTypes(data map[string]any) (map[string]any, error) {
-	dataBytes, err := json.Marshal(data)
-	if err != nil {
-		return nil, err
-	}
-	var result map[string]any
-	if err = json.Unmarshal(dataBytes, &result); err != nil {
-		return nil, err
-	}
-	return result, nil
-}
-
-func messageToMemoryEvent(message lib.RawMessage, topicConfig *kafkalib.TopicConfig) (event.Event, error) {
-	evt := message.Event()
-
-	switch typedEvent := evt.(type) {
-	case *util.SchemaEventPayload:
-		var err error
-		typedEvent.Payload.After, err = toJSONTypes(typedEvent.Payload.After)
-		if err != nil {
-			return event.Event{}, err
-		}
-	case *mongo.SchemaEventPayload:
-		// The Mongo [cdc.Event.After.Payload] is a string so no need to sanitize it.
-	default:
-		return event.Event{}, fmt.Errorf("unsupported event type: %T", evt)
-	}
-
-	return event.ToMemoryEvent(evt, message.PartitionKey(), topicConfig, config.Replication), nil
-}
 
 type Writer struct {
 	cfg         config.Config
@@ -85,11 +50,7 @@ func (w *Writer) Write(_ context.Context, messages []lib.RawMessage) error {
 
 	var events []event.Event
 	for _, message := range messages {
-		evt, err := messageToMemoryEvent(message, w.tc)
-		if err != nil {
-			return err
-		}
-		events = append(events, evt)
+		events = append(events, event.ToMemoryEvent(message.Event(), message.PartitionKey(), w.tc, config.Replication))
 	}
 
 	tags := map[string]string{
