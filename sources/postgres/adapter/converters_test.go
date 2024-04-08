@@ -1,7 +1,6 @@
 package adapter
 
 import (
-	"encoding/base64"
 	"math"
 	"testing"
 	"time"
@@ -31,7 +30,7 @@ func TestMoneyConverter_Convert(t *testing.T) {
 	decodeValue := func(value any) string {
 		bytes, ok := value.([]byte)
 		assert.True(t, ok)
-		val, err := decimalField.DecodeDecimal(base64.StdEncoding.EncodeToString(bytes))
+		val, err := decimalField.DecodeDecimal(bytes)
 		assert.NoError(t, err)
 		return val.String()
 	}
