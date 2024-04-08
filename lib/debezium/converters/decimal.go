@@ -64,11 +64,6 @@ func (VariableNumericConverter) ToField(name string) debezium.Field {
 	}
 }
 
-type VariableScaleDecimal struct {
-	Scale int32  `json:"scale"`
-	Value []byte `json:"value"`
-}
-
 func (VariableNumericConverter) Convert(value any) (any, error) {
 	stringValue, ok := value.(string)
 	if !ok {
@@ -76,8 +71,8 @@ func (VariableNumericConverter) Convert(value any) (any, error) {
 	}
 
 	scale := getScale(stringValue)
-	return VariableScaleDecimal{
-		Scale: int32(scale),
-		Value: debezium.EncodeDecimal(stringValue, scale),
+	return map[string]any{
+		"scale": int32(scale),
+		"value": debezium.EncodeDecimal(stringValue, scale),
 	}, nil
 }

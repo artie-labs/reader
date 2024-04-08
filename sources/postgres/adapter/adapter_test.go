@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/transfer/lib/debezium"
@@ -229,7 +228,7 @@ func TestValueConverterForType_Convert(t *testing.T) {
 			name:          "numeric (postgres.Numeric) - variable numeric",
 			col:           schema.Column{Name: "variable_numeric_col", Type: schema.VariableNumeric},
 			value:         "123.98",
-			expectedValue: converters.VariableScaleDecimal{Scale: 2, Value: []byte{0x30, 0x6e}},
+			expectedValue: map[string]any{"scale": int32(2), "value": []byte{0x30, 0x6e}},
 		},
 		{
 			name:          "string",
