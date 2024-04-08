@@ -77,7 +77,7 @@ func TestMoneyConverter_Convert(t *testing.T) {
 		assert.ErrorContains(t, err, "unable to use '' as a floating-point number")
 	}
 	{
-		// Malformed string - not a floating-point
+		// Malformed string - not a floating-point.
 		_, err := converter.Convert("malformed")
 		assert.ErrorContains(t, err, "unable to use 'malformed' as a floating-point number")
 	}
