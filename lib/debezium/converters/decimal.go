@@ -38,7 +38,7 @@ func (d decimalConverter) Convert(value any) (any, error) {
 	if !isOk {
 		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
 	}
-	return debezium.EncodeDecimal(castValue, d.scale), nil
+	return debezium.EncodeDecimal(castValue, d.scale)
 }
 
 func getScale(value string) int {
@@ -71,8 +71,14 @@ func (VariableNumericConverter) Convert(value any) (any, error) {
 	}
 
 	scale := getScale(stringValue)
+
+	byteValue, err := debezium.EncodeDecimal(stringValue, scale)
+	if err != nil {
+		return nil, err
+	}
+
 	return map[string]any{
 		"scale": int32(scale),
-		"value": debezium.EncodeDecimal(stringValue, scale),
+		"value": byteValue,
 	}, nil
 }

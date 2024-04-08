@@ -29,7 +29,7 @@ func (MoneyConverter) ToField(name string) debezium.Field {
 func (MoneyConverter) Convert(value any) (any, error) {
 	stringValue := strings.Replace(fmt.Sprint(value), "$", "", 1)
 	stringValue = strings.ReplaceAll(stringValue, ",", "")
-	return debezium.EncodeDecimal(stringValue, moneyScale), nil
+	return debezium.EncodeDecimal(stringValue, moneyScale)
 }
 
 type PgTimeConverter struct{}

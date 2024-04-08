@@ -71,6 +71,11 @@ func TestMoneyConverter_Convert(t *testing.T) {
 		assert.Equal(t, []byte{0x5, 0xf6, 0x3c, 0x68}, converted)
 		assert.Equal(t, "1000234.00", decodeValue(converted))
 	}
+	{
+		// Malformed string
+		_, err := converter.Convert("malformed")
+		assert.ErrorContains(t, err, "unable to use 'malformed' as a floating-point number")
+	}
 }
 
 func TestPgTimeConverter_ToField(t *testing.T) {
