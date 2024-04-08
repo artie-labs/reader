@@ -72,7 +72,12 @@ func TestMoneyConverter_Convert(t *testing.T) {
 		assert.Equal(t, "1000234.00", decodeValue(converted))
 	}
 	{
-		// Malformed string
+		// Malformed string - empty string.
+		_, err := converter.Convert("")
+		assert.ErrorContains(t, err, "unable to use '' as a floating-point number")
+	}
+	{
+		// Malformed string - not a floating-point
 		_, err := converter.Convert("malformed")
 		assert.ErrorContains(t, err, "unable to use 'malformed' as a floating-point number")
 	}
