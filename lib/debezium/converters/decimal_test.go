@@ -42,6 +42,17 @@ func TestDecimalConverter_ToField(t *testing.T) {
 func TestDecimalConverter_Convert(t *testing.T) {
 	converter := NewDecimalConverter(2, nil)
 	{
+		// Malformed value - empty string.
+		_, err := converter.Convert("")
+		assert.ErrorContains(t, err, "unable to use '' as a floating-point number")
+	}
+	{
+		// Malformed value - not a floating-point.
+		_, err := converter.Convert("11qwerty00")
+		assert.ErrorContains(t, err, "unable to use '11qwerty00' as a floating-point number")
+	}
+	{
+		// Happy path.
 		converted, err := converter.Convert("1.23")
 		assert.NoError(t, err)
 		bytes, ok := converted.([]byte)
