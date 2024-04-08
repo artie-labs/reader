@@ -72,13 +72,13 @@ func (VariableNumericConverter) Convert(value any) (any, error) {
 
 	scale := getScale(stringValue)
 
-	byteValue, err := debezium.EncodeDecimal(stringValue, scale)
+	bytes, err := debezium.EncodeDecimal(stringValue, scale)
 	if err != nil {
 		return nil, err
 	}
 
 	return map[string]any{
 		"scale": int32(scale),
-		"value": byteValue,
+		"value": bytes,
 	}, nil
 }
