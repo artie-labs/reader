@@ -130,7 +130,7 @@ func (s *Settings) Validate() error {
 			return fmt.Errorf("postgres validation failed: %w", err)
 		}
 	default:
-		return fmt.Errorf("invalid source: '%s'", s.Source)
+		return fmt.Errorf("invalid source: %q", s.Source)
 	}
 
 	switch s.Destination {
@@ -167,7 +167,7 @@ func (s *Settings) Validate() error {
 			return fmt.Errorf("transfer mode must be replication")
 		}
 	default:
-		return fmt.Errorf("invalid destination: '%s'", s.Destination)
+		return fmt.Errorf("invalid destination: %q", s.Destination)
 	}
 
 	return nil

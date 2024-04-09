@@ -131,14 +131,14 @@ func convertRow(valueConverters map[string]converters.ValueConverter, row Row) (
 	for key, value := range row {
 		valueConverter, isOk := valueConverters[key]
 		if !isOk {
-			return nil, fmt.Errorf(`failed to get ValueConverter for key "%s"`, key)
+			return nil, fmt.Errorf("failed to get ValueConverter for key %q", key)
 		}
 
 		if value != nil {
 			var err error
 			value, err = valueConverter.Convert(value)
 			if err != nil {
-				return nil, fmt.Errorf(`failed to convert row value for key "%s": %w`, key, err)
+				return nil, fmt.Errorf("failed to convert row value for key %q: %w", key, err)
 			}
 		}
 

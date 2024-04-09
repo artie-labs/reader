@@ -82,7 +82,7 @@ func TestScanAdapter_ParsePrimaryKeyValue(t *testing.T) {
 		// Column does not exist
 		adapter := scanAdapter{columns: []schema.Column{{Name: "bar"}}}
 		_, err := adapter.ParsePrimaryKeyValue("foo", "1234")
-		assert.ErrorContains(t, err, "primary key column does not exist: foo")
+		assert.ErrorContains(t, err, `primary key column does not exist: "foo"`)
 	}
 
 	testCases := []struct {
@@ -96,7 +96,7 @@ func TestScanAdapter_ParsePrimaryKeyValue(t *testing.T) {
 			name:        "unsupported data type",
 			dataType:    schema.Array,
 			value:       "1234",
-			expectedErr: "DataType(21) for column 'col' is not supported for use as a primary key",
+			expectedErr: `DataType(21) for column "col" is not supported for use as a primary key`,
 		},
 		{
 			name:        "boolean - malformed",

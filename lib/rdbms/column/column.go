@@ -41,7 +41,7 @@ func FilterOutExcludedColumns[T ~int, O any](columns []Column[T, O], excludeName
 	for _, column := range columns {
 		if slices.Contains(excludeNames, column.Name) {
 			if slices.Contains(primaryKeys, column.Name) {
-				return nil, fmt.Errorf(`cannot exclude primary key column "%s""`, column.Name)
+				return nil, fmt.Errorf("cannot exclude primary key column %q", column.Name)
 			}
 		} else {
 			result = append(result, column)
