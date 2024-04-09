@@ -64,14 +64,6 @@ func QuoteIdentifier(s string) string {
 	return fmt.Sprintf("`%s`", strings.ReplaceAll(s, "`", "``"))
 }
 
-func QuotedIdentifiers(values []string) []string {
-	result := make([]string, len(values))
-	for i, value := range values {
-		result[i] = QuoteIdentifier(value)
-	}
-	return result
-}
-
 func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 	r, err := db.Query("DESCRIBE " + QuoteIdentifier(table))
 	if err != nil {
