@@ -12,10 +12,6 @@ func TestQuoteIdentifier(t *testing.T) {
 	assert.Equal(t, "`fo``o`", QuoteIdentifier("fo`o"))
 }
 
-func TestQuotedIdentifiers(t *testing.T) {
-	assert.Equal(t, []string{"`fo``o`", "`a`", "`b`"}, QuotedIdentifiers([]string{"fo`o", "a", "b"}))
-}
-
 func TestParseColumnDataType(t *testing.T) {
 	testCases := []struct {
 		input        string
