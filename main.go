@@ -97,12 +97,12 @@ func main() {
 
 	destinationWriter, err := buildDestinationWriter(ctx, cfg, statsD)
 	if err != nil {
-		logger.Fatal(fmt.Sprintf("Failed to init '%s' destination writer", cfg.Destination), slog.Any("err", err))
+		logger.Fatal(fmt.Sprintf("Failed to init %q destination writer", cfg.Destination), slog.Any("err", err))
 	}
 
 	source, isStreamingMode, err := buildSource(cfg)
 	if err != nil {
-		logger.Fatal(fmt.Sprintf("Failed to init '%s' source", cfg.Source), slog.Any("err", err))
+		logger.Fatal(fmt.Sprintf("Failed to init %q source", cfg.Source), slog.Any("err", err))
 	}
 	defer source.Close()
 

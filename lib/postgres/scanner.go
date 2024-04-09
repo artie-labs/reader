@@ -49,10 +49,10 @@ func NewScanner(db *sql.DB, table Table, columns []schema.Column, cfg scan.Scann
 	for _, key := range table.PrimaryKeys {
 		column, err := column.GetColumnByName(columns, key)
 		if err != nil {
-			return nil, fmt.Errorf("missing column with name: %s", key)
+			return nil, fmt.Errorf("missing column with name: %q", key)
 		}
 		if !slices.Contains(supportedPrimaryKeyDataType, column.Type) {
-			return nil, fmt.Errorf("DataType(%d) for column '%s' is not supported for use as a primary key", column.Type, column.Name)
+			return nil, fmt.Errorf("DataType(%d) for column %q is not supported for use as a primary key", column.Type, column.Name)
 		}
 	}
 
@@ -74,49 +74,49 @@ type scanAdapter struct {
 func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any, error) {
 	columnIdx := slices.IndexFunc(s.columns, func(x schema.Column) bool { return x.Name == columnName })
 	if columnIdx < 0 {
-		return nil, fmt.Errorf("primary key column does not exist: %s", columnName)
+		return nil, fmt.Errorf("primary key column does not exist: %q", columnName)
 	}
 	column := s.columns[columnIdx]
 
 	if !slices.Contains(supportedPrimaryKeyDataType, column.Type) {
-		return nil, fmt.Errorf("DataType(%d) for column '%s' is not supported for use as a primary key", column.Type, column.Name)
+		return nil, fmt.Errorf("DataType(%d) for column %q is not supported for use as a primary key", column.Type, column.Name)
 	}
 
 	switch column.Type {
 	case schema.Boolean:
 		boolValue, err := strconv.ParseBool(value)
 		if err != nil {
-			return nil, fmt.Errorf(`unable to convert "%s" to a bool: %w`, value, err)
+			return nil, fmt.Errorf("unable to convert %q to a bool: %w", value, err)
 		}
 		return boolValue, nil
 	case schema.Int16:
 		intValue, err := strconv.ParseInt(value, 10, 16)
 		if err != nil {
-			return nil, fmt.Errorf(`unable to convert "%s" to an int16: %w`, value, err)
+			return nil, fmt.Errorf("unable to convert %q to an int16: %w", value, err)
 		}
 		return int16(intValue), nil
 	case schema.Int32:
 		intValue, err := strconv.ParseInt(value, 10, 32)
 		if err != nil {
-			return nil, fmt.Errorf(`unable to convert "%s" to an int32: %w`, value, err)
+			return nil, fmt.Errorf("unable to convert %q to an int32: %w", value, err)
 		}
 		return int32(intValue), nil
 	case schema.Int64:
 		intValue, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
-			return nil, fmt.Errorf(`unable to convert "%s" to an int64: %w`, value, err)
+			return nil, fmt.Errorf("unable to convert %q to an int64: %w", value, err)
 		}
 		return intValue, nil
 	case schema.Real:
 		floatValue, err := strconv.ParseFloat(value, 32)
 		if err != nil {
-			return nil, fmt.Errorf(`unable to convert "%s" to a float32: %w`, value, err)
+			return nil, fmt.Errorf("unable to convert %q to a float32: %w", value, err)
 		}
 		return float32(floatValue), nil
 	case schema.Double:
 		floatValue, err := strconv.ParseFloat(value, 64)
 		if err != nil {
-			return nil, fmt.Errorf(`unable to convert "%s" to a float64: %w`, value, err)
+			return nil, fmt.Errorf("unable to convert %q to a float64: %w", value, err)
 		}
 		return floatValue, nil
 	case
@@ -146,9 +146,9 @@ func castColumn(col schema.Column) string {
 		// If we don't convert `time with time zone` to UTC we end up with strings like `10:23:54-02`
 		// And pgtype.Time doesn't parse the offset propertly.
 		// See https://github.com/jackc/pgx/issues/1940
-		return fmt.Sprintf(`%s AT TIME ZONE 'UTC' AS "%s"`, colName, col.Name)
+		return fmt.Sprintf(`%s AT TIME ZONE 'UTC' AS %q`, colName, col.Name)
 	case schema.Array:
-		return fmt.Sprintf(`ARRAY_TO_JSON(%s)::TEXT as "%s"`, colName, col.Name)
+		return fmt.Sprintf(`ARRAY_TO_JSON(%s)::TEXT as %q`, colName, col.Name)
 	default:
 		return colName
 	}

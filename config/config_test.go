@@ -38,12 +38,12 @@ func TestSettings_Validate(t *testing.T) {
 		{
 			name:        "nil source",
 			settings:    &Settings{},
-			expectedErr: "invalid source: ''",
+			expectedErr: `invalid source: ""`,
 		},
 		{
 			name:        "invalid source",
 			settings:    &Settings{Source: "foo"},
-			expectedErr: "invalid source: 'foo'",
+			expectedErr: `invalid source: "foo"`,
 		},
 		{
 			name: "nil dynamodb",
@@ -56,12 +56,12 @@ func TestSettings_Validate(t *testing.T) {
 		{
 			name:        "nil destination",
 			settings:    &Settings{Source: SourceDynamo, DynamoDB: dynamoDBCfg()},
-			expectedErr: "invalid destination: ''",
+			expectedErr: `invalid destination: ""`,
 		},
 		{
 			name:        "invalid destination",
 			settings:    &Settings{Source: SourceDynamo, DynamoDB: dynamoDBCfg(), Destination: "foo"},
-			expectedErr: "invalid destination: 'foo'",
+			expectedErr: `invalid destination: "foo"`,
 		},
 		{
 			name:        "nil kafka",
