@@ -78,7 +78,7 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 
 		dataType, opts, err := ParseColumnDataType(colType, numericPrecision, numericScale, udtName)
 		if err != nil {
-			return nil, fmt.Errorf("unable to identify type for column %q: %q", colName, colType)
+			return nil, fmt.Errorf("unable to identify type %q for column %q", colType, colName)
 		}
 
 		cols = append(cols, Column{

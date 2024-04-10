@@ -61,13 +61,13 @@ func TestConvertValue(t *testing.T) {
 			name:        "boolean - -2",
 			dataType:    Boolean,
 			value:       int64(-2),
-			expectedErr: "boolean value not in [0, 1]: -2",
+			expectedErr: "boolean value -2 not in [0, 1]",
 		},
 		{
 			name:        "boolean - 2",
 			dataType:    Boolean,
 			value:       int64(2),
-			expectedErr: "boolean value not in [0, 1]: 2",
+			expectedErr: "boolean value 2 not in [0, 1]",
 		},
 		{
 			name:     "tiny int",
