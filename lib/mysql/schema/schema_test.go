@@ -64,15 +64,15 @@ func TestParseColumnDataType(t *testing.T) {
 		},
 		{
 			input:       "int(10 unsigned",
-			expectedErr: "malformed data type: int(10 ",
+			expectedErr: `malformed data type: "int(10 unsigned"`,
 		},
 		{
 			input:       "foo",
-			expectedErr: "unknown data type: foo",
+			expectedErr: `unknown data type: "foo"`,
 		},
 		{
 			input:       "varchar(",
-			expectedErr: "malformed data type: varchar(",
+			expectedErr: `malformed data type: "varchar("`,
 		},
 	}
 

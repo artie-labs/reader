@@ -22,7 +22,7 @@ func (s *SnapshotStore) retrievePrimaryKeys() ([]string, error) {
 		if key.AttributeName != nil {
 			keys = append(keys, *key.AttributeName)
 		} else {
-			return nil, fmt.Errorf("key does not have attribute name, key: %v", key.String())
+			return nil, fmt.Errorf("key %q does not have attribute name", key.String())
 		}
 	}
 

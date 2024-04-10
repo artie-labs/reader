@@ -78,7 +78,7 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 
 		dataType, opts, err := ParseColumnDataType(colType, numericPrecision, numericScale, udtName)
 		if err != nil {
-			return nil, fmt.Errorf("unable to identify type for column %s: %s", colName, colType)
+			return nil, fmt.Errorf("unable to identify type %q for column %q", colType, colName)
 		}
 
 		cols = append(cols, Column{
@@ -155,7 +155,7 @@ func ParseColumnDataType(colKind string, precision, scale *int, udtName *string)
 				}, nil
 			} else {
 				return -1, nil, fmt.Errorf(
-					"expected precision (nil: %v) and scale (nil: %v) to both be nil or not-nil",
+					"expected precision (nil: %t) and scale (nil: %t) to both be nil or not-nil",
 					precision == nil,
 					scale == nil,
 				)
@@ -163,7 +163,7 @@ func ParseColumnDataType(colKind string, precision, scale *int, udtName *string)
 		}
 	}
 
-	return -1, nil, fmt.Errorf("unknown data type: %s", colKind)
+	return -1, nil, fmt.Errorf("unknown data type: %q", colKind)
 }
 
 // This is a fork of: https://wiki.postgresql.org/wiki/Retrieve_primary_key_columns

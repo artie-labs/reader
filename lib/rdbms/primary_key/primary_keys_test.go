@@ -113,7 +113,7 @@ func TestKeys_UpdateStartingValue(t *testing.T) {
 			},
 			keyName:     "Key2",
 			startingVal: startVal2,
-			expectedErr: "no key named Key2",
+			expectedErr: `no key named "Key2"`,
 		},
 		{
 			name: "Update existing key with existing start value",

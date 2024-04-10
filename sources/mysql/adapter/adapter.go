@@ -31,7 +31,7 @@ func NewMySQLAdapter(db *sql.DB, dbName string, tableCfg config.MySQLTable) (MyS
 	slog.Info("Loading metadata for table")
 	table, err := mysql.LoadTable(db, tableCfg.Name)
 	if err != nil {
-		return MySQLAdapter{}, fmt.Errorf("failed to load metadata for table %s: %w", tableCfg.Name, err)
+		return MySQLAdapter{}, fmt.Errorf("failed to load metadata for table %q: %w", tableCfg.Name, err)
 	}
 
 	columns, err := column.FilterOutExcludedColumns(table.Columns, tableCfg.ExcludeColumns, table.PrimaryKeys)
@@ -47,7 +47,7 @@ func newMySQLAdapter(db *sql.DB, dbName string, table mysql.Table, columns []sch
 	for i, col := range columns {
 		converter, err := valueConverterForType(col.Type, col.Opts)
 		if err != nil {
-			return MySQLAdapter{}, fmt.Errorf("failed to build value converter for column %s: %w", col.Name, err)
+			return MySQLAdapter{}, fmt.Errorf("failed to build value converter for column %q: %w", col.Name, err)
 		}
 		fieldConverters[i] = transformer.FieldConverter{Name: col.Name, ValueConverter: converter}
 	}

@@ -61,13 +61,13 @@ func TestConvertValue(t *testing.T) {
 			name:        "boolean - -2",
 			dataType:    Boolean,
 			value:       int64(-2),
-			expectedErr: "boolean value not in [0, 1]: -2",
+			expectedErr: "boolean value -2 not in [0, 1]",
 		},
 		{
 			name:        "boolean - 2",
 			dataType:    Boolean,
 			value:       int64(2),
-			expectedErr: "boolean value not in [0, 1]: 2",
+			expectedErr: "boolean value 2 not in [0, 1]",
 		},
 		{
 			name:     "tiny int",
@@ -270,7 +270,7 @@ func TestConvertValues(t *testing.T) {
 	{
 		// Malformed data
 		err := ConvertValues([]any{"bad", "bad", "bad"}, columns)
-		assert.ErrorContains(t, err, "failed to convert value for column a: expected int64 got string for value: bad")
+		assert.ErrorContains(t, err, `failed to convert value for column "a": expected int64 got string for value: bad`)
 	}
 	{
 		// Happy path - nils

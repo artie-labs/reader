@@ -54,7 +54,7 @@ func (s *SnapshotStore) scanFilesOverBucket() error {
 	}
 
 	if len(files) == 0 {
-		return fmt.Errorf("no files found in the folder: %v", s.cfg.SnapshotSettings.Folder)
+		return fmt.Errorf("no files found in the folder %q", s.cfg.SnapshotSettings.Folder)
 	}
 
 	for _, file := range files {
