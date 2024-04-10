@@ -191,16 +191,13 @@ func TestValueConverterForType_ToField(t *testing.T) {
 }
 
 func TestValueConverterForType_Convert(t *testing.T) {
-	type _tc struct {
+	tcs := []struct {
 		name          string
 		col           schema.Column
 		value         any
 		numericValue  bool
 		expectedValue any
-		expectErr     bool
-	}
-
-	tcs := []_tc{
+	}{
 		{
 			name:          "date (postgres.Date)",
 			col:           schema.Column{Name: "date_col", Type: schema.Date},
@@ -255,20 +252,16 @@ func TestValueConverterForType_Convert(t *testing.T) {
 		assert.NoError(t, err, tc.name)
 
 		actualValue, actualErr := converter.Convert(tc.value)
-		if tc.expectErr {
-			assert.Error(t, actualErr, tc.name)
+		assert.NoError(t, actualErr, tc.name)
+		if tc.numericValue {
+			bytes, ok := actualValue.([]byte)
+			assert.True(t, ok)
+			field := converter.ToField(tc.col.Name)
+			val, err := field.DecodeDecimal(bytes)
+			assert.NoError(t, err, tc.name)
+			assert.Equal(t, tc.expectedValue, val.String(), tc.name)
 		} else {
-			assert.NoError(t, actualErr, tc.name)
-			if tc.numericValue {
-				bytes, ok := actualValue.([]byte)
-				assert.True(t, ok)
-				field := converter.ToField(tc.col.Name)
-				val, err := field.DecodeDecimal(bytes)
-				assert.NoError(t, err, tc.name)
-				assert.Equal(t, tc.expectedValue, val.String(), tc.name)
-			} else {
-				assert.Equal(t, tc.expectedValue, actualValue, tc.name)
-			}
+			assert.Equal(t, tc.expectedValue, actualValue, tc.name)
 		}
 	}
 }

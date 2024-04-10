@@ -9,23 +9,21 @@ import (
 )
 
 func Test_NewMessageFromExport(t *testing.T) {
-	type _tc struct {
-		name          string
-		item          dynamodb.ItemResponse
-		keys          []string
-		tableName     string
-		expectedError string
-	}
-
-	tcs := []_tc{
+	tcs := []struct {
+		name        string
+		item        dynamodb.ItemResponse
+		keys        []string
+		tableName   string
+		expectedErr string
+	}{
 		{
 			name: "Test with empty item",
 			item: dynamodb.ItemResponse{
 				Item: map[string]*dynamodb.AttributeValue{},
 			},
-			keys:          []string{"id"},
-			tableName:     "test",
-			expectedError: "item is nil or keys do not exist in this item payload",
+			keys:        []string{"id"},
+			tableName:   "test",
+			expectedErr: "item is nil or keys do not exist in this item payload",
 		},
 		{
 			name: "Test with empty keys",
@@ -36,9 +34,9 @@ func Test_NewMessageFromExport(t *testing.T) {
 					},
 				},
 			},
-			keys:          []string{},
-			tableName:     "test",
-			expectedError: "keys is nil",
+			keys:        []string{},
+			tableName:   "test",
+			expectedErr: "keys is nil",
 		},
 		{
 			name: "Test with valid item and keys",
@@ -56,8 +54,8 @@ func Test_NewMessageFromExport(t *testing.T) {
 
 	for _, tc := range tcs {
 		msg, err := NewMessageFromExport(tc.item, tc.keys, tc.tableName)
-		if tc.expectedError != "" {
-			assert.Equal(t, tc.expectedError, err.Error(), tc.name)
+		if tc.expectedErr != "" {
+			assert.Equal(t, tc.expectedErr, err.Error(), tc.name)
 		} else {
 			assert.NoError(t, err, tc.name)
 			assert.Equal(t, tc.tableName, msg.tableName, tc.name)
