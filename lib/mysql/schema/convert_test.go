@@ -270,7 +270,7 @@ func TestConvertValues(t *testing.T) {
 	{
 		// Malformed data
 		err := ConvertValues([]any{"bad", "bad", "bad"}, columns)
-		assert.ErrorContains(t, err, "failed to convert value for column a: expected int64 got string for value: bad")
+		assert.ErrorContains(t, err, `failed to convert value for column "a": expected int64 got string for value: bad`)
 	}
 	{
 		// Happy path - nils

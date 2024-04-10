@@ -54,14 +54,14 @@ func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
 				logger.Info("Table does not contain any rows, skipping...")
 				continue
 			} else {
-				return fmt.Errorf("failed to build Debezium transformer for table %s: %w", tableCfg.Name, err)
+				return fmt.Errorf("failed to build Debezium transformer for table %q: %w", tableCfg.Name, err)
 			}
 		}
 
 		logger.Info("Scanning table...", slog.Any("batchSize", tableCfg.GetBatchSize()))
 		count, err := writer.Write(ctx, dbzTransformer)
 		if err != nil {
-			return fmt.Errorf("failed to snapshot for table %s: %w", tableCfg.Name, err)
+			return fmt.Errorf("failed to snapshot table %q: %w", tableCfg.Name, err)
 		}
 
 		logger.Info("Finished snapshotting",

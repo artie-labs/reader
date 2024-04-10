@@ -32,7 +32,7 @@ type scanAdapter struct {
 func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any, error) {
 	columnIdx := slices.IndexFunc(s.columns, func(x schema.Column) bool { return x.Name == columnName })
 	if columnIdx < 0 {
-		return nil, fmt.Errorf("primary key column does not exist: %s", columnName)
+		return nil, fmt.Errorf("primary key column does not exist: %q", columnName)
 	}
 	column := s.columns[columnIdx]
 	switch column.Type {

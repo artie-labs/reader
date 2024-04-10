@@ -49,7 +49,7 @@ func TestParsePkValueOverrides(t *testing.T) {
 		// len(values) == len(primary keys) + error in ParsePrimaryKeyValue
 		adapter := mockAdapter{returnError: true}
 		_, err := parsePkValueOverrides([]string{"123", "456"}, []primary_key.Key{{Name: "foo"}, {Name: "bar"}}, adapter)
-		assert.ErrorContains(t, err, "failed to parse value '123': mock error in ParsePrimaryKeyValue")
+		assert.ErrorContains(t, err, `failed to parse value "123": mock error in ParsePrimaryKeyValue`)
 	}
 	{
 		// Happy path: len(values) == len(primary keys) + no error

@@ -62,7 +62,7 @@ func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
 		iterator := newIterator(s.db, collection, s.cfg)
 		count, err := writer.Write(ctx, iterator)
 		if err != nil {
-			return fmt.Errorf("failed to snapshot for collection %s: %w", collection.Name, err)
+			return fmt.Errorf("failed to snapshot for collection %q: %w", collection.Name, err)
 		}
 
 		slog.Info("Finished snapshotting", slog.Int("scannedTotal", count), slog.Duration("totalDuration", time.Since(snapshotStartTime)))

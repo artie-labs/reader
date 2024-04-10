@@ -23,7 +23,7 @@ func LoadTable(db *sql.DB, name string) (*Table, error) {
 
 	var err error
 	if tbl.Columns, err = schema.DescribeTable(db, tbl.Name); err != nil {
-		return nil, fmt.Errorf("failed to describe table %s: %w", tbl.Name, err)
+		return nil, fmt.Errorf("failed to describe table %q: %w", tbl.Name, err)
 	}
 
 	if tbl.PrimaryKeys, err = schema.GetPrimaryKeys(db, tbl.Name); err != nil {

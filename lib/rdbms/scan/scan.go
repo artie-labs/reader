@@ -172,7 +172,7 @@ func parsePkValueOverrides(values []string, primaryKeys []primary_key.Key, adapt
 	for i, value := range values {
 		parsedValue, err := adapter.ParsePrimaryKeyValue(primaryKeys[i].Name, value)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse value '%v': %w", value, err)
+			return nil, fmt.Errorf("failed to parse value %q: %w", value, err)
 		}
 		result[i] = parsedValue
 	}
