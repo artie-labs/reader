@@ -8,15 +8,13 @@ import (
 )
 
 func TestBucketAndPrefixFromFilePath(t *testing.T) {
-	type _tc struct {
+	tcs := []struct {
 		name           string
 		fp             string
 		expectedBucket *string
 		expectedPrefix *string
-		expectedErr    bool
-	}
-
-	tcs := []_tc{
+		expectedErr    string
+	}{
 		{
 			name:           "valid path (w/ S3 prefix)",
 			fp:             "s3://bucket/prefix",
@@ -57,14 +55,14 @@ func TestBucketAndPrefixFromFilePath(t *testing.T) {
 		{
 			name:        "invalid path",
 			fp:          "s3://bucket",
-			expectedErr: true,
+			expectedErr: "invalid S3 path, missing prefix",
 		},
 	}
 
 	for _, tc := range tcs {
 		actualBucket, actualPrefix, actualErr := bucketAndPrefixFromFilePath(tc.fp)
-		if tc.expectedErr {
-			assert.Error(t, actualErr, tc.name)
+		if tc.expectedErr != "" {
+			assert.ErrorContains(t, actualErr, tc.expectedErr, tc.name)
 		} else {
 			assert.NoError(t, actualErr, tc.name)
 
