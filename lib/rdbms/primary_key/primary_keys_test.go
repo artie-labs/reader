@@ -20,17 +20,15 @@ func TestNewKeys(t *testing.T) {
 }
 
 func TestPrimaryKeys_LoadValues(t *testing.T) {
-	type _tc struct {
+	testCases := []struct {
 		name           string
 		startingValues []any
 		endingValues   []any
 
 		keys         []Key
 		expectedKeys []Key
-		expectedErr  bool
-	}
-
-	testCases := []_tc{
+		expectedErr  string
+	}{
 		{
 			name:           "happy path (starting values)",
 			keys:           []Key{{Name: "id"}},
@@ -66,13 +64,12 @@ func TestPrimaryKeys_LoadValues(t *testing.T) {
 			name:           "bad data - no keys",
 			keys:           []Key{},
 			startingValues: []any{"123", "path:123"},
-			expectedErr:    true,
+			expectedErr:    "keys (0), and passed in values (2) length does not match, keys: [], values: [123 path:123]",
 		},
 		{
 			name:           "bad data - no values, so we just don't load",
 			keys:           []Key{{Name: "id"}, {Name: "content_key"}},
 			startingValues: []any{},
-			expectedErr:    false,
 			expectedKeys:   []Key{{Name: "id"}, {Name: "content_key"}},
 		},
 	}
@@ -81,8 +78,8 @@ func TestPrimaryKeys_LoadValues(t *testing.T) {
 		pk := NewKeys(testCase.keys)
 
 		err := pk.LoadValues(testCase.startingValues, testCase.endingValues)
-		if testCase.expectedErr {
-			assert.Error(t, err, testCase.name)
+		if testCase.expectedErr != "" {
+			assert.ErrorContains(t, err, testCase.expectedErr, testCase.name)
 		} else {
 			assert.NoError(t, err, testCase.name)
 			assert.Equal(t, testCase.expectedKeys, pk.Keys(), testCase.name)

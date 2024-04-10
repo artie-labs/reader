@@ -12,38 +12,33 @@ import (
 )
 
 func TestNewMessage(t *testing.T) {
-	type _tc struct {
+	tcs := []struct {
 		name      string
 		record    *dynamodbstreams.Record
 		tableName string
 
-		expectErr       bool
+		expectedErr     string
 		expectedMessage *Message
-	}
-
-	tcs := []_tc{
+	}{
 		{
-			name:            "nil record",
-			record:          nil,
-			tableName:       "testTable",
-			expectErr:       true,
-			expectedMessage: nil,
+			name:        "nil record",
+			record:      nil,
+			tableName:   "testTable",
+			expectedErr: "record is nil or dynamodb does not exist in this event payload",
 		},
 		{
-			name:            "nil dynamodb",
-			record:          &dynamodbstreams.Record{},
-			tableName:       "testTable",
-			expectErr:       true,
-			expectedMessage: nil,
+			name:        "nil dynamodb",
+			record:      &dynamodbstreams.Record{},
+			tableName:   "testTable",
+			expectedErr: "record is nil or dynamodb does not exist in this event payload",
 		},
 		{
 			name: "empty keys",
 			record: &dynamodbstreams.Record{
 				Dynamodb: &dynamodbstreams.StreamRecord{},
 			},
-			tableName:       "testTable",
-			expectErr:       true,
-			expectedMessage: nil,
+			tableName:   "testTable",
+			expectedErr: "keys is nil",
 		},
 		{
 			name: "EventName INSERT",
@@ -59,7 +54,6 @@ func TestNewMessage(t *testing.T) {
 				EventName: ptr.ToString("INSERT"),
 			},
 			tableName: "testTable",
-			expectErr: false,
 			expectedMessage: &Message{
 				op:            "c",
 				tableName:     "testTable",
@@ -84,7 +78,6 @@ func TestNewMessage(t *testing.T) {
 				EventName: ptr.ToString("MODIFY"),
 			},
 			tableName: "testTable",
-			expectErr: false,
 			expectedMessage: &Message{
 				op:            "u",
 				executionTime: time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC),
@@ -109,7 +102,6 @@ func TestNewMessage(t *testing.T) {
 				EventName: aws.String("REMOVE"),
 			},
 			tableName: "testTable",
-			expectErr: false,
 			expectedMessage: &Message{
 				op:            "d",
 				tableName:     "testTable",
@@ -132,7 +124,6 @@ func TestNewMessage(t *testing.T) {
 				EventName: aws.String("INSERT"),
 			},
 			tableName: "testTable",
-			expectErr: false,
 			expectedMessage: &Message{
 				op:            "c",
 				tableName:     "testTable",
@@ -145,8 +136,8 @@ func TestNewMessage(t *testing.T) {
 
 	for _, tc := range tcs {
 		actualMessage, actualErr := NewMessage(tc.record, tc.tableName)
-		if tc.expectErr {
-			assert.Error(t, actualErr, tc.name)
+		if tc.expectedErr != "" {
+			assert.ErrorContains(t, actualErr, tc.expectedErr, tc.name)
 		} else {
 			assert.NoError(t, actualErr, tc.name)
 			assert.Equal(t, tc.expectedMessage, actualMessage, tc.name)

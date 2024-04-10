@@ -7,14 +7,12 @@ import (
 )
 
 func TestToPoint(t *testing.T) {
-	type _tc struct {
+	tcs := []struct {
 		name        string
 		input       string
 		output      *Point
-		expectError bool
-	}
-
-	tcs := []_tc{
+		expectedErr string
+	}{
 		{
 			name:   "Valid point",
 			input:  "(2.2945,48.8584)",
@@ -23,29 +21,29 @@ func TestToPoint(t *testing.T) {
 		{
 			name:        "Invalid format",
 			input:       "2.2945,48.8584",
-			expectError: true,
+			expectedErr: "invalid point format",
 		},
 		{
 			name:        "Invalid X coordinate",
 			input:       "(abc,48.8584)",
-			expectError: true,
+			expectedErr: "invalid X coordinate",
 		},
 		{
 			name:        "Invalid Y coordinate",
 			input:       "(2.2945,xyz)",
-			expectError: true,
+			expectedErr: "invalid Y coordinate:",
 		},
 		{
 			name:        "Empty input",
 			input:       "",
-			expectError: true,
+			expectedErr: "invalid point format",
 		},
 	}
 
 	for _, tc := range tcs {
 		point, err := ToPoint(tc.input)
-		if tc.expectError {
-			assert.Error(t, err, tc.name)
+		if tc.expectedErr != "" {
+			assert.ErrorContains(t, err, tc.expectedErr, tc.name)
 		} else {
 			assert.Equal(t, *tc.output, *point, tc.name)
 		}
