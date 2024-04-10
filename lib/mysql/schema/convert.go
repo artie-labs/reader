@@ -30,7 +30,7 @@ func ConvertValue(value any, colType DataType) (any, error) {
 			return nil, fmt.Errorf("expected int64 got %T for value: %v", value, value)
 		}
 		if castVal > 1 || castVal < 0 {
-			return nil, fmt.Errorf("boolean value not in [0, 1]: %v", value)
+			return nil, fmt.Errorf("boolean value %d not in [0, 1]", castVal)
 		}
 		return castVal == 1, nil
 	case TinyInt,
@@ -120,7 +120,7 @@ func ConvertValues(values []any, cols []Column) error {
 		col := cols[i]
 		convertedVal, err := ConvertValue(value, col.Type)
 		if err != nil {
-			return fmt.Errorf("failed to convert value for column %s: %w", col.Name, err)
+			return fmt.Errorf("failed to convert value for column %q: %w", col.Name, err)
 		}
 		values[i] = convertedVal
 	}

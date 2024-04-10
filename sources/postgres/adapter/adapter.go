@@ -41,7 +41,7 @@ func NewPostgresAdapter(db *sql.DB, tableCfg config.PostgreSQLTable) (PostgresAd
 	for i, col := range columns {
 		converter, err := valueConverterForType(col.Type, col.Opts)
 		if err != nil {
-			return PostgresAdapter{}, fmt.Errorf("failed to build value converter for column %s: %w", col.Name, err)
+			return PostgresAdapter{}, fmt.Errorf("failed to build value converter for column %q: %w", col.Name, err)
 		}
 		fieldConverters[i] = transformer.FieldConverter{Name: col.Name, ValueConverter: converter}
 	}

@@ -59,7 +59,7 @@ func TestParse(t *testing.T) {
 			name:        "time - malformed",
 			dataType:    schema.Time,
 			value:       "blah",
-			expectedErr: "failed to parse time value blah: cannot decode blah into Time",
+			expectedErr: `failed to parse time value "blah": cannot decode blah into Time`,
 		},
 		{
 			name:          "time with time zone - one second",
@@ -77,7 +77,7 @@ func TestParse(t *testing.T) {
 			name:        "time with time zone  - malformed",
 			dataType:    schema.TimeWithTimeZone,
 			value:       "blah",
-			expectedErr: "failed to parse time value blah: cannot decode blah into Time",
+			expectedErr: `failed to parse time value "blah": cannot decode blah into Time`,
 		},
 		{
 			name:          "interval",
@@ -89,7 +89,7 @@ func TestParse(t *testing.T) {
 			name:        "interval - malformed",
 			dataType:    schema.Interval,
 			value:       "blah",
-			expectedErr: "failed to parse interval value blah: bad interval format",
+			expectedErr: `failed to parse interval value "blah": bad interval format`,
 		},
 		{
 			name:          "array - string",

@@ -21,7 +21,7 @@ func (k *Keys) LoadValues(startingValues, endingValues []any) error {
 	length := len(k.keys)
 	if len(startingValues) != 0 {
 		if len(startingValues) != length {
-			return fmt.Errorf("keys (%v), and passed in values (%v) length does not match, keys: %v, values: %s",
+			return fmt.Errorf("keys (%d), and passed in values (%d) length does not match, keys: %v, values: %v",
 				length, len(startingValues), k.KeyNames(), startingValues)
 		}
 
@@ -40,7 +40,7 @@ func (k *Keys) LoadValues(startingValues, endingValues []any) error {
 
 	if len(endingValues) != 0 {
 		if len(endingValues) != length {
-			return fmt.Errorf("keys (%v), and passed in values (%v) length does not match, keys: %v, values: %s",
+			return fmt.Errorf("keys (%d), and passed in values (%d) length does not match, keys: %v, values: %v",
 				length, len(endingValues), k.KeyNames(), endingValues)
 		}
 
@@ -64,7 +64,7 @@ func (k *Keys) LoadValues(startingValues, endingValues []any) error {
 func (k *Keys) UpdateStartingValue(keyName string, startingVal any) (bool, error) {
 	idx := slices.IndexFunc(k.keys, func(x Key) bool { return x.Name == keyName })
 	if idx < 0 {
-		return false, fmt.Errorf("no key named %s", keyName)
+		return false, fmt.Errorf("no key named %q", keyName)
 	}
 
 	changed := !equal(k.keys[idx].StartingValue, startingVal)

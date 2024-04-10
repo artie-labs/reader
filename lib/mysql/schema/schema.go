@@ -67,7 +67,7 @@ func QuoteIdentifier(s string) string {
 func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 	r, err := db.Query("DESCRIBE " + QuoteIdentifier(table))
 	if err != nil {
-		return nil, fmt.Errorf("failed to describe table %s: %w", table, err)
+		return nil, fmt.Errorf("failed to describe table %q: %w", table, err)
 	}
 	defer r.Close()
 
@@ -113,7 +113,7 @@ func parseColumnDataType(originalS string) (DataType, *Opts, error) {
 	if parenIndex != -1 {
 		if s[len(s)-1] != ')' {
 			// Make sure the format looks like int (n) unsigned
-			return -1, nil, fmt.Errorf("malformed data type: %s", originalS)
+			return -1, nil, fmt.Errorf("malformed data type: %q", originalS)
 		}
 		metadata = s[parenIndex+1 : len(s)-1]
 		s = s[:parenIndex]
@@ -154,17 +154,17 @@ func parseColumnDataType(originalS string) (DataType, *Opts, error) {
 	case "decimal", "numeric":
 		parts := strings.Split(metadata, ",")
 		if len(parts) != 2 {
-			return -1, nil, fmt.Errorf("invalid decimal metadata: %s", metadata)
+			return -1, nil, fmt.Errorf("invalid decimal metadata: %q", metadata)
 		}
 
 		precision, err := strconv.Atoi(parts[0])
 		if err != nil {
-			return -1, nil, fmt.Errorf("failed to parse precision value %s: %w", s, err)
+			return -1, nil, fmt.Errorf("failed to parse precision value %q: %w", s, err)
 		}
 
 		scale, err := strconv.Atoi(parts[1])
 		if err != nil {
-			return -1, nil, fmt.Errorf("failed to parse scale value %s: %w", s, err)
+			return -1, nil, fmt.Errorf("failed to parse scale value %q: %w", s, err)
 		}
 		return Decimal, &Opts{Precision: ptr.ToInt(precision), Scale: ptr.ToInt(scale)}, nil
 	case "float":
@@ -212,7 +212,7 @@ func parseColumnDataType(originalS string) (DataType, *Opts, error) {
 	case "json":
 		return JSON, nil, nil
 	default:
-		return -1, nil, fmt.Errorf("unknown data type: %s", originalS)
+		return -1, nil, fmt.Errorf("unknown data type: %q", originalS)
 	}
 }
 

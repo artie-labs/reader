@@ -14,7 +14,7 @@ type Column[T ~int, O any] struct {
 func GetColumnByName[T ~int, O any](columns []Column[T, O], name string) (*Column[T, O], error) {
 	index := slices.IndexFunc(columns, func(c Column[T, O]) bool { return c.Name == name })
 	if index < 0 {
-		return nil, fmt.Errorf("failed to find column with name: %s", name)
+		return nil, fmt.Errorf("no column named %q", name)
 	}
 	return &columns[index], nil
 }

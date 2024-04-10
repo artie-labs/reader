@@ -124,7 +124,7 @@ func TestParseColumnDataType(t *testing.T) {
 		{
 			name:        "unsupported",
 			colKind:     "foo",
-			expectedErr: "unknown data type: foo",
+			expectedErr: `unknown data type: "foo"`,
 		},
 	}
 
