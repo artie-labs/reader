@@ -49,7 +49,7 @@ func buildSource(cfg *config.Settings) (sources.Source, bool, error) {
 	case config.SourcePostgreSQL:
 		source, err = postgres.Load(*cfg.PostgreSQL)
 	default:
-		panic(fmt.Sprintf("unknown source: %q", cfg.Source)) // should never happen
+		panic(fmt.Sprintf("unknown source %q", cfg.Source)) // should never happen
 	}
 	return source, isStreamingMode, err
 }
@@ -71,7 +71,7 @@ func buildDestinationWriter(ctx context.Context, cfg *config.Settings, statsD mt
 	case config.DestinationTransfer:
 		return transfer.NewWriter(*cfg.Transfer, statsD)
 	default:
-		panic(fmt.Sprintf("unknown destination: %q", cfg.Destination)) // should never happen
+		panic(fmt.Sprintf("unknown destination %q", cfg.Destination)) // should never happen
 	}
 }
 
