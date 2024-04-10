@@ -20,7 +20,7 @@ func TestScanAdapter_ParsePrimaryKeyValue(t *testing.T) {
 		// Column does not exist
 		adapter := scanAdapter{columns: []schema.Column{{Name: "bar"}}}
 		_, err := adapter.ParsePrimaryKeyValue("foo", "1234")
-		assert.ErrorContains(t, err, `primary key column does not exist: "foo"`)
+		assert.ErrorContains(t, err, `primary key column "foo" does not exist`)
 	}
 
 	testCases := []struct {
