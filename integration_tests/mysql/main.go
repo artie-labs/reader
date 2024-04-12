@@ -10,7 +10,6 @@ import (
 	"os"
 
 	"github.com/lmittmann/tint"
-	"github.com/mattn/go-isatty"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/integration_tests/utils"
@@ -24,10 +23,7 @@ func main() {
 	if err := os.Setenv("TZ", "UTC"); err != nil {
 		logger.Fatal("Unable to set TZ env var: %w", err)
 	}
-	slog.SetDefault(slog.New(tint.NewHandler(os.Stderr, &tint.Options{
-		Level:   slog.LevelInfo,
-		NoColor: !isatty.IsTerminal(os.Stderr.Fd()),
-	})))
+	slog.SetDefault(slog.New(tint.NewHandler(os.Stderr, &tint.Options{})))
 
 	var mysqlHost string = os.Getenv("MYSQL_HOST")
 	if mysqlHost == "" {
