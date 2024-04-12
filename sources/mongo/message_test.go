@@ -18,11 +18,11 @@ import (
 func TestParseMessagePartitionKey(t *testing.T) {
 	objId, err := primitive.ObjectIDFromHex("507f1f77bcf86cd799439011")
 	assert.NoError(t, err)
-	msg, err := parseMessage(bson.M{"_id": objId})
+	msg, err := ParseMessage(bson.M{"_id": objId})
 	assert.NoError(t, err)
 	assert.Equal(t, `{"$oid":"507f1f77bcf86cd799439011"}`, msg.pkMap["id"])
 
-	rawMsg, err := msg.toRawMessage(config.Collection{}, "database")
+	rawMsg, err := msg.ToRawMessage(config.Collection{}, "database")
 	assert.NoError(t, err)
 
 	rawMsgBytes, err := json.Marshal(rawMsg.PartitionKey())
@@ -41,7 +41,7 @@ func TestParseMessage(t *testing.T) {
 	decimal, err := primitive.ParseDecimal128("1234.5")
 	assert.NoError(t, err)
 
-	msg, err := parseMessage(
+	msg, err := ParseMessage(
 		bson.M{
 			"_id":     objId,
 			"string":  "Hello, world!",
@@ -64,7 +64,7 @@ func TestParseMessage(t *testing.T) {
 		})
 	assert.NoError(t, err)
 
-	rawMsg, err := msg.toRawMessage(config.Collection{}, "database")
+	rawMsg, err := msg.ToRawMessage(config.Collection{}, "database")
 	assert.NoError(t, err)
 
 	rawPkBytes, err := json.Marshal(rawMsg.PartitionKey())

@@ -2,12 +2,12 @@ package transfer
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/artie-labs/reader/lib"
-	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/transfer/lib/artie"
+	"github.com/artie-labs/transfer/lib/cdc/mongo"
 	"github.com/artie-labs/transfer/lib/config"
 	"github.com/artie-labs/transfer/lib/config/constants"
 	"github.com/artie-labs/transfer/lib/destination"
@@ -15,6 +15,9 @@ import (
 	"github.com/artie-labs/transfer/lib/kafkalib"
 	"github.com/artie-labs/transfer/models"
 	"github.com/artie-labs/transfer/models/event"
+
+	"github.com/artie-labs/reader/lib"
+	"github.com/artie-labs/reader/lib/mtr"
 )
 
 type Writer struct {
@@ -43,6 +46,25 @@ func NewWriter(cfg config.Config, statsD mtr.Client) (*Writer, error) {
 	}, nil
 }
 
+func (w *Writer) messageToEvent(message lib.RawMessage) (event.Event, error) {
+	evt := message.Event()
+
+	if mongoEvt, ok := evt.(*mongo.SchemaEventPayload); ok {
+		bytes, err := json.Marshal(mongoEvt)
+		if err != nil {
+			return event.Event{}, err
+		}
+
+		var dbz mongo.Debezium
+		evt, err = dbz.GetEventFromBytes(w.cfg.SharedTransferConfig.TypingSettings, bytes)
+		if err != nil {
+			return event.Event{}, err
+		}
+	}
+
+	return event.ToMemoryEvent(evt, message.PartitionKey(), w.tc, config.Replication), nil
+}
+
 func (w *Writer) Write(_ context.Context, messages []lib.RawMessage) error {
 	if len(messages) == 0 {
 		return nil
@@ -50,7 +72,11 @@ func (w *Writer) Write(_ context.Context, messages []lib.RawMessage) error {
 
 	var events []event.Event
 	for _, message := range messages {
-		events = append(events, event.ToMemoryEvent(message.Event(), message.PartitionKey(), w.tc, config.Replication))
+		evt, err := w.messageToEvent(message)
+		if err != nil {
+			return err
+		}
+		events = append(events, evt)
 	}
 
 	tags := map[string]string{
