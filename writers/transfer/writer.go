@@ -8,7 +8,6 @@ import (
 
 	"github.com/artie-labs/transfer/lib/artie"
 	"github.com/artie-labs/transfer/lib/cdc/mongo"
-	transferMongo "github.com/artie-labs/transfer/lib/cdc/mongo"
 	"github.com/artie-labs/transfer/lib/config"
 	"github.com/artie-labs/transfer/lib/config/constants"
 	"github.com/artie-labs/transfer/lib/destination"
@@ -56,7 +55,7 @@ func (w *Writer) messageToEvent(message lib.RawMessage) (event.Event, error) {
 			return event.Event{}, err
 		}
 
-		var dbz transferMongo.Debezium
+		var dbz mongo.Debezium
 		evt, err = dbz.GetEventFromBytes(w.cfg.SharedTransferConfig.TypingSettings, bytes)
 		if err != nil {
 			return event.Event{}, err
