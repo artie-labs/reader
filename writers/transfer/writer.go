@@ -56,7 +56,10 @@ func (w *Writer) messageToEvent(message lib.RawMessage) (event.Event, error) {
 		}
 
 		var dbz mongo.Debezium
-		return dbz.GetEventFromBytes(w.cfg.SharedTransferConfig.TypingSettings, bytes)		
+		evt, err = dbz.GetEventFromBytes(w.cfg.SharedTransferConfig.TypingSettings, bytes)
+		if err != nil {
+			return event.Event{}, err
+		}
 	}
 
 	return event.ToMemoryEvent(evt, message.PartitionKey(), w.tc, config.Replication), nil
