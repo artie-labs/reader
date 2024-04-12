@@ -17,7 +17,7 @@ type mgoMessage struct {
 	pkMap              map[string]any
 }
 
-func (m *mgoMessage) toRawMessage(collection config.Collection, database string) (lib.RawMessage, error) {
+func (m *mgoMessage) ToRawMessage(collection config.Collection, database string) (lib.RawMessage, error) {
 	evt := &mongo.SchemaEventPayload{
 		Schema: debezium.Schema{},
 		Payload: mongo.Payload{
@@ -38,7 +38,7 @@ func (m *mgoMessage) toRawMessage(collection config.Collection, database string)
 	return lib.NewRawMessage(collection.TopicSuffix(database), pkMap, evt), nil
 }
 
-func parseMessage(result bson.M) (*mgoMessage, error) {
+func ParseMessage(result bson.M) (*mgoMessage, error) {
 	jsonExtendedBytes, err := bson.MarshalExtJSON(result, false, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal document to JSON extended: %w", err)

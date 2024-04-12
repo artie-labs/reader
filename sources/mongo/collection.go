@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"fmt"
+
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
 	"go.mongodb.org/mongo-driver/bson"
@@ -56,12 +57,12 @@ func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
 			return nil, fmt.Errorf("failed to decode document: %w", err)
 		}
 
-		mgoMsg, err := parseMessage(result)
+		mgoMsg, err := ParseMessage(result)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse message: %w", err)
 		}
 
-		rawMsg, err := mgoMsg.toRawMessage(c.collection, c.cfg.Database)
+		rawMsg, err := mgoMsg.ToRawMessage(c.collection, c.cfg.Database)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create raw message: %w", err)
 		}
