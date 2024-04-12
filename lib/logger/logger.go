@@ -7,6 +7,7 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"github.com/lmittmann/tint"
+	"github.com/mattn/go-isatty"
 	slogmulti "github.com/samber/slog-multi"
 	slogsentry "github.com/samber/slog-sentry/v2"
 
@@ -16,7 +17,10 @@ import (
 var handlersToTerminate []func()
 
 func NewLogger(settings *config.Settings) (*slog.Logger, func()) {
-	handler := tint.NewHandler(os.Stderr, &tint.Options{Level: slog.LevelInfo})
+	handler := tint.NewHandler(os.Stderr, &tint.Options{
+		Level:   slog.LevelInfo,
+		NoColor: !isatty.IsTerminal(os.Stderr.Fd()),
+	})
 
 	if settings != nil && settings.Reporting != nil && settings.Reporting.Sentry != nil && settings.Reporting.Sentry.DSN != "" {
 		if err := sentry.Init(sentry.ClientOptions{Dsn: settings.Reporting.Sentry.DSN}); err != nil {

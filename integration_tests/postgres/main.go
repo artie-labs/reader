@@ -24,7 +24,7 @@ func main() {
 	if err := os.Setenv("TZ", "UTC"); err != nil {
 		logger.Fatal("Unable to set TZ env var: %w", err)
 	}
-	slog.SetDefault(slog.New(tint.NewHandler(os.Stderr, &tint.Options{Level: slog.LevelInfo})))
+	slog.SetDefault(slog.New(tint.NewHandler(os.Stderr, &tint.Options{})))
 
 	var pgHost string = os.Getenv("PG_HOST")
 	if pgHost == "" {
