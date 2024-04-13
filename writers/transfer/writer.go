@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/artie"
@@ -161,6 +162,13 @@ func (w *Writer) OnComplete() error {
 	if err := w.flush("complete"); err != nil {
 		return err
 	}
-	// TODO: Run de-duplicate logic here as long as some amount of messages were written to the destination.
-	return nil
+
+	tableName, tableData, err := w.getTableData()
+	if err != nil {
+		return err
+	}
+
+	fqTableName := w.destination.ToFullyQualifiedName(tableData.TableData, true)
+	slog.Info("Running dedupe...", slog.String("table", tableName))
+	return w.destination.Dedupe(fqTableName)
 }
