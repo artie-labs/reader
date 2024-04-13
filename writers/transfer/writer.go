@@ -169,6 +169,6 @@ func (w *Writer) OnComplete() error {
 	}
 
 	fqTableName := w.destination.ToFullyQualifiedName(tableData.TableData, true)
-	slog.Info("Running dedupe...", slog.String("table", tableName))
+	slog.Info("Running dedupe...", slog.String("table", tableName), slog.String("fqName", fqTableName))
 	return w.destination.Dedupe(fqTableName)
 }
