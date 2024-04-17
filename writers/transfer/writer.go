@@ -38,12 +38,17 @@ func NewWriter(cfg config.Config, statsD mtr.Client) (*Writer, error) {
 		return nil, fmt.Errorf("kafka config should have exactly one topic config")
 	}
 
+	destination, err := utils.LoadDataWarehouse(cfg, nil)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Writer{
 		cfg:         cfg,
 		statsD:      statsD,
 		inMemDB:     models.NewMemoryDB(),
 		tc:          cfg.Kafka.TopicConfigs[0],
-		destination: utils.DataWarehouse(cfg, nil),
+		destination: destination,
 	}, nil
 }
 
@@ -168,7 +173,6 @@ func (w *Writer) OnComplete() error {
 		return err
 	}
 
-	fqTableName := w.destination.ToFullyQualifiedName(tableData.TableData, true)
-	slog.Info("Running dedupe...", slog.String("table", tableName), slog.String("fqTable", fqTableName))
-	return w.destination.Dedupe(fqTableName)
+	slog.Info("Running dedupe...", slog.String("table", tableName))
+	return w.destination.Dedupe(tableData.TableData.TableIdentifier())
 }
