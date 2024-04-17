@@ -14,6 +14,7 @@ import (
 	"github.com/artie-labs/transfer/lib/destination"
 	"github.com/artie-labs/transfer/lib/destination/utils"
 	"github.com/artie-labs/transfer/lib/kafkalib"
+	"github.com/artie-labs/transfer/lib/optimization"
 	"github.com/artie-labs/transfer/models"
 	"github.com/artie-labs/transfer/models/event"
 
@@ -168,11 +169,19 @@ func (w *Writer) OnComplete() error {
 		return err
 	}
 
-	tableName, tableData, err := w.getTableData()
+	tableName, _, err := w.getTableData()
 	if err != nil {
 		return err
 	}
 
 	slog.Info("Running dedupe...", slog.String("table", tableName))
-	return w.destination.Dedupe(tableData.TableData.TableIdentifier())
+	// Can't use [TableData.TableIdentifier] here because the call to [ClearTableConfig] in [Writer.Flush]
+	// sets [TableData.TopicConfig] to nil.
+	tableID := optimization.NewTableIdentifier(w.tc.Database, w.tc.Schema, tableName)
+	start := time.Now()
+	if err = w.destination.Dedupe(tableID); err != nil {
+		return err
+	}
+	slog.Info("Dedupe complete", slog.String("table", tableName), slog.Duration("duration", time.Since(start)))
+	return nil
 }
