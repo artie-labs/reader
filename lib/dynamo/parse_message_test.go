@@ -1,12 +1,109 @@
 package dynamo
 
 import (
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
 	"testing"
+	"time"
 
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/stretchr/testify/assert"
 )
+
+func Test_NewMessage(t *testing.T) {
+	{
+		// Invalid payloads
+		_, err := NewMessage(nil, "testTable")
+		assert.ErrorContains(t, err, "record is nil or dynamodb does not exist in this event payload")
+
+		_, err = NewMessage(&dynamodbstreams.Record{}, "testTable")
+		assert.ErrorContains(t, err, "record is nil or dynamodb does not exist in this event payload")
+
+		// No keys.
+		_, err = NewMessage(&dynamodbstreams.Record{Dynamodb: &dynamodbstreams.StreamRecord{}}, "testTable")
+		assert.ErrorContains(t, err, "keys is nil")
+	}
+	{
+		// Insert
+		msg, err := NewMessage(&dynamodbstreams.Record{
+			Dynamodb: &dynamodbstreams.StreamRecord{
+				NewImage: map[string]*dynamodb.AttributeValue{
+					"foo": {
+						S: ptr.ToString("bar"),
+					},
+				},
+				Keys: map[string]*dynamodb.AttributeValue{
+					"user_id": {
+						S: ptr.ToString("123"),
+					},
+				},
+				ApproximateCreationDateTime: aws.Time(time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC)),
+			},
+			EventName: ptr.ToString("INSERT"),
+		}, "testTable")
+
+		assert.NoError(t, err)
+		assert.Equal(t, map[string]any{"foo": "bar"}, msg.afterRowData)
+		assert.Equal(t, map[string]any{"user_id": "123"}, msg.primaryKey)
+		assert.Equal(t, "c", msg.op)
+		assert.Equal(t, "testTable", msg.tableName)
+		assert.Equal(t, time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC), msg.executionTime)
+	}
+	{
+		// Update
+		msg, err := NewMessage(&dynamodbstreams.Record{
+			Dynamodb: &dynamodbstreams.StreamRecord{
+				NewImage: map[string]*dynamodb.AttributeValue{
+					"foo": {
+						S: ptr.ToString("bar"),
+					},
+				},
+				Keys: map[string]*dynamodb.AttributeValue{
+					"user_id": {
+						S: ptr.ToString("123"),
+					},
+				},
+				ApproximateCreationDateTime: aws.Time(time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC)),
+			},
+			EventName: ptr.ToString("MODIFY"),
+		}, "testTable")
+
+		assert.NoError(t, err)
+		assert.Equal(t, map[string]any{"foo": "bar"}, msg.afterRowData)
+		assert.Equal(t, map[string]any{"user_id": "123"}, msg.primaryKey)
+		assert.Equal(t, "u", msg.op)
+		assert.Equal(t, "testTable", msg.tableName)
+		assert.Equal(t, time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC), msg.executionTime)
+	}
+	{
+		// Delete
+		msg, err := NewMessage(&dynamodbstreams.Record{
+			Dynamodb: &dynamodbstreams.StreamRecord{
+				OldImage: map[string]*dynamodb.AttributeValue{
+					"foo": {
+						S: ptr.ToString("bar"),
+					},
+				},
+				Keys: map[string]*dynamodb.AttributeValue{
+					"user_id": {
+						S: ptr.ToString("123"),
+					},
+				},
+				ApproximateCreationDateTime: aws.Time(time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC)),
+			},
+			EventName: ptr.ToString("REMOVE"),
+		}, "testTable")
+
+		assert.NoError(t, err)
+		assert.Equal(t, map[string]any{"foo": "bar"}, msg.beforeRowData)
+		assert.Equal(t, map[string]any{"user_id": "123"}, msg.primaryKey)
+		assert.Equal(t, 0, len(msg.afterRowData))
+		assert.Equal(t, "d", msg.op)
+		assert.Equal(t, "testTable", msg.tableName)
+		assert.Equal(t, time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC), msg.executionTime)
+	}
+}
 
 func Test_NewMessageFromExport(t *testing.T) {
 	tcs := []struct {

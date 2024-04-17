@@ -21,7 +21,7 @@ func NewMessageFromExport(item dynamodb.ItemResponse, keys []string, tableName s
 	// Perhaps we can have it inferred from the manifest file in the future.
 	executionTime := time.Now()
 
-	rowData := transformNewImage(item.Item)
+	rowData := transformImage(item.Item)
 	primaryKeys := make(map[string]any)
 	for _, key := range keys {
 		val, isOk := rowData[key]
@@ -36,7 +36,7 @@ func NewMessageFromExport(item dynamodb.ItemResponse, keys []string, tableName s
 		op:            "r",
 		tableName:     tableName,
 		executionTime: executionTime,
-		rowData:       rowData,
+		afterRowData:  rowData,
 		primaryKey:    primaryKeys,
 	}, nil
 }
@@ -71,7 +71,8 @@ func NewMessage(record *dynamodbstreams.Record, tableName string) (*Message, err
 		op:            op,
 		tableName:     tableName,
 		executionTime: executionTime,
-		rowData:       transformNewImage(record.Dynamodb.NewImage),
-		primaryKey:    transformNewImage(record.Dynamodb.Keys),
+		beforeRowData: transformImage(record.Dynamodb.OldImage),
+		afterRowData:  transformImage(record.Dynamodb.NewImage),
+		primaryKey:    transformImage(record.Dynamodb.Keys),
 	}, nil
 }

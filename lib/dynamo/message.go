@@ -11,7 +11,8 @@ import (
 )
 
 type Message struct {
-	rowData       map[string]any
+	beforeRowData map[string]any
+	afterRowData  map[string]any
 	primaryKey    map[string]any
 	op            string
 	tableName     string
@@ -76,7 +77,7 @@ func transformAttributeValue(attr *dynamodb.AttributeValue) any {
 	return nil
 }
 
-func transformNewImage(data map[string]*dynamodb.AttributeValue) map[string]any {
+func transformImage(data map[string]*dynamodb.AttributeValue) map[string]any {
 	transformed := make(map[string]any)
 	for key, attrValue := range data {
 		transformed[key] = transformAttributeValue(attrValue)
@@ -87,7 +88,8 @@ func transformNewImage(data map[string]*dynamodb.AttributeValue) map[string]any 
 func (m *Message) artieMessage() *util.SchemaEventPayload {
 	return &util.SchemaEventPayload{
 		Payload: util.Payload{
-			After: m.rowData,
+			Before: m.beforeRowData,
+			After:  m.afterRowData,
 			Source: util.Source{
 				TsMs:  m.executionTime.UnixMilli(),
 				Table: m.tableName,
