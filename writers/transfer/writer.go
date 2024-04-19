@@ -139,8 +139,8 @@ func (w *Writer) flush(reason string) error {
 		"what":     "success",
 		"mode":     tableData.Mode().String(),
 		"table":    tableName,
-		"database": tableData.TopicConfig.Database,
-		"schema":   tableData.TopicConfig.Schema,
+		"database": tableData.TopicConfig().Database,
+		"schema":   tableData.TopicConfig().Schema,
 		"reason":   reason,
 	}
 	defer func() {
