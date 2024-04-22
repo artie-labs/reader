@@ -94,7 +94,8 @@ func TestParseMessage(t *testing.T) {
 		"nullValue":   nil,
 	}
 
-	actualKVMap := kvMap.GetData(pkMap, &kafkalib.TopicConfig{})
+	actualKVMap, err := kvMap.GetData(pkMap, &kafkalib.TopicConfig{})
+	assert.NoError(t, err)
 	for expectedKey, expectedVal := range expectedMap {
 		actualVal, isOk := actualKVMap[expectedKey]
 		assert.True(t, isOk, expectedKey)

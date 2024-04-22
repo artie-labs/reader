@@ -68,7 +68,7 @@ func (w *Writer) messageToEvent(message lib.RawMessage) (event.Event, error) {
 		}
 	}
 
-	return event.ToMemoryEvent(evt, message.PartitionKey(), w.tc, config.Replication), nil
+	return event.ToMemoryEvent(evt, message.PartitionKey(), w.tc, config.Replication)
 }
 
 func (w *Writer) Write(_ context.Context, messages []lib.RawMessage) error {
