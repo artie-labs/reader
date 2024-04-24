@@ -27,6 +27,8 @@ type Writer struct {
 	inMemDB     *models.DatabaseData
 	tc          *kafkalib.TopicConfig
 	destination destination.DataWarehouse
+
+	primaryKeys []string
 }
 
 func NewWriter(cfg config.Config, statsD mtr.Client) (*Writer, error) {
@@ -38,7 +40,7 @@ func NewWriter(cfg config.Config, statsD mtr.Client) (*Writer, error) {
 		return nil, fmt.Errorf("kafka config should have exactly one topic config")
 	}
 
-	destination, err := utils.LoadDataWarehouse(cfg, nil)
+	_destination, err := utils.LoadDataWarehouse(cfg, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +50,7 @@ func NewWriter(cfg config.Config, statsD mtr.Client) (*Writer, error) {
 		statsD:      statsD,
 		inMemDB:     models.NewMemoryDB(),
 		tc:          cfg.Kafka.TopicConfigs[0],
-		destination: destination,
+		destination: _destination,
 	}, nil
 }
 
@@ -98,13 +100,23 @@ func (w *Writer) Write(_ context.Context, messages []lib.RawMessage) error {
 	}()
 
 	for _, evt := range events {
+		// Set the primary keys if it's not set already.
+		if len(w.primaryKeys) == 0 {
+			var pks []string
+			for key := range evt.PrimaryKeyMap {
+				pks = append(pks, key)
+			}
+
+			w.primaryKeys = pks
+		}
+
 		shouldFlush, flushReason, err := evt.Save(w.cfg, w.inMemDB, w.tc, artie.Message{})
 		if err != nil {
 			return fmt.Errorf("failed to save event: %w", err)
 		}
 
 		if shouldFlush {
-			if err := w.flush(flushReason); err != nil {
+			if err = w.flush(flushReason); err != nil {
 				return err
 			}
 		}
@@ -154,7 +166,7 @@ func (w *Writer) flush(reason string) error {
 	}
 
 	tableData.ResetTempTableSuffix()
-	if err := w.destination.Append(tableData.TableData); err != nil {
+	if err = w.destination.Append(tableData.TableData); err != nil {
 		tags["what"] = "merge_fail"
 		tags["retryable"] = fmt.Sprint(w.destination.IsRetryableError(err))
 		return fmt.Errorf("failed to append data to destination: %w", err)
@@ -164,6 +176,10 @@ func (w *Writer) flush(reason string) error {
 }
 
 func (w *Writer) OnComplete() error {
+	if len(w.primaryKeys) == 0 {
+		return fmt.Errorf("primary keys not set")
+	}
+
 	if err := w.flush("complete"); err != nil {
 		return err
 	}
@@ -176,7 +192,7 @@ func (w *Writer) OnComplete() error {
 	slog.Info("Running dedupe...", slog.String("table", tableName))
 	tableID := w.destination.IdentifierFor(*w.tc, tableName)
 	start := time.Now()
-	if err = w.destination.Dedupe(tableID); err != nil {
+	if err = w.destination.Dedupe(tableID, w.primaryKeys, *w.tc); err != nil {
 		return err
 	}
 	slog.Info("Dedupe complete", slog.String("table", tableName), slog.Duration("duration", time.Since(start)))
