@@ -57,5 +57,3 @@ go.work
 
 # GoReleaser
 dist/
-
-lib/mocks/*.mock.go
