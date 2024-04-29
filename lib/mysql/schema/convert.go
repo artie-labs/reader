@@ -79,6 +79,13 @@ func ConvertValue(value any, colType DataType) (any, error) {
 		if !ok {
 			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
 		}
+
+		if string(bytesValue) == "0000-00-00 00:00:00" {
+			// MySQL supports '0000-00-00 00:00:00' for datetime columns.
+			// We are returning `nil` here because this will fail most Time parsers.
+			return nil, nil
+		}
+
 		timeValue, err := time.Parse(DateTimeFormat, string(bytesValue))
 		if err != nil {
 			return nil, err
