@@ -172,6 +172,12 @@ func TestConvertValue(t *testing.T) {
 			expected: "0000-00-00",
 		},
 		{
+			name:     "datetime (0000-00-00)",
+			dataType: DateTime,
+			value:    []byte("0000-00-00 00:00:00"),
+			expected: nil,
+		},
+		{
 			name:     "datetime",
 			dataType: DateTime,
 			value:    []byte("2021-01-02 03:04:05"),
