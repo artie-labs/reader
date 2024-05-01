@@ -157,13 +157,6 @@ func (w *Writer) flush(reason string) error {
 		return nil // No need to flush.
 	}
 
-	for _, value := range tableData.Rows() {
-		for _, col := range tableData.ReadOnlyInMemoryCols().GetColumnsToUpdate() {
-			colKind, _ := tableData.ReadOnlyInMemoryCols().GetColumn(col)
-			fmt.Println("colKind", colKind.KindDetails, "val", value[col])
-		}
-	}
-
 	start := time.Now()
 	tags := map[string]string{
 		"what":     "success",
