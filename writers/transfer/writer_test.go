@@ -36,7 +36,9 @@ func TestWriter_MessageToEvent(t *testing.T) {
 		cfg: transferCfg.Config{
 			SharedTransferConfig: transferCfg.SharedTransferConfig{},
 		},
-		tc: &kafkalib.TopicConfig{},
+		tc: &kafkalib.TopicConfig{
+			CDCKeyFormat: kafkalib.JSONKeyFmt,
+		},
 	}
 	evtOut, err := writer.messageToEvent(message)
 	assert.NoError(t, err)
@@ -45,9 +47,10 @@ func TestWriter_MessageToEvent(t *testing.T) {
 		"_id":            "507f1f77bcf86cd799439011",
 		"double":         3.14159,
 		"int64":          1.23456789e+09,
-		"payload":        map[string]any{"id": "{\"$oid\":\"507f1f77bcf86cd799439011\"}"},
 		"string":         "Hello, world!",
 	}, evtOut.Data)
+
+	assert.Equal(t, map[string]any{"_id": objId.Hex()}, evtOut.PrimaryKeyMap)
 }
 
 func TestWriter_Write(t *testing.T) {

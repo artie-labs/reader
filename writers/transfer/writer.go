@@ -56,7 +56,6 @@ func NewWriter(cfg config.Config, statsD mtr.Client) (*Writer, error) {
 
 func (w *Writer) messageToEvent(message lib.RawMessage) (event.Event, error) {
 	evt := message.Event()
-
 	if mongoEvt, ok := evt.(*mongo.SchemaEventPayload); ok {
 		bytes, err := json.Marshal(mongoEvt)
 		if err != nil {
@@ -68,6 +67,18 @@ func (w *Writer) messageToEvent(message lib.RawMessage) (event.Event, error) {
 		if err != nil {
 			return event.Event{}, err
 		}
+
+		partitionKeyBytes, err := json.Marshal(message.PartitionKey())
+		if err != nil {
+			return event.Event{}, err
+		}
+
+		partitionKey, err := dbz.GetPrimaryKey(partitionKeyBytes, w.tc)
+		if err != nil {
+			return event.Event{}, err
+		}
+
+		return event.ToMemoryEvent(evt, partitionKey, w.tc, config.Replication)
 	}
 
 	return event.ToMemoryEvent(evt, message.PartitionKey(), w.tc, config.Replication)
@@ -181,7 +192,7 @@ func (w *Writer) OnComplete() error {
 	}
 
 	if err := w.flush("complete"); err != nil {
-		return err
+		return fmt.Errorf("failed to flush: %w", err)
 	}
 
 	tableName, _, err := w.getTableData()
