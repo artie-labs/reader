@@ -2,11 +2,11 @@
   <img height="150px" src="https://github.com/artie-labs/transfer/assets/4412200/238df0c7-6087-4ddc-b83b-24638212af6a"/>
   <h3>Artie Reader</h3>
   <p><b>📚 Perform historical snapshots and read CDC streams from databases 📚</b></p>
-  <a href="https://artie.so/slack"><img src="https://img.shields.io/badge/slack-@artie-blue.svg?logo=slack"/></a>
+  <a href="https://artie.com/slack"><img src="https://img.shields.io/badge/slack-@artie-blue.svg?logo=slack"/></a>
   <a href="https://github.com/artie-labs/reader/blob/master/LICENSE.txt"><img src="https://user-images.githubusercontent.com/4412200/201544613-a7197bc4-8b61-4fc5-bf09-68ee10133fd7.svg"/></a>
   <img src="https://github.com/artie-labs/reader/actions/workflows/gha-go-test.yaml/badge.svg"/>
   <br/>
-  <b><a target="_blank" href="https://artie.so" >Learn more »</a></b>
+  <b><a target="_blank" href="https://artie.com" >Learn more »</a></b>
 </div>
 <br/>
 
