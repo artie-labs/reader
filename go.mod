@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/DataDog/datadog-go v4.8.3+incompatible
-	github.com/artie-labs/transfer v1.24.10
+	github.com/artie-labs/transfer v1.25.2
 	github.com/aws/aws-sdk-go v1.44.327
 	github.com/aws/aws-sdk-go-v2 v1.18.1
 	github.com/aws/aws-sdk-go-v2/config v1.18.19
@@ -19,7 +19,7 @@ require (
 	github.com/segmentio/kafka-go v0.4.39
 	github.com/segmentio/kafka-go/sasl/aws_msk_iam_v2 v0.1.0
 	github.com/stretchr/testify v1.9.0
-	go.mongodb.org/mongo-driver v1.13.1
+	go.mongodb.org/mongo-driver v1.15.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
