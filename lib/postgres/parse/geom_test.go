@@ -1,6 +1,7 @@
 package parse
 
 import (
+	"github.com/artie-labs/transfer/lib/debezium"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -8,15 +9,17 @@ import (
 
 func TestToPoint(t *testing.T) {
 	tcs := []struct {
-		name        string
-		input       string
-		output      *Point
-		expectedErr string
+		name           string
+		input          string
+		output         *Point
+		expectedOutput string
+		expectedErr    string
 	}{
 		{
-			name:   "Valid point",
-			input:  "(2.2945,48.8584)",
-			output: &Point{X: 2.2945, Y: 48.8584},
+			name:           "Valid point",
+			input:          "(2.2945,48.8584)",
+			expectedOutput: `{"type":"Feature","geometry":{"type":"Point","coordinates":[2.2945,48.8584]}}`,
+			output:         &Point{X: 2.2945, Y: 48.8584},
 		},
 		{
 			name:        "Invalid format",
@@ -46,33 +49,41 @@ func TestToPoint(t *testing.T) {
 			assert.ErrorContains(t, err, tc.expectedErr, tc.name)
 		} else {
 			assert.Equal(t, *tc.output, *point, tc.name)
+
+			val, err := debezium.Field{DebeziumType: debezium.GeometryPointType}.ParseValue(point.ToMap())
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expectedOutput, val, tc.name)
 		}
 	}
 }
 
 func TestToGeography(t *testing.T) {
-	// TODO: We should make Transfer's `parseValue` function public so we can test for parsing symmetry
 	{
 		data := []byte("010100000000000000000000000000000000000000")
-		expected, err := ToGeography(data)
+		geoData, err := ToGeography(data)
 		assert.NoError(t, err)
 
-		// This is Point (0,0)
 		assert.Equal(t, map[string]any{
 			"wkb":  "AQEAAAAAAAAAAAAAAAAAAAAAAAAA",
 			"srid": nil,
-		}, expected)
+		}, geoData)
+
+		val, err := debezium.Field{DebeziumType: debezium.GeometryType}.ParseValue(geoData)
+		assert.NoError(t, err)
+		assert.Equal(t, `{"type":"Feature","geometry":{"type":"Point","coordinates":[0,0]},"properties":null}`, val)
 	}
 
 	{
 		data := []byte("0101000000000000000000F03F000000000000F03F")
-		expected, err := ToGeography(data)
+		geoData, err := ToGeography(data)
 		assert.NoError(t, err)
-
-		// This is Point (1,1)
 		assert.Equal(t, map[string]any{
 			"wkb":  "AQEAAAAAAAAAAADwPwAAAAAAAPA/",
 			"srid": nil,
-		}, expected)
+		}, geoData)
+
+		val, err := debezium.Field{DebeziumType: debezium.GeometryType}.ParseValue(geoData)
+		assert.NoError(t, err)
+		assert.Equal(t, `{"type":"Feature","geometry":{"type":"Point","coordinates":[1,1]},"properties":null}`, val)
 	}
 }
