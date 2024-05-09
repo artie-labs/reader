@@ -2,6 +2,9 @@
 # Local .terraform directories
 **/.terraform/*
 
+# Ignore mocks
+**/*.mock.go
+
 # Terraform lock
 *.terraform.lock.hcl
 

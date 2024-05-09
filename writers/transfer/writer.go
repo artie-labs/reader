@@ -107,7 +107,9 @@ func (w *Writer) Write(_ context.Context, messages []lib.RawMessage) error {
 		"table":    events[0].Table,
 	}
 	defer func() {
-		w.statsD.Count("process.message", int64(len(events)), tags)
+		if w.statsD != nil {
+			w.statsD.Count("process.message", int64(len(events)), tags)
+		}
 	}()
 
 	for _, evt := range events {
@@ -167,7 +169,9 @@ func (w *Writer) flush(reason string) error {
 		"reason":   reason,
 	}
 	defer func() {
-		w.statsD.Timing("flush", time.Since(start), tags)
+		if w.statsD != nil {
+			w.statsD.Timing("flush", time.Since(start), tags)
+		}
 	}()
 
 	if !w.tc.SoftDelete {
