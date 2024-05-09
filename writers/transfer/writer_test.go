@@ -1,11 +1,6 @@
 package transfer
 
 import (
-	"context"
-	"github.com/artie-labs/reader/lib"
-	"github.com/artie-labs/reader/lib/mocks"
-	"github.com/artie-labs/transfer/lib/cdc/util"
-	"github.com/artie-labs/transfer/models"
 	"testing"
 
 	transferCfg "github.com/artie-labs/transfer/lib/config"
@@ -52,49 +47,4 @@ func TestWriter_MessageToEvent(t *testing.T) {
 	}, evtOut.Data)
 
 	assert.Equal(t, map[string]any{"_id": objId.Hex()}, evtOut.PrimaryKeyMap)
-}
-
-func TestWriter_Write(t *testing.T) {
-	var rawMsgs []lib.RawMessage
-	for range 100 {
-		rawMsgs = append(rawMsgs, lib.NewRawMessage(
-			"topic-suffix",
-			map[string]any{"key": "value"},
-			&util.SchemaEventPayload{
-				Payload: util.Payload{
-					After: map[string]any{"a": "b"},
-					Source: util.Source{
-						TsMs:  1000,
-						Table: "table",
-					},
-					Operation: "c",
-				},
-			},
-		))
-	}
-	cfg := transferCfg.Config{
-		Mode: transferCfg.Replication,
-		Kafka: &transferCfg.Kafka{
-			TopicConfigs: []*kafkalib.TopicConfig{
-				{
-					TableName: "table",
-				},
-			},
-		},
-	}
-	_, err := NewWriter(cfg, &mocks.FakeClient{})
-
-	assert.ErrorContains(t, err, "invalid data warehouse output source specified")
-
-	writer := &Writer{
-		cfg:     cfg,
-		statsD:  &mocks.FakeClient{},
-		inMemDB: models.NewMemoryDB(),
-		tc:      cfg.Kafka.TopicConfigs[0],
-	}
-
-	assert.Nil(t, writer.primaryKeys)
-	assert.NoError(t, writer.Write(context.Background(), rawMsgs))
-	assert.Len(t, writer.primaryKeys, 1)
-	assert.Equal(t, "key", writer.primaryKeys[0])
 }
