@@ -18,6 +18,7 @@ type Client interface {
 	Incr(name string, tags map[string]string)
 	Gauge(name string, value float64, tags map[string]string)
 	Count(name string, value int64, tags map[string]string)
+	Flush()
 }
 
 type statsClient struct {
@@ -32,6 +33,10 @@ func toDatadogTags(tags map[string]string) []string {
 	}
 
 	return retTags
+}
+
+func (s *statsClient) Flush() {
+	_ = s.client.Flush()
 }
 
 func (s *statsClient) Count(name string, value int64, tags map[string]string) {

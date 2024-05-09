@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/artie-labs/transfer/lib/telemetry/metrics"
-
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
@@ -23,7 +21,7 @@ import (
 
 func setUpMetrics(cfg *config.Metrics) (mtr.Client, error) {
 	if cfg == nil {
-		return &metrics.NullMetricsProvider{}, nil
+		return nil, nil
 	}
 
 	slog.Info("Creating metrics client")
@@ -86,15 +84,21 @@ func main() {
 	}
 
 	_logger, cleanUpHandlers := logger.NewLogger(cfg)
-	defer cleanUpHandlers()
 	slog.SetDefault(_logger)
-	ctx := context.Background()
 
 	statsD, err := setUpMetrics(cfg.Metrics)
 	if err != nil {
 		logger.Fatal("Failed to set up metrics", slog.Any("err", err))
 	}
 
+	defer func() {
+		cleanUpHandlers()
+		if statsD != nil {
+			statsD.Flush()
+		}
+	}()
+
+	ctx := context.Background()
 	destinationWriter, err := buildDestinationWriter(ctx, cfg, statsD)
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("Failed to init %q destination writer", cfg.Destination), slog.Any("err", err))

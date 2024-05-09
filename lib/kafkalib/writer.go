@@ -141,7 +141,10 @@ func (b *BatchWriter) Write(ctx context.Context, rawMsgs []lib.RawMessage) error
 			}
 		}
 
-		b.statsD.Count("kafka.publish", int64(len(batch)), tags)
+		if b.statsD != nil {
+			b.statsD.Count("kafka.publish", int64(len(batch)), tags)
+		}
+
 		if kafkaErr != nil {
 			return fmt.Errorf("failed to write message: %w, approxSize: %d", kafkaErr, size.GetApproxSize(batch))
 		}
