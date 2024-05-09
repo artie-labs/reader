@@ -5,6 +5,7 @@ import (
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/mocks"
 	"github.com/artie-labs/transfer/lib/cdc/util"
+	"github.com/artie-labs/transfer/models"
 	"testing"
 
 	transferCfg "github.com/artie-labs/transfer/lib/config"
@@ -71,10 +72,8 @@ func TestWriter_Write(t *testing.T) {
 			},
 		))
 	}
-
-	writer, err := NewWriter(transferCfg.Config{
-		Mode:   transferCfg.Replication,
-		Output: "test",
+	cfg := transferCfg.Config{
+		Mode: transferCfg.Replication,
 		Kafka: &transferCfg.Kafka{
 			TopicConfigs: []*kafkalib.TopicConfig{
 				{
@@ -82,8 +81,17 @@ func TestWriter_Write(t *testing.T) {
 				},
 			},
 		},
-	}, &mocks.FakeClient{})
-	assert.NoError(t, err)
+	}
+	_, err := NewWriter(cfg, &mocks.FakeClient{})
+
+	assert.ErrorContains(t, err, "invalid data warehouse output source specified")
+
+	writer := &Writer{
+		cfg:     cfg,
+		statsD:  &mocks.FakeClient{},
+		inMemDB: models.NewMemoryDB(),
+		tc:      cfg.Kafka.TopicConfigs[0],
+	}
 
 	assert.Nil(t, writer.primaryKeys)
 	assert.NoError(t, writer.Write(context.Background(), rawMsgs))
