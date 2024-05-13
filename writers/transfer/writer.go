@@ -202,11 +202,6 @@ func (w *Writer) flush(reason string) error {
 	return nil
 }
 
-func isMicrosoftSQLServer(dwh destination.DataWarehouse) bool {
-	_, isOk := dwh.Dialect().(sql.MSSQLDialect)
-	return isOk
-}
-
 func (w *Writer) OnComplete() error {
 	if len(w.primaryKeys) == 0 {
 		return fmt.Errorf("primary keys not set")
@@ -234,4 +229,9 @@ func (w *Writer) OnComplete() error {
 	}
 	slog.Info("Dedupe complete", slog.String("table", tableName), slog.Duration("duration", time.Since(start)))
 	return nil
+}
+
+func isMicrosoftSQLServer(dwh destination.DataWarehouse) bool {
+	_, isOk := dwh.Dialect().(sql.MSSQLDialect)
+	return isOk
 }
