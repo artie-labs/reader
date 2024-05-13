@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/artie-labs/transfer/lib/sql"
 	"log/slog"
 	"time"
 
@@ -15,6 +14,7 @@ import (
 	"github.com/artie-labs/transfer/lib/destination"
 	"github.com/artie-labs/transfer/lib/destination/utils"
 	"github.com/artie-labs/transfer/lib/kafkalib"
+	"github.com/artie-labs/transfer/lib/sql"
 	"github.com/artie-labs/transfer/models"
 	"github.com/artie-labs/transfer/models/event"
 
