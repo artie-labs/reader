@@ -82,7 +82,14 @@ func (w *Writer) messageToEvent(message lib.RawMessage) (event.Event, error) {
 		return event.ToMemoryEvent(evt, partitionKey, w.tc, config.Replication)
 	}
 
-	return event.ToMemoryEvent(evt, message.PartitionKey(), w.tc, config.Replication)
+	memoryEvent, err := event.ToMemoryEvent(evt, message.PartitionKey(), w.tc, config.Replication)
+	if err != nil {
+		return event.Event{}, err
+	}
+
+	// Setting the deleted column flag.
+	memoryEvent.Data[constants.DeleteColumnMarker] = false
+	return memoryEvent, nil
 }
 
 func (w *Writer) Write(_ context.Context, messages []lib.RawMessage) error {
@@ -177,12 +184,10 @@ func (w *Writer) flush(reason string) error {
 
 	if !w.tc.SoftDelete {
 		columns := tableData.ReadOnlyInMemoryCols()
-		columns.DeleteColumn(constants.DeleteColumnMarker)
 		tableData.SetInMemoryColumns(columns)
 	}
 
 	tableData.ResetTempTableSuffix()
-
 	if isMicrosoftSQLServer(w.destination) {
 		// Microsoft SQL Server uses MERGE not append
 		if err = w.destination.Merge(tableData.TableData); err != nil {
