@@ -131,6 +131,8 @@ func (w *Writer) Write(_ context.Context, messages []lib.RawMessage) error {
 			w.primaryKeys = pks
 		}
 
+		fmt.Println("evt Data", evt.Data)
+
 		shouldFlush, flushReason, err := evt.Save(w.cfg, w.inMemDB, w.tc, artie.Message{})
 		if err != nil {
 			return fmt.Errorf("failed to save event: %w", err)
@@ -196,6 +198,14 @@ func (w *Writer) flush(reason string) error {
 			return fmt.Errorf("failed to merge data to destination: %w", err)
 		}
 	} else {
+		// We should hide this column from getting added
+		if !tableData.TopicConfig().SoftDelete {
+			tableData.InMemoryColumns().DeleteColumn(constants.DeleteColumnMarker)
+		}
+
+		col, isOk := tableData.InMemoryColumns().GetColumn(constants.DeleteColumnMarker)
+		fmt.Println("isOk", isOk, "col", col.KindDetails, "colname", col.Name())
+
 		if err = w.destination.Append(tableData.TableData); err != nil {
 			tags["what"] = "merge_fail"
 			tags["retryable"] = fmt.Sprint(w.destination.IsRetryableError(err))
