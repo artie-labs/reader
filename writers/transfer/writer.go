@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/artie-labs/transfer/clients/mssql/dialect"
 	"github.com/artie-labs/transfer/lib/artie"
 	"github.com/artie-labs/transfer/lib/cdc/mongo"
 	"github.com/artie-labs/transfer/lib/config"
@@ -81,7 +82,14 @@ func (w *Writer) messageToEvent(message lib.RawMessage) (event.Event, error) {
 		return event.ToMemoryEvent(evt, partitionKey, w.tc, config.Replication)
 	}
 
-	return event.ToMemoryEvent(evt, message.PartitionKey(), w.tc, config.Replication)
+	memoryEvent, err := event.ToMemoryEvent(evt, message.PartitionKey(), w.tc, config.Replication)
+	if err != nil {
+		return event.Event{}, err
+	}
+
+	// Setting the deleted column flag.
+	memoryEvent.Data[constants.DeleteColumnMarker] = false
+	return memoryEvent, nil
 }
 
 func (w *Writer) Write(_ context.Context, messages []lib.RawMessage) error {
@@ -174,18 +182,27 @@ func (w *Writer) flush(reason string) error {
 		}
 	}()
 
-	if !w.tc.SoftDelete {
-		columns := tableData.ReadOnlyInMemoryCols()
-		columns.DeleteColumn(constants.DeleteColumnMarker)
-		tableData.SetInMemoryColumns(columns)
+	tableData.ResetTempTableSuffix()
+	if isMicrosoftSQLServer(w.destination) {
+		// Microsoft SQL Server uses MERGE not append
+		if err = w.destination.Merge(tableData.TableData); err != nil {
+			tags["what"] = "merge_fail"
+			tags["retryable"] = fmt.Sprint(w.destination.IsRetryableError(err))
+			return fmt.Errorf("failed to merge data to destination: %w", err)
+		}
+	} else {
+		// We should hide this column from getting added
+		if !tableData.TopicConfig().SoftDelete {
+			tableData.InMemoryColumns().DeleteColumn(constants.DeleteColumnMarker)
+		}
+
+		if err = w.destination.Append(tableData.TableData); err != nil {
+			tags["what"] = "merge_fail"
+			tags["retryable"] = fmt.Sprint(w.destination.IsRetryableError(err))
+			return fmt.Errorf("failed to append data to destination: %w", err)
+		}
 	}
 
-	tableData.ResetTempTableSuffix()
-	if err = w.destination.Append(tableData.TableData); err != nil {
-		tags["what"] = "merge_fail"
-		tags["retryable"] = fmt.Sprint(w.destination.IsRetryableError(err))
-		return fmt.Errorf("failed to append data to destination: %w", err)
-	}
 	w.inMemDB.ClearTableConfig(tableName)
 	return nil
 }
@@ -204,6 +221,11 @@ func (w *Writer) OnComplete() error {
 		return err
 	}
 
+	if isMicrosoftSQLServer(w.destination) {
+		// We don't need to run dedupe because it's just merging.
+		return nil
+	}
+
 	slog.Info("Running dedupe...", slog.String("table", tableName))
 	tableID := w.destination.IdentifierFor(*w.tc, tableName)
 	start := time.Now()
@@ -212,4 +234,9 @@ func (w *Writer) OnComplete() error {
 	}
 	slog.Info("Dedupe complete", slog.String("table", tableName), slog.Duration("duration", time.Since(start)))
 	return nil
+}
+
+func isMicrosoftSQLServer(dwh destination.DataWarehouse) bool {
+	_, isOk := dwh.Dialect().(dialect.MSSQLDialect)
+	return isOk
 }
