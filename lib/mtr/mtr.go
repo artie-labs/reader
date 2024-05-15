@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/DataDog/datadog-go/statsd"
+	"github.com/DataDog/datadog-go/v5/statsd"
 	"github.com/artie-labs/transfer/lib/stringutil"
 )
 
