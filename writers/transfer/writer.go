@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/artie-labs/transfer/clients/mssql/dialect"
 	"log/slog"
 	"time"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/artie-labs/transfer/lib/destination"
 	"github.com/artie-labs/transfer/lib/destination/utils"
 	"github.com/artie-labs/transfer/lib/kafkalib"
-	"github.com/artie-labs/transfer/lib/sql"
 	"github.com/artie-labs/transfer/models"
 	"github.com/artie-labs/transfer/models/event"
 
@@ -237,6 +237,6 @@ func (w *Writer) OnComplete() error {
 }
 
 func isMicrosoftSQLServer(dwh destination.DataWarehouse) bool {
-	_, isOk := dwh.Dialect().(sql.MSSQLDialect)
+	_, isOk := dwh.Dialect().(dialect.MSSQLDialect)
 	return isOk
 }
