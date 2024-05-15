@@ -182,11 +182,6 @@ func (w *Writer) flush(reason string) error {
 		}
 	}()
 
-	if !w.tc.SoftDelete {
-		columns := tableData.ReadOnlyInMemoryCols()
-		tableData.SetInMemoryColumns(columns)
-	}
-
 	tableData.ResetTempTableSuffix()
 	if isMicrosoftSQLServer(w.destination) {
 		// Microsoft SQL Server uses MERGE not append
