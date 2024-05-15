@@ -130,7 +130,7 @@ func (w *Writer) Write(_ context.Context, messages []lib.RawMessage) error {
 
 			w.primaryKeys = pks
 		}
-		
+
 		shouldFlush, flushReason, err := evt.Save(w.cfg, w.inMemDB, w.tc, artie.Message{})
 		if err != nil {
 			return fmt.Errorf("failed to save event: %w", err)
