@@ -3,7 +3,7 @@ module github.com/artie-labs/reader
 go 1.22
 
 require (
-	github.com/DataDog/datadog-go v4.8.3+incompatible
+	github.com/DataDog/datadog-go/v5 v5.5.0
 	github.com/artie-labs/transfer v1.25.11
 	github.com/aws/aws-sdk-go v1.44.327
 	github.com/aws/aws-sdk-go-v2 v1.18.1
