@@ -155,7 +155,7 @@ func TestMSSQLTable_GetOptionalPrimaryKeyValStart(t *testing.T) {
 	{
 		// not set
 		m := &MSSQLTable{}
-		assert.Len(t, m.GetOptionalPrimaryKeyValStart(), 0)
+		assert.Empty(t, m.GetOptionalPrimaryKeyValStart())
 	}
 	{
 		// set
@@ -170,7 +170,7 @@ func TestMSSQLTable_GetOptionalPrimaryKeyValEnd(t *testing.T) {
 	{
 		// not set
 		m := &MSSQLTable{}
-		assert.Len(t, m.GetOptionalPrimaryKeyValEnd(), 0)
+		assert.Empty(t, m.GetOptionalPrimaryKeyValEnd())
 	}
 	{
 		// set

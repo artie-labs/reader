@@ -115,6 +115,14 @@ func (s *Settings) Validate() error {
 		if err := s.MongoDB.Validate(); err != nil {
 			return fmt.Errorf("mongodb validation failed: %w", err)
 		}
+	case SourceMSSQL:
+		if s.MSSQL == nil {
+			return fmt.Errorf("mssql config is nil")
+		}
+
+		if err := s.MSSQL.Validate(); err != nil {
+			return fmt.Errorf("mssql validation failed: %w", err)
+		}
 	case SourceMySQL:
 		if s.MySQL == nil {
 			return fmt.Errorf("mysql config is nil")
@@ -130,14 +138,6 @@ func (s *Settings) Validate() error {
 
 		if err := s.PostgreSQL.Validate(); err != nil {
 			return fmt.Errorf("postgres validation failed: %w", err)
-		}
-	case SourceMSSQL:
-		if s.MSSQL == nil {
-			return fmt.Errorf("mssql config is nil")
-		}
-
-		if err := s.MSSQL.Validate(); err != nil {
-			return fmt.Errorf("mssql validation failed: %w", err)
 		}
 	default:
 		return fmt.Errorf("invalid source: %q", s.Source)
