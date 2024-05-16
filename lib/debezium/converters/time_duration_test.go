@@ -39,8 +39,9 @@ func TestGetTimeDuration(t *testing.T) {
 	// Test with time including hours, minutes, seconds, and milliseconds
 	{
 		timeVal := time.Date(2021, 1, 1, 4, 20, 15, 500000000, time.UTC)
-		assert.Equal(t, int64(15615000000), getTimeDuration(timeVal, time.Microsecond))
-		assert.Equal(t, int64(15615000), getTimeDuration(timeVal, time.Millisecond))
+		assert.Equal(t, int64(15615500000000), getTimeDuration(timeVal, time.Nanosecond))
+		assert.Equal(t, int64(15615500000), getTimeDuration(timeVal, time.Microsecond))
+		assert.Equal(t, int64(15615500), getTimeDuration(timeVal, time.Millisecond))
 		assert.Equal(t, int64(15615), getTimeDuration(timeVal, time.Second))
 		assert.Equal(t, int64(260), getTimeDuration(timeVal, time.Minute))
 	}
