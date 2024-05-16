@@ -110,7 +110,7 @@ func ParseColumnDataType(colKind string, precision, scale, datetimePrecision *in
 		return Float, nil, nil
 	case "smallmoney", "money":
 		return Money, nil, nil
-	case "numeric":
+	case "numeric", "decimal":
 		if precision == nil && scale == nil {
 			return -1, nil, fmt.Errorf("expected precision and scale to be not-nil")
 		}
