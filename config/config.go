@@ -65,6 +65,7 @@ type Source string
 const (
 	SourceDynamo     Source = "dynamodb"
 	SourceMongoDB    Source = "mongodb"
+	SourceMSSQL      Source = "mssql"
 	SourceMySQL      Source = "mysql"
 	SourcePostgreSQL Source = "postgresql"
 	SourceMSSQL      Source = "mssql"
@@ -114,6 +115,14 @@ func (s *Settings) Validate() error {
 
 		if err := s.MongoDB.Validate(); err != nil {
 			return fmt.Errorf("mongodb validation failed: %w", err)
+		}
+	case SourceMSSQL:
+		if s.MSSQL == nil {
+			return fmt.Errorf("mssql config is nil")
+		}
+
+		if err := s.MSSQL.Validate(); err != nil {
+			return fmt.Errorf("mssql validation failed: %w", err)
 		}
 	case SourceMySQL:
 		if s.MySQL == nil {

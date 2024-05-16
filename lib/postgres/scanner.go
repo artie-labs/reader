@@ -16,7 +16,7 @@ import (
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
-var supportedPrimaryKeyDataType []schema.DataType = []schema.DataType{
+var supportedPrimaryKeyDataType = []schema.DataType{
 	schema.Bit,
 	schema.Boolean,
 	schema.Int16,

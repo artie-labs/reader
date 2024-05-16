@@ -155,7 +155,7 @@ func TestPostgreSQLTable_GetOptionalPrimaryKeyValStart(t *testing.T) {
 	{
 		// not set
 		p := &PostgreSQLTable{}
-		assert.Len(t, p.GetOptionalPrimaryKeyValStart(), 0)
+		assert.Empty(t, p.GetOptionalPrimaryKeyValStart())
 	}
 	{
 		// set
@@ -170,7 +170,7 @@ func TestPostgreSQLTable_GetOptionalPrimaryKeyValEnd(t *testing.T) {
 	{
 		// not set
 		p := &PostgreSQLTable{}
-		assert.Len(t, p.GetOptionalPrimaryKeyValEnd(), 0)
+		assert.Empty(t, p.GetOptionalPrimaryKeyValEnd())
 	}
 	{
 		// set
