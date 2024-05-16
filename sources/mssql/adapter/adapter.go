@@ -96,12 +96,21 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	case schema.String:
 		return converters.StringPassthrough{}, nil
 	case schema.Time:
-		return MSSQLTimeConverter{}, nil
+		return converters.TimeConverter{}, nil
+	case schema.TimeMicro:
+		return converters.MicroTimeConverter{}, nil
+	case schema.TimeNano:
+		return converters.NanoTimeConverter{}, nil
 	case schema.Date:
 		return converters.DateConverter{}, nil
 	case schema.Datetime2:
+		return converters.TimestampConverter{}, nil
+	case schema.Datetime2Micro:
 		return converters.MicroTimestampConverter{}, nil
-
+	case schema.Datetime2Nano:
+		return converters.NanoTimestampConverter{}, nil
+	case schema.DatetimeOffset:
+		return converters.ZonedTimestampConverter{}, nil
 	default:
 		return nil, fmt.Errorf("unsupported data type: DataType(%d)", dataType)
 	}

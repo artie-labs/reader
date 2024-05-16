@@ -8,6 +8,32 @@ import (
 	"github.com/artie-labs/transfer/lib/debezium"
 )
 
+type TimeConverter struct{}
+
+func (TimeConverter) ToField(name string) debezium.Field {
+	return debezium.Field{
+		FieldName:    name,
+		Type:         debezium.Int32,
+		DebeziumType: debezium.Time,
+	}
+}
+
+func (TimeConverter) Convert(value any) (any, error) {
+	strValue, ok := value.(string)
+	if !ok {
+		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
+	}
+	timeValue, err := time.Parse(time.TimeOnly, strValue)
+	if err != nil {
+		return nil, err
+	}
+
+	hours := time.Duration(timeValue.Hour()) * time.Hour
+	minutes := time.Duration(timeValue.Minute()) * time.Minute
+	seconds := time.Duration(timeValue.Second()) * time.Second
+	return int32((hours + minutes + seconds) / time.Millisecond), nil
+}
+
 type MicroTimeConverter struct{}
 
 func (MicroTimeConverter) ToField(name string) debezium.Field {
@@ -33,6 +59,32 @@ func (MicroTimeConverter) Convert(value any) (any, error) {
 	minutes := time.Duration(timeValue.Minute()) * time.Minute
 	seconds := time.Duration(timeValue.Second()) * time.Second
 	return int64((hours + minutes + seconds) / time.Microsecond), nil
+}
+
+type NanoTimeConverter struct{}
+
+func (NanoTimeConverter) ToField(name string) debezium.Field {
+	return debezium.Field{
+		FieldName:    name,
+		Type:         debezium.Int64,
+		DebeziumType: debezium.NanoTime,
+	}
+}
+
+func (NanoTimeConverter) Convert(value any) (any, error) {
+	strValue, ok := value.(string)
+	if !ok {
+		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
+	}
+	timeValue, err := time.Parse(time.TimeOnly, strValue)
+	if err != nil {
+		return nil, err
+	}
+
+	hours := time.Duration(timeValue.Hour()) * time.Hour
+	minutes := time.Duration(timeValue.Minute()) * time.Minute
+	seconds := time.Duration(timeValue.Second()) * time.Second
+	return int64((hours+minutes+seconds)/time.Microsecond) * 1_000, nil
 }
 
 type DateConverter struct{}

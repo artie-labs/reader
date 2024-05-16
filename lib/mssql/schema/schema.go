@@ -38,8 +38,6 @@ const (
 	Datetime2Nano
 
 	DatetimeOffset
-	DatetimeOffsetMicro
-	DatetimeOffsetNano
 )
 
 type Opts struct {
@@ -155,20 +153,7 @@ func ParseColumnDataType(colKind string, precision, scale, datetimePrecision *in
 			return -1, nil, fmt.Errorf("invalid datetime precision: %d", *datetimePrecision)
 		}
 	case "datetimeoffset":
-		if datetimePrecision == nil {
-			return -1, nil, fmt.Errorf("expected datetime precision to be not-nil")
-		}
-
-		switch *datetimePrecision {
-		case 0, 1, 2, 3:
-			return DatetimeOffset, nil, nil
-		case 4, 5, 6:
-			return DatetimeOffsetMicro, nil, nil
-		case 7:
-			return DatetimeOffsetNano, nil, nil
-		default:
-			return -1, nil, fmt.Errorf("invalid datetime precision: %d", *datetimePrecision)
-		}
+		return DatetimeOffset, nil, nil
 	case "char", "nchar", "varchar", "nvarchar", "text", "ntext", "xml", "uniqueidentifier":
 		return String, nil, nil
 	case "image", "binary", "varbinary":
