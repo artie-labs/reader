@@ -19,16 +19,26 @@ const (
 	Int32
 	Int64
 	Numeric
-	Bit
-	Money
 	Float
 	Real
+
+	Bit
+	Money
 	Date
-	Datetime2
-	DatetimeOffset
-	Time
 	String
 	Bytes
+
+	Time
+	TimeMicro
+	TimeNano
+
+	Datetime2
+	Datetime2Micro
+	Datetime2Nano
+
+	DatetimeOffset
+	DatetimeOffsetMicro
+	DatetimeOffsetNano
 )
 
 type Opts struct {
@@ -44,7 +54,7 @@ SELECT
     DATA_TYPE,
     NUMERIC_PRECISION,
     NUMERIC_SCALE,
-    USER_DEFINED_TYPE_NAME
+    DATETIME_PRECISION,
 FROM 
     INFORMATION_SCHEMA.COLUMNS
 WHERE 
@@ -66,11 +76,12 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 		var colType string
 		var numericPrecision *int
 		var numericScale *int
-		if err = rows.Scan(&colName, &colType, &numericPrecision, &numericScale); err != nil {
+		var datetimePrecision *int
+		if err = rows.Scan(&colName, &colType, &numericPrecision, &numericScale, &datetimePrecision); err != nil {
 			return nil, err
 		}
 
-		dataType, opts, err := ParseColumnDataType(colType, numericPrecision, numericScale)
+		dataType, opts, err := ParseColumnDataType(colType, numericPrecision, numericScale, datetimePrecision)
 		if err != nil {
 			return nil, fmt.Errorf("unable to identify type %q for column %q", colType, colName)
 		}
@@ -84,7 +95,7 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 	return cols, nil
 }
 
-func ParseColumnDataType(colKind string, precision, scale *int) (DataType, *Opts, error) {
+func ParseColumnDataType(colKind string, precision, scale, datetimePrecision *int) (DataType, *Opts, error) {
 	colKind = strings.ToLower(colKind)
 	switch colKind {
 	case "bit":
@@ -109,11 +120,39 @@ func ParseColumnDataType(colKind string, precision, scale *int) (DataType, *Opts
 			Precision: *precision,
 		}, nil
 	case "time":
-		return Time, nil, nil
+		if datetimePrecision == nil {
+			return -1, nil, fmt.Errorf("expected datetime precision to be not-nil")
+		}
+
+		switch *datetimePrecision {
+		case 0, 1, 2, 3:
+			return Time, nil, nil
+		case 4, 5, 6:
+			return TimeMicro, nil, nil
+		case 7:
+			return TimeNano, nil, nil
+		default:
+			return -1, nil, fmt.Errorf("invalid datetime precision: %d", *datetimePrecision)
+		}
 	case "date":
 		return Date, nil, nil
-	case "smalldatetime", "datetime", "datetime2":
+	case "smalldatetime", "datetime":
 		return Datetime2, nil, nil
+	case "datetime2":
+		if datetimePrecision == nil {
+			return -1, nil, fmt.Errorf("expected datetime precision to be not-nil")
+		}
+
+		switch *datetimePrecision {
+		case 0, 1, 2, 3:
+			return Datetime2, nil, nil
+		case 4, 5, 6:
+			return Datetime2Micro, nil, nil
+		case 7:
+			return Datetime2Nano, nil, nil
+		default:
+			return -1, nil, fmt.Errorf("invalid datetime precision: %d", *datetimePrecision)
+		}
 	case "datetimeoffset":
 		return DatetimeOffset, nil, nil
 	case "char", "nchar", "varchar", "nvarchar", "text", "ntext", "xml", "uniqueidentifier":

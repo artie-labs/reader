@@ -79,52 +79,29 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	switch dataType {
 	case schema.Bit:
 		return converters.BitConverter{}, nil
-	case schema.Boolean:
-		return converters.BooleanPassthrough{}, nil
 	case schema.Int16:
 		return converters.Int16Passthrough{}, nil
 	case schema.Int32:
 		return converters.Int32Passthrough{}, nil
 	case schema.Int64:
 		return converters.Int64Passthrough{}, nil
-	case schema.Real:
+	case schema.Real, schema.Float:
 		return converters.FloatPassthrough{}, nil
-	case schema.Double:
-		return converters.DoublePassthrough{}, nil
 	case schema.Numeric:
 		return converters.NewDecimalConverter(opts.Scale, &opts.Precision), nil
-	case schema.VariableNumeric:
-		return converters.VariableNumericConverter{}, nil
 	case schema.Money:
 		return MoneyConverter{}, nil
-	case schema.Bytea:
+	case schema.Bytes:
 		return converters.BytesPassthrough{}, nil
-	case schema.Text, schema.UserDefinedText:
+	case schema.String:
 		return converters.StringPassthrough{}, nil
-	case schema.Time, schema.TimeWithTimeZone:
-		return PgTimeConverter{}, nil
+	case schema.Time:
+		return MSSQLTimeConverter{}, nil
 	case schema.Date:
 		return converters.DateConverter{}, nil
-	case schema.Timestamp:
-		return converters.MicroTimestampConverter{}, nil
-	case schema.TimestampWithTimeZone:
-		return converters.ZonedTimestampConverter{}, nil
-	case schema.Interval:
-		return PgIntervalConverter{}, nil
-	case schema.UUID:
-		return converters.UUIDConverter{}, nil
-	case schema.Array:
-		return converters.ArrayConverter{}, nil
-	case schema.JSON:
-		return converters.JSONConverter{}, nil
-	case schema.HStore:
-		return converters.MapConverter{}, nil
-	case schema.Point:
-		return converters.NewPointConverter(), nil
-	case schema.Geometry:
-		return converters.NewGeometryConverter(), nil
-	case schema.Geography:
-		return converters.NewGeographyConverter(), nil
+	case schema.Datetime2:
+		return MSSQLDatetime2Converter{}, nil
+
 	default:
 		return nil, fmt.Errorf("unsupported data type: DataType(%d)", dataType)
 	}
