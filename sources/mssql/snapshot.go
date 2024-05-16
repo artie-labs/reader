@@ -8,6 +8,8 @@ import (
 	"log/slog"
 	"time"
 
+	_ "github.com/microsoft/go-mssqldb"
+
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/rdbms"
