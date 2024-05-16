@@ -164,16 +164,27 @@ func ParseColumnDataType(colKind string, precision, scale, datetimePrecision *in
 }
 
 // This is a fork of: https://wiki.postgresql.org/wiki/Retrieve_primary_key_columns
-const primaryKeysQuery = `
-SELECT a.attname::text as id
-FROM   pg_index i
-JOIN   pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)
-WHERE  i.indrelid = $1::regclass
-AND    i.indisprimary;`
+const pkQuery = `
+SELECT 
+    tc.TABLE_SCHEMA,
+    tc.TABLE_NAME,
+    c.COLUMN_NAME
+FROM 
+    INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+    JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu 
+        ON tc.CONSTRAINT_NAME = ccu.CONSTRAINT_NAME
+    JOIN INFORMATION_SCHEMA.COLUMNS c 
+        ON c.TABLE_NAME = ccu.TABLE_NAME 
+        AND c.COLUMN_NAME = ccu.COLUMN_NAME
+WHERE 
+    tc.TABLE_SCHEMA = @p1 
+    AND tc.TABLE_NAME = @p2
+    AND tc.CONSTRAINT_TYPE = 'PRIMARY KEY';
+`
 
 func GetPrimaryKeys(db *sql.DB, schema, table string) ([]string, error) {
-	query := strings.TrimSpace(primaryKeysQuery)
-	rows, err := db.Query(query, pgx.Identifier{schema, table}.Sanitize())
+	query := strings.TrimSpace(pkQuery)
+	rows, err := db.Query(query, schema, table)
 	if err != nil {
 		return nil, fmt.Errorf("failed to run query: %s: %w", query, err)
 	}
