@@ -9,7 +9,6 @@ import (
 )
 
 func ParseValue(colKind schema.DataType, value any) (any, error) {
-	// If the value is nil - just return.
 	if value == nil {
 		return nil, nil
 	}
