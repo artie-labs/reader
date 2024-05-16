@@ -131,6 +131,11 @@ func (s *Settings) Validate() error {
 		if err := s.PostgreSQL.Validate(); err != nil {
 			return fmt.Errorf("postgres validation failed: %w", err)
 		}
+	case SourceMSSQL:
+		// TODO
+		if s.MSSQL == nil {
+			return fmt.Errorf("mssql config is nil")
+		}
 	default:
 		return fmt.Errorf("invalid source: %q", s.Source)
 	}

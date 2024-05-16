@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	mssql "github.com/microsoft/go-mssqldb"
 	"log/slog"
 	"strings"
 
@@ -53,17 +54,17 @@ SELECT
     DATA_TYPE,
     NUMERIC_PRECISION,
     NUMERIC_SCALE,
-    DATETIME_PRECISION,
+    DATETIME_PRECISION
 FROM 
     INFORMATION_SCHEMA.COLUMNS
 WHERE 
-    TABLE_SCHEMA = @p1 AND 
-    TABLE_NAME = @p2;
+    TABLE_SCHEMA = ? AND 
+    TABLE_NAME = ?;
 `
 
 func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 	query := strings.TrimSpace(describeTableQuery)
-	rows, err := db.Query(query, _schema, table)
+	rows, err := db.Query(query, mssql.VarChar(_schema), mssql.VarChar(table))
 	if err != nil {
 		return nil, fmt.Errorf("failed to run query: %s: %w", query, err)
 	}
@@ -163,11 +164,8 @@ func ParseColumnDataType(colKind string, precision, scale, datetimePrecision *in
 	return -1, nil, fmt.Errorf("unknown data type: %q", colKind)
 }
 
-// This is a fork of: https://wiki.postgresql.org/wiki/Retrieve_primary_key_columns
 const pkQuery = `
 SELECT 
-    tc.TABLE_SCHEMA,
-    tc.TABLE_NAME,
     c.COLUMN_NAME
 FROM 
     INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
@@ -177,14 +175,14 @@ FROM
         ON c.TABLE_NAME = ccu.TABLE_NAME 
         AND c.COLUMN_NAME = ccu.COLUMN_NAME
 WHERE 
-    tc.TABLE_SCHEMA = @p1 
-    AND tc.TABLE_NAME = @p2
+    tc.TABLE_SCHEMA = ? 
+    AND tc.TABLE_NAME = ?
     AND tc.CONSTRAINT_TYPE = 'PRIMARY KEY';
 `
 
 func GetPrimaryKeys(db *sql.DB, schema, table string) ([]string, error) {
 	query := strings.TrimSpace(pkQuery)
-	rows, err := db.Query(query, schema, table)
+	rows, err := db.Query(query, mssql.VarChar(schema), mssql.VarChar(table))
 	if err != nil {
 		return nil, fmt.Errorf("failed to run query: %s: %w", query, err)
 	}

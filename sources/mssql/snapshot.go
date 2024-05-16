@@ -43,7 +43,7 @@ func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
 
 		dbzAdapter, err := adapter.NewMSSQLAdapter(s.db, *tableCfg)
 		if err != nil {
-			return fmt.Errorf("failed to create PostgreSQL adapter: %w", err)
+			return fmt.Errorf("failed to create MSSQL adapter: %w", err)
 		}
 
 		dbzTransformer, err := transformer.NewDebeziumTransformer(dbzAdapter)
