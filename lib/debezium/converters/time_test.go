@@ -11,9 +11,27 @@ import (
 )
 
 func parseUsingTransfer(converter ValueConverter, value int64) (*ext.ExtendedTime, error) {
-	return debezium.FromDebeziumTypeToTime(
-		debezium.SupportedDebeziumType(converter.ToField("foo").DebeziumType),
-		value)
+	return debezium.FromDebeziumTypeToTime(converter.ToField("foo").DebeziumType, value)
+}
+
+func TestTimeConverter_Convert(t *testing.T) {
+	converter := TimeConverter{}
+	{
+		// Invalid value
+		_, err := converter.Convert(1234)
+		assert.ErrorContains(t, err, "expected time.Time got int with value: 1234")
+	}
+	{
+		// Invalid value (string)
+		_, err := converter.Convert("1234")
+		assert.ErrorContains(t, err, "expected time.Time got string with value: 1234")
+	}
+	{
+		// Valid value
+		value, err := converter.Convert(time.Date(2023, 5, 3, 12, 34, 56, 0, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, int32(45296000), value)
+	}
 }
 
 func TestMicroTimeConverter_Convert(t *testing.T) {
@@ -22,6 +40,12 @@ func TestMicroTimeConverter_Convert(t *testing.T) {
 		// Invalid value
 		_, err := converter.Convert(1234)
 		assert.ErrorContains(t, err, "expected string/time.Time got int with value: 1234")
+	}
+	{
+		// Valid value - 0 seconds (time.Time)
+		value, err := converter.Convert(time.Date(2023, 5, 3, 0, 0, 0, 0, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, int64(0), value)
 	}
 	{
 		// Valid value - 0 seconds
@@ -55,6 +79,27 @@ func TestMicroTimeConverter_Convert(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, time.Date(1970, time.January, 1, 1, 2, 3, 0, time.UTC), transferValue.Time)
 		assert.Equal(t, ext.TimeKindType, transferValue.NestedKind.Type)
+	}
+}
+
+func TestNanoTimeConverter_Convert(t *testing.T) {
+	converter := NanoTimeConverter{}
+	{
+		// Invalid value
+		_, err := converter.Convert(1234)
+		assert.ErrorContains(t, err, "expected time.Time got int with value: 1234")
+	}
+	{
+		// Valid value - 0 seconds (time.Time)
+		value, err := converter.Convert(time.Date(2023, 5, 3, 0, 0, 0, 0, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, int64(0), value)
+	}
+	{
+		// Valid value - 1 hour (time.Time)
+		value, err := converter.Convert(time.Date(2023, 5, 3, 1, 0, 0, 0, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, int64(3_600_000_000_000), value)
 	}
 }
 
@@ -147,6 +192,27 @@ func TestDateConverter_Convert(t *testing.T) {
 	}
 }
 
+func TestTimestampConverter_Convert(t *testing.T) {
+	converter := TimestampConverter{}
+	{
+		// Invalid type
+		_, err := converter.Convert(1234)
+		assert.ErrorContains(t, err, "expected time.Time got int with value: 1234")
+	}
+	{
+		// Date > 9999
+		val, err := converter.Convert(time.Date(9_9999, 2, 3, 4, 5, 0, 0, time.UTC))
+		assert.NoError(t, err)
+		assert.Nil(t, val)
+	}
+	{
+		// Valid value 2024-05-16 12:34:56.000
+		value, err := converter.Convert(time.Date(2024, 5, 16, 12, 34, 56, 0, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, int64(1715862896000), value)
+	}
+}
+
 func TestMicroTimestampConverter_Convert(t *testing.T) {
 	converter := MicroTimestampConverter{}
 	{
@@ -181,6 +247,21 @@ func TestMicroTimestampConverter_Convert(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, timeValue, transferValue.Time)
 		assert.Equal(t, ext.DateTimeKindType, transferValue.NestedKind.Type)
+	}
+}
+
+func TestNanoTimestampConverter_Convert(t *testing.T) {
+	converter := NanoTimestampConverter{}
+	{
+		// Invalid type
+		_, err := converter.Convert(1234)
+		assert.ErrorContains(t, err, "expected time.Time got int with value: 1234")
+	}
+	{
+		// Valid 2024-05-16 12:34:56.1234567
+		value, err := converter.Convert(time.Date(2024, 5, 16, 12, 34, 56, 123456700, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, int64(1715862896123456000), value)
 	}
 }
 

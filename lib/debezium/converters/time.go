@@ -19,24 +19,15 @@ func (TimeConverter) ToField(name string) debezium.Field {
 }
 
 func (TimeConverter) Convert(value any) (any, error) {
-	var timeValue time.Time
-	switch castedValue := value.(type) {
+	switch timeValue := value.(type) {
 	case time.Time:
-		timeValue = castedValue
-	case string:
-		var err error
-		timeValue, err = time.Parse(time.TimeOnly, castedValue)
-		if err != nil {
-			return nil, err
-		}
+		hours := time.Duration(timeValue.Hour()) * time.Hour
+		minutes := time.Duration(timeValue.Minute()) * time.Minute
+		seconds := time.Duration(timeValue.Second()) * time.Second
+		return int32((hours + minutes + seconds) / time.Millisecond), nil
 	default:
-		return nil, fmt.Errorf("expected string/time.Time got %T with value: %v", value, value)
+		return nil, fmt.Errorf("expected time.Time got %T with value: %v", value, value)
 	}
-
-	hours := time.Duration(timeValue.Hour()) * time.Hour
-	minutes := time.Duration(timeValue.Minute()) * time.Minute
-	seconds := time.Duration(timeValue.Second()) * time.Second
-	return int32((hours + minutes + seconds) / time.Millisecond), nil
 }
 
 type MicroTimeConverter struct{}
