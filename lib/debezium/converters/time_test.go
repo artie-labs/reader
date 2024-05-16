@@ -200,12 +200,6 @@ func TestTimestampConverter_Convert(t *testing.T) {
 		assert.ErrorContains(t, err, "expected time.Time got int with value: 1234")
 	}
 	{
-		// Date > 9999
-		val, err := converter.Convert(time.Date(9_9999, 2, 3, 4, 5, 0, 0, time.UTC))
-		assert.NoError(t, err)
-		assert.Nil(t, val)
-	}
-	{
 		// Valid value 2024-05-16 12:34:56.000
 		value, err := converter.Convert(time.Date(2024, 5, 16, 12, 34, 56, 0, time.UTC))
 		assert.NoError(t, err)

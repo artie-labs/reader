@@ -124,13 +124,6 @@ func (TimestampConverter) Convert(value any) (any, error) {
 		return nil, fmt.Errorf("expected time.Time got %T with value: %v", value, value)
 	}
 
-	if timeValue.Year() > 9999 || timeValue.Year() < 0 {
-		// Avoid copying this column over because it'll cause a JSON Marshal error:
-		// Time.MarshalJSON: year outside of range [0,9999]
-		slog.Info("Skipping timestamp because year is greater than 9999 or less than 0", slog.Any("value", value))
-		return nil, nil
-	}
-
 	return timeValue.UnixMilli(), nil
 }
 
