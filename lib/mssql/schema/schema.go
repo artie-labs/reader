@@ -220,7 +220,7 @@ func buildPkValuesQuery(args buildPkValuesQueryArgs) string {
 		}
 		fragments = append(fragments, fragment)
 	}
-	return fmt.Sprintf(`SELECT %s FROM %s ORDER BY %s LIMIT 1`, strings.Join(escapedColumns, ","),
+	return fmt.Sprintf(`SELECT TOP 1 %s FROM %s ORDER BY %s`, strings.Join(escapedColumns, ","),
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(), strings.Join(fragments, ","))
 }
 

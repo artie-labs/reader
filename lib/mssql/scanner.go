@@ -4,10 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/artie-labs/transfer/clients/mssql/dialect"
+	mssql "github.com/microsoft/go-mssqldb"
 	"slices"
 	"strings"
-
-	"github.com/jackc/pgx/v5"
 
 	"github.com/artie-labs/reader/lib/mssql/parse"
 	"github.com/artie-labs/reader/lib/mssql/schema"
@@ -138,12 +137,21 @@ func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any,
 	//}
 }
 
-func queryPlaceholders(offset, count int) []string {
-	result := make([]string, count)
-	for i := range count {
-		result[i] = fmt.Sprintf("@p%d", 1+offset+i)
+func queryPlaceholders(count int) []string {
+	var results []string
+	for range count {
+		results = append(results, "?")
 	}
-	return result
+
+	return results
+}
+
+func mssqlVarCharJoin(values []mssql.VarChar, sep string) string {
+	parts := make([]string, len(values))
+	for i, val := range values {
+		parts[i] = string(val)
+	}
+	return strings.Join(parts, sep)
 }
 
 func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any) {
@@ -161,9 +169,9 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 		endingValues[i] = pk.EndingValue
 	}
 
-	quotedKeyNames := make([]string, len(primaryKeys))
+	quotedKeyNames := make([]mssql.VarChar, len(primaryKeys))
 	for i, key := range primaryKeys {
-		quotedKeyNames[i] = pgx.Identifier{key.Name}.Sanitize()
+		quotedKeyNames[i] = mssql.VarChar(key.Name)
 	}
 
 	lowerBoundComparison := ">"
@@ -171,19 +179,19 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 		lowerBoundComparison = ">="
 	}
 
-	return fmt.Sprintf(`SELECT %s FROM %s WHERE (%s) %s (%s) AND (%s) <= (%s) ORDER BY %s LIMIT %d`,
+	return fmt.Sprintf(`SELECT TOP %d %s FROM %s WHERE (%s) %s (%s) AND (%s) <= (%s) ORDER BY %s`,
+		// TOP
+		batchSize,
 		// SELECT
 		strings.Join(colNames, ","),
 		// FROM
 		mssqlDialect.QuoteIdentifier(s.tableName),
 		// WHERE (pk) > (123)
-		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(queryPlaceholders(0, len(startingValues)), ","),
+		mssqlVarCharJoin(quotedKeyNames, ","), lowerBoundComparison, strings.Join(queryPlaceholders(len(startingValues)), ","),
 		// AND NOT (pk) <= (123)
-		strings.Join(quotedKeyNames, ","), strings.Join(queryPlaceholders(len(startingValues), len(endingValues)), ","),
+		mssqlVarCharJoin(quotedKeyNames, ","), strings.Join(queryPlaceholders(len(endingValues)), ","),
 		// ORDER BY
-		strings.Join(quotedKeyNames, ","),
-		// LIMIT
-		batchSize,
+		mssqlVarCharJoin(quotedKeyNames, ","),
 	), slices.Concat(startingValues, endingValues)
 }
 

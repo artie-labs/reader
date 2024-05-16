@@ -13,8 +13,7 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 	}
 
 	fmt.Println("colKind", colKind, "value", value)
-
-	return nil, fmt.Errorf("hello")
+	return value, nil
 
 	//switch colKind {
 	//case schema.Bit:
