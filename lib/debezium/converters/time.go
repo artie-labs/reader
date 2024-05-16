@@ -21,10 +21,7 @@ func (TimeConverter) ToField(name string) debezium.Field {
 func (TimeConverter) Convert(value any) (any, error) {
 	switch timeValue := value.(type) {
 	case time.Time:
-		hours := time.Duration(timeValue.Hour()) * time.Hour
-		minutes := time.Duration(timeValue.Minute()) * time.Minute
-		seconds := time.Duration(timeValue.Second()) * time.Second
-		return int32((hours + minutes + seconds) / time.Millisecond), nil
+		return getTimeDuration(timeValue, time.Millisecond), nil
 	default:
 		return nil, fmt.Errorf("expected time.Time got %T with value: %v", value, value)
 	}
@@ -56,10 +53,7 @@ func (MicroTimeConverter) Convert(value any) (any, error) {
 		return nil, fmt.Errorf("expected string/time.Time got %T with value: %v", value, value)
 	}
 
-	hours := time.Duration(timeValue.Hour()) * time.Hour
-	minutes := time.Duration(timeValue.Minute()) * time.Minute
-	seconds := time.Duration(timeValue.Second()) * time.Second
-	return int64((hours + minutes + seconds) / time.Microsecond), nil
+	return getTimeDuration(timeValue, time.Microsecond), nil
 }
 
 type NanoTimeConverter struct{}
@@ -78,10 +72,7 @@ func (NanoTimeConverter) Convert(value any) (any, error) {
 		return nil, fmt.Errorf("expected time.Time got %T with value: %v", value, value)
 	}
 
-	hours := time.Duration(timeValue.Hour()) * time.Hour
-	minutes := time.Duration(timeValue.Minute()) * time.Minute
-	seconds := time.Duration(timeValue.Second()) * time.Second
-	return int64((hours+minutes+seconds)/time.Microsecond) * 1_000, nil
+	return getTimeDuration(timeValue, time.Nanosecond), nil
 }
 
 type DateConverter struct{}
