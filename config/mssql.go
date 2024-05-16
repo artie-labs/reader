@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/artie-labs/reader/constants"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
+	"github.com/artie-labs/transfer/lib/stringutil"
+	"math"
 	"net/url"
 	"strings"
 )
@@ -26,7 +28,7 @@ type MSSQLTable struct {
 	ExcludeColumns             []string `yaml:"excludeColumns"`
 }
 
-func (m MSSQL) ToDSN() string {
+func (m *MSSQL) ToDSN() string {
 	query := url.Values{}
 	query.Add("database", m.Database)
 
@@ -69,4 +71,32 @@ func (m *MSSQLTable) ToScannerConfig(errorRetries int) scan.ScannerConfig {
 		OptionalEndingValues:   m.GetOptionalPrimaryKeyValEnd(),
 		ErrorRetries:           errorRetries,
 	}
+}
+
+func (m *MSSQL) Validate() error {
+	if m == nil {
+		return fmt.Errorf("the PostgreSQL config is nil")
+	}
+
+	if stringutil.Empty(m.Host, m.Username, m.Password, m.Database) {
+		return fmt.Errorf("one of the MSSQL settings is empty: host, username, password, database")
+	}
+
+	if m.Port <= 0 {
+		return fmt.Errorf("port is not set or <= 0")
+	} else if m.Port > math.MaxUint16 {
+		return fmt.Errorf("port is > %d", math.MaxUint16)
+	}
+
+	if len(m.Tables) == 0 {
+		return fmt.Errorf("no tables passed in")
+	}
+
+	for _, table := range m.Tables {
+		if stringutil.Empty(table.Name, table.Schema) {
+			return fmt.Errorf("table name and schema must be passed in")
+		}
+	}
+
+	return nil
 }
