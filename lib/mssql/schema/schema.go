@@ -18,27 +18,24 @@ type DataType int
 const (
 	Bit DataType = iota + 1
 	Bytes
-
+	// Numbers
 	Int16
 	Int32
 	Int64
 	Numeric
 	Float
-
 	Money
+	// Strings
 	String
 	UniqueIdentifier
-
+	// Date, Time, Datetime
 	Date
-
 	Time
 	TimeMicro
 	TimeNano
-
 	Datetime2
 	Datetime2Micro
 	Datetime2Nano
-
 	DatetimeOffset
 )
 
