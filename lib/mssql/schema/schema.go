@@ -4,13 +4,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/artie-labs/transfer/clients/mssql/dialect"
 	mssql "github.com/microsoft/go-mssqldb"
 	"log/slog"
 	"strings"
 
 	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/reader/lib/rdbms/column"
-	"github.com/jackc/pgx/v5"
 )
 
 type DataType int
@@ -199,29 +199,26 @@ func GetPrimaryKeys(db *sql.DB, schema, table string) ([]string, error) {
 	return primaryKeys, nil
 }
 
-type buildPkValuesQueryArgs struct {
-	Keys       []Column
-	Schema     string
-	TableName  string
-	Descending bool
-}
-
-func buildPkValuesQuery(args buildPkValuesQueryArgs) string {
-	escapedColumns := make([]string, len(args.Keys))
-	for i, col := range args.Keys {
-		escapedColumns[i] = pgx.Identifier{col.Name}.Sanitize()
+func buildPkValuesQuery(keys []Column, schema string, tableName string, desc bool) string {
+	var escapedCols []string
+	for _, col := range keys {
+		escapedCols = append(escapedCols, dialect.MSSQLDialect{}.QuoteIdentifier(col.Name))
 	}
 
 	var fragments []string
-	for _, key := range args.Keys {
-		fragment := pgx.Identifier{key.Name}.Sanitize()
-		if args.Descending {
+	for _, key := range keys {
+		fragment := dialect.MSSQLDialect{}.QuoteIdentifier(key.Name)
+		if desc {
 			fragment += " DESC"
 		}
 		fragments = append(fragments, fragment)
 	}
-	return fmt.Sprintf(`SELECT TOP 1 %s FROM %s ORDER BY %s`, strings.Join(escapedColumns, ","),
-		pgx.Identifier{args.Schema, args.TableName}.Sanitize(), strings.Join(fragments, ","))
+
+	return fmt.Sprintf(`SELECT TOP 1 %s FROM %s ORDER BY %s`,
+		strings.Join(escapedCols, ","),
+		fmt.Sprintf("%s.%s", dialect.MSSQLDialect{}.QuoteIdentifier(schema), dialect.MSSQLDialect{}.QuoteIdentifier(tableName)),
+		strings.Join(fragments, ","),
+	)
 }
 
 func getPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column, descending bool) ([]any, error) {
@@ -231,12 +228,7 @@ func getPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column,
 		resultPtrs[i] = &result[i]
 	}
 
-	query := buildPkValuesQuery(buildPkValuesQueryArgs{
-		Keys:       primaryKeys,
-		Schema:     schema,
-		TableName:  table,
-		Descending: descending,
-	})
+	query := buildPkValuesQuery(primaryKeys, schema, table, descending)
 	if descending {
 		slog.Info("Find max pk query", slog.String("query", query))
 	} else {
