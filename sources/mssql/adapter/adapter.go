@@ -79,6 +79,8 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	switch dataType {
 	case schema.Bit:
 		return converters.BitConverter{}, nil
+	case schema.Bytes:
+		return converters.BytesPassthrough{}, nil
 	case schema.Int16:
 		return converters.Int16Passthrough{}, nil
 	case schema.Int32:
@@ -91,8 +93,6 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 		return converters.NewDecimalConverter(opts.Scale, &opts.Precision), nil
 	case schema.Money:
 		return MoneyConverter{}, nil
-	case schema.Bytes:
-		return converters.BytesPassthrough{}, nil
 	case schema.String:
 		return converters.StringPassthrough{}, nil
 	case schema.Time:
@@ -100,7 +100,7 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	case schema.Date:
 		return converters.DateConverter{}, nil
 	case schema.Datetime2:
-		return MSSQLDatetime2Converter{}, nil
+		return converters.MicroTimestampConverter{}, nil
 
 	default:
 		return nil, fmt.Errorf("unsupported data type: DataType(%d)", dataType)

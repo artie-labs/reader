@@ -15,18 +15,19 @@ import (
 type DataType int
 
 const (
-	Int16 DataType = iota + 1
+	Bit DataType = iota + 1
+	Bytes
+
+	Int16
 	Int32
 	Int64
 	Numeric
 	Float
 	Real
 
-	Bit
 	Money
 	Date
 	String
-	Bytes
 
 	Time
 	TimeMicro

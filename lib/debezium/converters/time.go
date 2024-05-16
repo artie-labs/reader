@@ -86,6 +86,27 @@ func (MicroTimestampConverter) Convert(value any) (any, error) {
 	return timeValue.UnixMicro(), nil
 }
 
+type NanoTimestampConverter struct{}
+
+//func (NanoTimestampConverter) ToField(name string) debezium.Field {
+//	return debezium.Field{
+//		FieldName:    name,
+//		Type:         debezium.Int64,
+//		DebeziumType: debezium.NanoTimestamp,
+//	}
+//}
+
+type TimestampConverter struct{}
+
+func (TimestampConverter) ToField(name string) debezium.Field {
+	// Represents the number of milliseconds since the epoch, and does not include timezone information.
+	return debezium.Field{
+		FieldName:    name,
+		Type:         debezium.Int64,
+		DebeziumType: debezium.Timestamp,
+	}
+}
+
 type ZonedTimestampConverter struct{}
 
 func (ZonedTimestampConverter) ToField(name string) debezium.Field {
