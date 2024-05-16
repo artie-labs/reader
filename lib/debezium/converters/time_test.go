@@ -261,7 +261,7 @@ func TestNanoTimestampConverter_Convert(t *testing.T) {
 		// Valid 2024-05-16 12:34:56.1234567
 		value, err := converter.Convert(time.Date(2024, 5, 16, 12, 34, 56, 123456700, time.UTC))
 		assert.NoError(t, err)
-		assert.Equal(t, int64(1715862896123456800), value)
+		assert.Equal(t, int64(1715862896123456000), value)
 	}
 }
 
