@@ -78,7 +78,7 @@ func (m MSSQLAdapter) PartitionKeys() []string {
 func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (converters.ValueConverter, error) {
 	switch dataType {
 	case schema.Bit:
-		return converters.BitConverter{}, nil
+		return converters.BooleanPassthrough{}, nil
 	case schema.Bytes:
 		return converters.BytesPassthrough{}, nil
 	case schema.Int16:
@@ -88,7 +88,7 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	case schema.Int64:
 		return converters.Int64Passthrough{}, nil
 	case schema.Float:
-		return converters.FloatPassthrough{}, nil
+		return converters.DoublePassthrough{}, nil
 	case schema.Numeric:
 		return converters.NewDecimalConverter(opts.Scale, &opts.Precision), nil
 	case schema.Money:

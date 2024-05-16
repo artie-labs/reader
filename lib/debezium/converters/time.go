@@ -19,13 +19,18 @@ func (TimeConverter) ToField(name string) debezium.Field {
 }
 
 func (TimeConverter) Convert(value any) (any, error) {
-	strValue, ok := value.(string)
-	if !ok {
-		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
-	}
-	timeValue, err := time.Parse(time.TimeOnly, strValue)
-	if err != nil {
-		return nil, err
+	var timeValue time.Time
+	switch castedValue := value.(type) {
+	case time.Time:
+		timeValue = castedValue
+	case string:
+		var err error
+		timeValue, err = time.Parse(time.TimeOnly, castedValue)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, fmt.Errorf("expected string/time.Time got %T with value: %v", value, value)
 	}
 
 	hours := time.Duration(timeValue.Hour()) * time.Hour
@@ -46,13 +51,18 @@ func (MicroTimeConverter) ToField(name string) debezium.Field {
 }
 
 func (MicroTimeConverter) Convert(value any) (any, error) {
-	strValue, ok := value.(string)
-	if !ok {
-		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
-	}
-	timeValue, err := time.Parse(time.TimeOnly, strValue)
-	if err != nil {
-		return nil, err
+	var timeValue time.Time
+	switch castedValue := value.(type) {
+	case time.Time:
+		timeValue = castedValue
+	case string:
+		var err error
+		timeValue, err = time.Parse(time.TimeOnly, castedValue)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, fmt.Errorf("expected string/time.Time got %T with value: %v", value, value)
 	}
 
 	hours := time.Duration(timeValue.Hour()) * time.Hour
@@ -72,13 +82,9 @@ func (NanoTimeConverter) ToField(name string) debezium.Field {
 }
 
 func (NanoTimeConverter) Convert(value any) (any, error) {
-	strValue, ok := value.(string)
+	timeValue, ok := value.(time.Time)
 	if !ok {
-		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
-	}
-	timeValue, err := time.Parse(time.TimeOnly, strValue)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("expected time.Time got %T with value: %v", value, value)
 	}
 
 	hours := time.Duration(timeValue.Hour()) * time.Hour

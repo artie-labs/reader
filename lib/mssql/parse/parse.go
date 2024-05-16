@@ -3,6 +3,7 @@ package parse
 import (
 	"fmt"
 	mssql "github.com/microsoft/go-mssqldb"
+	"time"
 
 	"github.com/artie-labs/reader/lib/mssql/schema"
 )
@@ -66,6 +67,12 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 		}
 
 		return uniq.String(), nil
+	case schema.Date, schema.Time, schema.TimeMicro, schema.TimeNano:
+		if _, isOk := value.(time.Time); !isOk {
+			return nil, fmt.Errorf("expected time.Time got %T with value: %v", value, value)
+		}
+
+		return value, nil
 	}
 
 	fmt.Println(fmt.Sprintf("colKind: %v, value: %v, type: %T", colKind, value, value))

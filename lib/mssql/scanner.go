@@ -197,12 +197,9 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 func (s scanAdapter) ParseRow(values []any) error {
 	for i, value := range values {
 		var err error
-		fmt.Println("### ", s.columns[i].Name)
 		if values[i], err = parse.ParseValue(s.columns[i].Type, value); err != nil {
-			return err
+			return fmt.Errorf("failed to parse column: %s: %w", s.columns[i].Name, err)
 		}
-
-		fmt.Println("### Done")
 	}
 	return nil
 }
