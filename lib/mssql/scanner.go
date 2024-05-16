@@ -42,12 +42,13 @@ var supportedPrimaryKeyDataType = []schema.DataType{
 
 func NewScanner(db *sql.DB, table Table, columns []schema.Column, cfg scan.ScannerConfig) (*scan.Scanner, error) {
 	for _, key := range table.PrimaryKeys {
-		column, err := column.GetColumnByName(columns, key)
+		_column, err := column.GetColumnByName(columns, key)
 		if err != nil {
 			return nil, fmt.Errorf("missing column with name: %q", key)
 		}
-		if !slices.Contains(supportedPrimaryKeyDataType, column.Type) {
-			return nil, fmt.Errorf("DataType(%d) for column %q is not supported for use as a primary key", column.Type, column.Name)
+
+		if !slices.Contains(supportedPrimaryKeyDataType, _column.Type) {
+			return nil, fmt.Errorf("DataType(%d) for column %q is not supported for use as a primary key", _column.Type, _column.Name)
 		}
 	}
 
