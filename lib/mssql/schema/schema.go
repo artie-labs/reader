@@ -24,11 +24,12 @@ const (
 	Int64
 	Numeric
 	Float
-	Real
 
 	Money
-	Date
 	String
+	UniqueIdentifier
+
+	Date
 
 	Time
 	TimeMicro
@@ -155,8 +156,10 @@ func ParseColumnDataType(colKind string, precision, scale, datetimePrecision *in
 		}
 	case "datetimeoffset":
 		return DatetimeOffset, nil, nil
-	case "char", "nchar", "varchar", "nvarchar", "text", "ntext", "xml", "uniqueidentifier":
+	case "char", "nchar", "varchar", "nvarchar", "text", "ntext", "xml":
 		return String, nil, nil
+	case "uniqueidentifier":
+		return UniqueIdentifier, nil, nil
 	case "image", "binary", "varbinary":
 		return Bytes, nil, nil
 	}

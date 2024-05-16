@@ -87,13 +87,13 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 		return converters.Int32Passthrough{}, nil
 	case schema.Int64:
 		return converters.Int64Passthrough{}, nil
-	case schema.Real, schema.Float:
+	case schema.Float:
 		return converters.FloatPassthrough{}, nil
 	case schema.Numeric:
 		return converters.NewDecimalConverter(opts.Scale, &opts.Precision), nil
 	case schema.Money:
 		return MoneyConverter{}, nil
-	case schema.String:
+	case schema.String, schema.UniqueIdentifier:
 		return converters.StringPassthrough{}, nil
 	case schema.Time:
 		return converters.TimeConverter{}, nil
