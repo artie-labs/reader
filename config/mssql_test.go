@@ -6,6 +6,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestMSSQL_ToDSN(t *testing.T) {
+	m := MSSQL{
+		Host:     "localhost",
+		Port:     1433,
+		Username: "sa",
+		Password: "ThisIsMyPassword!",
+		Database: "master",
+	}
+
+	assert.Equal(t, "sqlserver://sa:ThisIsMyPassword%21@localhost:1433?database=master", m.ToDSN())
+}
+
 func TestMSSQL_Validate(t *testing.T) {
 	{
 		// Config is empty
