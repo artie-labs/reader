@@ -15,33 +15,20 @@ import (
 type DataType int
 
 const (
-	Bit DataType = iota + 1
-	Boolean
-	Int16
+	Int16 DataType = iota + 1
 	Int32
 	Int64
-	Real
-	Double
 	Numeric
-	VariableNumeric
+	Bit
 	Money
-	Bytea
-	Text
-	UserDefinedText
-	Time
-	TimeWithTimeZone
+	Float
+	Real
 	Date
-	Timestamp
-	TimestampWithTimeZone
-	Interval
-	UUID
-	Array
-	JSON
-	HStore
-	// PostGIS
-	Point
-	Geometry
-	Geography
+	Datetime2
+	DatetimeOffset
+	Time
+	String
+	Bytes
 )
 
 type Opts struct {
@@ -52,9 +39,18 @@ type Opts struct {
 type Column = column.Column[DataType, Opts]
 
 const describeTableQuery = `
-SELECT column_name, data_type, numeric_precision, numeric_scale, udt_name
-FROM information_schema.columns
-WHERE table_schema = $1 AND table_name = $2`
+SELECT 
+    COLUMN_NAME,
+    DATA_TYPE,
+    NUMERIC_PRECISION,
+    NUMERIC_SCALE,
+    USER_DEFINED_TYPE_NAME
+FROM 
+    INFORMATION_SCHEMA.COLUMNS
+WHERE 
+    TABLE_SCHEMA = @p1 AND 
+    TABLE_NAME = @p2;
+`
 
 func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 	query := strings.TrimSpace(describeTableQuery)
@@ -70,13 +66,11 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 		var colType string
 		var numericPrecision *int
 		var numericScale *int
-		var udtName *string
-		err = rows.Scan(&colName, &colType, &numericPrecision, &numericScale, &udtName)
-		if err != nil {
+		if err = rows.Scan(&colName, &colType, &numericPrecision, &numericScale); err != nil {
 			return nil, err
 		}
 
-		dataType, opts, err := ParseColumnDataType(colType, numericPrecision, numericScale, udtName)
+		dataType, opts, err := ParseColumnDataType(colType, numericPrecision, numericScale)
 		if err != nil {
 			return nil, fmt.Errorf("unable to identify type %q for column %q", colType, colName)
 		}
@@ -90,77 +84,42 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 	return cols, nil
 }
 
-func ParseColumnDataType(colKind string, precision, scale *int, udtName *string) (DataType, *Opts, error) {
+func ParseColumnDataType(colKind string, precision, scale *int) (DataType, *Opts, error) {
 	colKind = strings.ToLower(colKind)
 	switch colKind {
 	case "bit":
 		return Bit, nil, nil
-	case "boolean":
-		return Boolean, nil, nil
-	case "smallint":
+	case "smallint", "tinyint":
 		return Int16, nil, nil
-	case "integer":
+	case "int":
 		return Int32, nil, nil
-	case "bigint", "oid":
+	case "bigint":
 		return Int64, nil, nil
-	case "real":
-		return Real, nil, nil
-	case "double precision":
-		return Double, nil, nil
-	case "money":
+	case "float", "real":
+		return Float, nil, nil
+	case "smallmoney", "money":
 		return Money, nil, nil
-	case "bytea":
-		return Bytea, nil, nil
-	case "character varying", "text", "character", "xml", "cidr", "inet", "macaddr", "macaddr8",
-		"int4range", "int8range", "numrange", "daterange", "tsrange", "tstzrange":
-		return Text, nil, nil
-	case "time without time zone":
+	case "numeric":
+		if precision == nil && scale == nil {
+			return -1, nil, fmt.Errorf("expected precision and scale to be not-nil")
+		}
+
+		return Numeric, &Opts{
+			Scale:     *scale,
+			Precision: *precision,
+		}, nil
+	case "time":
 		return Time, nil, nil
-	case "time with time zone":
-		return TimeWithTimeZone, nil, nil
 	case "date":
 		return Date, nil, nil
-	case "timestamp without time zone":
-		return Timestamp, nil, nil
-	case "timestamp with time zone":
-		return TimestampWithTimeZone, nil, nil
-	case "interval":
-		return Interval, nil, nil
-	case "uuid":
-		return UUID, nil, nil
-	case "array":
-		return Array, nil, nil
-	case "json", "jsonb":
-		return JSON, nil, nil
-	case "point":
-		return Point, nil, nil
-	case "user-defined":
-		if udtName != nil && *udtName == "hstore" {
-			return HStore, nil, nil
-		} else if udtName != nil && *udtName == "geometry" {
-			return Geometry, nil, nil
-		} else if udtName != nil && *udtName == "geography" {
-			return Geography, nil, nil
-		} else {
-			return UserDefinedText, nil, nil
-		}
-	default:
-		if strings.Contains(colKind, "numeric") {
-			if precision == nil && scale == nil {
-				return VariableNumeric, nil, nil
-			} else if precision != nil && scale != nil {
-				return Numeric, &Opts{
-					Scale:     *scale,
-					Precision: *precision,
-				}, nil
-			} else {
-				return -1, nil, fmt.Errorf(
-					"expected precision (nil: %t) and scale (nil: %t) to both be nil or not-nil",
-					precision == nil,
-					scale == nil,
-				)
-			}
-		}
+	case "smalldatetime", "datetime", "datetime2":
+		return Datetime2, nil, nil
+	case "datetimeoffset":
+		return DatetimeOffset, nil, nil
+	case "char", "nchar", "varchar", "nvarchar", "text", "ntext", "xml", "uniqueidentifier":
+		return String, nil, nil
+	case "image", "binary", "varbinary":
+		return Bytes, nil, nil
 	}
 
 	return -1, nil, fmt.Errorf("unknown data type: %q", colKind)
