@@ -75,7 +75,7 @@ func (m *MSSQLTable) ToScannerConfig(errorRetries int) scan.ScannerConfig {
 
 func (m *MSSQL) Validate() error {
 	if m == nil {
-		return fmt.Errorf("the PostgreSQL config is nil")
+		return fmt.Errorf("the MSSQL config is nil")
 	}
 
 	if stringutil.Empty(m.Host, m.Username, m.Password, m.Database) {

@@ -21,7 +21,7 @@ func TestMicroTimeConverter_Convert(t *testing.T) {
 	{
 		// Invalid value
 		_, err := converter.Convert(1234)
-		assert.ErrorContains(t, err, "expected string got int with value: 1234")
+		assert.ErrorContains(t, err, "expected string/time.Time got int with value: 1234")
 	}
 	{
 		// Valid value - 0 seconds
