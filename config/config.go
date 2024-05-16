@@ -67,6 +67,7 @@ const (
 	SourceMongoDB    Source = "mongodb"
 	SourceMySQL      Source = "mysql"
 	SourcePostgreSQL Source = "postgresql"
+	SourceMSSQL      Source = "mssql"
 )
 
 type Destination string
@@ -82,6 +83,7 @@ type Settings struct {
 	MongoDB    *MongoDB    `yaml:"mongodb,omitempty"`
 	MySQL      *MySQL      `yaml:"mysql,omitempty"`
 	PostgreSQL *PostgreSQL `yaml:"postgresql,omitempty"`
+	MSSQL      *MSSQL      `yaml:"mssql,omitempty"`
 
 	Destination Destination         `yaml:"destination"`
 	Kafka       *Kafka              `yaml:"kafka,omitempty"`
