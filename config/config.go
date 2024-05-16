@@ -65,9 +65,9 @@ type Source string
 const (
 	SourceDynamo     Source = "dynamodb"
 	SourceMongoDB    Source = "mongodb"
+	SourceMSSQL      Source = "mssql"
 	SourceMySQL      Source = "mysql"
 	SourcePostgreSQL Source = "postgresql"
-	SourceMSSQL      Source = "mssql"
 )
 
 type Destination string

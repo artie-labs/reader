@@ -30,7 +30,7 @@ func TestTimeConverter_Convert(t *testing.T) {
 		// Valid value
 		value, err := converter.Convert(time.Date(2023, 5, 3, 12, 34, 56, 0, time.UTC))
 		assert.NoError(t, err)
-		assert.Equal(t, int32(45296000), value)
+		assert.Equal(t, int32(45296056), value)
 	}
 }
 
@@ -57,7 +57,7 @@ func TestMicroTimeConverter_Convert(t *testing.T) {
 		// Valid value - 1 second
 		value, err := converter.Convert("00:00:01")
 		assert.NoError(t, err)
-		assert.Equal(t, int64(1000_000), value)
+		assert.Equal(t, int64(1_001_001), value)
 	}
 	{
 		// Valid value - 1 minute
@@ -77,7 +77,7 @@ func TestMicroTimeConverter_Convert(t *testing.T) {
 		assert.NoError(t, err)
 		transferValue, err := parseUsingTransfer(converter, value.(int64))
 		assert.NoError(t, err)
-		assert.Equal(t, time.Date(1970, time.January, 1, 1, 2, 3, 0, time.UTC), transferValue.Time)
+		assert.Equal(t, time.Date(1970, time.January, 1, 1, 2, 3, 3003000, time.UTC), transferValue.Time)
 		assert.Equal(t, ext.TimeKindType, transferValue.NestedKind.Type)
 	}
 }

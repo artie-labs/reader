@@ -2,15 +2,13 @@ package converters
 
 import "time"
 
-func getTimeDuration(timeVal time.Time, timeDuration time.Duration) any {
+func getTimeDuration(timeVal time.Time, timeDuration time.Duration) int64 {
 	hours := time.Duration(timeVal.Hour()) * time.Hour
 	minutes := time.Duration(timeVal.Minute()) * time.Minute
 	seconds := time.Duration(timeVal.Second()) * time.Second
+	ms := time.Duration(timeVal.Second()) * time.Millisecond
+	microsec := time.Duration(timeVal.Second()) * time.Microsecond
+	ns := time.Duration(timeVal.Second()) * time.Nanosecond
 
-	switch timeDuration {
-	case time.Millisecond:
-		return int32((hours + minutes + seconds) / timeDuration)
-	default:
-		return int64((hours + minutes + seconds) / timeDuration)
-	}
+	return int64((hours + minutes + seconds + ms + microsec + ns) / timeDuration)
 }
