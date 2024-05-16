@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/artie-labs/reader/sources/mssql"
 	"log/slog"
 
 	"github.com/artie-labs/reader/config"
@@ -46,6 +47,8 @@ func buildSource(cfg *config.Settings) (sources.Source, bool, error) {
 		source, err = mysql.Load(*cfg.MySQL)
 	case config.SourcePostgreSQL:
 		source, err = postgres.Load(*cfg.PostgreSQL)
+	case config.SourceMSSQL:
+		source, err = mssql.Load(*cfg.MSSQL)
 	default:
 		panic(fmt.Sprintf("unknown source %q", cfg.Source)) // should never happen
 	}
