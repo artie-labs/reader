@@ -88,13 +88,21 @@ func (MicroTimestampConverter) Convert(value any) (any, error) {
 
 type NanoTimestampConverter struct{}
 
-//func (NanoTimestampConverter) ToField(name string) debezium.Field {
-//	return debezium.Field{
-//		FieldName:    name,
-//		Type:         debezium.Int64,
-//		DebeziumType: debezium.NanoTimestamp,
-//	}
-//}
+func (NanoTimestampConverter) ToField(name string) debezium.Field {
+	return debezium.Field{
+		FieldName:    name,
+		Type:         debezium.Int64,
+		DebeziumType: debezium.NanoTimestamp,
+	}
+}
+
+func (NanoTimestampConverter) Convert(value any) (any, error) {
+	timeValue, ok := value.(time.Time)
+	if !ok {
+		return nil, fmt.Errorf("expected time.Time got %T with value: %v", value, value)
+	}
+	return timeValue.UnixMicro() * 1_000, nil
+}
 
 type TimestampConverter struct{}
 
@@ -105,6 +113,22 @@ func (TimestampConverter) ToField(name string) debezium.Field {
 		Type:         debezium.Int64,
 		DebeziumType: debezium.Timestamp,
 	}
+}
+
+func (TimestampConverter) Convert(value any) (any, error) {
+	timeValue, ok := value.(time.Time)
+	if !ok {
+		return nil, fmt.Errorf("expected time.Time got %T with value: %v", value, value)
+	}
+
+	if timeValue.Year() > 9999 || timeValue.Year() < 0 {
+		// Avoid copying this column over because it'll cause a JSON Marshal error:
+		// Time.MarshalJSON: year outside of range [0,9999]
+		slog.Info("Skipping timestamp because year is greater than 9999 or less than 0", slog.Any("value", value))
+		return nil, nil
+	}
+
+	return timeValue.UnixMilli(), nil
 }
 
 type ZonedTimestampConverter struct{}
