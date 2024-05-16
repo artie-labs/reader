@@ -2,7 +2,10 @@ package config
 
 import (
 	"fmt"
+	"github.com/artie-labs/reader/constants"
+	"github.com/artie-labs/reader/lib/rdbms/scan"
 	"net/url"
+	"strings"
 )
 
 type MSSQL struct {
@@ -35,4 +38,35 @@ func (m MSSQL) ToDSN() string {
 	}
 
 	return u.String()
+}
+
+func (m *MSSQLTable) GetBatchSize() uint {
+	if m.BatchSize > 0 {
+		return m.BatchSize
+	} else {
+		return constants.DefaultBatchSize
+	}
+}
+
+func (m *MSSQLTable) GetOptionalPrimaryKeyValStart() []string {
+	if m.OptionalPrimaryKeyValStart == "" {
+		return []string{}
+	}
+	return strings.Split(m.OptionalPrimaryKeyValStart, ",")
+}
+
+func (m *MSSQLTable) GetOptionalPrimaryKeyValEnd() []string {
+	if m.OptionalPrimaryKeyValEnd == "" {
+		return []string{}
+	}
+	return strings.Split(m.OptionalPrimaryKeyValEnd, ",")
+}
+
+func (m *MSSQLTable) ToScannerConfig(errorRetries int) scan.ScannerConfig {
+	return scan.ScannerConfig{
+		BatchSize:              m.GetBatchSize(),
+		OptionalStartingValues: m.GetOptionalPrimaryKeyValStart(),
+		OptionalEndingValues:   m.GetOptionalPrimaryKeyValEnd(),
+		ErrorRetries:           errorRetries,
+	}
 }

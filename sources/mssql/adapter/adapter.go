@@ -9,44 +9,44 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
-	"github.com/artie-labs/reader/lib/postgres"
-	"github.com/artie-labs/reader/lib/postgres/schema"
+	"github.com/artie-labs/reader/lib/mssql"
+	"github.com/artie-labs/reader/lib/mssql/schema"
 	"github.com/artie-labs/reader/lib/rdbms/column"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
 const defaultErrorRetries = 10
 
-type PostgresAdapter struct {
+type MSSQLAdapter struct {
 	db              *sql.DB
-	table           postgres.Table
+	table           mssql.Table
 	columns         []schema.Column
 	fieldConverters []transformer.FieldConverter
 	scannerCfg      scan.ScannerConfig
 }
 
-func NewPostgresAdapter(db *sql.DB, tableCfg config.PostgreSQLTable) (PostgresAdapter, error) {
+func NewMSSQLAdapter(db *sql.DB, tableCfg config.MSSQLTable) (MSSQLAdapter, error) {
 	slog.Info("Loading metadata for table")
-	table, err := postgres.LoadTable(db, tableCfg.Schema, tableCfg.Name)
+	table, err := mssql.LoadTable(db, tableCfg.Schema, tableCfg.Name)
 	if err != nil {
-		return PostgresAdapter{}, fmt.Errorf("failed to load metadata for table %s.%s: %w", tableCfg.Schema, tableCfg.Name, err)
+		return MSSQLAdapter{}, fmt.Errorf("failed to load metadata for table %s.%s: %w", tableCfg.Schema, tableCfg.Name, err)
 	}
 
 	columns, err := column.FilterOutExcludedColumns(table.Columns, tableCfg.ExcludeColumns, table.PrimaryKeys)
 	if err != nil {
-		return PostgresAdapter{}, err
+		return MSSQLAdapter{}, err
 	}
 
 	fieldConverters := make([]transformer.FieldConverter, len(columns))
 	for i, col := range columns {
 		converter, err := valueConverterForType(col.Type, col.Opts)
 		if err != nil {
-			return PostgresAdapter{}, fmt.Errorf("failed to build value converter for column %q: %w", col.Name, err)
+			return MSSQLAdapter{}, fmt.Errorf("failed to build value converter for column %q: %w", col.Name, err)
 		}
 		fieldConverters[i] = transformer.FieldConverter{Name: col.Name, ValueConverter: converter}
 	}
 
-	return PostgresAdapter{
+	return MSSQLAdapter{
 		db:              db,
 		table:           *table,
 		columns:         columns,
@@ -55,24 +55,24 @@ func NewPostgresAdapter(db *sql.DB, tableCfg config.PostgreSQLTable) (PostgresAd
 	}, nil
 }
 
-func (p PostgresAdapter) TableName() string {
-	return p.table.Name
+func (m MSSQLAdapter) TableName() string {
+	return m.table.Name
 }
 
-func (p PostgresAdapter) TopicSuffix() string {
-	return fmt.Sprintf("%s.%s", p.table.Schema, strings.ReplaceAll(p.table.Name, `"`, ``))
+func (m MSSQLAdapter) TopicSuffix() string {
+	return fmt.Sprintf("%s.%s", m.table.Schema, strings.ReplaceAll(m.table.Name, `"`, ``))
 }
 
-func (p PostgresAdapter) FieldConverters() []transformer.FieldConverter {
-	return p.fieldConverters
+func (m MSSQLAdapter) FieldConverters() []transformer.FieldConverter {
+	return m.fieldConverters
 }
 
-func (p PostgresAdapter) NewIterator() (transformer.RowsIterator, error) {
-	return postgres.NewScanner(p.db, p.table, p.columns, p.scannerCfg)
+func (m MSSQLAdapter) NewIterator() (transformer.RowsIterator, error) {
+	return mssql.NewScanner(m.db, m.table, m.columns, m.scannerCfg)
 }
 
-func (p PostgresAdapter) PartitionKeys() []string {
-	return p.table.PrimaryKeys
+func (m MSSQLAdapter) PartitionKeys() []string {
+	return m.table.PrimaryKeys
 }
 
 func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (converters.ValueConverter, error) {

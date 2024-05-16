@@ -8,12 +8,10 @@ import (
 	"log/slog"
 	"time"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
-
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/rdbms"
-	"github.com/artie-labs/reader/sources/postgres/adapter"
+	"github.com/artie-labs/reader/sources/mssql/adapter"
 	"github.com/artie-labs/reader/writers"
 )
 
@@ -43,7 +41,7 @@ func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
 		logger := slog.With(slog.String("schema", tableCfg.Schema), slog.String("table", tableCfg.Name))
 		snapshotStartTime := time.Now()
 
-		dbzAdapter, err := adapter.NewPostgresAdapter(s.db, *tableCfg)
+		dbzAdapter, err := adapter.NewMSSQLAdapter(s.db, *tableCfg)
 		if err != nil {
 			return fmt.Errorf("failed to create PostgreSQL adapter: %w", err)
 		}
