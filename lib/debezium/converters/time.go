@@ -75,28 +75,6 @@ func (NanoTimeConverter) Convert(value any) (any, error) {
 	return getTimeDuration(timeValue, time.Nanosecond), nil
 }
 
-type NanoTimeConverter struct{}
-
-func (NanoTimeConverter) ToField(name string) debezium.Field {
-	return debezium.Field{
-		FieldName:    name,
-		Type:         debezium.Int64,
-		DebeziumType: debezium.NanoTime,
-	}
-}
-
-func (NanoTimeConverter) Convert(value any) (any, error) {
-	timeValue, ok := value.(time.Time)
-	if !ok {
-		return nil, fmt.Errorf("expected time.Time got %T with value: %v", value, value)
-	}
-
-	hours := time.Duration(timeValue.Hour()) * time.Hour
-	minutes := time.Duration(timeValue.Minute()) * time.Minute
-	seconds := time.Duration(timeValue.Second()) * time.Second
-	return int64((hours+minutes+seconds)/time.Microsecond) * 1_000, nil
-}
-
 type DateConverter struct{}
 
 func (DateConverter) ToField(name string) debezium.Field {
