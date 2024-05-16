@@ -67,7 +67,11 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 		}
 
 		return uniq.String(), nil
-	case schema.Date, schema.Time, schema.TimeMicro, schema.TimeNano:
+	case
+		schema.Date,
+		schema.Time, schema.TimeMicro, schema.TimeNano,
+		schema.Datetime2, schema.Datetime2Micro, schema.Datetime2Nano,
+		schema.DatetimeOffset:
 		if _, isOk := value.(time.Time); !isOk {
 			return nil, fmt.Errorf("expected time.Time got %T with value: %v", value, value)
 		}
@@ -75,6 +79,5 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 		return value, nil
 	}
 
-	fmt.Println(fmt.Sprintf("colKind: %v, value: %v, type: %T", colKind, value, value))
 	return value, nil
 }
