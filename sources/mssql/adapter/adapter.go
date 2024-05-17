@@ -3,6 +3,7 @@ package adapter
 import (
 	"database/sql"
 	"fmt"
+	"github.com/artie-labs/transfer/lib/ptr"
 	"strings"
 
 	"github.com/artie-labs/reader/config"
@@ -90,7 +91,10 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	case schema.Numeric:
 		return converters.NewDecimalConverter(opts.Scale, &opts.Precision), nil
 	case schema.Money:
-		return MoneyConverter{}, nil
+		return converters.MoneyConverter{
+			// MSSQL uses scale of 4 for money
+			ScaleOverride: ptr.ToInt(4),
+		}, nil
 	case schema.String, schema.UniqueIdentifier:
 		return converters.StringPassthrough{}, nil
 	case schema.Time:
