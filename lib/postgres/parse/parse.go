@@ -141,6 +141,13 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 		}
 
 		return geometry, nil
+	case schema.Money:
+		valString, isOk := value.(string)
+		if !isOk {
+			return nil, fmt.Errorf("expected string, got: %T with value: %v for money", value, value)
+		}
+
+		return valString, nil
 	default:
 		return value, nil
 	}

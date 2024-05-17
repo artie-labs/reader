@@ -7,9 +7,11 @@ import (
 	"log/slog"
 	"strings"
 
+	"github.com/jackc/pgx/v5"
+
 	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/reader/lib/rdbms/column"
-	"github.com/jackc/pgx/v5"
+	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
 
 type DataType int
@@ -246,12 +248,7 @@ func getPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column,
 	return result, nil
 }
 
-type Bounds struct {
-	Min any
-	Max any
-}
-
-func GetPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []Column) ([]Bounds, error) {
+func GetPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []Column) ([]primary_key.Bounds, error) {
 	minValues, err := getPrimaryKeyValues(db, schema, table, primaryKeys, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve lower bounds for primary keys: %w", err)
@@ -262,9 +259,9 @@ func GetPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []Column
 		return nil, fmt.Errorf("failed to retrieve upper bounds for primary keys: %w", err)
 	}
 
-	var bounds []Bounds
+	var bounds []primary_key.Bounds
 	for idx, minValue := range minValues {
-		bounds = append(bounds, Bounds{
+		bounds = append(bounds, primary_key.Bounds{
 			Min: minValue,
 			Max: maxValues[idx],
 		})
