@@ -6,25 +6,33 @@ import (
 	"strings"
 )
 
-const moneyScale = 2
+const defaultScale = 2
 
 type MoneyConverter struct {
 	// MutateString will remove commas and currency symbols
-	MutateString bool
+	MutateString  bool
+	ScaleOverride *int
 }
 
-func (MoneyConverter) ToField(name string) debezium.Field {
+func (m MoneyConverter) Scale() int {
+	if m.ScaleOverride != nil {
+		return *m.ScaleOverride
+	}
+
+	return defaultScale
+}
+
+func (m MoneyConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
 		Type:         debezium.Bytes,
 		DebeziumType: debezium.KafkaDecimalType,
 		Parameters: map[string]any{
-			"scale": fmt.Sprint(moneyScale),
+			"scale": fmt.Sprint(m.Scale()),
 		},
 	}
 }
 
-// Convert will change $4,000 to 4000.
 func (m MoneyConverter) Convert(value any) (any, error) {
 	valString, isOk := value.(string)
 	if !isOk {
@@ -36,5 +44,5 @@ func (m MoneyConverter) Convert(value any) (any, error) {
 		valString = strings.ReplaceAll(valString, ",", "")
 	}
 
-	return debezium.EncodeDecimal(valString, moneyScale)
+	return debezium.EncodeDecimal(valString, m.Scale())
 }
