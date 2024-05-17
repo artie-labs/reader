@@ -47,7 +47,8 @@ func TestMoneyConverter_Convert(t *testing.T) {
 	{
 		// Converter where mutateString is true
 		converter := MoneyConverter{
-			MutateString: true,
+			StripCommas:    true,
+			CurrencySymbol: "$",
 		}
 		{
 			// string

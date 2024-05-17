@@ -9,9 +9,11 @@ import (
 const defaultScale = 2
 
 type MoneyConverter struct {
-	// MutateString will remove commas and currency symbols
-	MutateString  bool
-	ScaleOverride *int
+	// All of these configs are optional
+
+	StripCommas    bool
+	CurrencySymbol string
+	ScaleOverride  *int
 }
 
 func (m MoneyConverter) Scale() int {
@@ -39,8 +41,11 @@ func (m MoneyConverter) Convert(value any) (any, error) {
 		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
 	}
 
-	if m.MutateString {
-		valString = strings.Replace(valString, "$", "", 1)
+	if m.CurrencySymbol != "" {
+		valString = strings.Trim(valString, m.CurrencySymbol)
+	}
+
+	if m.StripCommas {
 		valString = strings.ReplaceAll(valString, ",", "")
 	}
 
