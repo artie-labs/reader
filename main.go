@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/artie-labs/reader/sources/mssql"
 	"log/slog"
 
 	"github.com/artie-labs/reader/config"
@@ -14,6 +13,7 @@ import (
 	"github.com/artie-labs/reader/sources"
 	"github.com/artie-labs/reader/sources/dynamodb"
 	"github.com/artie-labs/reader/sources/mongo"
+	"github.com/artie-labs/reader/sources/mssql"
 	"github.com/artie-labs/reader/sources/mysql"
 	"github.com/artie-labs/reader/sources/postgres"
 	"github.com/artie-labs/reader/writers"

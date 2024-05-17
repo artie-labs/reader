@@ -3,8 +3,9 @@ package adapter
 import (
 	"database/sql"
 	"fmt"
-	"github.com/artie-labs/transfer/lib/ptr"
 	"strings"
+
+	"github.com/artie-labs/transfer/lib/ptr"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium/converters"
