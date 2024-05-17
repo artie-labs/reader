@@ -2,9 +2,25 @@ package converters
 
 import (
 	transferDbz "github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
+
+func TestMoney_Scale(t *testing.T) {
+	{
+		// Not specified
+		converter := MoneyConverter{}
+		assert.Equal(t, defaultScale, converter.Scale())
+	}
+	{
+		// Specified
+		converter := MoneyConverter{
+			ScaleOverride: ptr.ToInt(3),
+		}
+		assert.Equal(t, 3, converter.Scale())
+	}
+}
 
 func TestMoneyConverter_ToField(t *testing.T) {
 	converter := MoneyConverter{}
@@ -20,7 +36,7 @@ func TestMoneyConverter_ToField(t *testing.T) {
 }
 
 func TestMoneyConverter_Convert(t *testing.T) {
-	decimalField := NewDecimalConverter(moneyScale, nil).ToField("")
+	decimalField := NewDecimalConverter(defaultScale, nil).ToField("")
 	decodeValue := func(value any) string {
 		bytes, ok := value.([]byte)
 		assert.True(t, ok)
