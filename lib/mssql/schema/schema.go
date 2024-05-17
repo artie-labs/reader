@@ -200,6 +200,7 @@ func GetPrimaryKeys(db *sql.DB, schema, table string) ([]string, error) {
 }
 
 func buildPkValuesQuery(keys []Column, schema string, tableName string, desc bool) string {
+	mssqlDialect := dialect.MSSQLDialect{}
 	var escapedCols []string
 	for _, col := range keys {
 		escapedCols = append(escapedCols, dialect.MSSQLDialect{}.QuoteIdentifier(col.Name))
@@ -214,9 +215,12 @@ func buildPkValuesQuery(keys []Column, schema string, tableName string, desc boo
 		fragments = append(fragments, fragment)
 	}
 
-	return fmt.Sprintf(`SELECT TOP 1 %s FROM %s ORDER BY %s`,
+	return fmt.Sprintf(`SELECT TOP 1 %s FROM %s.%s ORDER BY %s`,
+		// SELECT
 		strings.Join(escapedCols, ","),
-		fmt.Sprintf("%s.%s", dialect.MSSQLDialect{}.QuoteIdentifier(schema), dialect.MSSQLDialect{}.QuoteIdentifier(tableName)),
+		// FROM
+		mssqlDialect.QuoteIdentifier(schema), mssqlDialect.QuoteIdentifier(tableName),
+		// ORDER
 		strings.Join(fragments, ","),
 	)
 }
