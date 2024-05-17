@@ -80,6 +80,126 @@ func TestParseColumnDataType(t *testing.T) {
 	}
 	{
 		// time
+		{
+			// Default
+			for i := 0; i <= 3; i++ {
+				dataType, opts, err := ParseColumnDataType("time", nil, nil, ptr.ToInt(i))
+				assert.NoError(t, err, i)
+				assert.Nil(t, opts, i)
+				assert.Equal(t, Time, dataType, i)
+			}
+		}
+		{
+			// Micro
+			for i := 4; i <= 6; i++ {
+				dataType, opts, err := ParseColumnDataType("time", nil, nil, ptr.ToInt(i))
+				assert.NoError(t, err, i)
+				assert.Nil(t, opts, i)
+				assert.Equal(t, TimeMicro, dataType, i)
+			}
+		}
+		{
+			// Nano
+			dataType, opts, err := ParseColumnDataType("time", nil, nil, ptr.ToInt(7))
+			assert.NoError(t, err)
+			assert.Nil(t, opts)
+			assert.Equal(t, TimeNano, dataType)
+		}
+		{
+			// Invalid
+
+			for _, invalidNumbers := range []int{-1, 8, 9} {
+				dataType, opts, err := ParseColumnDataType("time", nil, nil, &invalidNumbers)
+				assert.ErrorContains(t, err, "invalid datetime precision")
+				assert.Nil(t, opts)
+				assert.Equal(t, -1, int(dataType))
+			}
+		}
+	}
+	{
+		// date
+		dataType, opts, err := ParseColumnDataType("date", nil, nil, nil)
+		assert.NoError(t, err)
+		assert.Nil(t, opts)
+		assert.Equal(t, Date, dataType)
+	}
+	{
+		// Datetime
+		for _, colKind := range []string{"smalldatetime", "datetime"} {
+			dataType, opts, err := ParseColumnDataType(colKind, nil, nil, nil)
+			assert.NoError(t, err, colKind)
+			assert.Nil(t, opts, colKind)
+			assert.Equal(t, Datetime2, dataType, colKind)
+		}
+	}
+	{
+		// Datetime2
+		{
+			// Default
+			for i := 0; i <= 3; i++ {
+				dataType, opts, err := ParseColumnDataType("datetime2", nil, nil, ptr.ToInt(i))
+				assert.NoError(t, err, i)
+				assert.Nil(t, opts, i)
+				assert.Equal(t, Datetime2, dataType, i)
+			}
+		}
+		{
+			// Micro
+			for i := 4; i <= 6; i++ {
+				dataType, opts, err := ParseColumnDataType("datetime2", nil, nil, ptr.ToInt(i))
+				assert.NoError(t, err, i)
+				assert.Nil(t, opts, i)
+				assert.Equal(t, Datetime2Micro, dataType, i)
+			}
+		}
+		{
+			// nano
+			dataType, opts, err := ParseColumnDataType("datetime2", nil, nil, ptr.ToInt(7))
+			assert.NoError(t, err)
+			assert.Nil(t, opts)
+			assert.Equal(t, Datetime2Nano, dataType)
+		}
+		{
+			// Invalid
+			for _, invalidNumbers := range []int{-1, 8, 9} {
+				dataType, opts, err := ParseColumnDataType("datetime2", nil, nil, &invalidNumbers)
+				assert.ErrorContains(t, err, "invalid datetime precision")
+				assert.Nil(t, opts)
+				assert.Equal(t, -1, int(dataType))
+			}
+		}
+	}
+	{
+		// datetimeoffset
+		dataType, opts, err := ParseColumnDataType("datetimeoffset", nil, nil, nil)
+		assert.NoError(t, err)
+		assert.Nil(t, opts)
+		assert.Equal(t, DatetimeOffset, dataType)
+	}
+	{
+		// Strings
+		for _, colKind := range []string{"varchar", "char", "text", "nchar", "nvarchar", "ntext"} {
+			dataType, opts, err := ParseColumnDataType(colKind, nil, nil, nil)
+			assert.NoError(t, err, colKind)
+			assert.Nil(t, opts, colKind)
+			assert.Equal(t, String, dataType, colKind)
+		}
+	}
+	{
+		// Unique Identifier
+		dataType, opts, err := ParseColumnDataType("uniqueidentifier", nil, nil, nil)
+		assert.NoError(t, err)
+		assert.Nil(t, opts)
+		assert.Equal(t, UniqueIdentifier, dataType)
+	}
+	{
+		// Binary
+		for _, colKind := range []string{"image", "binary", "varbinary"} {
+			dataType, opts, err := ParseColumnDataType(colKind, nil, nil, nil)
+			assert.NoError(t, err, colKind)
+			assert.Nil(t, opts, colKind)
+			assert.Equal(t, Bytes, dataType, colKind)
+		}
 
 	}
 }
