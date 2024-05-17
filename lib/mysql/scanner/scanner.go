@@ -3,6 +3,7 @@ package scanner
 import (
 	"database/sql"
 	"fmt"
+	"github.com/artie-labs/reader/lib/rdbms"
 	"slices"
 	"strconv"
 	"strings"
@@ -124,14 +125,6 @@ func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any,
 	}
 }
 
-func queryPlaceholders(count int) []string {
-	result := make([]string, count)
-	for i := range count {
-		result[i] = "?"
-	}
-	return result
-}
-
 func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any) {
 	colNames := make([]string, len(s.columns))
 	for idx, col := range s.columns {
@@ -161,9 +154,9 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 		// FROM
 		schema.QuoteIdentifier(s.tableName),
 		// WHERE (pk) > (123)
-		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(queryPlaceholders(len(startingValues)), ","),
+		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(rdbms.QueryPlaceholders("?", len(startingValues)), ","),
 		// AND NOT (pk) <= (123)
-		strings.Join(quotedKeyNames, ","), strings.Join(queryPlaceholders(len(endingValues)), ","),
+		strings.Join(quotedKeyNames, ","), strings.Join(rdbms.QueryPlaceholders("?", len(endingValues)), ","),
 		// ORDER BY
 		strings.Join(quotedKeyNames, ","),
 		// LIMIT

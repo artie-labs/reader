@@ -3,6 +3,7 @@ package mssql
 import (
 	"database/sql"
 	"fmt"
+	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/transfer/clients/mssql/dialect"
 	mssql "github.com/microsoft/go-mssqldb"
 	"slices"
@@ -137,15 +138,6 @@ func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any,
 	//}
 }
 
-func queryPlaceholders(count int) []string {
-	var results []string
-	for range count {
-		results = append(results, "?")
-	}
-
-	return results
-}
-
 func mssqlVarCharJoin(values []mssql.VarChar, sep string) string {
 	parts := make([]string, len(values))
 	for i, val := range values {
@@ -187,9 +179,9 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 		// FROM
 		mssqlDialect.QuoteIdentifier(s.schema), mssqlDialect.QuoteIdentifier(s.tableName),
 		// WHERE (pk) > (123)
-		mssqlVarCharJoin(quotedKeyNames, ","), lowerBoundComparison, strings.Join(queryPlaceholders(len(startingValues)), ","),
+		mssqlVarCharJoin(quotedKeyNames, ","), lowerBoundComparison, strings.Join(rdbms.QueryPlaceholders("?", len(startingValues)), ","),
 		// AND NOT (pk) <= (123)
-		mssqlVarCharJoin(quotedKeyNames, ","), strings.Join(queryPlaceholders(len(endingValues)), ","),
+		mssqlVarCharJoin(quotedKeyNames, ","), strings.Join(rdbms.QueryPlaceholders("?", len(endingValues)), ","),
 		// ORDER BY
 		mssqlVarCharJoin(quotedKeyNames, ","),
 	), slices.Concat(startingValues, endingValues)
