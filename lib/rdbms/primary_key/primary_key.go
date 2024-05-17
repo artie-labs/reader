@@ -5,3 +5,8 @@ type Key struct {
 	StartingValue any
 	EndingValue   any
 }
+
+type Bounds struct {
+	Min any
+	Max any
+}
