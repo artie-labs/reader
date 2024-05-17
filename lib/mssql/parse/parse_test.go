@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestParse(t *testing.T) {
+func TestParseValue(t *testing.T) {
 	{
 		// Bit
 		value, err := ParseValue(schema.Bit, true)

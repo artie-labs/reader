@@ -77,7 +77,7 @@ func TestScanAdapter_BuildQuery(t *testing.T) {
 	}
 }
 
-func TestScanAdapter_ParsePrimaryKeyValue(t *testing.T) {
+func TestScanAdapter_ParsePrimaryKeyValueForOverrides(t *testing.T) {
 	{
 		// Column does not exist
 		adapter := scanAdapter{columns: []schema.Column{{Name: "bar"}}}

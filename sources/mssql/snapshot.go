@@ -25,7 +25,7 @@ type Source struct {
 func Load(cfg config.MSSQL) (*Source, error) {
 	db, err := sql.Open("mssql", cfg.ToDSN())
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to PostgreSQL: %w", err)
+		return nil, fmt.Errorf("failed to connect to MSSQL: %w", err)
 	}
 
 	return &Source{

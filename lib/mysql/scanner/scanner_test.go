@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestScanAdapter_ParsePrimaryKeyValue(t *testing.T) {
+func TestScanAdapter_ParsePrimaryKeyValueForOverrides(t *testing.T) {
 	{
 		// Column does not exist
 		adapter := scanAdapter{columns: []schema.Column{{Name: "bar"}}}
