@@ -3,34 +3,11 @@ package adapter
 import (
 	"fmt"
 	"math"
-	"strings"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/jackc/pgx/v5/pgtype"
 )
-
-const moneyScale = 2
-
-type MoneyConverter struct{}
-
-func (MoneyConverter) ToField(name string) debezium.Field {
-	return debezium.Field{
-		FieldName:    name,
-		Type:         debezium.Bytes,
-		DebeziumType: debezium.KafkaDecimalType,
-		Parameters: map[string]any{
-			"scale": fmt.Sprint(moneyScale),
-		},
-	}
-}
-
-// Convert will change $4,000 to 4000.
-func (MoneyConverter) Convert(value any) (any, error) {
-	stringValue := strings.Replace(fmt.Sprint(value), "$", "", 1)
-	stringValue = strings.ReplaceAll(stringValue, ",", "")
-	return debezium.EncodeDecimal(stringValue, moneyScale)
-}
 
 type PgTimeConverter struct{}
 
