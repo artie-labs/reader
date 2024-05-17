@@ -7,6 +7,7 @@ import (
 	"github.com/artie-labs/transfer/clients/mssql/dialect"
 	mssql "github.com/microsoft/go-mssqldb"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/artie-labs/reader/lib/mssql/parse"
@@ -19,25 +20,20 @@ import (
 var supportedPrimaryKeyDataType = []schema.DataType{
 	schema.Bit,
 	schema.Bytes,
-
 	schema.Int16,
 	schema.Int32,
 	schema.Int64,
 	schema.Numeric,
 	schema.Float,
-
 	schema.Money,
 	schema.Date,
 	schema.String,
-
 	schema.Time,
 	schema.TimeMicro,
 	schema.TimeNano,
-
 	schema.Datetime2,
 	schema.Datetime2Micro,
 	schema.Datetime2Nano,
-
 	schema.DatetimeOffset,
 }
 
@@ -79,63 +75,23 @@ func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any,
 		return nil, fmt.Errorf("DataType(%d) for column %q is not supported for use as a primary key", _column.Type, _column.Name)
 	}
 
-	fmt.Println("val", value, "column.Type", _column.Type)
-	return value, fmt.Errorf("hello")
+	fmt.Println("### here", columnName, value)
 
-	//switch column.Type {
-	//case schema.Boolean:
-	//	boolValue, err := strconv.ParseBool(value)
-	//	if err != nil {
-	//		return nil, fmt.Errorf("unable to convert %q to a bool: %w", value, err)
-	//	}
-	//	return boolValue, nil
-	//case schema.Int16:
-	//	intValue, err := strconv.ParseInt(value, 10, 16)
-	//	if err != nil {
-	//		return nil, fmt.Errorf("unable to convert %q to an int16: %w", value, err)
-	//	}
-	//	return int16(intValue), nil
-	//case schema.Int32:
-	//	intValue, err := strconv.ParseInt(value, 10, 32)
-	//	if err != nil {
-	//		return nil, fmt.Errorf("unable to convert %q to an int32: %w", value, err)
-	//	}
-	//	return int32(intValue), nil
-	//case schema.Int64:
-	//	intValue, err := strconv.ParseInt(value, 10, 64)
-	//	if err != nil {
-	//		return nil, fmt.Errorf("unable to convert %q to an int64: %w", value, err)
-	//	}
-	//	return intValue, nil
-	//case schema.Real:
-	//	floatValue, err := strconv.ParseFloat(value, 32)
-	//	if err != nil {
-	//		return nil, fmt.Errorf("unable to convert %q to a float32: %w", value, err)
-	//	}
-	//	return float32(floatValue), nil
-	//case schema.Double:
-	//	floatValue, err := strconv.ParseFloat(value, 64)
-	//	if err != nil {
-	//		return nil, fmt.Errorf("unable to convert %q to a float64: %w", value, err)
-	//	}
-	//	return floatValue, nil
-	//case
-	//	schema.Numeric,
-	//	schema.VariableNumeric,
-	//	schema.Text,
-	//	schema.Money,
-	//	schema.UserDefinedText,
-	//	schema.Time,
-	//	schema.Date,
-	//	schema.Timestamp,
-	//	schema.TimestampWithTimeZone,
-	//	schema.Interval,
-	//	schema.UUID,
-	//	schema.JSON:
-	//	return value, nil
-	//default:
-	//	return nil, fmt.Errorf("primary key value parsing not implemented for DataType(%d)", column.Type)
-	//}
+	switch _column.Type {
+	case schema.Bit:
+		return value == "1", nil
+	case schema.Bytes:
+		return []byte(value), nil
+	case schema.Int16:
+		return strconv.ParseInt(value, 10, 16)
+	case schema.Int32:
+		return strconv.ParseInt(value, 10, 16)
+	case schema.Int64:
+		return strconv.ParseInt(value, 10, 64)
+	default:
+		fmt.Println("columnName", columnName, "value", value)
+		return nil, fmt.Errorf("unsupported data type: DataType(%d)", _column.Type)
+	}
 }
 
 func mssqlVarCharJoin(values []mssql.VarChar, sep string) string {
