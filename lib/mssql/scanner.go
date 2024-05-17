@@ -179,13 +179,13 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 		lowerBoundComparison = ">="
 	}
 
-	return fmt.Sprintf(`SELECT TOP %d %s FROM %s WHERE (%s) %s (%s) AND (%s) <= (%s) ORDER BY %s`,
+	return fmt.Sprintf(`SELECT TOP %d %s FROM %s.%s WHERE (%s) %s (%s) AND (%s) <= (%s) ORDER BY %s`,
 		// TOP
 		batchSize,
 		// SELECT
 		strings.Join(colNames, ","),
 		// FROM
-		mssqlDialect.QuoteIdentifier(s.tableName),
+		mssqlDialect.QuoteIdentifier(s.schema), mssqlDialect.QuoteIdentifier(s.tableName),
 		// WHERE (pk) > (123)
 		mssqlVarCharJoin(quotedKeyNames, ","), lowerBoundComparison, strings.Join(queryPlaceholders(len(startingValues)), ","),
 		// AND NOT (pk) <= (123)
