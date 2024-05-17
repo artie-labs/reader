@@ -78,6 +78,10 @@ func TestParseColumnDataType(t *testing.T) {
 			}
 		}
 	}
+	{
+		// time
+
+	}
 }
 
 func TestBuildPkValuesQuery(t *testing.T) {
