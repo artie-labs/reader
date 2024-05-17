@@ -41,7 +41,7 @@ var supportedPrimaryKeyDataType = []schema.DataType{
 }
 
 func NewScanner(db *sql.DB, table Table, columns []schema.Column, cfg scan.ScannerConfig) (*scan.Scanner, error) {
-	for _, key := range table.PrimaryKeys {
+	for _, key := range table.PrimaryKeys() {
 		_column, err := column.GetColumnByName(columns, key)
 		if err != nil {
 			return nil, fmt.Errorf("missing column with name: %q", key)

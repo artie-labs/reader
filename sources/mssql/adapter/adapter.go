@@ -32,7 +32,7 @@ func NewMSSQLAdapter(db *sql.DB, tableCfg config.MSSQLTable) (MSSQLAdapter, erro
 		return MSSQLAdapter{}, fmt.Errorf("failed to load metadata for table %s.%s: %w", tableCfg.Schema, tableCfg.Name, err)
 	}
 
-	columns, err := column.FilterOutExcludedColumns(table.Columns, tableCfg.ExcludeColumns, table.PrimaryKeys)
+	columns, err := column.FilterOutExcludedColumns(table.Columns(), tableCfg.ExcludeColumns, table.PrimaryKeys())
 	if err != nil {
 		return MSSQLAdapter{}, err
 	}
@@ -72,7 +72,7 @@ func (m MSSQLAdapter) NewIterator() (transformer.RowsIterator, error) {
 }
 
 func (m MSSQLAdapter) PartitionKeys() []string {
-	return m.table.PrimaryKeys
+	return m.table.PrimaryKeys()
 }
 
 func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (converters.ValueConverter, error) {

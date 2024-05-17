@@ -4,14 +4,15 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/artie-labs/reader/lib/rdbms/primary_key"
-	"github.com/artie-labs/transfer/clients/mssql/dialect"
-	mssql "github.com/microsoft/go-mssqldb"
 	"log/slog"
 	"strings"
 
+	"github.com/artie-labs/transfer/clients/mssql/dialect"
+	mssql "github.com/microsoft/go-mssqldb"
+
 	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/reader/lib/rdbms/column"
+	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
 
 type DataType int

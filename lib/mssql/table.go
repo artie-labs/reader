@@ -14,8 +14,16 @@ type Table struct {
 	Name   string
 	Schema string
 
-	Columns     []schema.Column
-	PrimaryKeys []string
+	columns     []schema.Column
+	primaryKeys []string
+}
+
+func (t *Table) Columns() []schema.Column {
+	return t.columns
+}
+
+func (t *Table) PrimaryKeys() []string {
+	return t.primaryKeys
 }
 
 func LoadTable(db *sql.DB, _schema string, name string) (*Table, error) {
@@ -24,20 +32,23 @@ func LoadTable(db *sql.DB, _schema string, name string) (*Table, error) {
 		Schema: _schema,
 	}
 
-	var err error
-	if tbl.Columns, err = schema.DescribeTable(db, tbl.Schema, tbl.Name); err != nil {
+	cols, err := schema.DescribeTable(db, tbl.Schema, tbl.Name)
+	if err != nil {
 		return nil, fmt.Errorf("failed to describe table %s.%s: %w", tbl.Schema, tbl.Name, err)
 	}
 
-	if tbl.PrimaryKeys, err = schema.GetPrimaryKeys(db, tbl.Schema, tbl.Name); err != nil {
+	primaryKeys, err := schema.GetPrimaryKeys(db, tbl.Schema, tbl.Name)
+	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve primary keys: %w", err)
 	}
 
+	tbl.columns = cols
+	tbl.primaryKeys = primaryKeys
 	return tbl, nil
 }
 
 func (t *Table) GetPrimaryKeysBounds(db *sql.DB) ([]primary_key.Key, error) {
-	keyColumns, err := column.GetColumnsByName(t.Columns, t.PrimaryKeys)
+	keyColumns, err := column.GetColumnsByName(t.Columns(), t.PrimaryKeys())
 	if err != nil {
 		return nil, fmt.Errorf("missing primary key columns: %w", err)
 	}
