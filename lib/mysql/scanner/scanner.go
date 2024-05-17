@@ -3,7 +3,6 @@ package scanner
 import (
 	"database/sql"
 	"fmt"
-	"github.com/artie-labs/reader/lib/rdbms"
 	"slices"
 	"strconv"
 	"strings"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/mysql/schema"
+	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
