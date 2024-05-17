@@ -7,7 +7,6 @@ import (
 	"github.com/artie-labs/transfer/clients/mssql/dialect"
 	mssql "github.com/microsoft/go-mssqldb"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/artie-labs/reader/lib/mssql/parse"
@@ -75,22 +74,11 @@ func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any,
 		return nil, fmt.Errorf("DataType(%d) for column %q is not supported for use as a primary key", _column.Type, _column.Name)
 	}
 
-	fmt.Println("### here", columnName, value)
-
 	switch _column.Type {
 	case schema.Bit:
 		return value == "1", nil
-	case schema.Bytes:
-		return []byte(value), nil
-	case schema.Int16:
-		return strconv.ParseInt(value, 10, 16)
-	case schema.Int32:
-		return strconv.ParseInt(value, 10, 16)
-	case schema.Int64:
-		return strconv.ParseInt(value, 10, 64)
 	default:
-		fmt.Println("columnName", columnName, "value", value)
-		return nil, fmt.Errorf("unsupported data type: DataType(%d)", _column.Type)
+		return value, nil
 	}
 }
 
