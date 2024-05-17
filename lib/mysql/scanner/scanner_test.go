@@ -13,7 +13,7 @@ func TestScanAdapter_ParsePrimaryKeyValue(t *testing.T) {
 	{
 		// Column does not exist
 		adapter := scanAdapter{columns: []schema.Column{{Name: "bar"}}}
-		_, err := adapter.ParsePrimaryKeyValue("foo", "1234")
+		_, err := adapter.ParsePrimaryKeyValueForOverrides("foo", "1234")
 		assert.ErrorContains(t, err, `primary key column "foo" does not exist`)
 	}
 
@@ -220,7 +220,7 @@ func TestScanAdapter_ParsePrimaryKeyValue(t *testing.T) {
 
 	for _, testCase := range testCases {
 		adapter := scanAdapter{columns: []schema.Column{{Name: "col", Type: testCase.dataType}}}
-		value, err := adapter.ParsePrimaryKeyValue("col", testCase.value)
+		value, err := adapter.ParsePrimaryKeyValueForOverrides("col", testCase.value)
 		if testCase.expectedErr == "" {
 			assert.NoError(t, err, testCase.name)
 			assert.Equal(t, testCase.expected, value, testCase.name)

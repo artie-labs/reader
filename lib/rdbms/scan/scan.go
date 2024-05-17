@@ -22,7 +22,7 @@ type ScannerConfig struct {
 }
 
 type ScanAdapter interface {
-	ParsePrimaryKeyValue(columnName string, value string) (any, error)
+	ParsePrimaryKeyValueForOverrides(columnName string, value string) (any, error)
 	BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any)
 	ParseRow(row []any) error
 }
@@ -170,7 +170,7 @@ func parsePkValueOverrides(values []string, primaryKeys []primary_key.Key, adapt
 
 	result := make([]any, len(values))
 	for i, value := range values {
-		parsedValue, err := adapter.ParsePrimaryKeyValue(primaryKeys[i].Name, value)
+		parsedValue, err := adapter.ParsePrimaryKeyValueForOverrides(primaryKeys[i].Name, value)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse value %q: %w", value, err)
 		}

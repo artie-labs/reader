@@ -71,7 +71,7 @@ type scanAdapter struct {
 	columns   []schema.Column
 }
 
-func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any, error) {
+func (s scanAdapter) ParsePrimaryKeyValueForOverrides(columnName string, value string) (any, error) {
 	columnIdx := slices.IndexFunc(s.columns, func(x schema.Column) bool { return x.Name == columnName })
 	if columnIdx < 0 {
 		return nil, fmt.Errorf("primary key column does not exist: %q", columnName)

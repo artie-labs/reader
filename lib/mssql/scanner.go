@@ -3,7 +3,6 @@ package mssql
 import (
 	"database/sql"
 	"fmt"
-	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/transfer/clients/mssql/dialect"
 	mssql "github.com/microsoft/go-mssqldb"
 	"slices"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/artie-labs/reader/lib/mssql/parse"
 	"github.com/artie-labs/reader/lib/mssql/schema"
+	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/reader/lib/rdbms/column"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
@@ -63,7 +63,7 @@ type scanAdapter struct {
 	columns   []schema.Column
 }
 
-func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any, error) {
+func (s scanAdapter) ParsePrimaryKeyValueForOverrides(columnName string, value string) (any, error) {
 	// TODO: Implement Date, Time, Datetime for primary key types.
 	columnIdx := slices.IndexFunc(s.columns, func(x schema.Column) bool { return x.Name == columnName })
 	if columnIdx < 0 {
