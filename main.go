@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/artie-labs/reader/sources/mssql"
 	"log/slog"
 
 	"github.com/artie-labs/reader/config"
@@ -13,7 +14,6 @@ import (
 	"github.com/artie-labs/reader/sources"
 	"github.com/artie-labs/reader/sources/dynamodb"
 	"github.com/artie-labs/reader/sources/mongo"
-	"github.com/artie-labs/reader/sources/mssql"
 	"github.com/artie-labs/reader/sources/mysql"
 	"github.com/artie-labs/reader/sources/postgres"
 	"github.com/artie-labs/reader/writers"
@@ -43,12 +43,12 @@ func buildSource(cfg *config.Settings) (sources.Source, bool, error) {
 		source, isStreamingMode, err = dynamodb.Load(*cfg.DynamoDB)
 	case config.SourceMongoDB:
 		source, err = mongo.Load(*cfg.MongoDB)
+	case config.SourceMSSQL:
+		source, err = mssql.Load(*cfg.MSSQL)
 	case config.SourceMySQL:
 		source, err = mysql.Load(*cfg.MySQL)
 	case config.SourcePostgreSQL:
 		source, err = postgres.Load(*cfg.PostgreSQL)
-	case config.SourceMSSQL:
-		source, err = mssql.Load(*cfg.MSSQL)
 	default:
 		panic(fmt.Sprintf("unknown source %q", cfg.Source)) // should never happen
 	}
