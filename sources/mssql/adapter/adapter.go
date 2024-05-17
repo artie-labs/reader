@@ -3,7 +3,6 @@ package adapter
 import (
 	"database/sql"
 	"fmt"
-	"log/slog"
 	"strings"
 
 	"github.com/artie-labs/reader/config"
@@ -26,7 +25,6 @@ type MSSQLAdapter struct {
 }
 
 func NewMSSQLAdapter(db *sql.DB, tableCfg config.MSSQLTable) (MSSQLAdapter, error) {
-	slog.Info("Loading metadata for table")
 	table, err := mssql.LoadTable(db, tableCfg.Schema, tableCfg.Name)
 	if err != nil {
 		return MSSQLAdapter{}, fmt.Errorf("failed to load metadata for table %s.%s: %w", tableCfg.Schema, tableCfg.Name, err)
