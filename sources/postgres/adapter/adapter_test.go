@@ -218,7 +218,7 @@ func TestValueConverterForType_Convert(t *testing.T) {
 			name:          "numeric (postgres.Numeric) - money",
 			col:           schema.Column{Name: "money_col", Type: schema.Money},
 			numericValue:  true,
-			value:         123.99,
+			value:         "$123.99",
 			expectedValue: "123.99",
 		},
 		{

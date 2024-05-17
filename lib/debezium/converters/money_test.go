@@ -34,20 +34,6 @@ func TestMoneyConverter_Convert(t *testing.T) {
 			MutateString: true,
 		}
 		{
-			// int
-			converted, err := converter.Convert(1234)
-			assert.NoError(t, err)
-			assert.Equal(t, []byte{0x1, 0xe2, 0x8}, converted)
-			assert.Equal(t, "1234.00", decodeValue(converted))
-		}
-		{
-			// float
-			converted, err := converter.Convert(1234.56)
-			assert.NoError(t, err)
-			assert.Equal(t, []byte{0x1, 0xe2, 0x40}, converted)
-			assert.Equal(t, "1234.56", decodeValue(converted))
-		}
-		{
 			// string
 			converted, err := converter.Convert("1234.56")
 			assert.NoError(t, err)

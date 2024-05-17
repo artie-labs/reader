@@ -26,7 +26,11 @@ func (MoneyConverter) ToField(name string) debezium.Field {
 
 // Convert will change $4,000 to 4000.
 func (m MoneyConverter) Convert(value any) (any, error) {
-	valString := fmt.Sprint(value)
+	valString, isOk := value.(string)
+	if !isOk {
+		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
+	}
+
 	if m.MutateString {
 		valString = strings.Replace(valString, "$", "", 1)
 		valString = strings.ReplaceAll(valString, ",", "")

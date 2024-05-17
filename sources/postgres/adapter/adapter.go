@@ -96,7 +96,9 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	case schema.VariableNumeric:
 		return converters.VariableNumericConverter{}, nil
 	case schema.Money:
-		return converters.MoneyConverter{}, nil
+		return converters.MoneyConverter{
+			MutateString: true,
+		}, nil
 	case schema.Bytea:
 		return converters.BytesPassthrough{}, nil
 	case schema.Text, schema.UserDefinedText:
