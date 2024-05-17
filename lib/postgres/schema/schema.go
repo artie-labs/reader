@@ -4,13 +4,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 	"log/slog"
 	"strings"
 
+	"github.com/jackc/pgx/v5"
+
 	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/reader/lib/rdbms/column"
-	"github.com/jackc/pgx/v5"
+	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 )
 
 type DataType int
