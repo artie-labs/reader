@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 	"github.com/artie-labs/transfer/clients/mssql/dialect"
 	mssql "github.com/microsoft/go-mssqldb"
 	"log/slog"
@@ -109,7 +110,7 @@ func ParseColumnDataType(colKind string, precision, scale, datetimePrecision *in
 	case "smallmoney", "money":
 		return Money, nil, nil
 	case "numeric", "decimal":
-		if precision == nil && scale == nil {
+		if precision == nil || scale == nil {
 			return -1, nil, fmt.Errorf("expected precision and scale to be not-nil")
 		}
 
@@ -248,12 +249,7 @@ func getPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column,
 	return result, nil
 }
 
-type Bounds struct {
-	Min any
-	Max any
-}
-
-func GetPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []Column) ([]Bounds, error) {
+func GetPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []Column) ([]primary_key.Bounds, error) {
 	minValues, err := getPrimaryKeyValues(db, schema, table, primaryKeys, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve lower bounds for primary keys: %w", err)
@@ -264,9 +260,9 @@ func GetPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []Column
 		return nil, fmt.Errorf("failed to retrieve upper bounds for primary keys: %w", err)
 	}
 
-	var bounds []Bounds
+	var bounds []primary_key.Bounds
 	for idx, minValue := range minValues {
-		bounds = append(bounds, Bounds{
+		bounds = append(bounds, primary_key.Bounds{
 			Min: minValue,
 			Max: maxValues[idx],
 		})

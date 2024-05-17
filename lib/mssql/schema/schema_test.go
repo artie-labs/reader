@@ -72,9 +72,9 @@ func TestParseColumnDataType(t *testing.T) {
 			// invalid, precision is missing
 			for _, colKind := range []string{"numeric", "decimal"} {
 				dataType, opts, err := ParseColumnDataType(colKind, nil, ptr.ToInt(2), nil)
-				assert.ErrorContains(t, err, colKind)
+				assert.ErrorContains(t, err, "expected precision and scale to be not-nil", colKind)
 				assert.Nil(t, opts, colKind)
-				assert.Equal(t, -1, dataType, colKind)
+				assert.Equal(t, -1, int(dataType), colKind)
 			}
 		}
 	}
