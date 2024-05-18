@@ -56,7 +56,7 @@ func NewScanner(db *sql.DB, table Table, columns []schema.Column, cfg scan.Scann
 		}
 	}
 
-	primaryKeyBounds, err := table.GetPrimaryKeysBounds(db)
+	primaryKeyBounds, err := table.FetchPrimaryKeysBounds(db)
 	if err != nil {
 		return nil, err
 	}

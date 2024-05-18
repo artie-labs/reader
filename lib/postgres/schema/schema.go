@@ -176,7 +176,7 @@ JOIN   pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)
 WHERE  i.indrelid = $1::regclass
 AND    i.indisprimary;`
 
-func GetPrimaryKeys(db *sql.DB, schema, table string) ([]string, error) {
+func FetchPrimaryKeys(db *sql.DB, schema, table string) ([]string, error) {
 	query := strings.TrimSpace(primaryKeysQuery)
 	rows, err := db.Query(query, pgx.Identifier{schema, table}.Sanitize())
 	if err != nil {
@@ -220,7 +220,7 @@ func buildPkValuesQuery(args buildPkValuesQueryArgs) string {
 		pgx.Identifier{args.Schema, args.TableName}.Sanitize(), strings.Join(fragments, ","))
 }
 
-func getPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column, descending bool) ([]any, error) {
+func fetchPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column, descending bool) ([]any, error) {
 	result := make([]any, len(primaryKeys))
 	resultPtrs := make([]any, len(primaryKeys))
 	for i := range result {
@@ -248,13 +248,13 @@ func getPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column,
 	return result, nil
 }
 
-func GetPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []Column) ([]primary_key.Bounds, error) {
-	minValues, err := getPrimaryKeyValues(db, schema, table, primaryKeys, false)
+func FetchPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []Column) ([]primary_key.Bounds, error) {
+	minValues, err := fetchPrimaryKeyValues(db, schema, table, primaryKeys, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve lower bounds for primary keys: %w", err)
 	}
 
-	maxValues, err := getPrimaryKeyValues(db, schema, table, primaryKeys, true)
+	maxValues, err := fetchPrimaryKeyValues(db, schema, table, primaryKeys, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve upper bounds for primary keys: %w", err)
 	}
