@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
-	
+
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
