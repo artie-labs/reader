@@ -14,6 +14,7 @@ require (
 	github.com/jackc/pgx/v5 v5.5.5
 	github.com/lmittmann/tint v1.0.4
 	github.com/mattn/go-isatty v0.0.20
+	github.com/microsoft/go-mssqldb v1.7.1
 	github.com/samber/slog-multi v1.0.2
 	github.com/samber/slog-sentry/v2 v2.5.0
 	github.com/segmentio/kafka-go v0.4.47
@@ -96,7 +97,6 @@ require (
 	github.com/lestrrat-go/jwx v1.2.29 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/lib/pq v1.10.9 // indirect
-	github.com/microsoft/go-mssqldb v1.7.0 // indirect
 	github.com/minio/asm2plan9s v0.0.0-20200509001527-cdd76441f9d8 // indirect
 	github.com/minio/c2goasm v0.0.0-20190812172519-36a3d3bbc4f3 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect

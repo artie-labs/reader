@@ -30,6 +30,7 @@ Artie Reader reads from databases to perform historical snapshots and also reads
 | MongoDB    | ✅        | ❌         |
 | MySQL      | ✅        | ❌         |
 | PostgreSQL | ✅        | ❌         |
+| SQL Server | ✅        | ❌         |
 
 
 ## Running

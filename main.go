@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/artie-labs/reader/sources/mssql"
 	"log/slog"
 
 	"github.com/artie-labs/reader/config"
@@ -42,6 +43,8 @@ func buildSource(cfg *config.Settings) (sources.Source, bool, error) {
 		source, isStreamingMode, err = dynamodb.Load(*cfg.DynamoDB)
 	case config.SourceMongoDB:
 		source, err = mongo.Load(*cfg.MongoDB)
+	case config.SourceMSSQL:
+		source, err = mssql.Load(*cfg.MSSQL)
 	case config.SourceMySQL:
 		source, err = mysql.Load(*cfg.MySQL)
 	case config.SourcePostgreSQL:

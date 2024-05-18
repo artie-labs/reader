@@ -12,9 +12,9 @@ type mockAdapter struct {
 	returnError bool
 }
 
-func (m mockAdapter) ParsePrimaryKeyValue(columnName string, value string) (any, error) {
+func (m mockAdapter) ParsePrimaryKeyValueForOverrides(columnName string, value string) (any, error) {
 	if m.returnError {
-		return nil, fmt.Errorf("mock error in ParsePrimaryKeyValue")
+		return nil, fmt.Errorf("mock error in ParsePrimaryKeyValueForOverrides")
 	} else {
 		return fmt.Sprintf("parsed-%s-%s", columnName, value), nil
 	}
@@ -46,10 +46,10 @@ func TestParsePkValueOverrides(t *testing.T) {
 		assert.ErrorContains(t, err, "keys (1), and override values (2) length does not match, keys: [{foo <nil> <nil>}]")
 	}
 	{
-		// len(values) == len(primary keys) + error in ParsePrimaryKeyValue
+		// len(values) == len(primary keys) + error in ParsePrimaryKeyValueForOverrides
 		adapter := mockAdapter{returnError: true}
 		_, err := parsePkValueOverrides([]string{"123", "456"}, []primary_key.Key{{Name: "foo"}, {Name: "bar"}}, adapter)
-		assert.ErrorContains(t, err, `failed to parse value "123": mock error in ParsePrimaryKeyValue`)
+		assert.ErrorContains(t, err, `failed to parse value "123": mock error in ParsePrimaryKeyValueForOverrides`)
 	}
 	{
 		// Happy path: len(values) == len(primary keys) + no error

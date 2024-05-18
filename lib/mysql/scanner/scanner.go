@@ -10,6 +10,7 @@ import (
 
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/mysql/schema"
+	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
@@ -29,7 +30,7 @@ type scanAdapter struct {
 	columns   []schema.Column
 }
 
-func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any, error) {
+func (s scanAdapter) ParsePrimaryKeyValueForOverrides(columnName string, value string) (any, error) {
 	columnIdx := slices.IndexFunc(s.columns, func(x schema.Column) bool { return x.Name == columnName })
 	if columnIdx < 0 {
 		return nil, fmt.Errorf("primary key column %q does not exist", columnName)
@@ -124,14 +125,6 @@ func (s scanAdapter) ParsePrimaryKeyValue(columnName string, value string) (any,
 	}
 }
 
-func queryPlaceholders(count int) []string {
-	result := make([]string, count)
-	for i := range count {
-		result[i] = "?"
-	}
-	return result
-}
-
 func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any) {
 	colNames := make([]string, len(s.columns))
 	for idx, col := range s.columns {
@@ -161,9 +154,8 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 		// FROM
 		schema.QuoteIdentifier(s.tableName),
 		// WHERE (pk) > (123)
-		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(queryPlaceholders(len(startingValues)), ","),
-		// AND NOT (pk) <= (123)
-		strings.Join(quotedKeyNames, ","), strings.Join(queryPlaceholders(len(endingValues)), ","),
+		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(rdbms.QueryPlaceholders("?", len(startingValues)), ","),
+		strings.Join(quotedKeyNames, ","), strings.Join(rdbms.QueryPlaceholders("?", len(endingValues)), ","),
 		// ORDER BY
 		strings.Join(quotedKeyNames, ","),
 		// LIMIT
