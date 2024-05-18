@@ -1,6 +1,7 @@
 package config
 
 import (
+	"cmp"
 	"fmt"
 	"os"
 	"strings"
@@ -24,11 +25,7 @@ func (k *Kafka) BootstrapAddresses() []string {
 }
 
 func (k *Kafka) GetPublishSize() uint {
-	if k.PublishSize == 0 {
-		return constants.DefaultPublishSize
-	}
-
-	return k.PublishSize
+	return cmp.Or(k.PublishSize, constants.DefaultPublishSize)
 }
 
 func (k *Kafka) Validate() error {
@@ -195,15 +192,11 @@ func ReadConfig(fp string) (*Settings, error) {
 		return nil, fmt.Errorf("failed to unmarshal config file: %w", err)
 	}
 
-	if settings.Source == "" {
-		// By default, if you don't pass in a source -- it will be dynamodb for backwards compatibility
-		settings.Source = SourceDynamo
-	}
+	// By default, if you don't pass in a source -- it will be dynamodb for backwards compatibility
+	settings.Source = cmp.Or(settings.Source, SourceDynamo)
 
-	if settings.Destination == "" {
-		// By default, if you don't pass in a destination -- it will be Kafka for backwards compatibility
-		settings.Destination = DestinationKafka
-	}
+	// By default, if you don't pass in a destination -- it will be Kafka for backwards compatibility
+	settings.Destination = cmp.Or(settings.Destination, DestinationKafka)
 
 	if err = settings.Validate(); err != nil {
 		return nil, fmt.Errorf("failed to validate config file: %w", err)
