@@ -310,12 +310,12 @@ func fetchPrimaryKeyValues(db *sql.DB, table string, primaryKeys []Column, desce
 }
 
 func FetchPrimaryKeysBounds(db *sql.DB, table string, primaryKeys []Column) ([]primary_key.Bounds, error) {
-	minValues, err := getPrimaryKeyValues(db, table, primaryKeys, false)
+	minValues, err := fetchPrimaryKeyValues(db, table, primaryKeys, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve lower bounds for primary keys: %w", err)
 	}
 
-	maxValues, err := getPrimaryKeyValues(db, table, primaryKeys, true)
+	maxValues, err := fetchPrimaryKeyValues(db, table, primaryKeys, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve upper bounds for primary keys: %w", err)
 	}
