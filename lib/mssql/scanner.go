@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/artie-labs/transfer/clients/mssql/dialect"
-	mssql "github.com/microsoft/go-mssqldb"
 	"slices"
 	"strings"
 
@@ -83,14 +82,6 @@ func (s scanAdapter) ParsePrimaryKeyValueForOverrides(columnName string, value s
 	}
 }
 
-func mssqlVarCharJoin(values []mssql.VarChar, sep string) string {
-	parts := make([]string, len(values))
-	for i, val := range values {
-		parts[i] = string(val)
-	}
-	return strings.Join(parts, sep)
-}
-
 func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any) {
 	mssqlDialect := dialect.MSSQLDialect{}
 	colNames := make([]string, len(s.columns))
@@ -105,9 +96,9 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 		endingValues[i] = pk.EndingValue
 	}
 
-	quotedKeyNames := make([]mssql.VarChar, len(primaryKeys))
+	quotedKeyNames := make([]string, len(primaryKeys))
 	for i, key := range primaryKeys {
-		quotedKeyNames[i] = mssql.VarChar(key.Name)
+		quotedKeyNames[i] = mssqlDialect.QuoteIdentifier(key.Name)
 	}
 
 	lowerBoundComparison := ">"
@@ -123,10 +114,10 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 		// FROM
 		mssqlDialect.QuoteIdentifier(s.schema), mssqlDialect.QuoteIdentifier(s.tableName),
 		// WHERE (pk) > (123)
-		mssqlVarCharJoin(quotedKeyNames, ","), lowerBoundComparison, strings.Join(rdbms.QueryPlaceholders("?", len(startingValues)), ","),
-		mssqlVarCharJoin(quotedKeyNames, ","), strings.Join(rdbms.QueryPlaceholders("?", len(endingValues)), ","),
+		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(rdbms.QueryPlaceholders("?", len(startingValues)), ","),
+		strings.Join(quotedKeyNames, ","), strings.Join(rdbms.QueryPlaceholders("?", len(endingValues)), ","),
 		// ORDER BY
-		mssqlVarCharJoin(quotedKeyNames, ","),
+		strings.Join(quotedKeyNames, ","),
 	), slices.Concat(startingValues, endingValues)
 }
 
