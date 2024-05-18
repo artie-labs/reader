@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
-	"strings"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium/converters"
@@ -67,7 +66,7 @@ func (m MySQLAdapter) TableName() string {
 }
 
 func (m MySQLAdapter) TopicSuffix() string {
-	return fmt.Sprintf("%s.%s", m.dbName, strings.ReplaceAll(m.table.Name, `"`, ``))
+	return fmt.Sprintf("%s.%s", m.dbName, m.table.Name)
 }
 
 func (m MySQLAdapter) FieldConverters() []transformer.FieldConverter {

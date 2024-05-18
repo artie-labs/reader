@@ -3,8 +3,6 @@ package adapter
 import (
 	"database/sql"
 	"fmt"
-	"strings"
-
 	"github.com/artie-labs/transfer/lib/ptr"
 
 	"github.com/artie-labs/reader/config"
@@ -62,7 +60,7 @@ func (m MSSQLAdapter) TableName() string {
 }
 
 func (m MSSQLAdapter) TopicSuffix() string {
-	return fmt.Sprintf("%s.%s.%s", m.dbName, m.table.Schema, strings.ReplaceAll(m.table.Name, `"`, ``))
+	return fmt.Sprintf("%s.%s.%s", m.dbName, m.table.Schema, m.table.Name)
 }
 
 func (m MSSQLAdapter) FieldConverters() []transformer.FieldConverter {
