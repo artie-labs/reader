@@ -1,6 +1,7 @@
 package mtr
 
 import (
+	"cmp"
 	"fmt"
 	"log/slog"
 	"os"
@@ -19,7 +20,7 @@ func New(namespace string, tags []string, samplingRate float64) (*statsClient, e
 	}
 
 	datadogClient, err := statsd.New(address,
-		statsd.WithNamespace(stringutil.Override(DefaultNamespace, namespace)),
+		statsd.WithNamespace(cmp.Or(namespace, DefaultNamespace)),
 		statsd.WithTags(tags),
 	)
 	if err != nil {
