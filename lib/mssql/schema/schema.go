@@ -227,7 +227,7 @@ func buildPkValuesQuery(keys []Column, schema string, tableName string, desc boo
 	)
 }
 
-func getPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column, descending bool) ([]any, error) {
+func fetchPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column, descending bool) ([]any, error) {
 	result := make([]any, len(primaryKeys))
 	resultPtrs := make([]any, len(primaryKeys))
 	for i := range result {
@@ -251,12 +251,12 @@ func getPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column,
 }
 
 func FetchPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []Column) ([]primary_key.Bounds, error) {
-	minValues, err := getPrimaryKeyValues(db, schema, table, primaryKeys, false)
+	minValues, err := fetchPrimaryKeyValues(db, schema, table, primaryKeys, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve lower bounds for primary keys: %w", err)
 	}
 
-	maxValues, err := getPrimaryKeyValues(db, schema, table, primaryKeys, true)
+	maxValues, err := fetchPrimaryKeyValues(db, schema, table, primaryKeys, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve upper bounds for primary keys: %w", err)
 	}
