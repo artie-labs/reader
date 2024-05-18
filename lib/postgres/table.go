@@ -37,7 +37,7 @@ func LoadTable(db *sql.DB, _schema string, name string) (*Table, error) {
 }
 
 func (t *Table) FetchPrimaryKeysBounds(db *sql.DB) ([]primary_key.Key, error) {
-	keyColumns, err := column.GetColumnsByName(t.Columns, t.PrimaryKeys)
+	keyColumns, err := column.ByNames(t.Columns, t.PrimaryKeys)
 	if err != nil {
 		return nil, fmt.Errorf("missing primary key columns: %w", err)
 	}

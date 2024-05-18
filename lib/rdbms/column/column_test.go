@@ -10,7 +10,7 @@ type mockOpts struct{}
 
 type mockColumn = Column[int, mockOpts]
 
-func TestGetColumnByName(t *testing.T) {
+func TestByName(t *testing.T) {
 	type _tc struct {
 		columns     []mockColumn
 		columnName  string
@@ -59,7 +59,7 @@ func TestGetColumnByName(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		result, err := GetColumnByName(testCase.columns, testCase.columnName)
+		result, err := ByName(testCase.columns, testCase.columnName)
 		if testCase.expectedErr != "" {
 			assert.ErrorContains(t, err, testCase.expectedErr)
 		} else {
@@ -69,7 +69,7 @@ func TestGetColumnByName(t *testing.T) {
 	}
 }
 
-func TestGetColumnsByName(t *testing.T) {
+func TestByNames(t *testing.T) {
 	type _tc struct {
 		columns     []mockColumn
 		columnNames []string
@@ -123,7 +123,7 @@ func TestGetColumnsByName(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		result, err := GetColumnsByName(testCase.columns, testCase.columnNames)
+		result, err := ByNames(testCase.columns, testCase.columnNames)
 		if testCase.expectedErr != "" {
 			assert.ErrorContains(t, err, testCase.expectedErr)
 		} else {
