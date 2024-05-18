@@ -1,7 +1,9 @@
 package config
 
 import (
+	"cmp"
 	"fmt"
+
 	"github.com/artie-labs/reader/constants"
 	"github.com/artie-labs/transfer/lib/stringutil"
 )
@@ -26,11 +28,7 @@ func (c Collection) TopicSuffix(db string) string {
 }
 
 func (c Collection) GetBatchSize() int32 {
-	if c.BatchSize == 0 {
-		return constants.DefaultBatchSize
-	}
-
-	return c.BatchSize
+	return cmp.Or(c.BatchSize, constants.DefaultBatchSize)
 }
 
 func (m MongoDB) Validate() error {
