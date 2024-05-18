@@ -64,9 +64,9 @@ func TestParseValue(t *testing.T) {
 	}
 	{
 		// UniqueIdentifier
-		value, err := ParseValue(schema.UniqueIdentifier, []byte{172, 102, 115, 214, 125, 112, 173, 75, 151, 103, 38, 81, 105, 72, 207, 55})
+		value, err := ParseValue(schema.UniqueIdentifier, []byte{246, 152, 170, 145, 154, 66, 152, 64, 138, 219, 20, 190, 130, 229, 187, 126})
 		assert.NoError(t, err)
-		assert.Equal(t, "D67366AC-707D-4BAD-9767-26516948CF37", value)
+		assert.Equal(t, "91AA98F6-429A-4098-8ADB-14BE82E5BB7E", value)
 	}
 	{
 		// Date, Time, TimeMicro, TimeNano, Datetime2, Datetime2Micro, Datetime2Nano, DatetimeOffset
