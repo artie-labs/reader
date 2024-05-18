@@ -36,7 +36,7 @@ func TestMySQLAdapter_TopicSuffix(t *testing.T) {
 		},
 		{
 			table: mysql.Table{
-				Name: `"PublicStatus"`,
+				Name: "PublicStatus",
 			},
 			expected: "db.PublicStatus",
 		},

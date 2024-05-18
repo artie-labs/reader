@@ -35,7 +35,7 @@ func TestPostgresAdapter_TopicSuffix(t *testing.T) {
 		},
 		{
 			table: postgres.Table{
-				Name:   `"PublicStatus"`,
+				Name:   "PublicStatus",
 				Schema: "schema2",
 			},
 			expectedTopicName: "schema2.PublicStatus",
