@@ -43,7 +43,7 @@ func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
 		logger := slog.With(slog.String("schema", tableCfg.Schema), slog.String("table", tableCfg.Name))
 		snapshotStartTime := time.Now()
 
-		dbzAdapter, err := adapter.NewMSSQLAdapter(s.db, *tableCfg)
+		dbzAdapter, err := adapter.NewMSSQLAdapter(s.db, s.cfg.Database, *tableCfg)
 		if err != nil {
 			return fmt.Errorf("failed to create MSSQL adapter: %w", err)
 		}

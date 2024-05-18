@@ -20,13 +20,14 @@ const defaultErrorRetries = 10
 
 type MSSQLAdapter struct {
 	db              *sql.DB
+	dbName          string
 	table           mssql.Table
 	columns         []schema.Column
 	fieldConverters []transformer.FieldConverter
 	scannerCfg      scan.ScannerConfig
 }
 
-func NewMSSQLAdapter(db *sql.DB, tableCfg config.MSSQLTable) (MSSQLAdapter, error) {
+func NewMSSQLAdapter(db *sql.DB, dbName string, tableCfg config.MSSQLTable) (MSSQLAdapter, error) {
 	table, err := mssql.LoadTable(db, tableCfg.Schema, tableCfg.Name)
 	if err != nil {
 		return MSSQLAdapter{}, fmt.Errorf("failed to load metadata for table %s.%s: %w", tableCfg.Schema, tableCfg.Name, err)
@@ -48,6 +49,7 @@ func NewMSSQLAdapter(db *sql.DB, tableCfg config.MSSQLTable) (MSSQLAdapter, erro
 
 	return MSSQLAdapter{
 		db:              db,
+		dbName:          dbName,
 		table:           *table,
 		columns:         columns,
 		fieldConverters: fieldConverters,
@@ -60,7 +62,7 @@ func (m MSSQLAdapter) TableName() string {
 }
 
 func (m MSSQLAdapter) TopicSuffix() string {
-	return fmt.Sprintf("%s.%s", m.table.Schema, strings.ReplaceAll(m.table.Name, `"`, ``))
+	return fmt.Sprintf("%s.%s.%s", m.dbName, m.table.Schema, strings.ReplaceAll(m.table.Name, `"`, ``))
 }
 
 func (m MSSQLAdapter) FieldConverters() []transformer.FieldConverter {
