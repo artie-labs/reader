@@ -3,9 +3,6 @@ package adapter
 import (
 	"database/sql"
 	"fmt"
-	"log/slog"
-	"strings"
-
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
@@ -13,6 +10,7 @@ import (
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/reader/lib/rdbms/column"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
+	"log/slog"
 )
 
 const defaultErrorRetries = 10
@@ -60,7 +58,7 @@ func (p PostgresAdapter) TableName() string {
 }
 
 func (p PostgresAdapter) TopicSuffix() string {
-	return fmt.Sprintf("%s.%s", p.table.Schema, strings.ReplaceAll(p.table.Name, `"`, ``))
+	return fmt.Sprintf("%s.%s", p.table.Schema, p.table.Name)
 }
 
 func (p PostgresAdapter) FieldConverters() []transformer.FieldConverter {

@@ -3,9 +3,6 @@ package adapter
 import (
 	"database/sql"
 	"fmt"
-	"log/slog"
-	"strings"
-
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
@@ -14,6 +11,7 @@ import (
 	"github.com/artie-labs/reader/lib/mysql/schema"
 	"github.com/artie-labs/reader/lib/rdbms/column"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
+	"log/slog"
 )
 
 const defaultErrorRetries = 10
@@ -67,7 +65,7 @@ func (m MySQLAdapter) TableName() string {
 }
 
 func (m MySQLAdapter) TopicSuffix() string {
-	return fmt.Sprintf("%s.%s", m.dbName, strings.ReplaceAll(m.table.Name, `"`, ``))
+	return fmt.Sprintf("%s.%s", m.dbName, m.table.Name)
 }
 
 func (m MySQLAdapter) FieldConverters() []transformer.FieldConverter {
