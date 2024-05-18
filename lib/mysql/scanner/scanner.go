@@ -16,7 +16,7 @@ import (
 )
 
 func NewScanner(db *sql.DB, table mysql.Table, columns []schema.Column, cfg scan.ScannerConfig) (*scan.Scanner, error) {
-	primaryKeyBounds, err := table.GetPrimaryKeysBounds(db)
+	primaryKeyBounds, err := table.FetchPrimaryKeysBounds(db)
 	if err != nil {
 		return nil, err
 	}

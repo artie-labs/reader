@@ -26,20 +26,20 @@ func LoadTable(db *sql.DB, name string) (*Table, error) {
 		return nil, fmt.Errorf("failed to describe table %q: %w", tbl.Name, err)
 	}
 
-	if tbl.PrimaryKeys, err = schema.GetPrimaryKeys(db, tbl.Name); err != nil {
+	if tbl.PrimaryKeys, err = schema.FetchPrimaryKeys(db, tbl.Name); err != nil {
 		return nil, fmt.Errorf("failed to retrieve primary keys: %w", err)
 	}
 
 	return tbl, nil
 }
 
-func (t *Table) GetPrimaryKeysBounds(db *sql.DB) ([]primary_key.Key, error) {
+func (t *Table) FetchPrimaryKeysBounds(db *sql.DB) ([]primary_key.Key, error) {
 	keyColumns, err := column.GetColumnsByName(t.Columns, t.PrimaryKeys)
 	if err != nil {
 		return nil, fmt.Errorf("missing primary key columns: %w", err)
 	}
 
-	primaryKeysBounds, err := schema.GetPrimaryKeysBounds(db, t.Name, keyColumns)
+	primaryKeysBounds, err := schema.FetchPrimaryKeysBounds(db, t.Name, keyColumns)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve bounds for primary keys: %w", err)
 	}

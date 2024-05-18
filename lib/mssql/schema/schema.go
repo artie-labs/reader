@@ -50,16 +50,16 @@ type Opts struct {
 type Column = column.Column[DataType, Opts]
 
 const describeTableQuery = `
-SELECT 
+SELECT
     COLUMN_NAME,
     DATA_TYPE,
     NUMERIC_PRECISION,
     NUMERIC_SCALE,
     DATETIME_PRECISION
-FROM 
+FROM
     INFORMATION_SCHEMA.COLUMNS
-WHERE 
-    TABLE_SCHEMA = ? AND 
+WHERE
+    TABLE_SCHEMA = ? AND
     TABLE_NAME = ?;
 `
 
@@ -168,22 +168,22 @@ func ParseColumnDataType(colKind string, precision, scale, datetimePrecision *in
 }
 
 const pkQuery = `
-SELECT 
+SELECT
     c.COLUMN_NAME
-FROM 
+FROM
     INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
-    JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu 
+    JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu
         ON tc.CONSTRAINT_NAME = ccu.CONSTRAINT_NAME
-    JOIN INFORMATION_SCHEMA.COLUMNS c 
-        ON c.TABLE_NAME = ccu.TABLE_NAME 
+    JOIN INFORMATION_SCHEMA.COLUMNS c
+        ON c.TABLE_NAME = ccu.TABLE_NAME
         AND c.COLUMN_NAME = ccu.COLUMN_NAME
-WHERE 
-    tc.TABLE_SCHEMA = ? 
+WHERE
+    tc.TABLE_SCHEMA = ?
     AND tc.TABLE_NAME = ?
     AND tc.CONSTRAINT_TYPE = 'PRIMARY KEY';
 `
 
-func GetPrimaryKeys(db *sql.DB, schema, table string) ([]string, error) {
+func FetchPrimaryKeys(db *sql.DB, schema, table string) ([]string, error) {
 	query := strings.TrimSpace(pkQuery)
 	rows, err := db.Query(query, mssql.VarChar(schema), mssql.VarChar(table))
 	if err != nil {
@@ -250,7 +250,7 @@ func getPrimaryKeyValues(db *sql.DB, schema, table string, primaryKeys []Column,
 	return result, nil
 }
 
-func GetPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []Column) ([]primary_key.Bounds, error) {
+func FetchPrimaryKeysBounds(db *sql.DB, schema, table string, primaryKeys []Column) ([]primary_key.Bounds, error) {
 	minValues, err := getPrimaryKeyValues(db, schema, table, primaryKeys, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve lower bounds for primary keys: %w", err)

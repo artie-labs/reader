@@ -3,9 +3,10 @@ package mssql
 import (
 	"database/sql"
 	"fmt"
-	"github.com/artie-labs/transfer/clients/mssql/dialect"
 	"slices"
 	"strings"
+
+	"github.com/artie-labs/transfer/clients/mssql/dialect"
 
 	"github.com/artie-labs/reader/lib/mssql/parse"
 	"github.com/artie-labs/reader/lib/mssql/schema"
@@ -47,7 +48,7 @@ func NewScanner(db *sql.DB, table Table, columns []schema.Column, cfg scan.Scann
 		}
 	}
 
-	primaryKeyBounds, err := table.GetPrimaryKeysBounds(db)
+	primaryKeyBounds, err := table.FetchPrimaryKeysBounds(db)
 	if err != nil {
 		return nil, err
 	}

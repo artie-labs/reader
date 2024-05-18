@@ -228,7 +228,7 @@ WHERE table_constraints.constraint_type='PRIMARY KEY'
   AND table_constraints.table_name=?
 `
 
-func GetPrimaryKeys(db *sql.DB, table string) ([]string, error) {
+func FetchPrimaryKeys(db *sql.DB, table string) ([]string, error) {
 	query := strings.TrimSpace(primaryKeysQuery)
 	rows, err := db.Query(query, table)
 	if err != nil {
@@ -272,7 +272,7 @@ func buildPkValuesQuery(keys []Column, tableName string, descending bool) string
 	)
 }
 
-func getPrimaryKeyValues(db *sql.DB, table string, primaryKeys []Column, descending bool) ([]any, error) {
+func fetchPrimaryKeyValues(db *sql.DB, table string, primaryKeys []Column, descending bool) ([]any, error) {
 	result := make([]any, len(primaryKeys))
 	resultPtrs := make([]any, len(primaryKeys))
 	for i := range result {
@@ -309,7 +309,7 @@ func getPrimaryKeyValues(db *sql.DB, table string, primaryKeys []Column, descend
 	return result, nil
 }
 
-func GetPrimaryKeysBounds(db *sql.DB, table string, primaryKeys []Column) ([]primary_key.Bounds, error) {
+func FetchPrimaryKeysBounds(db *sql.DB, table string, primaryKeys []Column) ([]primary_key.Bounds, error) {
 	minValues, err := getPrimaryKeyValues(db, table, primaryKeys, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve lower bounds for primary keys: %w", err)
