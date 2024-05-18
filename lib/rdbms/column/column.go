@@ -11,7 +11,7 @@ type Column[T ~int, O any] struct {
 	Opts *O
 }
 
-func FindColumnWithName[T ~int, O any](columns []Column[T, O], name string) (*Column[T, O], error) {
+func ByName[T ~int, O any](columns []Column[T, O], name string) (*Column[T, O], error) {
 	index := slices.IndexFunc(columns, func(c Column[T, O]) bool { return c.Name == name })
 	if index < 0 {
 		return nil, fmt.Errorf("no column named %q", name)
@@ -19,10 +19,10 @@ func FindColumnWithName[T ~int, O any](columns []Column[T, O], name string) (*Co
 	return &columns[index], nil
 }
 
-func FindColumnsWithNames[T ~int, O any](columns []Column[T, O], names []string) ([]Column[T, O], error) {
+func ByNames[T ~int, O any](columns []Column[T, O], names []string) ([]Column[T, O], error) {
 	var result []Column[T, O]
 	for _, name := range names {
-		col, err := FindColumnWithName(columns, name)
+		col, err := ByName(columns, name)
 		if err != nil {
 			return nil, err
 		}
