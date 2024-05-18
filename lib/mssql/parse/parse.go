@@ -34,9 +34,9 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 
 		return value, nil
 	case schema.Numeric, schema.Money:
-		val, isOk := value.([]uint8)
+		val, isOk := value.([]byte)
 		if !isOk {
-			return nil, fmt.Errorf("expected []uint8 got %T with value: %v", value, value)
+			return nil, fmt.Errorf("expected []byte got %T with value: %v", value, value)
 		}
 
 		return string(val), nil

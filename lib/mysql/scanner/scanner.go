@@ -155,7 +155,6 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 		schema.QuoteIdentifier(s.tableName),
 		// WHERE (pk) > (123)
 		strings.Join(quotedKeyNames, ","), lowerBoundComparison, strings.Join(rdbms.QueryPlaceholders("?", len(startingValues)), ","),
-		// AND NOT (pk) <= (123)
 		strings.Join(quotedKeyNames, ","), strings.Join(rdbms.QueryPlaceholders("?", len(endingValues)), ","),
 		// ORDER BY
 		strings.Join(quotedKeyNames, ","),

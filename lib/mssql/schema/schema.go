@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"strings"
 
+	transferMSSQL "github.com/artie-labs/transfer/clients/mssql"
 	"github.com/artie-labs/transfer/clients/mssql/dialect"
 	mssql "github.com/microsoft/go-mssqldb"
 
@@ -202,7 +203,6 @@ func GetPrimaryKeys(db *sql.DB, schema, table string) ([]string, error) {
 }
 
 func buildPkValuesQuery(keys []Column, schema string, tableName string, desc bool) string {
-	mssqlDialect := dialect.MSSQLDialect{}
 	var escapedCols []string
 	for _, col := range keys {
 		escapedCols = append(escapedCols, dialect.MSSQLDialect{}.QuoteIdentifier(col.Name))
@@ -217,11 +217,11 @@ func buildPkValuesQuery(keys []Column, schema string, tableName string, desc boo
 		fragments = append(fragments, fragment)
 	}
 
-	return fmt.Sprintf(`SELECT TOP 1 %s FROM %s.%s ORDER BY %s`,
+	return fmt.Sprintf(`SELECT TOP 1 %s FROM %s ORDER BY %s`,
 		// SELECT
 		strings.Join(escapedCols, ","),
 		// FROM
-		mssqlDialect.QuoteIdentifier(schema), mssqlDialect.QuoteIdentifier(tableName),
+		transferMSSQL.NewTableIdentifier(schema, tableName).FullyQualifiedName(),
 		// ORDER
 		strings.Join(fragments, ","),
 	)

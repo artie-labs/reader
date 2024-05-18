@@ -205,7 +205,7 @@ func (s scanAdapter) ParseRow(values []any) error {
 	for i, value := range values {
 		var err error
 		if values[i], err = parse.ParseValue(s.columns[i].Type, value); err != nil {
-			return err
+			return fmt.Errorf("failed to parse column: %q: %w", s.columns[i].Name, err)
 		}
 	}
 	return nil

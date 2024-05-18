@@ -107,7 +107,6 @@ func TestParseColumnDataType(t *testing.T) {
 		}
 		{
 			// Invalid
-
 			for _, invalidNumbers := range []int{-1, 8, 9} {
 				dataType, opts, err := ParseColumnDataType("time", nil, nil, &invalidNumbers)
 				assert.ErrorContains(t, err, "invalid datetime precision")

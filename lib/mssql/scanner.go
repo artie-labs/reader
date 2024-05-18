@@ -93,7 +93,6 @@ func mssqlVarCharJoin(values []mssql.VarChar, sep string) string {
 
 func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any) {
 	mssqlDialect := dialect.MSSQLDialect{}
-
 	colNames := make([]string, len(s.columns))
 	for idx, col := range s.columns {
 		colNames[idx] = mssqlDialect.QuoteIdentifier(col.Name)
@@ -125,7 +124,6 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 		mssqlDialect.QuoteIdentifier(s.schema), mssqlDialect.QuoteIdentifier(s.tableName),
 		// WHERE (pk) > (123)
 		mssqlVarCharJoin(quotedKeyNames, ","), lowerBoundComparison, strings.Join(rdbms.QueryPlaceholders("?", len(startingValues)), ","),
-		// AND NOT (pk) <= (123)
 		mssqlVarCharJoin(quotedKeyNames, ","), strings.Join(rdbms.QueryPlaceholders("?", len(endingValues)), ","),
 		// ORDER BY
 		mssqlVarCharJoin(quotedKeyNames, ","),
@@ -136,7 +134,7 @@ func (s scanAdapter) ParseRow(values []any) error {
 	for i, value := range values {
 		parsedValue, err := parse.ParseValue(s.columns[i].Type, value)
 		if err != nil {
-			return fmt.Errorf("failed to parse column: %s: %w", s.columns[i].Name, err)
+			return fmt.Errorf("failed to parse column: %q: %w", s.columns[i].Name, err)
 		}
 
 		values[i] = parsedValue
