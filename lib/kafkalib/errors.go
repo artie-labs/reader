@@ -6,7 +6,12 @@ import (
 )
 
 func isExceedMaxMessageBytesErr(err error) bool {
-	return err != nil && errors.Is(err, kafka.MessageSizeTooLarge)
+	var e kafka.MessageTooLargeError
+	if err != nil && errors.As(err, &e) {
+		return true
+	}
+
+	return false
 }
 
 // isRetryableError - returns true if the error is retryable
