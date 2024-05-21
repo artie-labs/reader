@@ -27,7 +27,7 @@ func TestIsExceedMaxMessageBytesErr(t *testing.T) {
 			expected: false,
 		},
 		{
-			err:      kafka.MessageSizeTooLarge,
+			err:      kafka.MessageTooLargeError{},
 			expected: true,
 		},
 	}
