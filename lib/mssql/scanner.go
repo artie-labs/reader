@@ -171,16 +171,13 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 	for i, pk := range primaryKeys {
 		pkStartVal, err := s.parsePrimaryKeyValues(pk.Name, pk.StartingValue)
 		if err != nil {
-			return "", nil, err
+			return "", nil, fmt.Errorf("failed to parse start primary key val: %w", err)
 		}
 
 		pkEndVal, err := s.parsePrimaryKeyValues(pk.Name, pk.EndingValue)
 		if err != nil {
-			return "", nil, err
+			return "", nil, fmt.Errorf("failed to parse end primary key val: %w", err)
 		}
-
-		fmt.Println("pkStartVal", pkStartVal)
-		fmt.Println("pkEndVal", pkEndVal)
 
 		startingValues[i] = pkStartVal
 		endingValues[i] = pkEndVal
