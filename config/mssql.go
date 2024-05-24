@@ -1,6 +1,7 @@
 package config
 
 import (
+	"cmp"
 	"fmt"
 	"github.com/artie-labs/reader/constants"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
@@ -20,12 +21,14 @@ type MSSQL struct {
 }
 
 type MSSQLTable struct {
-	Name                       string   `yaml:"name"`
-	Schema                     string   `yaml:"schema"`
-	BatchSize                  uint     `yaml:"batchSize"`
-	OptionalPrimaryKeyValStart string   `yaml:"optionalPrimaryKeyValStart"`
-	OptionalPrimaryKeyValEnd   string   `yaml:"optionalPrimaryKeyValEnd"`
-	ExcludeColumns             []string `yaml:"excludeColumns"`
+	Name   string `yaml:"name"`
+	Schema string `yaml:"schema"`
+
+	// Optional settings
+	BatchSize                  uint     `yaml:"batchSize,omitempty"`
+	OptionalPrimaryKeyValStart string   `yaml:"optionalPrimaryKeyValStart,omitempty"`
+	OptionalPrimaryKeyValEnd   string   `yaml:"optionalPrimaryKeyValEnd,omitempty"`
+	ExcludeColumns             []string `yaml:"excludeColumns,omitempty"`
 }
 
 func (m *MSSQL) ToDSN() string {
@@ -43,11 +46,7 @@ func (m *MSSQL) ToDSN() string {
 }
 
 func (m *MSSQLTable) GetBatchSize() uint {
-	if m.BatchSize > 0 {
-		return m.BatchSize
-	} else {
-		return constants.DefaultBatchSize
-	}
+	return cmp.Or(m.BatchSize, constants.DefaultBatchSize)
 }
 
 func (m *MSSQLTable) GetOptionalPrimaryKeyValStart() []string {
