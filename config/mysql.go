@@ -1,6 +1,7 @@
 package config
 
 import (
+	"cmp"
 	"fmt"
 	"math"
 	"strings"
@@ -32,19 +33,16 @@ func (m *MySQL) ToDSN() string {
 }
 
 type MySQLTable struct {
-	Name                       string   `yaml:"name"`
-	BatchSize                  uint     `yaml:"batchSize"`
-	OptionalPrimaryKeyValStart string   `yaml:"optionalPrimaryKeyValStart"`
-	OptionalPrimaryKeyValEnd   string   `yaml:"optionalPrimaryKeyValEnd"`
-	ExcludeColumns             []string `yaml:"excludeColumns"`
+	Name string `yaml:"name"`
+	// Optional settings
+	BatchSize                  uint     `yaml:"batchSize,omitempty"`
+	OptionalPrimaryKeyValStart string   `yaml:"optionalPrimaryKeyValStart,omitempty"`
+	OptionalPrimaryKeyValEnd   string   `yaml:"optionalPrimaryKeyValEnd,omitempty"`
+	ExcludeColumns             []string `yaml:"excludeColumns,omitempty"`
 }
 
 func (m *MySQLTable) GetBatchSize() uint {
-	if m.BatchSize > 0 {
-		return m.BatchSize
-	} else {
-		return constants.DefaultBatchSize
-	}
+	return cmp.Or(m.BatchSize, constants.DefaultBatchSize)
 }
 
 func (m *MySQLTable) GetOptionalPrimaryKeyValStart() []string {

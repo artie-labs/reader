@@ -94,7 +94,7 @@ func (s *SnapshotStore) streamAndPublish(ctx context.Context, writer writers.Wri
 		}
 
 		// TODO: Create an actual iterator over the files that is passed to the writer.
-		if _, err := writer.Write(ctx, iterator.Once(messages)); err != nil {
+		if _, err = writer.Write(ctx, iterator.Once(messages)); err != nil {
 			return fmt.Errorf("failed to publish messages: %w", err)
 		}
 

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"cmp"
 	"fmt"
 	"math"
 	"strings"
@@ -33,20 +34,18 @@ func (p *PostgreSQL) ToDSN() string {
 }
 
 type PostgreSQLTable struct {
-	Name                       string   `yaml:"name"`
-	Schema                     string   `yaml:"schema"`
-	BatchSize                  uint     `yaml:"batchSize"`
-	OptionalPrimaryKeyValStart string   `yaml:"optionalPrimaryKeyValStart"`
-	OptionalPrimaryKeyValEnd   string   `yaml:"optionalPrimaryKeyValEnd"`
-	ExcludeColumns             []string `yaml:"excludeColumns"`
+	Name   string `yaml:"name"`
+	Schema string `yaml:"schema"`
+
+	// Optional settings
+	BatchSize                  uint     `yaml:"batchSize,omitempty"`
+	OptionalPrimaryKeyValStart string   `yaml:"optionalPrimaryKeyValStart,omitempty"`
+	OptionalPrimaryKeyValEnd   string   `yaml:"optionalPrimaryKeyValEnd,omitempty"`
+	ExcludeColumns             []string `yaml:"excludeColumns,omitempty"`
 }
 
 func (p *PostgreSQLTable) GetBatchSize() uint {
-	if p.BatchSize > 0 {
-		return p.BatchSize
-	} else {
-		return constants.DefaultBatchSize
-	}
+	return cmp.Or(p.BatchSize, constants.DefaultBatchSize)
 }
 
 func (p *PostgreSQLTable) GetOptionalPrimaryKeyValStart() []string {
