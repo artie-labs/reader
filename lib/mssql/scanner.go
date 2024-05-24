@@ -77,6 +77,8 @@ func (s scanAdapter) ParsePrimaryKeyValueForOverrides(_ string, value string) (a
 	return value, nil
 }
 
+// parsePrimaryKeyValues - parse primary key values based on the column type.
+// This is needed because the MSSQL SDK does not support parsing `time.Time`, so we need to do it ourselves.
 func (s scanAdapter) parsePrimaryKeyValues(columnName string, value any) (any, error) {
 	columnIdx := slices.IndexFunc(s.columns, func(x schema.Column) bool { return x.Name == columnName })
 	if columnIdx < 0 {
