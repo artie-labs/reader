@@ -25,35 +25,10 @@ const (
 	DateTimeOffset = "2006-01-02 15:04:05.0000000 -07:00"
 )
 
-var supportedPrimaryKeyDataType = []schema.DataType{
-	schema.Bit,
-	schema.Bytes,
-	schema.Int16,
-	schema.Int32,
-	schema.Int64,
-	schema.Numeric,
-	schema.Float,
-	schema.Money,
-	schema.Date,
-	schema.String,
-	schema.Time,
-	schema.TimeMicro,
-	schema.TimeNano,
-	schema.Datetime2,
-	schema.Datetime2Micro,
-	schema.Datetime2Nano,
-	schema.DatetimeOffset,
-}
-
 func NewScanner(db *sql.DB, table Table, columns []schema.Column, cfg scan.ScannerConfig) (*scan.Scanner, error) {
 	for _, key := range table.PrimaryKeys() {
-		_column, err := column.ByName(columns, key)
-		if err != nil {
+		if _, err := column.ByName(columns, key); err != nil {
 			return nil, fmt.Errorf("missing column with name: %q", key)
-		}
-
-		if !slices.Contains(supportedPrimaryKeyDataType, _column.Type) {
-			return nil, fmt.Errorf("DataType(%d) for column %q is not supported for use as a primary key", _column.Type, _column.Name)
 		}
 	}
 
