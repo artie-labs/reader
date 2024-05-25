@@ -20,7 +20,7 @@ func (m mockAdapter) ParsePrimaryKeyValueForOverrides(columnName string, value s
 	}
 }
 
-func (mockAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any) {
+func (mockAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error) {
 	panic("not implemented")
 }
 

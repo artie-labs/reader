@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/artie-labs/transfer/clients/mssql/dialect"
 
@@ -16,35 +17,18 @@ import (
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
-var supportedPrimaryKeyDataType = []schema.DataType{
-	schema.Bit,
-	schema.Bytes,
-	schema.Int16,
-	schema.Int32,
-	schema.Int64,
-	schema.Numeric,
-	schema.Float,
-	schema.Money,
-	schema.Date,
-	schema.String,
-	schema.Time,
-	schema.TimeMicro,
-	schema.TimeNano,
-	schema.Datetime2,
-	schema.Datetime2Micro,
-	schema.Datetime2Nano,
-	schema.DatetimeOffset,
-}
+const (
+	TimeMicro      = "15:04:05.000000"
+	TimeNano       = "15:04:05.000000000"
+	DateTimeMicro  = "2006-01-02 15:04:05.000000"
+	DateTimeNano   = "2006-01-02 15:04:05.000000000"
+	DateTimeOffset = "2006-01-02 15:04:05.0000000 -07:00"
+)
 
 func NewScanner(db *sql.DB, table Table, columns []schema.Column, cfg scan.ScannerConfig) (*scan.Scanner, error) {
 	for _, key := range table.PrimaryKeys() {
-		_column, err := column.ByName(columns, key)
-		if err != nil {
+		if _, err := column.ByName(columns, key); err != nil {
 			return nil, fmt.Errorf("missing column with name: %q", key)
-		}
-
-		if !slices.Contains(supportedPrimaryKeyDataType, _column.Type) {
-			return nil, fmt.Errorf("DataType(%d) for column %q is not supported for use as a primary key", _column.Type, _column.Name)
 		}
 	}
 
@@ -63,27 +47,89 @@ type scanAdapter struct {
 	columns   []schema.Column
 }
 
-func (s scanAdapter) ParsePrimaryKeyValueForOverrides(columnName string, value string) (any, error) {
-	// TODO: Implement Date, Time, Datetime for primary key types.
+func (s scanAdapter) ParsePrimaryKeyValueForOverrides(_ string, value string) (any, error) {
+	// We don't need to cast it at all.
+	return value, nil
+}
+
+// encodePrimaryKeyValue - encodes primary key values based on the column type.
+// This is needed because the MSSQL SDK does not support parsing `time.Time`, so we need to do it ourselves.
+func (s scanAdapter) encodePrimaryKeyValue(columnName string, value any) (any, error) {
 	columnIdx := slices.IndexFunc(s.columns, func(x schema.Column) bool { return x.Name == columnName })
 	if columnIdx < 0 {
 		return nil, fmt.Errorf("primary key column does not exist: %q", columnName)
 	}
 
-	_column := s.columns[columnIdx]
-	if !slices.Contains(supportedPrimaryKeyDataType, _column.Type) {
-		return nil, fmt.Errorf("DataType(%d) for column %q is not supported for use as a primary key", _column.Type, _column.Name)
-	}
-
-	switch _column.Type {
-	case schema.Bit:
-		return value == "1", nil
+	switch _columnType := s.columns[columnIdx].Type; _columnType {
+	case schema.Time:
+		switch castedVal := value.(type) {
+		case time.Time:
+			return castedVal.Format(time.TimeOnly), nil
+		case string:
+			return castedVal, nil
+		default:
+			return nil, fmt.Errorf("expected time.Time type, received: %T", value)
+		}
+	case schema.TimeMicro:
+		switch castedVal := value.(type) {
+		case time.Time:
+			return castedVal.Format(TimeMicro), nil
+		case string:
+			return castedVal, nil
+		default:
+			return nil, fmt.Errorf("expected time.Time type, received: %T", value)
+		}
+	case schema.TimeNano:
+		switch castedVal := value.(type) {
+		case time.Time:
+			return castedVal.Format(TimeNano), nil
+		case string:
+			return castedVal, nil
+		default:
+			return nil, fmt.Errorf("expected time.Time type, received: %T", value)
+		}
+	case schema.Datetime2:
+		switch castedVal := value.(type) {
+		case time.Time:
+			return castedVal.Format(time.DateTime), nil
+		case string:
+			return castedVal, nil
+		default:
+			return nil, fmt.Errorf("expected time.Time type, received: %T", value)
+		}
+	case schema.Datetime2Micro:
+		switch castedVal := value.(type) {
+		case time.Time:
+			return castedVal.Format(DateTimeMicro), nil
+		case string:
+			return castedVal, nil
+		default:
+			return nil, fmt.Errorf("expected time.Time type, received: %T", value)
+		}
+	case schema.Datetime2Nano:
+		switch castedVal := value.(type) {
+		case time.Time:
+			return castedVal.Format(DateTimeNano), nil
+		case string:
+			return castedVal, nil
+		default:
+			return nil, fmt.Errorf("expected time.Time type, received: %T", value)
+		}
+	case schema.DatetimeOffset:
+		switch castedVal := value.(type) {
+		case time.Time:
+			return castedVal.Format(DateTimeOffset), nil
+		case string:
+			return castedVal, nil
+		default:
+			return nil, fmt.Errorf("expected time.Time type, received: %T", value)
+		}
 	default:
 		return value, nil
 	}
 }
 
-func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any) {
+func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error) {
 	mssqlDialect := dialect.MSSQLDialect{}
 	colNames := make([]string, len(s.columns))
 	for idx, col := range s.columns {
@@ -93,8 +139,18 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 	startingValues := make([]any, len(primaryKeys))
 	endingValues := make([]any, len(primaryKeys))
 	for i, pk := range primaryKeys {
-		startingValues[i] = pk.StartingValue
-		endingValues[i] = pk.EndingValue
+		pkStartVal, err := s.encodePrimaryKeyValue(pk.Name, pk.StartingValue)
+		if err != nil {
+			return "", nil, fmt.Errorf("failed to encode start primary key val: %w", err)
+		}
+
+		pkEndVal, err := s.encodePrimaryKeyValue(pk.Name, pk.EndingValue)
+		if err != nil {
+			return "", nil, fmt.Errorf("failed to encode end primary key val: %w", err)
+		}
+
+		startingValues[i] = pkStartVal
+		endingValues[i] = pkEndVal
 	}
 
 	quotedKeyNames := make([]string, len(primaryKeys))
@@ -119,7 +175,7 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 		strings.Join(quotedKeyNames, ","), strings.Join(rdbms.QueryPlaceholders("?", len(endingValues)), ","),
 		// ORDER BY
 		strings.Join(quotedKeyNames, ","),
-	), slices.Concat(startingValues, endingValues)
+	), slices.Concat(startingValues, endingValues), nil
 }
 
 func (s scanAdapter) ParseRow(values []any) error {

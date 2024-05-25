@@ -125,7 +125,7 @@ func (s scanAdapter) ParsePrimaryKeyValueForOverrides(columnName string, value s
 	}
 }
 
-func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any) {
+func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error) {
 	colNames := make([]string, len(s.columns))
 	for idx, col := range s.columns {
 		colNames[idx] = schema.QuoteIdentifier(col.Name)
@@ -160,7 +160,7 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 		strings.Join(quotedKeyNames, ","),
 		// LIMIT
 		batchSize,
-	), slices.Concat(startingValues, endingValues)
+	), slices.Concat(startingValues, endingValues), nil
 }
 
 func (s scanAdapter) ParseRow(values []any) error {

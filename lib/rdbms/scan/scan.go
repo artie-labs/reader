@@ -23,7 +23,7 @@ type ScannerConfig struct {
 
 type ScanAdapter interface {
 	ParsePrimaryKeyValueForOverrides(columnName string, value string) (any, error)
-	BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any)
+	BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool, batchSize uint) (string, []any, error)
 	ParseRow(row []any) error
 }
 
@@ -116,7 +116,11 @@ func (s *Scanner) Next() ([]map[string]any, error) {
 }
 
 func (s *Scanner) scan() ([]map[string]any, error) {
-	query, parameters := s.adapter.BuildQuery(s.primaryKeys.Keys(), s.isFirstBatch, s.batchSize)
+	query, parameters, err := s.adapter.BuildQuery(s.primaryKeys.Keys(), s.isFirstBatch, s.batchSize)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build query: %w", err)
+	}
+
 	slog.Info("Scan query", slog.String("query", query), slog.Any("parameters", parameters))
 
 	rows, err := retry.WithRetriesAndResult(s.retryCfg, func(_ int, _ error) (*sql.Rows, error) {
