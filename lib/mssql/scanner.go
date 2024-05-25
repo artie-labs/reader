@@ -52,9 +52,9 @@ func (s scanAdapter) ParsePrimaryKeyValueForOverrides(_ string, value string) (a
 	return value, nil
 }
 
-// parsePrimaryKeyValues - parse primary key values based on the column type.
+// encodePrimaryKeyValue - encodes primary key values based on the column type.
 // This is needed because the MSSQL SDK does not support parsing `time.Time`, so we need to do it ourselves.
-func (s scanAdapter) parsePrimaryKeyValues(columnName string, value any) (any, error) {
+func (s scanAdapter) encodePrimaryKeyValue(columnName string, value any) (any, error) {
 	columnIdx := slices.IndexFunc(s.columns, func(x schema.Column) bool { return x.Name == columnName })
 	if columnIdx < 0 {
 		return nil, fmt.Errorf("primary key column does not exist: %q", columnName)
@@ -139,12 +139,12 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 	startingValues := make([]any, len(primaryKeys))
 	endingValues := make([]any, len(primaryKeys))
 	for i, pk := range primaryKeys {
-		pkStartVal, err := s.parsePrimaryKeyValues(pk.Name, pk.StartingValue)
+		pkStartVal, err := s.encodePrimaryKeyValue(pk.Name, pk.StartingValue)
 		if err != nil {
 			return "", nil, fmt.Errorf("failed to parse start primary key val: %w", err)
 		}
 
-		pkEndVal, err := s.parsePrimaryKeyValues(pk.Name, pk.EndingValue)
+		pkEndVal, err := s.encodePrimaryKeyValue(pk.Name, pk.EndingValue)
 		if err != nil {
 			return "", nil, fmt.Errorf("failed to parse end primary key val: %w", err)
 		}
