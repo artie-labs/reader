@@ -141,12 +141,12 @@ func (s scanAdapter) BuildQuery(primaryKeys []primary_key.Key, isFirstBatch bool
 	for i, pk := range primaryKeys {
 		pkStartVal, err := s.encodePrimaryKeyValue(pk.Name, pk.StartingValue)
 		if err != nil {
-			return "", nil, fmt.Errorf("failed to parse start primary key val: %w", err)
+			return "", nil, fmt.Errorf("failed to encode start primary key val: %w", err)
 		}
 
 		pkEndVal, err := s.encodePrimaryKeyValue(pk.Name, pk.EndingValue)
 		if err != nil {
-			return "", nil, fmt.Errorf("failed to parse end primary key val: %w", err)
+			return "", nil, fmt.Errorf("failed to encode end primary key val: %w", err)
 		}
 
 		startingValues[i] = pkStartVal
