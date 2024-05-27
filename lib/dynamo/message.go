@@ -1,6 +1,7 @@
 package dynamo
 
 import (
+	"log/slog"
 	"strconv"
 	"time"
 
@@ -34,6 +35,7 @@ func transformAttributeValue(attr *dynamodb.AttributeValue) any {
 		if err == nil {
 			return number
 		} else {
+			slog.Error("Failed to convert string to float64", slog.Any("err", err), slog.String("string", *attr.N))
 			// TODO - should we throw an error here?
 			return nil
 		}
@@ -64,6 +66,7 @@ func transformAttributeValue(attr *dynamodb.AttributeValue) any {
 		for i, n := range attr.NS {
 			number, err := stringToFloat64(*n)
 			if err != nil {
+				slog.Error("Failed to convert string to float64", slog.Any("err", err), slog.String("string", *n))
 				// TODO - should we throw an error here?
 				return nil
 			}
