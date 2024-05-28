@@ -27,7 +27,7 @@ type Writer struct {
 	statsD      mtr.Client
 	inMemDB     *models.DatabaseData
 	tc          *kafkalib.TopicConfig
-	destination destination.DataWarehouse
+	destination destination.Baseline
 
 	primaryKeys []string
 }
@@ -41,18 +41,30 @@ func NewWriter(cfg config.Config, statsD mtr.Client) (*Writer, error) {
 		return nil, fmt.Errorf("kafka config should have exactly one topic config")
 	}
 
-	_destination, err := utils.LoadDataWarehouse(cfg, nil)
-	if err != nil {
-		return nil, err
+	writer := &Writer{
+		cfg:     cfg,
+		statsD:  statsD,
+		inMemDB: models.NewMemoryDB(),
+		tc:      cfg.Kafka.TopicConfigs[0],
 	}
 
-	return &Writer{
-		cfg:         cfg,
-		statsD:      statsD,
-		inMemDB:     models.NewMemoryDB(),
-		tc:          cfg.Kafka.TopicConfigs[0],
-		destination: _destination,
-	}, nil
+	if utils.IsOutputBaseline(cfg) {
+		baseline, err := utils.LoadBaseline(cfg)
+		if err != nil {
+			return nil, err
+		}
+
+		writer.destination = baseline
+	} else {
+		_destination, err := utils.LoadDataWarehouse(cfg, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		writer.destination = _destination
+	}
+
+	return writer, nil
 }
 
 func (w *Writer) messageToEvent(message lib.RawMessage) (event.Event, error) {
@@ -229,14 +241,26 @@ func (w *Writer) OnComplete() error {
 	slog.Info("Running dedupe...", slog.String("table", tableName))
 	tableID := w.destination.IdentifierFor(*w.tc, tableName)
 	start := time.Now()
-	if err = w.destination.Dedupe(tableID, w.primaryKeys, *w.tc); err != nil {
+
+	dwh, isOk := w.destination.(destination.DataWarehouse)
+	if !isOk {
+		return nil
+	}
+
+	if err = dwh.Dedupe(tableID, w.primaryKeys, *w.tc); err != nil {
 		return err
 	}
+
 	slog.Info("Dedupe complete", slog.String("table", tableName), slog.Duration("duration", time.Since(start)))
 	return nil
 }
 
-func isMicrosoftSQLServer(dwh destination.DataWarehouse) bool {
-	_, isOk := dwh.Dialect().(dialect.MSSQLDialect)
+func isMicrosoftSQLServer(baseline destination.Baseline) bool {
+	dwh, isOk := baseline.(destination.DataWarehouse)
+	if !isOk {
+		return false
+	}
+
+	_, isOk = dwh.Dialect().(dialect.MSSQLDialect)
 	return isOk
 }
