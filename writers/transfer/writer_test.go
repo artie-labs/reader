@@ -42,7 +42,7 @@ func TestWriter_MessageToEvent(t *testing.T) {
 		"__artie_delete": false,
 		"_id":            "507f1f77bcf86cd799439011",
 		"double":         3.14159,
-		"int64":          1.23456789e+09,
+		"int64":          int32(1234567890),
 		"string":         "Hello, world!",
 	}, evtOut.Data)
 

@@ -46,7 +46,7 @@ func TestParseMessage(t *testing.T) {
 			"_id":     objId,
 			"string":  "Hello, world!",
 			"int32":   int32(42),
-			"int64":   int64(1234567890),
+			"int64":   int64(3_000_000_000),
 			"double":  3.14159,
 			"decimal": decimal,
 			"subDocument": bson.M{
@@ -82,10 +82,10 @@ func TestParseMessage(t *testing.T) {
 	expectedMap := map[string]any{
 		"_id":         "507f1f77bcf86cd799439011",
 		"string":      "Hello, world!",
-		"int32":       float64(42),
-		"int64":       float64(1234567890), // JSON doesn't know ints vs floats.
+		"int32":       int32(42),
+		"int64":       int64(3000000000),
 		"double":      3.14159,
-		"decimal":     1234.5,
+		"decimal":     "1234.5",
 		"subDocument": `{"nestedString":"Nested value"}`,
 		"array":       []any{"apple", "banana", "cherry"},
 		"datetime":    "2024-02-13T20:37:48+00:00",

@@ -1,9 +1,10 @@
 package schema
 
 import (
+	"testing"
+
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestParseColumnDataType(t *testing.T) {
@@ -215,7 +216,7 @@ func TestBuildPkValuesQuery(t *testing.T) {
 			"table",
 			false,
 		)
-		assert.Equal(t, `SELECT TOP 1 "a","b","c" FROM schema."table" ORDER BY "a","b","c"`, query)
+		assert.Equal(t, `SELECT TOP 1 "a","b","c" FROM "schema"."table" ORDER BY "a","b","c"`, query)
 	}
 	{
 		// Descending
@@ -229,6 +230,6 @@ func TestBuildPkValuesQuery(t *testing.T) {
 			"table",
 			true,
 		)
-		assert.Equal(t, `SELECT TOP 1 "a","b","c" FROM schema."table" ORDER BY "a" DESC,"b" DESC,"c" DESC`, query)
+		assert.Equal(t, `SELECT TOP 1 "a","b","c" FROM "schema"."table" ORDER BY "a" DESC,"b" DESC,"c" DESC`, query)
 	}
 }
