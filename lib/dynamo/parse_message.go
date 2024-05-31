@@ -17,8 +17,6 @@ func NewMessageFromExport(item dynamodb.ItemResponse, keys []string, tableName s
 		return nil, fmt.Errorf("keys is nil")
 	}
 
-	// Snapshot time does not exist on the row
-	// Perhaps we can have it inferred from the manifest file in the future.
 	rowData, err := transformImage(item.Item)
 	if err != nil {
 		return nil, fmt.Errorf("failed to transform item: %w", err)
@@ -35,8 +33,10 @@ func NewMessageFromExport(item dynamodb.ItemResponse, keys []string, tableName s
 	}
 
 	return &Message{
-		op:            "r",
-		tableName:     tableName,
+		op:        "r",
+		tableName: tableName,
+		// Snapshot time does not exist on the row
+		// Perhaps we can have it inferred from the manifest file in the future.
 		executionTime: time.Now(),
 		afterRowData:  rowData,
 		primaryKey:    primaryKeys,
