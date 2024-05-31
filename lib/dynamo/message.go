@@ -32,11 +32,11 @@ func transformAttributeValue(attr *dynamodb.AttributeValue) (any, error) {
 		return *attr.S, nil
 	case attr.N != nil:
 		number, err := stringToFloat64(*attr.N)
-		if err == nil {
-			return number, nil
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert string to float64: %w", err)
 		}
 
-		return nil, fmt.Errorf("failed to convert string to float64: %w", err)
+		return number, nil
 	case attr.BOOL != nil:
 		return *attr.BOOL, nil
 	case attr.M != nil:
