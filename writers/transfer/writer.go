@@ -7,6 +7,7 @@ import (
     "log/slog"
     "time"
 
+    bqDialect "github.com/artie-labs/transfer/clients/bigquery/dialect"
     "github.com/artie-labs/transfer/clients/mssql/dialect"
     "github.com/artie-labs/transfer/lib/artie"
     "github.com/artie-labs/transfer/lib/cdc/mongo"
@@ -208,7 +209,7 @@ func (w *Writer) flush(reason string) error {
             tableData.InMemoryColumns().DeleteColumn(constants.DeleteColumnMarker)
         }
 
-        if err = w.destination.Append(tableData.TableData); err != nil {
+        if err = w.destination.Append(tableData.TableData, isBigQuery(w.destination)); err != nil {
             tags["what"] = "merge_fail"
             tags["retryable"] = fmt.Sprint(w.destination.IsRetryableError(err))
             return fmt.Errorf("failed to append data to destination: %w", err)
@@ -262,5 +263,15 @@ func isMicrosoftSQLServer(baseline destination.Baseline) bool {
     }
 
     _, isOk = dwh.Dialect().(dialect.MSSQLDialect)
+    return isOk
+}
+
+func isBigQuery(baseline destination.Baseline) bool {
+    dwh, isOk := baseline.(destination.DataWarehouse)
+    if !isOk {
+        return false
+    }
+
+    _, isOk = dwh.Dialect().(bqDialect.BigQueryDialect)
     return isOk
 }
