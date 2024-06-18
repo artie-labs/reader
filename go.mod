@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/DataDog/datadog-go/v5 v5.5.0
-	github.com/artie-labs/transfer v1.25.24
+	github.com/artie-labs/transfer v1.25.24-bq
 	github.com/aws/aws-sdk-go v1.44.327
 	github.com/aws/aws-sdk-go-v2 v1.18.1
 	github.com/aws/aws-sdk-go-v2/config v1.18.19
