@@ -120,7 +120,7 @@ func ConvertValue(value any, colType DataType) (any, error) {
 			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
 		}
 
-		// Format is https://dev.mysql.com/doc/refman/8.4/en/gis-data-formats.html#:~:text=the%20OpenGIS%20specification.-,Internal%20Geometry%20Storage%20Format,-MySQL%20stores%20geometry
+		// Byte format is https://dev.mysql.com/doc/refman/8.4/en/gis-data-formats.html#:~:text=the%20OpenGIS%20specification.-,Internal%20Geometry%20Storage%20Format,-MySQL%20stores%20geometry
 		if len(bytes) != 25 {
 			return nil, fmt.Errorf("expected []byte with length 25, length is %d", len(bytes))
 		}
