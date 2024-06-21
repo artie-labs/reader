@@ -125,6 +125,18 @@ func ConvertValue(value any, colType DataType) (any, error) {
 			return nil, fmt.Errorf("expected []byte with length 25, length is %d", len(bytes))
 		}
 
+		if srid := binary.LittleEndian.Uint32(bytes[0:4]); srid != 0 {
+			return nil, fmt.Errorf("expected SRID to be 0, SRID is %d", srid)
+		}
+
+		if byteOrder := bytes[5]; byteOrder != 1 {
+			return nil, fmt.Errorf("expected byte order to be 1 (little-endian), byte order is %d", byteOrder)
+		}
+
+		if integerType := binary.LittleEndian.Uint32(bytes[5:9]); integerType != 1 {
+			return nil, fmt.Errorf("expected integer type 1 (POINT), got %d", integerType)
+		}
+
 		return map[string]any{
 			"x": math.Float64frombits(binary.LittleEndian.Uint64(bytes[9:17])),
 			"y": math.Float64frombits(binary.LittleEndian.Uint64(bytes[17:25])),
