@@ -121,6 +121,8 @@ func valueConverterForType(d schema.DataType, opts *schema.Opts) (converters.Val
 		return converters.EnumSetConverter{}, nil
 	case schema.JSON:
 		return converters.JSONConverter{}, nil
+	case schema.Point:
+		return converters.NewPointConverter(), nil
 	}
 	return nil, fmt.Errorf("unable get value converter for DataType(%d)", d)
 }

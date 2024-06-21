@@ -104,7 +104,8 @@ CREATE TABLE %s (
 	c_text TEXT,
 	c_enum ENUM('x-small', 'small', 'medium', 'large', 'x-large'),
 	c_set SET('one', 'two', 'three'),
-	c_json JSON
+	c_json JSON,
+	c_point POINT
 )
 `
 
@@ -171,7 +172,9 @@ INSERT INTO %s VALUES (
 	-- c_set
 		'one,two',
 	-- c_json
-		'{"key1": "value1", "key2": "value2"}'
+		'{"key1": "value1", "key2": "value2"}',
+	-- c_point
+		POINT(12.34, 56.78)
 )
 `
 
@@ -435,6 +438,14 @@ const expectedPayloadTemplate = `{
 						"field": "c_json",
 						"name": "io.debezium.data.Json",
 						"parameters": null
+					},
+					{
+						"type": "struct",
+						"optional": false,
+						"default": null,
+						"field": "c_point",
+						"name": "io.debezium.data.geometry.Point",
+						"parameters": null
 					}
 				],
 				"optional": false,
@@ -464,6 +475,10 @@ const expectedPayloadTemplate = `{
 			"c_mediumint": 3,
 			"c_mediumint_unsigned": 4,
 			"c_numeric": "AN3M",
+			"c_point": {
+				"x": 12.34,
+				"y": 56.78
+			},
 			"c_set": "one,two",
 			"c_smallint": 2,
 			"c_smallint_unsigned": 3,

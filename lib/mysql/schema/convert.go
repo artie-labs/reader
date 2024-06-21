@@ -1,7 +1,9 @@
 package schema
 
 import (
+	"encoding/binary"
 	"fmt"
+	"math"
 	"time"
 )
 
@@ -112,6 +114,20 @@ func ConvertValue(value any, colType DataType) (any, error) {
 		default:
 			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
 		}
+	case Point:
+		bytes, ok := value.([]byte)
+		if !ok {
+			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
+		}
+
+		if len(bytes) != 25 {
+			return nil, fmt.Errorf("expected []byte with length 25, length is %d", len(bytes))
+		}
+
+		return map[string]any{
+			"x": math.Float64frombits(binary.LittleEndian.Uint64(bytes[9:17])),
+			"y": math.Float64frombits(binary.LittleEndian.Uint64(bytes[17:25])),
+		}, nil
 	}
 
 	return nil, fmt.Errorf("could not convert DataType(%d) %T value: %v", colType, value, value)
