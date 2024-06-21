@@ -3,7 +3,6 @@ package schema
 import (
 	"encoding/binary"
 	"fmt"
-	"log/slog"
 	"math"
 	"time"
 )
@@ -126,7 +125,7 @@ func ConvertValue(value any, colType DataType) (any, error) {
 			return nil, fmt.Errorf("expected []byte with length 25, length is %d", len(bytes))
 		}
 
-		slog.Info("Point SRID", slog.Any("value", binary.LittleEndian.Uint32(bytes[0:4])))
+		// The first four bytes are the SRID.
 
 		if byteOrder := bytes[5]; byteOrder != 1 {
 			return nil, fmt.Errorf("expected byte order to be 1 (little-endian), byte order is %d", byteOrder)
