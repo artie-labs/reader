@@ -1,7 +1,9 @@
 package schema
 
 import (
+	"encoding/binary"
 	"fmt"
+	"math"
 	"time"
 )
 
@@ -112,6 +114,33 @@ func ConvertValue(value any, colType DataType) (any, error) {
 		default:
 			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
 		}
+	case Point:
+		bytes, ok := value.([]byte)
+		if !ok {
+			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
+		}
+
+		// Byte format is https://dev.mysql.com/doc/refman/8.4/en/gis-data-formats.html#:~:text=the%20OpenGIS%20specification.-,Internal%20Geometry%20Storage%20Format,-MySQL%20stores%20geometry
+		if len(bytes) != 25 {
+			return nil, fmt.Errorf("expected []byte with length 25, length is %d", len(bytes))
+		}
+
+		if srid := binary.LittleEndian.Uint32(bytes[0:4]); srid != 0 {
+			return nil, fmt.Errorf("expected SRID to be 0, SRID is %d", srid)
+		}
+
+		if byteOrder := bytes[5]; byteOrder != 1 {
+			return nil, fmt.Errorf("expected byte order to be 1 (little-endian), byte order is %d", byteOrder)
+		}
+
+		if integerType := binary.LittleEndian.Uint32(bytes[5:9]); integerType != 1 {
+			return nil, fmt.Errorf("expected integer type 1 (POINT), got %d", integerType)
+		}
+
+		return map[string]any{
+			"x": math.Float64frombits(binary.LittleEndian.Uint64(bytes[9:17])),
+			"y": math.Float64frombits(binary.LittleEndian.Uint64(bytes[17:25])),
+		}, nil
 	}
 
 	return nil, fmt.Errorf("could not convert DataType(%d) %T value: %v", colType, value, value)

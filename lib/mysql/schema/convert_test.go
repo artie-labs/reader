@@ -1,11 +1,20 @@
 package schema
 
 import (
+	"encoding/base64"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func mustDecodeBase64(value string) []byte {
+	result, err := base64.StdEncoding.DecodeString(value)
+	if err != nil {
+		panic(err)
+	}
+	return result
+}
 
 func TestConvertValue(t *testing.T) {
 	tests := []struct {
@@ -248,6 +257,24 @@ func TestConvertValue(t *testing.T) {
 			dataType: JSON,
 			value:    []byte(`{"foo": "bar", "baz": "1234"}`),
 			expected: `{"foo": "bar", "baz": "1234"}`,
+		},
+		{
+			name:     "point - zero values",
+			dataType: Point,
+			value:    mustDecodeBase64("AAAAAAEBAAAAAAAAAAAAAAAAAAAAAAAAAA=="),
+			expected: map[string]any{"x": 0.0, "y": 0.0},
+		},
+		{
+			name:     "point - positive values",
+			dataType: Point,
+			value:    mustDecodeBase64("AAAAAAEBAAAArkfhehSuKECkcD0K12NMQA=="),
+			expected: map[string]any{"x": 12.34, "y": 56.78},
+		},
+		{
+			name:     "point - negative values",
+			dataType: Point,
+			value:    mustDecodeBase64("AAAAAAEBAAAASOF6FK5IocDD9ShcjzmqwA=="),
+			expected: map[string]any{"x": -2212.34, "y": -3356.78},
 		},
 	}
 

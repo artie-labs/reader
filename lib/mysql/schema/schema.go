@@ -52,6 +52,8 @@ const (
 	Set
 	// JSON
 	JSON
+	// Misc
+	Point
 )
 
 type Opts struct {
@@ -213,6 +215,8 @@ func parseColumnDataType(originalS string) (DataType, *Opts, error) {
 		return Set, nil, nil
 	case "json":
 		return JSON, nil, nil
+	case "point":
+		return Point, nil, nil
 	default:
 		return -1, nil, fmt.Errorf("unknown data type: %q", originalS)
 	}
