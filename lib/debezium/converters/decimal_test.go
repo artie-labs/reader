@@ -67,7 +67,7 @@ func TestGetScale(t *testing.T) {
     type _testCase struct {
         name          string
         value         string
-        expectedScale int
+        expectedScale uint16
     }
 
     testCases := []_testCase{
