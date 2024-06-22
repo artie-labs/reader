@@ -126,7 +126,7 @@ func ConvertValue(value any, colType DataType) (any, error) {
 		}
 
 		// The first four bytes are the SRID.
-		if byteOrder := bytes[5]; byteOrder != 1 {
+		if byteOrder := bytes[4]; byteOrder != 1 {
 			return nil, fmt.Errorf("expected byte order to be 1 (little-endian), byte order is %d", byteOrder)
 		}
 
