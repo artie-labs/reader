@@ -139,15 +139,13 @@ func ConvertValue(value any, colType DataType) (any, error) {
 			"y": math.Float64frombits(binary.LittleEndian.Uint64(bytes[17:25])),
 		}, nil
 	case Geometry:
-		// MySQL stores geometry values using 4 bytes to indicate the SRID followed by the WKB representation of the value
 		bytes, ok := value.([]byte)
 		if !ok {
 			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
 		}
 
-		// Minimum length is 9 (4 - SRID, 1 for byte order, 4 for type information)
-		if len(bytes) < 9 {
-			return nil, fmt.Errorf("expected []byte with minimum length 9, length is %d", len(bytes))
+		if len(bytes) != 25 {
+			return nil, fmt.Errorf("expected []byte with length 25, length is %d", len(bytes))
 		}
 
 		var byteOrder binary.ByteOrder
@@ -161,7 +159,8 @@ func ConvertValue(value any, colType DataType) (any, error) {
 		}
 
 		return map[string]any{
-			"wkb":  bytes[4:],
+			"wkb": bytes[4:],
+			// The first 4 bytes indicate the SRID
 			"srid": byteOrder.Uint32(bytes[0:4]),
 		}, nil
 	}
