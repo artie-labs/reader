@@ -177,7 +177,7 @@ INSERT INTO %s VALUES (
 	-- c_point
 		POINT(12.34, 56.78),
 	-- c_geom
-		ST_GeomFromText('POINT(1 1)'))
+		ST_GeomFromText('POINT(1 1)')
 )
 `
 
