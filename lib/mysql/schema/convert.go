@@ -144,17 +144,25 @@ func ConvertValue(value any, colType DataType) (any, error) {
 		if !ok {
 			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
 		}
+
+		// Minimum length is 9 (4 - SRID, 1 for byte order, 4 for type information)
 		if len(bytes) < 9 {
 			return nil, fmt.Errorf("expected []byte with minimum length 9, length is %d", len(bytes))
 		}
-		byteOrder := bytes[4]
-		if byteOrder != 1 && byteOrder != 0 {
-			return nil, fmt.Errorf("expected byte order to be 1 (little-endian) or 0 (big-endian), got %d", byteOrder)
+
+		var byteOrder binary.ByteOrder
+		switch bytes[4] {
+		case 0:
+			byteOrder = binary.BigEndian
+		case 1:
+			byteOrder = binary.LittleEndian
+		default:
+			return nil, fmt.Errorf("invalid byte order %d", bytes[4])
 		}
 
 		return map[string]any{
 			"wkb":  bytes[4:],
-			"srid": binary.LittleEndian.Uint32(bytes[0:4]),
+			"srid": byteOrder.Uint32(bytes[0:4]),
 		}, nil
 	}
 
