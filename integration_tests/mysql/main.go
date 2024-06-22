@@ -457,7 +457,7 @@ const expectedPayloadTemplate = `{
 						"field": "c_geom",
 						"name": "io.debezium.data.geometry.Geometry",
 						"parameters": null
-					},
+					}
 				],
 				"optional": false,
 				"field": "after"
