@@ -105,7 +105,8 @@ CREATE TABLE %s (
 	c_enum ENUM('x-small', 'small', 'medium', 'large', 'x-large'),
 	c_set SET('one', 'two', 'three'),
 	c_json JSON,
-	c_point POINT
+	c_point POINT,
+    c_geom GEOMETRY NOT NULL,
 )
 `
 
@@ -174,7 +175,9 @@ INSERT INTO %s VALUES (
 	-- c_json
 		'{"key1": "value1", "key2": "value2"}',
 	-- c_point
-		POINT(12.34, 56.78)
+		POINT(12.34, 56.78),
+	-- c_geom
+		ST_GeomFromText('POINT(1 1)'))
 )
 `
 
