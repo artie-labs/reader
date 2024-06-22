@@ -106,7 +106,7 @@ CREATE TABLE %s (
 	c_set SET('one', 'two', 'three'),
 	c_json JSON,
 	c_point POINT,
-    c_geom GEOMETRY NOT NULL,
+	c_geom GEOMETRY NOT NULL
 )
 `
 
