@@ -449,7 +449,15 @@ const expectedPayloadTemplate = `{
 						"field": "c_point",
 						"name": "io.debezium.data.geometry.Point",
 						"parameters": null
-					}
+					},
+					{
+						"type": "struct",
+						"optional": false,
+						"default": null,
+						"field": "c_geom",
+						"name": "io.debezium.data.geometry.Geometry",
+						"parameters": null
+					},
 				],
 				"optional": false,
 				"field": "after"
@@ -472,6 +480,10 @@ const expectedPayloadTemplate = `{
 			"c_double": 45.678,
 			"c_enum": "medium",
 			"c_float": 90.123,
+			"c_geom": {
+				"srid": 0,
+				"wkb": "AQEAAAAAAAAAAADwPwAAAAAAAPA/"
+			},
 			"c_int": 4,
 			"c_int_unsigned": 55,
 			"c_json": "{\"key1\": \"value1\", \"key2\": \"value2\"}",
