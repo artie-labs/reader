@@ -53,8 +53,9 @@ const (
     Set
     // JSON
     JSON
-    // Misc
+    // Spatial Data Types
     Point
+    Geometry
 )
 
 type Opts struct {
@@ -218,6 +219,8 @@ func parseColumnDataType(originalS string) (DataType, *Opts, error) {
         return JSON, nil, nil
     case "point":
         return Point, nil, nil
+    case "geometry":
+        return Geometry, nil, nil
     default:
         return -1, nil, fmt.Errorf("unknown data type: %q", originalS)
     }
@@ -300,14 +303,14 @@ func fetchPrimaryKeyValues(db *sql.DB, table string, primaryKeys []Column, desce
     }
     defer stmt.Close()
 
-    if err := stmt.QueryRow().Scan(resultPtrs...); err != nil {
+    if err = stmt.QueryRow().Scan(resultPtrs...); err != nil {
         if errors.Is(err, sql.ErrNoRows) {
             return nil, rdbms.ErrNoPkValuesForEmptyTable
         }
         return nil, err
     }
 
-    if err := ConvertValues(result, primaryKeys); err != nil {
+    if err = ConvertValues(result, primaryKeys); err != nil {
         return nil, err
     }
 

@@ -126,8 +126,7 @@ func ConvertValue(value any, colType DataType) (any, error) {
 		}
 
 		// The first four bytes are the SRID.
-
-		if byteOrder := bytes[5]; byteOrder != 1 {
+		if byteOrder := bytes[4]; byteOrder != 1 {
 			return nil, fmt.Errorf("expected byte order to be 1 (little-endian), byte order is %d", byteOrder)
 		}
 
@@ -138,6 +137,31 @@ func ConvertValue(value any, colType DataType) (any, error) {
 		return map[string]any{
 			"x": math.Float64frombits(binary.LittleEndian.Uint64(bytes[9:17])),
 			"y": math.Float64frombits(binary.LittleEndian.Uint64(bytes[17:25])),
+		}, nil
+	case Geometry:
+		bytes, ok := value.([]byte)
+		if !ok {
+			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
+		}
+
+		if len(bytes) != 25 {
+			return nil, fmt.Errorf("expected []byte with length 25, length is %d", len(bytes))
+		}
+
+		var byteOrder binary.ByteOrder
+		switch bytes[4] {
+		case 0:
+			byteOrder = binary.BigEndian
+		case 1:
+			byteOrder = binary.LittleEndian
+		default:
+			return nil, fmt.Errorf("invalid byte order %d", bytes[4])
+		}
+
+		return map[string]any{
+			"wkb": bytes[4:],
+			// The first 4 bytes indicate the SRID
+			"srid": byteOrder.Uint32(bytes[0:4]),
 		}, nil
 	}
 
