@@ -144,8 +144,8 @@ func ConvertValue(value any, colType DataType) (any, error) {
 			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
 		}
 
-		if len(bytes) != 25 {
-			return nil, fmt.Errorf("expected []byte with length 25, length is %d", len(bytes))
+		if len(bytes) < 25 {
+			return nil, fmt.Errorf("expected []byte with at least length 25, length is %d", len(bytes))
 		}
 
 		var byteOrder binary.ByteOrder
