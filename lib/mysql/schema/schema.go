@@ -219,7 +219,8 @@ func parseColumnDataType(originalS string) (DataType, *Opts, error) {
 		return JSON, nil, nil
 	case "point":
 		return Point, nil, nil
-	case "geometry",
+	case
+		"geometry",
 		"linestring":
 		return Geometry, nil, nil
 	default:
