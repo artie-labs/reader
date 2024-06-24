@@ -499,8 +499,8 @@ const expectedPayloadTemplate = `{
 			"c_int_unsigned": 55,
 			"c_json": "{\"key1\": \"value1\", \"key2\": \"value2\"}",
 			"c_linestring": {
-				"srid":0,
-				"wkb":"AQIAAAADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPA/AAAAAAAA8D8AAAAAAAAAQAAAAAAAAABA"
+				"srid": 0,
+				"wkb": "AQIAAAADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPA/AAAAAAAA8D8AAAAAAAAAQAAAAAAAAABA"
 			},
 			"c_mediumint": 3,
 			"c_mediumint_unsigned": 4,
