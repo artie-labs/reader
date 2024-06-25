@@ -109,7 +109,8 @@ CREATE TABLE %s (
 	c_geom GEOMETRY NOT NULL,
 	c_linestring LINESTRING NOT NULL,
 	c_polygon POLYGON NOT NULL,
-	c_multipoint MULTIPOINT NOT NULL
+	c_multipoint MULTIPOINT NOT NULL,
+	c_multilinestring MULTILINESTRING NOT NULL
 )
 `
 
@@ -186,7 +187,9 @@ INSERT INTO %s VALUES (
 	-- c_polygon
 		ST_GeomFromText('POLYGON((0 0, 1 1, 1 0, 0 0))'),
 	-- c_multipoint
-		ST_GeomFromText('MULTIPOINT((0 0), (1 1), (2 2))')
+		ST_GeomFromText('MULTIPOINT((0 0), (1 1), (2 2))'),
+	-- c_multilinestring
+		ST_GeomFromText('MULTILINESTRING((4 4, 5 5), (6 6, 7 7))')
 )
 `
 
@@ -490,6 +493,14 @@ const expectedPayloadTemplate = `{
 						"field": "c_multipoint",
 						"name": "io.debezium.data.geometry.Geometry",
 						"parameters": null
+					},
+					{
+						"type": "struct",
+						"optional": false,
+						"default": null,
+						"field": "c_multilinestring",
+						"name": "io.debezium.data.geometry.Geometry",
+						"parameters": null
 					}
 				],
 				"optional": false,
@@ -529,6 +540,10 @@ const expectedPayloadTemplate = `{
 			"c_multipoint": {
 				"srid": 0,
 				"wkb": "AQQAAAADAAAAAQEAAAAAAAAAAAAAAAAAAAAAAAAAAQEAAAAAAAAAAADwPwAAAAAAAPA/AQEAAAAAAAAAAAAAQAAAAAAAAABA"
+			},
+			"c_multilinestring": {
+				"srid": 0,
+				"wkb": "AQUAAAACAAAAAQIAAAACAAAAAAAAAAAAEEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAFEABAgAAAAIAAAAAAAAAAAAYQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAcQA==",
 			},
 			"c_numeric": "AN3M",
 			"c_point": {
