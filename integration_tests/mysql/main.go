@@ -107,8 +107,8 @@ CREATE TABLE %s (
 	c_json JSON,
 	c_point POINT,
 	c_geom GEOMETRY NOT NULL,
-    c_linestring LINESTRING NOT NULL,
-    c_polygon POLYGON NOT NULL
+	c_linestring LINESTRING NOT NULL,
+	c_polygon POLYGON NOT NULL
 )
 `
 
