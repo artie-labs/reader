@@ -1,11 +1,12 @@
 package main
 
 import (
-    "context"
+	"context"
 	"flag"
 	"fmt"
-	"github.com/artie-labs/reader/sources/mssql"
 	"log/slog"
+
+	"github.com/artie-labs/reader/sources/mssql"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/kafkalib"
