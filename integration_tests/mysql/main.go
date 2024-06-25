@@ -135,7 +135,7 @@ INSERT INTO %s VALUES (
 	-- c_int
 		4,
 	-- c_int_unsigned
-    	55,
+		55,
 	-- c_bigint
 		5,
 	-- c_decimal
