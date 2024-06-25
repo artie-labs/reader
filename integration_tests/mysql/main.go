@@ -112,7 +112,7 @@ CREATE TABLE %s (
 	c_multipoint MULTIPOINT NOT NULL,
 	c_multilinestring MULTILINESTRING NOT NULL,
 	c_multipolygon MULTIPOLYGON NOT NULL,
-    c_geomcollection GEOMETRYCOLLECTION NOT NULL
+	c_geomcollection GEOMETRYCOLLECTION NOT NULL
 )
 `
 
