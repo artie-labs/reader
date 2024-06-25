@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/artie-labs/transfer/lib/debezium"
+	"github.com/cockroachdb/apd/v3"
 )
 
 const defaultScale = uint16(2)
@@ -50,5 +51,10 @@ func (m MoneyConverter) Convert(value any) (any, error) {
 		valString = strings.ReplaceAll(valString, ",", "")
 	}
 
-	return debezium.EncodeDecimal(valString, m.Scale())
+	decimal, _, err := apd.NewFromString(valString)
+	if err != nil {
+		return nil, fmt.Errorf(`unable to use %q as a money value: %w`, valString, err)
+	}
+
+	return debezium.EncodeDecimalWithScale(decimal, int32(m.Scale())), nil
 }

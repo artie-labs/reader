@@ -44,12 +44,12 @@ func TestDecimalConverter_Convert(t *testing.T) {
 	{
 		// Malformed value - empty string.
 		_, err := converter.Convert("")
-		assert.ErrorContains(t, err, `unable to use "" as a floating-point number`)
+		assert.ErrorContains(t, err, `unable to use "" as a decimal: parse mantissa:`)
 	}
 	{
 		// Malformed value - not a floating-point.
 		_, err := converter.Convert("11qwerty00")
-		assert.ErrorContains(t, err, `unable to use "11qwerty00" as a floating-point number`)
+		assert.ErrorContains(t, err, `unable to use "11qwerty00" as a decimal: parse exponent:`)
 	}
 	{
 		// Happy path.
@@ -60,37 +60,6 @@ func TestDecimalConverter_Convert(t *testing.T) {
 		actualValue, err := converter.ToField("").DecodeDecimal(bytes)
 		assert.NoError(t, err)
 		assert.Equal(t, "1.23", fmt.Sprint(actualValue))
-	}
-}
-
-func TestGetScale(t *testing.T) {
-	type _testCase struct {
-		name          string
-		value         string
-		expectedScale uint16
-	}
-
-	testCases := []_testCase{
-		{
-			name:          "0 scale",
-			value:         "5",
-			expectedScale: 0,
-		},
-		{
-			name:          "2 scale",
-			value:         "9.99",
-			expectedScale: 2,
-		},
-		{
-			name:          "5 scale",
-			value:         "9.12345",
-			expectedScale: 5,
-		},
-	}
-
-	for _, testCase := range testCases {
-		actualScale := getScale(testCase.value)
-		assert.Equal(t, testCase.expectedScale, actualScale, testCase.name)
 	}
 }
 
@@ -114,12 +83,12 @@ func TestVariableNumericConverter_Convert(t *testing.T) {
 	{
 		// Malformed value - empty string.
 		_, err := converter.Convert("")
-		assert.ErrorContains(t, err, `unable to use "" as a floating-point number`)
+		assert.ErrorContains(t, err, `unable to use "" as a decimal: parse mantissa:`)
 	}
 	{
 		// Malformed value - not a floating point.
 		_, err := converter.Convert("malformed")
-		assert.ErrorContains(t, err, `unable to use "malformed" as a floating-point number`)
+		assert.ErrorContains(t, err, `unable to use "malformed" as a decimal: parse exponent`)
 	}
 	{
 		// Happy path
