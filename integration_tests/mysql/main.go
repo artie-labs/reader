@@ -107,7 +107,8 @@ CREATE TABLE %s (
 	c_json JSON,
 	c_point POINT,
 	c_geom GEOMETRY NOT NULL,
-    c_linestring LINESTRING NOT NULL
+    c_linestring LINESTRING NOT NULL,
+    c_polygon POLYGON NOT NULL
 )
 `
 
@@ -180,7 +181,9 @@ INSERT INTO %s VALUES (
 	-- c_geom
 		ST_GeomFromText('POINT(1 1)'),
 	-- c_linestring
-		ST_GeomFromText('LINESTRING(0 0, 1 1, 2 2)')
+		ST_GeomFromText('LINESTRING(0 0, 1 1, 2 2)'),
+	-- c_polygon
+		ST_GeomFromText('POLYGON((0 0, 1 1, 1 0, 0 0))')
 )
 `
 
@@ -468,7 +471,23 @@ const expectedPayloadTemplate = `{
 						"field": "c_linestring",
 						"name": "io.debezium.data.geometry.Geometry",
 						"parameters": null
-					}
+					},
+					{
+						"type": "struct",
+						"optional": false,
+						"default": null,
+						"field": "c_linestring",
+						"name": "io.debezium.data.geometry.Geometry",
+						"parameters": null
+					},
+                    {
+						"type": "struct",
+						"optional": false,
+						"default": null,
+						"field": "c_polygon",
+						"name": "io.debezium.data.geometry.Geometry",
+						"parameters": null
+                    }
 				],
 				"optional": false,
 				"field": "after"
@@ -505,6 +524,10 @@ const expectedPayloadTemplate = `{
 			"c_mediumint": 3,
 			"c_mediumint_unsigned": 4,
 			"c_numeric": "AN3M",
+			"c_polygon": {
+				"srid": 0,
+				"wkb": "AQMAAAABAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+			}
 			"c_point": {
 				"x": 12.34,
 				"y": 56.78
