@@ -70,7 +70,7 @@ func (VariableNumericConverter) Convert(value any) (any, error) {
 
 	bytes, scale := debezium.EncodeDecimal(decimal)
 	return map[string]any{
-		"scale": scale,
+		"scale": int32(scale),
 		"value": bytes,
 	}, nil
 }
