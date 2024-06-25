@@ -476,18 +476,10 @@ const expectedPayloadTemplate = `{
 						"type": "struct",
 						"optional": false,
 						"default": null,
-						"field": "c_linestring",
-						"name": "io.debezium.data.geometry.Geometry",
-						"parameters": null
-					},
-                    {
-						"type": "struct",
-						"optional": false,
-						"default": null,
 						"field": "c_polygon",
 						"name": "io.debezium.data.geometry.Geometry",
 						"parameters": null
-                    }
+					}
 				],
 				"optional": false,
 				"field": "after"
@@ -524,13 +516,13 @@ const expectedPayloadTemplate = `{
 			"c_mediumint": 3,
 			"c_mediumint_unsigned": 4,
 			"c_numeric": "AN3M",
-			"c_polygon": {
-				"srid": 0,
-				"wkb": "AQMAAAABAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
-			}
 			"c_point": {
 				"x": 12.34,
 				"y": 56.78
+			},
+			"c_polygon": {
+				"srid": 0,
+				"wkb": "AQMAAAABAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 			},
 			"c_set": "one,two",
 			"c_smallint": 2,
