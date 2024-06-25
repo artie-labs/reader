@@ -8,6 +8,7 @@ require (
 	github.com/aws/aws-sdk-go v1.44.327
 	github.com/aws/aws-sdk-go-v2 v1.18.1
 	github.com/aws/aws-sdk-go-v2/config v1.18.19
+	github.com/cockroachdb/apd/v3 v3.2.1
 	github.com/getsentry/sentry-go v0.27.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/uuid v1.6.0
@@ -61,7 +62,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.6 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.18.7 // indirect
 	github.com/aws/smithy-go v1.13.5 // indirect
-	github.com/cockroachdb/apd/v3 v3.2.1 // indirect
 	github.com/danieljoos/wincred v1.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
