@@ -3,7 +3,7 @@ run-name: Running tests
 on: [push]
 jobs:
   test:
-    runs-on: ubuntu-latest    
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Set up Go
@@ -13,12 +13,14 @@ jobs:
       - name: Run staticcheck
         env:
           SC_VERSION: 2023.1.7
-        run: |          
+        run: |
           make generate
           SC_URL="https://github.com/dominikh/go-tools/releases/download/$SC_VERSION/staticcheck_linux_amd64.tar.gz"
           wget -q ${SC_URL} -O - | tar -xzf - --strip-components 1 -C /usr/local/bin staticcheck/staticcheck
           make static
-      - name: Run test
+      - name: Run tests
         run: make test
       - name: Run race condition check
         run: make race
+      - name: Check Go files are properly formatted
+        run: test -z $(gofmt -l .)
