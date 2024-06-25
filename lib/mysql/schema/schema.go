@@ -221,7 +221,8 @@ func parseColumnDataType(originalS string) (DataType, *Opts, error) {
 		return Point, nil, nil
 	case
 		"geometry",
-		"linestring":
+		"linestring",
+		"polygon":
 		return Geometry, nil, nil
 	default:
 		return -1, nil, fmt.Errorf("unknown data type: %q", originalS)
