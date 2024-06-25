@@ -190,7 +190,7 @@ INSERT INTO %s VALUES (
 	-- c_multipoint
 		ST_GeomFromText('MULTIPOINT((0 0), (1 1), (2 2))'),
 	-- c_multilinestring
-		ST_GeomFromText('MULTILINESTRING((4 4, 5 5), (6 6, 7 7))')
+		ST_GeomFromText('MULTILINESTRING((4 4, 5 5), (6 6, 7 7))'),
 	-- c_multipolygon
 		ST_GeomFromText('MULTIPOLYGON(((4 4, 5 5, 5 4, 4 4)), ((6 6, 7 7, 7 6, 6 6)))')
 )
@@ -512,7 +512,7 @@ const expectedPayloadTemplate = `{
 						"field": "c_multipolygon",
 						"name": "io.debezium.data.geometry.Geometry",
 						"parameters": null
-					},
+					}
 				],
 				"optional": false,
 				"field": "after"
@@ -548,6 +548,10 @@ const expectedPayloadTemplate = `{
 			},
 			"c_mediumint": 3,
 			"c_mediumint_unsigned": 4,
+			"c_multilinestring": {
+				"srid": 0,
+				"wkb": "AQUAAAACAAAAAQIAAAACAAAAAAAAAAAAEEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAFEABAgAAAAIAAAAAAAAAAAAYQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAcQA=="
+			},
 			"c_multipoint": {
 				"srid": 0,
 				"wkb": "AQQAAAADAAAAAQEAAAAAAAAAAAAAAAAAAAAAAAAAAQEAAAAAAAAAAADwPwAAAAAAAPA/AQEAAAAAAAAAAAAAQAAAAAAAAABA"
@@ -555,10 +559,6 @@ const expectedPayloadTemplate = `{
 			"c_multipolygon": {
 				"srid": 0,
 				"wkb": "AQYAAAACAAAAAQMAAAABAAAABAAAAAAAAAAAABBAAAAAAAAAEEAAAAAAAAAUQAAAAAAAABRAAAAAAAAAFEAAAAAAAAAQQAAAAAAAABBAAAAAAAAAEEABAwAAAAEAAAAEAAAAAAAAAAAAGEAAAAAAAAAYQAAAAAAAABxAAAAAAAAAHEAAAAAAAAAcQAAAAAAAABhAAAAAAAAAGEAAAAAAAAAYQA=="
-			},
-			"c_multilinestring": {
-				"srid": 0,
-				"wkb": "AQUAAAACAAAAAQIAAAACAAAAAAAAAAAAEEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAFEABAgAAAAIAAAAAAAAAAAAYQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAcQA==",
 			},
 			"c_numeric": "AN3M",
 			"c_point": {
