@@ -222,6 +222,7 @@ func parseColumnDataType(originalS string) (DataType, *Opts, error) {
 	case
 		"geometry",
 		"linestring",
+		"multipoint",
 		"polygon":
 		return Geometry, nil, nil
 	default:
