@@ -108,7 +108,11 @@ CREATE TABLE %s (
 	c_point POINT,
 	c_geom GEOMETRY NOT NULL,
 	c_linestring LINESTRING NOT NULL,
-	c_polygon POLYGON NOT NULL
+	c_polygon POLYGON NOT NULL,
+	c_multipoint MULTIPOINT NOT NULL,
+	c_multilinestring MULTILINESTRING NOT NULL,
+	c_multipolygon MULTIPOLYGON NOT NULL,
+	c_geomcollection GEOMETRYCOLLECTION NOT NULL
 )
 `
 
@@ -183,7 +187,15 @@ INSERT INTO %s VALUES (
 	-- c_linestring
 		ST_GeomFromText('LINESTRING(0 0, 1 1, 2 2)'),
 	-- c_polygon
-		ST_GeomFromText('POLYGON((0 0, 1 1, 1 0, 0 0))')
+		ST_GeomFromText('POLYGON((0 0, 1 1, 1 0, 0 0))'),
+	-- c_multipoint
+		ST_GeomFromText('MULTIPOINT((0 0), (1 1), (2 2))'),
+	-- c_multilinestring
+		ST_GeomFromText('MULTILINESTRING((4 4, 5 5), (6 6, 7 7))'),
+	-- c_multipolygon
+		ST_GeomFromText('MULTIPOLYGON(((0 0, 1 1, 1 0, 0 0)), ((2 2, 3 3, 3 2, 2 2)))', 4326),
+	-- c_geomcollection
+		ST_GeomFromText('GEOMETRYCOLLECTION(POINT(6 6), LINESTRING(7 7, 8 8), POLYGON((9 9, 10 10, 11 11, 9 9)))')
 )
 `
 
@@ -479,6 +491,38 @@ const expectedPayloadTemplate = `{
 						"field": "c_polygon",
 						"name": "io.debezium.data.geometry.Geometry",
 						"parameters": null
+					},
+					{
+						"type": "struct",
+						"optional": false,
+						"default": null,
+						"field": "c_multipoint",
+						"name": "io.debezium.data.geometry.Geometry",
+						"parameters": null
+					},
+					{
+						"type": "struct",
+						"optional": false,
+						"default": null,
+						"field": "c_multilinestring",
+						"name": "io.debezium.data.geometry.Geometry",
+						"parameters": null
+					},
+					{
+						"type": "struct",
+						"optional": false,
+						"default": null,
+						"field": "c_multipolygon",
+						"name": "io.debezium.data.geometry.Geometry",
+						"parameters": null
+					},
+					{
+						"type": "struct",
+						"optional": false,
+						"default": null,
+						"field": "c_geomcollection",
+						"name": "io.debezium.data.geometry.Geometry",
+						"parameters": null
 					}
 				],
 				"optional": false,
@@ -506,6 +550,10 @@ const expectedPayloadTemplate = `{
 				"srid": 0,
 				"wkb": "AQEAAAAAAAAAAADwPwAAAAAAAPA/"
 			},
+			"c_geomcollection": {
+				"srid": 0,
+				"wkb": "AQcAAAADAAAAAQEAAAAAAAAAAAAYQAAAAAAAABhAAQIAAAACAAAAAAAAAAAAHEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIEABAwAAAAEAAAAEAAAAAAAAAAAAIkAAAAAAAAAiQAAAAAAAACRAAAAAAAAAJEAAAAAAAAAmQAAAAAAAACZAAAAAAAAAIkAAAAAAAAAiQA=="
+			},
 			"c_int": 4,
 			"c_int_unsigned": 55,
 			"c_json": "{\"key1\": \"value1\", \"key2\": \"value2\"}",
@@ -515,6 +563,18 @@ const expectedPayloadTemplate = `{
 			},
 			"c_mediumint": 3,
 			"c_mediumint_unsigned": 4,
+			"c_multilinestring": {
+				"srid": 0,
+				"wkb": "AQUAAAACAAAAAQIAAAACAAAAAAAAAAAAEEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAFEABAgAAAAIAAAAAAAAAAAAYQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAcQA=="
+			},
+			"c_multipoint": {
+				"srid": 0,
+				"wkb": "AQQAAAADAAAAAQEAAAAAAAAAAAAAAAAAAAAAAAAAAQEAAAAAAAAAAADwPwAAAAAAAPA/AQEAAAAAAAAAAAAAQAAAAAAAAABA"
+			},
+			"c_multipolygon": {
+				"srid": 4326,
+				"wkb": "AQYAAAACAAAAAQMAAAABAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwPwAAAAAAAPA/AAAAAAAAAAAAAAAAAADwPwAAAAAAAAAAAAAAAAAAAAABAwAAAAEAAAAEAAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAAhAAAAAAAAACEAAAAAAAAAAQAAAAAAAAAhAAAAAAAAAAEAAAAAAAAAAQA=="
+			},
 			"c_numeric": "AN3M",
 			"c_point": {
 				"x": 12.34,
