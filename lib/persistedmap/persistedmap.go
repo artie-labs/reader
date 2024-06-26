@@ -53,12 +53,9 @@ func (p *PersistedMap) Get(key string) (any, bool) {
 }
 
 func (p *PersistedMap) flushRoutine() {
-	for {
-		select {
-		case <-p.flushTicker.C:
-			if err := p.flush(); err != nil {
-				logger.Panic("failed to flush data", slog.Any("err", err))
-			}
+	for range p.flushTicker.C {
+		if err := p.flush(); err != nil {
+			logger.Panic("Failed to flush data", slog.Any("err", err))
 		}
 	}
 }
