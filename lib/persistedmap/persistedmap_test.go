@@ -39,7 +39,6 @@ func TestPersistedMap_Flush(t *testing.T) {
 	assert.NoError(t, pMap.flush())
 
 	// Does the data exist?
-
 	val, isOk := pMap.Get("key1")
 	assert.True(t, isOk)
 	assert.Equal(t, "value1", val)
@@ -48,7 +47,7 @@ func TestPersistedMap_Flush(t *testing.T) {
 	assert.Equal(t, 2, val)
 	assert.True(t, isOk)
 
-	// If I load a new persisted map, does it come back?
+	// If I load a new PersistedMap, does it come back?
 	pMap2 := NewPersistedMap(tmpFile.Name())
 	val, isOk = pMap2.Get("key1")
 	assert.True(t, isOk)
