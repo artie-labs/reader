@@ -65,6 +65,11 @@ func (s *StreamStore) scanForNewShards() error {
 			return fmt.Errorf("failed to describe stream: %w", err)
 		}
 
+		// We need two loops because we need to mark all the shards as "SEEN" before we process.
+		for _, shard := range result.StreamDescription.Shards {
+			s.storage.SetShardSeen(*shard.ShardId)
+		}
+
 		for _, shard := range result.StreamDescription.Shards {
 			s.shardChan <- shard
 		}

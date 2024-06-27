@@ -23,11 +23,20 @@ func (s *StreamStore) ListenToChannel(ctx context.Context, writer writers.Writer
 }
 
 func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.Shard, writer writers.Writer) {
-	var attempts int
-
 	// Is there another go-routine processing this shard?
 	if s.storage.GetShardProcessing(*shard.ShardId) {
 		return
+	}
+
+	if parentID := shard.ParentShardId; parentID != nil {
+		// Have we seen the parent? If so, let's wait for processing to finish
+		// If we haven't seen the parent, then we can assume this is the parent and we don't need to wait.
+		if s.storage.GetShardSeen(*parentID) && !s.storage.GetShardProcessed(*parentID) {
+			slog.Info("Parent shard is being processed, let's sleep 3s and retry", slog.String("shardId", *shard.ShardId), slog.String("parentShardId", *parentID))
+			time.Sleep(3 * time.Second)
+			s.processShard(ctx, shard, writer)
+			return
+		}
 	}
 
 	// If no one is processing it, let's mark it as being processed.
@@ -103,6 +112,7 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 			logger.Panic("Failed to publish messages, exiting...", slog.Any("err", err))
 		}
 
+		var attempts int
 		if len(getRecordsOutput.Records) > 0 {
 			attempts = 0
 			lastRecord := getRecordsOutput.Records[len(getRecordsOutput.Records)-1]
