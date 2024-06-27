@@ -29,16 +29,14 @@ type TTLMap struct {
 	mu            sync.RWMutex
 	data          map[string]*ItemWrapper `yaml:"data"`
 	filePath      string
-	closeChan     chan struct{}
 	cleanupTicker *time.Ticker
 	flushTicker   *time.Ticker
 }
 
 func NewMap(filePath string, cleanupInterval, flushInterval time.Duration) *TTLMap {
 	t := &TTLMap{
-		data:      make(map[string]*ItemWrapper),
-		filePath:  filePath,
-		closeChan: make(chan struct{}),
+		data:     make(map[string]*ItemWrapper),
+		filePath: filePath,
 	}
 
 	if err := t.loadFromFile(); err != nil {
@@ -94,8 +92,6 @@ func (t *TTLMap) cleanUpAndFlushRoutine() {
 			if err := t.flush(); err != nil {
 				logger.Panic("Failed to flush", slog.Any("err", err))
 			}
-		case <-t.closeChan:
-			return
 		}
 	}
 }

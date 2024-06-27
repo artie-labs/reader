@@ -68,8 +68,6 @@ func TestTTLMap_Complete(t *testing.T) {
 
 	_, isOk = store.Get("xyz")
 	assert.True(t, isOk, "xyz")
-
-	store.closeChan <- struct{}{}
 }
 
 func TestFlushing(t *testing.T) {
@@ -95,6 +93,4 @@ func TestFlushing(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, 1, len(data))
-
-	ttlMap.closeChan <- struct{}{}
 }
