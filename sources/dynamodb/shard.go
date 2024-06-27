@@ -29,9 +29,9 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 	}
 
 	if parentID := shard.ParentShardId; parentID != nil {
-		// If the parent shard exists, is it still being processed? If so, let's wait a bit and then retry.
-		// We must process the parent shard first before processing the child shard.
-		if s.storage.GetShardProcessing(*parentID) && !s.storage.GetShardProcessed(*parentID) {
+		// Have we seen the parent? If so, let's wait for processing to finish
+		// If we haven't seen the parent, then we can assume this is the parent and we don't need to wait.
+		if s.storage.GetShardSeen(*parentID) && !s.storage.GetShardProcessed(*parentID) {
 			slog.Info("Parent shard is being processed, let's sleep 3s and retry", slog.String("shardId", *shard.ShardId), slog.String("parentShardId", *parentID))
 			time.Sleep(3 * time.Second)
 			s.processShard(ctx, shard, writer)
