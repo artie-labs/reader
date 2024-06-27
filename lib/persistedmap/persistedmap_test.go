@@ -1,6 +1,7 @@
 package persistedmap
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
 	"os"
@@ -8,9 +9,8 @@ import (
 )
 
 func TestPersistedMap_LoadFromFile(t *testing.T) {
-	tmpFile, err := os.CreateTemp("", "persistedmap_test")
+	tmpFile, err := os.Create(fmt.Sprintf("%s/foo", t.TempDir()))
 	assert.NoError(t, err)
-	defer os.Remove(tmpFile.Name())
 
 	// Write initial data to the file
 	initialData := map[string]any{"key1": "value1", "key2": 2}
@@ -28,9 +28,8 @@ func TestPersistedMap_LoadFromFile(t *testing.T) {
 }
 
 func TestPersistedMap_Flush(t *testing.T) {
-	tmpFile, err := os.CreateTemp("", "persistedmap_test")
+	tmpFile, err := os.Create(fmt.Sprintf("%s/persistedmap_test", t.TempDir()))
 	assert.NoError(t, err)
-	defer os.Remove(tmpFile.Name())
 
 	pMap := NewPersistedMap(tmpFile.Name())
 	pMap.Set("key1", "value1")

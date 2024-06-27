@@ -73,6 +73,8 @@ func (p *PersistedMap) flush() error {
 		return fmt.Errorf("failed to create file: %w", err)
 	}
 
+	defer file.Close()
+
 	yamlBytes, err := yaml.Marshal(p.data)
 	if err != nil {
 		return fmt.Errorf("failed to marshal data: %w", err)
@@ -81,8 +83,6 @@ func (p *PersistedMap) flush() error {
 	if _, err = file.Write(yamlBytes); err != nil {
 		return fmt.Errorf("failed to write to file: %w", err)
 	}
-
-	defer file.Close()
 
 	p.shouldSave = false
 	return nil

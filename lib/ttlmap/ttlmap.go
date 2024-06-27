@@ -126,6 +126,8 @@ func (t *TTLMap) flush() error {
 		return fmt.Errorf("failed to create file: %w", err)
 	}
 
+	defer file.Close()
+
 	dataToSave := make(map[string]*ItemWrapper)
 	for key, val := range t.data {
 		if val.DoNotFlushToDisk {
@@ -144,7 +146,6 @@ func (t *TTLMap) flush() error {
 		return fmt.Errorf("failed to write to file: %w", err)
 	}
 
-	defer file.Close()
 	t.shouldSave = false
 	return nil
 }
