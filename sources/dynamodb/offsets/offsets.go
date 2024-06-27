@@ -14,6 +14,23 @@ type OffsetStorage struct {
 	ttlMap *ttlmap.TTLMap
 }
 
+func shardSeenKey(shardId string) string {
+	return fmt.Sprintf("seen#shardId#%s", shardId)
+}
+
+func (o *OffsetStorage) SetShardSeen(shardID string) {
+	o.ttlMap.Set(ttlmap.SetArgs{
+		Key:              shardSeenKey(shardID),
+		Value:            true,
+		DoNotFlushToDisk: true,
+	}, ShardExpirationAndBuffer)
+}
+
+func (o *OffsetStorage) GetShardSeen(shardID string) bool {
+	_, isOk := o.ttlMap.Get(shardSeenKey(shardID))
+	return isOk
+}
+
 func shardProcessingKey(shardId string) string {
 	return fmt.Sprintf("processing#shardId#%s", shardId)
 }
