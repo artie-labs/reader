@@ -62,12 +62,11 @@ func (p *PersistedMap) flushRoutine() {
 
 func (p *PersistedMap) flush() error {
 	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	if !p.shouldSave {
 		return nil
 	}
-
-	defer p.mu.Unlock()
 
 	file, err := os.Create(p.filePath)
 	if err != nil {
