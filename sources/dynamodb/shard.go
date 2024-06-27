@@ -30,10 +30,9 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 
 	if shard.ParentShardId != nil {
 		parentID := *shard.ParentShardId
-		if !s.storage.GetShardProcessed(parentID) && s.storage.GetShardProcessing(parentID) {
-			slog.Info("Parent shard is being processed, let's sleep and retry", slog.String("shardId", *shard.ShardId))
-
-			time.Sleep(jitter.Jitter(500, jitter.DefaultMaxMs, 0))
+		if s.storage.GetShardProcessing(parentID) && !s.storage.GetShardProcessed(parentID) {
+			slog.Info("Parent shard is being processed, let's sleep 3s and retry", slog.String("shardId", *shard.ShardId))
+			time.Sleep(3 * time.Second)
 			s.processShard(ctx, shard, writer)
 			return
 		}
