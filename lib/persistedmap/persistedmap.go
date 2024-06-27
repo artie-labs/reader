@@ -27,7 +27,7 @@ func NewPersistedMap(filePath string) *PersistedMap {
 	}
 
 	if err := persistedMap.loadFromFile(); err != nil {
-		slog.Warn("Failed to load persisted map from filepath, starting a new one...", slog.Any("err", err))
+		logger.Panic("Failed to load persisted map from filepath", err)
 	}
 
 	persistedMap.flushTicker = time.NewTicker(30 * time.Second)
@@ -91,11 +91,16 @@ func (p *PersistedMap) flush() error {
 func (p *PersistedMap) loadFromFile() error {
 	file, err := os.Open(p.filePath)
 	if err != nil {
+		if os.IsNotExist(err) {
+			// If the file doesn't exist, create a new map object and return
+			p.data = make(map[string]any)
+			return nil
+		}
+
 		return err
 	}
 
 	defer file.Close()
-
 	readBytes, err := io.ReadAll(file)
 	if err != nil {
 		return fmt.Errorf("failed to read file: %w", err)
@@ -104,10 +109,6 @@ func (p *PersistedMap) loadFromFile() error {
 	var data map[string]any
 	if err = yaml.Unmarshal(readBytes, &data); err != nil {
 		return fmt.Errorf("failed to unmarshal data: %w", err)
-	}
-
-	if data == nil {
-		data = make(map[string]any)
 	}
 
 	p.mu.Lock()
