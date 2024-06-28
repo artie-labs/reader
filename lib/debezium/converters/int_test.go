@@ -166,7 +166,7 @@ func TestAsInt32(t *testing.T) {
 		assert.ErrorContains(t, err, "value overflows int32")
 	}
 	{
-		// int - just postive enough
+		// int - just positive enough
 		value, err := asInt32(int(math.MaxInt32))
 		assert.NoError(t, err)
 		assert.Equal(t, int32(math.MaxInt32), value)
