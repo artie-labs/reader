@@ -28,7 +28,7 @@ func NewPersistedMap(filePath string) *PersistedMap {
 
 	data, err := loadFromFile(filePath)
 	if err != nil {
-		logger.Panic("Failed to load persisted map from filepath", err)
+		logger.Panic("Failed to load persisted map from filepath", slog.Any("err", err))
 	}
 
 	if len(data) > 0 {
