@@ -26,8 +26,13 @@ func NewPersistedMap(filePath string) *PersistedMap {
 		data:     make(map[string]any),
 	}
 
-	if err := persistedMap.loadFromFile(); err != nil {
+	data, err := loadFromFile(filePath)
+	if err != nil {
 		logger.Panic("Failed to load persisted map from filepath", err)
+	}
+
+	if len(data) > 0 {
+		persistedMap.data = data
 	}
 
 	persistedMap.flushTicker = time.NewTicker(30 * time.Second)
@@ -88,31 +93,26 @@ func (p *PersistedMap) flush() error {
 	return nil
 }
 
-func (p *PersistedMap) loadFromFile() error {
-	file, err := os.Open(p.filePath)
+func loadFromFile(filePath string) (map[string]any, error) {
+	file, err := os.Open(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			// If the file doesn't exist, create a new map object and return
-			p.data = make(map[string]any)
-			return nil
+			return nil, nil
 		}
 
-		return err
+		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
 
 	defer file.Close()
 	readBytes, err := io.ReadAll(file)
 	if err != nil {
-		return fmt.Errorf("failed to read file: %w", err)
+		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
 
 	var data map[string]any
 	if err = yaml.Unmarshal(readBytes, &data); err != nil {
-		return fmt.Errorf("failed to unmarshal data: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal data: %w", err)
 	}
 
-	p.mu.Lock()
-	p.data = data
-	p.mu.Unlock()
-	return nil
+	return data, nil
 }
