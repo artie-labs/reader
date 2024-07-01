@@ -57,7 +57,7 @@ func (c *snapshot) Next() ([]lib.RawMessage, error) {
 			return nil, fmt.Errorf("failed to decode document: %w", err)
 		}
 
-		mgoMsg, err := ParseMessage(result)
+		mgoMsg, err := ParseMessage(result, "r")
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse message: %w", err)
 		}

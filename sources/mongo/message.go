@@ -15,6 +15,7 @@ import (
 type Message struct {
 	jsonExtendedString string
 	pkMap              map[string]any
+	operation          string
 }
 
 func (m *Message) ToRawMessage(collection config.Collection, database string) (lib.RawMessage, error) {
@@ -27,7 +28,7 @@ func (m *Message) ToRawMessage(collection config.Collection, database string) (l
 				Collection: collection.Name,
 				TsMs:       time.Now().UnixMilli(),
 			},
-			Operation: "r",
+			Operation: m.operation,
 		},
 	}
 
@@ -38,7 +39,7 @@ func (m *Message) ToRawMessage(collection config.Collection, database string) (l
 	return lib.NewRawMessage(collection.TopicSuffix(database), pkMap, evt), nil
 }
 
-func ParseMessage(result bson.M) (*Message, error) {
+func ParseMessage(result bson.M, operation string) (*Message, error) {
 	jsonExtendedBytes, err := bson.MarshalExtJSON(result, false, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal document to JSON extended: %w", err)
@@ -63,5 +64,6 @@ func ParseMessage(result bson.M) (*Message, error) {
 		pkMap: map[string]any{
 			"id": string(pkBytes),
 		},
+		operation: operation,
 	}, nil
 }
