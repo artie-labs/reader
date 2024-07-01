@@ -50,22 +50,26 @@ func (s *Source) Close() error {
 }
 
 func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
-	for _, collection := range s.cfg.Collections {
-		snapshotStartTime := time.Now()
+	if s.cfg.Streaming {
 
-		slog.Info("Scanning collection",
-			slog.String("collectionName", collection.Name),
-			slog.String("topicSuffix", collection.TopicSuffix(s.db.Name())),
-			slog.Any("batchSize", collection.GetBatchSize()),
-		)
+	} else {
+		for _, collection := range s.cfg.Collections {
+			snapshotStartTime := time.Now()
 
-		iterator := newSnapshotIterator(s.db, collection, s.cfg)
-		count, err := writer.Write(ctx, iterator)
-		if err != nil {
-			return fmt.Errorf("failed to snapshot collection %q: %w", collection.Name, err)
+			slog.Info("Scanning collection",
+				slog.String("collectionName", collection.Name),
+				slog.String("topicSuffix", collection.TopicSuffix(s.db.Name())),
+				slog.Any("batchSize", collection.GetBatchSize()),
+			)
+
+			iterator := newSnapshotIterator(s.db, collection, s.cfg)
+			count, err := writer.Write(ctx, iterator)
+			if err != nil {
+				return fmt.Errorf("failed to snapshot collection %q: %w", collection.Name, err)
+			}
+
+			slog.Info("Finished snapshotting", slog.Int("scannedTotal", count), slog.Duration("totalDuration", time.Since(snapshotStartTime)))
 		}
-
-		slog.Info("Finished snapshotting", slog.Int("scannedTotal", count), slog.Duration("totalDuration", time.Since(snapshotStartTime)))
 	}
 
 	return nil
