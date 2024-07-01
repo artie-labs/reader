@@ -51,8 +51,12 @@ func (s *Source) Close() error {
 
 func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
 	if s.cfg.Streaming {
-		iterator := newStreamingIterator(s.db, s.cfg, s.cfg.OffsetsFile)
-		if _, err := writer.Write(ctx, iterator); err != nil {
+		iterator, err := newStreamingIterator(ctx, s.db, s.cfg, s.cfg.OffsetsFile)
+		if err != nil {
+			return err
+		}
+
+		if _, err = writer.Write(ctx, iterator); err != nil {
 			return fmt.Errorf("failed to stream: %w", err)
 		}
 	} else {
