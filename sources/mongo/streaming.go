@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/constants"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/persistedmap"
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,14 +17,15 @@ type streaming struct {
 	cfg                   config.MongoDB
 	changeStream          *mongo.ChangeStream
 	ctx                   context.Context
-	collectionsToWatchMap map[string]bool
+	collectionsToWatchMap map[string]config.Collection
 	offsets               *persistedmap.PersistedMap
+	batchSize             int32
 }
 
 func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.MongoDB, filePath string) (*streaming, error) {
-	collectionsToWatchMap := make(map[string]bool)
+	collectionsToWatchMap := make(map[string]config.Collection)
 	for _, collection := range cfg.Collections {
-		collectionsToWatchMap[collection.Name] = true
+		collectionsToWatchMap[collection.Name] = collection
 	}
 
 	// Set pipeline to only show me insert, update and delete operations
@@ -43,6 +45,8 @@ func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.Mo
 	}
 
 	return &streaming{
+		// TODO: Consider making this configurable
+		batchSize:             constants.DefaultBatchSize,
 		db:                    db,
 		cfg:                   cfg,
 		changeStream:          cs,
@@ -58,10 +62,10 @@ func (s *streaming) HasNext() bool {
 }
 
 func (s *streaming) Next() ([]lib.RawMessage, error) {
-	var messages []lib.RawMessage
+	var rawMsgs []lib.RawMessage
 
 	// Check for new events
-	if s.changeStream.Next(s.ctx) {
+	if s.batchSize > int32(len(rawMsgs)) && s.changeStream.Next(s.ctx) {
 		var changeEvent bson.M
 		if err := s.changeStream.Decode(&changeEvent); err != nil {
 			return nil, fmt.Errorf("failed to decode change event: %v", err)
@@ -87,27 +91,57 @@ func (s *streaming) Next() ([]lib.RawMessage, error) {
 			return nil, fmt.Errorf("expected collection to be string, got: %T", coll)
 		}
 
-		if _, watching := s.collectionsToWatchMap[collString]; watching {
-
-		}
-
-		// Filter events based on collectionsToWatchMap
-		if ns, ok := changeEvent["ns"].(bson.M); ok {
-			if collection, ok := ns["coll"].(string); ok {
-				if _, watching := s.collectionsToWatchMap[collection]; watching {
-					rawMessage := lib.RawMessage{
-						Data: changeEvent,
-					}
-					messages = append(messages, rawMessage)
-				}
+		if collection, watching := s.collectionsToWatchMap[collString]; watching {
+			documentKey, isOk := changeEvent["documentKey"]
+			if !isOk {
+				return nil, fmt.Errorf("failed to get documentKey from change event: %v", changeEvent)
 			}
+
+			documentKeyBsonM, isOk := documentKey.(bson.M)
+			if !isOk {
+				return nil, fmt.Errorf("expected documentKey to be bson.M, got: %T", documentKey)
+			}
+
+			operationType, isOk := changeEvent["operationType"]
+			if !isOk {
+				return nil, fmt.Errorf("failed to get operationType from change event: %v", changeEvent)
+			}
+
+			operationTypeString, isOk := operationType.(string)
+			if !isOk {
+				return nil, fmt.Errorf("expected operationType to be string, got: %T", operationType)
+			}
+
+			var err error
+			var msg *Message
+			switch operationTypeString {
+			case "delete":
+				msg, err = ParseMessage(bson.M{"_id": documentKeyBsonM}, "d")
+			case "insert":
+				msg, err = ParseMessage(changeEvent["fullDocument"].(bson.M), "c")
+			case "update":
+				msg, err = ParseMessage(changeEvent["fullDocument"].(bson.M), "u")
+			default:
+				return nil, fmt.Errorf("unsupported operation type: %s", operationTypeString)
+			}
+
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse message: %w", err)
+			}
+
+			rawMessage, err := msg.ToRawMessage(collection, s.cfg.Database)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert message to raw message: %w", err)
+			}
+
+			rawMsgs = append(rawMsgs, rawMessage)
 		}
 	}
 
-	if len(messages) == 0 {
+	if len(rawMsgs) == 0 {
 		// If no messages, let's sleep for a while before checking again
 		time.Sleep(1 * time.Second)
 	}
 
-	return messages, nil
+	return rawMsgs, nil
 }
