@@ -168,7 +168,7 @@ func parseColumnDataType(originalS string) (DataType, *Opts, error) {
 			return -1, nil, fmt.Errorf("failed to parse precision value %q: %w", s, err)
 		}
 
-		scale, err := strconv.Atoi(parts[1])
+		scale, err := strconv.ParseUint(parts[1], 10, 16)
 		if err != nil {
 			return -1, nil, fmt.Errorf("failed to parse scale value %q: %w", s, err)
 		}
