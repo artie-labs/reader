@@ -6,6 +6,7 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/constants"
 	"github.com/artie-labs/reader/lib"
+	mongolib "github.com/artie-labs/reader/lib/mongo"
 	"github.com/artie-labs/reader/lib/persistedmap"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -41,7 +42,10 @@ func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.Mo
 		}}},
 	}
 
-	opts := options.ChangeStream()
+	// Setting `updateLookup` will emit the whole document for updates
+	// Ref: https://www.mongodb.com/docs/manual/reference/change-events/update/#description
+	opts := options.ChangeStream().SetFullDocument(options.UpdateLookup)
+
 	storage := persistedmap.NewPersistedMap(filePath)
 	if resumeToken, exists := storage.Get(offsetKey); exists {
 		castedResumeToken, isOk := resumeToken.(bson.Raw)
@@ -78,64 +82,40 @@ func (s *streaming) HasNext() bool {
 func (s *streaming) Next() ([]lib.RawMessage, error) {
 	var rawMsgs []lib.RawMessage
 	if s.batchSize > int32(len(rawMsgs)) && s.changeStream.Next(s.ctx) {
-		var changeEvent bson.M
-		if err := s.changeStream.Decode(&changeEvent); err != nil {
+		var rawChangeEvent bson.M
+		if err := s.changeStream.Decode(&rawChangeEvent); err != nil {
 			return nil, fmt.Errorf("failed to decode change event: %v", err)
 		}
 
 		s.offsets.Set(offsetKey, s.changeStream.ResumeToken())
-		ns, isOk := changeEvent["ns"]
-		if !isOk {
-			return nil, fmt.Errorf("failed to get namespace from change event: %v", changeEvent)
+
+		changeEvent, err := mongolib.NewChangeEvent(rawChangeEvent)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse change event: %w", err)
 		}
 
-		nsBsonM, isOk := ns.(bson.M)
-		if !isOk {
-			return nil, fmt.Errorf("expected ns to be bson.M, got: %T", ns)
-		}
-
-		coll, isOk := nsBsonM["coll"]
-		if !isOk {
-			return nil, fmt.Errorf("failed to get collection from change event: %v", changeEvent)
-		}
-
-		collString, isOk := coll.(string)
-		if !isOk {
-			return nil, fmt.Errorf("expected collection to be string, got: %T", coll)
-		}
-
-		if collection, watching := s.collectionsToWatchMap[collString]; watching {
-			documentKey, isOk := changeEvent["documentKey"]
-			if !isOk {
-				return nil, fmt.Errorf("failed to get documentKey from change event: %v", changeEvent)
-			}
-
-			documentKeyBsonM, isOk := documentKey.(bson.M)
-			if !isOk {
-				return nil, fmt.Errorf("expected documentKey to be bson.M, got: %T", documentKey)
-			}
-
-			operationType, isOk := changeEvent["operationType"]
-			if !isOk {
-				return nil, fmt.Errorf("failed to get operationType from change event: %v", changeEvent)
-			}
-
-			operationTypeString, isOk := operationType.(string)
-			if !isOk {
-				return nil, fmt.Errorf("expected operationType to be string, got: %T", operationType)
-			}
-
+		if collection, watching := s.collectionsToWatchMap[changeEvent.Collection()]; watching {
 			var err error
 			var msg *Message
-			switch operationTypeString {
+			switch changeEvent.Operation() {
 			case "delete":
-				msg, err = ParseMessage(bson.M{"_id": documentKeyBsonM}, "d")
+				msg, err = ParseMessage(bson.M{"_id": changeEvent.ObjectID()}, "d")
 			case "insert":
-				msg, err = ParseMessage(changeEvent["fullDocument"].(bson.M), "c")
+				fullDocument, err := changeEvent.FullDocument()
+				if err != nil {
+					return nil, fmt.Errorf("failed to get fullDocument from change event: %v", changeEvent)
+				}
+
+				msg, err = ParseMessage(fullDocument, "c")
 			case "update":
-				msg, err = ParseMessage(changeEvent["fullDocument"].(bson.M), "u")
+				fullDocument, err := changeEvent.FullDocument()
+				if err != nil {
+					return nil, fmt.Errorf("failed to get fullDocument from change event: %v", changeEvent)
+				}
+
+				msg, err = ParseMessage(fullDocument, "u")
 			default:
-				return nil, fmt.Errorf("unsupported operation type: %s", operationTypeString)
+				return nil, fmt.Errorf("unsupported operation type: %s", changeEvent.Operation())
 			}
 
 			if err != nil {
