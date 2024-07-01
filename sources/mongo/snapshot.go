@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type collectionScanner struct {
+type snapshot struct {
 	db         *mongo.Database
 	cfg        config.MongoDB
 	collection config.Collection
@@ -21,19 +21,19 @@ type collectionScanner struct {
 	done   bool
 }
 
-func newSnapshotIterator(db *mongo.Database, collection config.Collection, cfg config.MongoDB) *collectionScanner {
-	return &collectionScanner{
+func newSnapshotIterator(db *mongo.Database, collection config.Collection, cfg config.MongoDB) *snapshot {
+	return &snapshot{
 		db:         db,
 		cfg:        cfg,
 		collection: collection,
 	}
 }
 
-func (c *collectionScanner) HasNext() bool {
+func (c *snapshot) HasNext() bool {
 	return !c.done
 }
 
-func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
+func (c *snapshot) Next() ([]lib.RawMessage, error) {
 	if !c.HasNext() {
 		return nil, fmt.Errorf("no more rows to scan")
 	}

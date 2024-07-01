@@ -1,0 +1,3 @@
+package mongo
+
+type
