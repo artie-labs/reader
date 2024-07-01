@@ -21,7 +21,7 @@ type collectionScanner struct {
 	done   bool
 }
 
-func newIterator(db *mongo.Database, collection config.Collection, cfg config.MongoDB) *collectionScanner {
+func newSnapshotIterator(db *mongo.Database, collection config.Collection, cfg config.MongoDB) *collectionScanner {
 	return &collectionScanner{
 		db:         db,
 		cfg:        cfg,

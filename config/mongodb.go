@@ -9,12 +9,12 @@ import (
 )
 
 type MongoDB struct {
-	Host     string `yaml:"host"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
-	Database string `yaml:"database"`
-
+	Host        string       `yaml:"host"`
+	Username    string       `yaml:"username"`
+	Password    string       `yaml:"password"`
+	Database    string       `yaml:"database"`
 	Collections []Collection `yaml:"collections"`
+	Streaming   bool         `json:"streaming"`
 }
 
 type Collection struct {

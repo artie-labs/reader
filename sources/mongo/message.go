@@ -12,12 +12,12 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-type mgoMessage struct {
+type Message struct {
 	jsonExtendedString string
 	pkMap              map[string]any
 }
 
-func (m *mgoMessage) ToRawMessage(collection config.Collection, database string) (lib.RawMessage, error) {
+func (m *Message) ToRawMessage(collection config.Collection, database string) (lib.RawMessage, error) {
 	evt := &mongo.SchemaEventPayload{
 		Schema: debezium.Schema{},
 		Payload: mongo.Payload{
@@ -38,7 +38,7 @@ func (m *mgoMessage) ToRawMessage(collection config.Collection, database string)
 	return lib.NewRawMessage(collection.TopicSuffix(database), pkMap, evt), nil
 }
 
-func ParseMessage(result bson.M) (*mgoMessage, error) {
+func ParseMessage(result bson.M) (*Message, error) {
 	jsonExtendedBytes, err := bson.MarshalExtJSON(result, false, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal document to JSON extended: %w", err)
@@ -58,7 +58,7 @@ func ParseMessage(result bson.M) (*mgoMessage, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal ext json: %w", err)
 	}
-	return &mgoMessage{
+	return &Message{
 		jsonExtendedString: string(jsonExtendedBytes),
 		pkMap: map[string]any{
 			"id": string(pkBytes),
