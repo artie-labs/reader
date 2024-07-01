@@ -1,6 +1,6 @@
 module github.com/artie-labs/reader
 
-go 1.22
+go 1.22.4
 
 require (
 	github.com/DataDog/datadog-go/v5 v5.5.0
