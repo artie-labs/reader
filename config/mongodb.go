@@ -14,7 +14,10 @@ type MongoDB struct {
 	Password    string       `yaml:"password"`
 	Database    string       `yaml:"database"`
 	Collections []Collection `yaml:"collections"`
-	Streaming   bool         `json:"streaming"`
+
+	// Streaming specific configs
+	Streaming   bool   `yaml:"streaming,omitempty"`
+	OffsetsFile string `yaml:"offsetsFile,omitempty"`
 }
 
 type Collection struct {
