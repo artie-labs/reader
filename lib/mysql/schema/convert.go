@@ -83,12 +83,13 @@ func ConvertValue(value any, colType DataType) (any, error) {
 			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
 		}
 
-		if strings.HasSuffix(string(bytesValue), "-00-00 00:00:00") {
+		stringValue := string(bytesValue)
+		if strings.HasSuffix(stringValue, "-00-00 00:00:00") {
 			// If MySQL strict mode isn't turned on, it can allow invalid dates like 2020-00-00 00:00:00 or 0000-00-00 00:00:00
 			return nil, nil
 		}
 
-		timeValue, err := time.Parse(DateTimeFormat, string(bytesValue))
+		timeValue, err := time.Parse(DateTimeFormat, stringValue)
 		if err != nil {
 			return nil, err
 		}
