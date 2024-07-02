@@ -320,7 +320,10 @@ func TestConvertValues(t *testing.T) {
 }
 
 func TestHasNonStrictModeDate(t *testing.T) {
+	assert.False(t, hasNonStrictModeDate(""))
+	assert.False(t, hasNonStrictModeDate("hello world"))
 	assert.False(t, hasNonStrictModeDate("2021-01-02"))
+	assert.False(t, hasNonStrictModeDate("2021--01-02"))
 	assert.False(t, hasNonStrictModeDate("2021-01-02 03:04:05"))
 
 	assert.True(t, hasNonStrictModeDate("2009-00-00"))
