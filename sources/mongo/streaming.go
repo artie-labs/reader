@@ -62,6 +62,8 @@ func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.Mo
 		return nil, fmt.Errorf("failed to start change stream: %w", err)
 	}
 
+	fmt.Println("returning?")
+
 	return &streaming{
 		// TODO: Consider making this configurable
 		batchSize:             constants.DefaultBatchSize,
@@ -75,13 +77,12 @@ func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.Mo
 }
 
 func (s *streaming) HasNext() bool {
-	// Streaming mode always has next
-	return s.changeStream.Next(s.ctx)
+	return true
 }
 
 func (s *streaming) Next() ([]lib.RawMessage, error) {
 	var rawMsgs []lib.RawMessage
-	if s.batchSize > int32(len(rawMsgs)) && s.changeStream.Next(s.ctx) {
+	for s.batchSize > int32(len(rawMsgs)) && s.changeStream.TryNext(s.ctx) {
 		var rawChangeEvent bson.M
 		if err := s.changeStream.Decode(&rawChangeEvent); err != nil {
 			return nil, fmt.Errorf("failed to decode change event: %v", err)
@@ -93,6 +94,8 @@ func (s *streaming) Next() ([]lib.RawMessage, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse change event: %w", err)
 		}
+
+		fmt.Println("?changeEvent", rawChangeEvent)
 
 		if collection, watching := s.collectionsToWatchMap[changeEvent.Collection()]; watching {
 			var err error

@@ -75,7 +75,7 @@ func (p *PersistedMap) flush() error {
 
 	file, err := os.Create(p.filePath)
 	if err != nil {
-		return fmt.Errorf("failed to create file: %w", err)
+		return fmt.Errorf("failed to create file: %w, filepath: %s", err, p.filePath)
 	}
 
 	defer file.Close()

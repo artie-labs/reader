@@ -20,7 +20,7 @@ type Source struct {
 	db  *mongo.Database
 }
 
-func Load(cfg config.MongoDB) (*Source, error) {
+func Load(cfg config.MongoDB) (*Source, bool, error) {
 	creds := options.Credential{
 		Username: cfg.Username,
 		Password: cfg.Password,
@@ -30,18 +30,18 @@ func Load(cfg config.MongoDB) (*Source, error) {
 	ctx := context.Background()
 	client, err := mongo.Connect(ctx, opts)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
+		return nil, false, fmt.Errorf("failed to connect to MongoDB: %w", err)
 	}
 
 	if err = client.Ping(ctx, readpref.Primary()); err != nil {
-		return nil, fmt.Errorf("failed to ping MongoDB: %w", err)
+		return nil, false, fmt.Errorf("failed to ping MongoDB: %w", err)
 	}
 
 	db := client.Database(cfg.Database)
 	return &Source{
 		cfg: cfg,
 		db:  db,
-	}, nil
+	}, cfg.Streaming, nil
 }
 
 func (s *Source) Close() error {
