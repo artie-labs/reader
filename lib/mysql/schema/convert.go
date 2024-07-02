@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -84,8 +85,7 @@ func ConvertValue(value any, colType DataType) (any, error) {
 		}
 
 		stringValue := string(bytesValue)
-		if strings.HasSuffix(stringValue, "-00-00 00:00:00") {
-			// If MySQL strict mode isn't turned on, it can allow invalid dates like 2020-00-00 00:00:00 or 0000-00-00 00:00:00
+		if hasNonStrictModeDate(stringValue) {
 			return nil, nil
 		}
 
@@ -184,4 +184,28 @@ func ConvertValues(values []any, cols []Column) error {
 		values[i] = convertedVal
 	}
 	return nil
+}
+
+// hasNonStrictModeDate - if strict mode is not enabled, we can end up having invalid datetimes
+func hasNonStrictModeDate(d string) bool {
+	if len(d) < 10 {
+		return false
+	}
+
+	parts := strings.Split(d[:10], "-")
+	if len(parts) != 3 {
+		return false
+	}
+
+	// Year, month, date cannot be non-zero
+	for _, part := range parts {
+		value, err := strconv.Atoi(part)
+		if err != nil {
+			return false
+		}
+		if value == 0 {
+			return true
+		}
+	}
+	return false
 }
