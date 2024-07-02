@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"strings"
 	"time"
 )
 
@@ -82,9 +83,8 @@ func ConvertValue(value any, colType DataType) (any, error) {
 			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
 		}
 
-		if string(bytesValue) == "0000-00-00 00:00:00" {
-			// MySQL supports '0000-00-00 00:00:00' for datetime columns.
-			// We are returning `nil` here because this will fail most Time parsers.
+		if strings.HasSuffix(string(bytesValue), "-00-00 00:00:00") {
+			// If MySQL strict mode isn't turned on, it can allow invalid dates like 2020-00-00 00:00:00 or 0000-00-00 00:00:00
 			return nil, nil
 		}
 
