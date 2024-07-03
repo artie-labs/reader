@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -82,13 +84,12 @@ func ConvertValue(value any, colType DataType) (any, error) {
 			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
 		}
 
-		if string(bytesValue) == "0000-00-00 00:00:00" {
-			// MySQL supports '0000-00-00 00:00:00' for datetime columns.
-			// We are returning `nil` here because this will fail most Time parsers.
+		stringValue := string(bytesValue)
+		if hasNonStrictModeInvalidDate(stringValue) {
 			return nil, nil
 		}
 
-		timeValue, err := time.Parse(DateTimeFormat, string(bytesValue))
+		timeValue, err := time.Parse(DateTimeFormat, stringValue)
 		if err != nil {
 			return nil, err
 		}
@@ -183,4 +184,28 @@ func ConvertValues(values []any, cols []Column) error {
 		values[i] = convertedVal
 	}
 	return nil
+}
+
+// hasNonStrictModeInvalidDate - if strict mode is not enabled, we can end up having invalid datetimes
+func hasNonStrictModeInvalidDate(d string) bool {
+	if len(d) < 10 {
+		return false
+	}
+
+	parts := strings.Split(d[:10], "-")
+	if len(parts) != 3 {
+		return false
+	}
+
+	// Year, month, date cannot be non-zero
+	for _, part := range parts {
+		value, err := strconv.Atoi(part)
+		if err != nil {
+			return false
+		}
+		if value == 0 {
+			return true
+		}
+	}
+	return false
 }
