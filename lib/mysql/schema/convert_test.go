@@ -319,15 +319,15 @@ func TestConvertValues(t *testing.T) {
 	}
 }
 
-func TestHasNonStrictModeDate(t *testing.T) {
-	assert.False(t, hasNonStrictModeDate(""))
-	assert.False(t, hasNonStrictModeDate("hello world"))
-	assert.False(t, hasNonStrictModeDate("2021-01-02"))
-	assert.False(t, hasNonStrictModeDate("2021--01-02"))
-	assert.False(t, hasNonStrictModeDate("2021-01-02 03:04:05"))
+func TestHasNonStrictModeInvalidDate(t *testing.T) {
+	assert.False(t, hasNonStrictModeInvalidDate(""))
+	assert.False(t, hasNonStrictModeInvalidDate("hello world"))
+	assert.False(t, hasNonStrictModeInvalidDate("2021-01-02"))
+	assert.False(t, hasNonStrictModeInvalidDate("2021--01-02"))
+	assert.False(t, hasNonStrictModeInvalidDate("2021-01-02 03:04:05"))
 
-	assert.True(t, hasNonStrictModeDate("2009-00-00"))
-	assert.True(t, hasNonStrictModeDate("0000-00-00"))
-	assert.True(t, hasNonStrictModeDate("0000-00-00 00:00:00"))
-	assert.True(t, hasNonStrictModeDate("2009-00-00 00:00:00"))
+	assert.True(t, hasNonStrictModeInvalidDate("2009-00-00"))
+	assert.True(t, hasNonStrictModeInvalidDate("0000-00-00"))
+	assert.True(t, hasNonStrictModeInvalidDate("0000-00-00 00:00:00"))
+	assert.True(t, hasNonStrictModeInvalidDate("2009-00-00 00:00:00"))
 }

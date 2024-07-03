@@ -85,7 +85,7 @@ func ConvertValue(value any, colType DataType) (any, error) {
 		}
 
 		stringValue := string(bytesValue)
-		if hasNonStrictModeDate(stringValue) {
+		if hasNonStrictModeInvalidDate(stringValue) {
 			return nil, nil
 		}
 
@@ -186,8 +186,8 @@ func ConvertValues(values []any, cols []Column) error {
 	return nil
 }
 
-// hasNonStrictModeDate - if strict mode is not enabled, we can end up having invalid datetimes
-func hasNonStrictModeDate(d string) bool {
+// hasNonStrictModeInvalidDate - if strict mode is not enabled, we can end up having invalid datetimes
+func hasNonStrictModeInvalidDate(d string) bool {
 	if len(d) < 10 {
 		return false
 	}
