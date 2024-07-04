@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/constants"
@@ -47,13 +48,18 @@ func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.Mo
 	opts := options.ChangeStream().SetFullDocument(options.UpdateLookup)
 
 	storage := persistedmap.NewPersistedMap(filePath)
-	if resumeToken, exists := storage.Get(offsetKey); exists {
-		castedResumeToken, isOk := resumeToken.(bson.Raw)
+	if encodedResumeToken, exists := storage.Get(offsetKey); exists {
+		castedEncodedResumeToken, isOk := encodedResumeToken.(string)
 		if !isOk {
-			return nil, fmt.Errorf("expected resume token to be bson.Raw, got: %T", resumeToken)
+			return nil, fmt.Errorf("expected resume token to be string, got: %T", encodedResumeToken)
 		}
 
-		opts.SetResumeAfter(castedResumeToken)
+		decodedBytes, err := base64.StdEncoding.DecodeString(castedEncodedResumeToken)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode resume token: %w", err)
+		}
+
+		opts.SetResumeAfter(decodedBytes)
 	}
 
 	// TODO: Think about full document delete
@@ -61,8 +67,6 @@ func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.Mo
 	if err != nil {
 		return nil, fmt.Errorf("failed to start change stream: %w", err)
 	}
-
-	fmt.Println("returning?")
 
 	return &streaming{
 		// TODO: Consider making this configurable
@@ -88,7 +92,7 @@ func (s *streaming) Next() ([]lib.RawMessage, error) {
 			return nil, fmt.Errorf("failed to decode change event: %v", err)
 		}
 
-		s.offsets.Set(offsetKey, s.changeStream.ResumeToken())
+		s.offsets.Set(offsetKey, base64.StdEncoding.EncodeToString(s.changeStream.ResumeToken()))
 
 		changeEvent, err := mongolib.NewChangeEvent(rawChangeEvent)
 		if err != nil {
