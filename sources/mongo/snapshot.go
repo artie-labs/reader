@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type collectionScanner struct {
+type snapshotIterator struct {
 	db         *mongo.Database
 	cfg        config.MongoDB
 	collection config.Collection
@@ -21,48 +21,48 @@ type collectionScanner struct {
 	done   bool
 }
 
-func newIterator(db *mongo.Database, collection config.Collection, cfg config.MongoDB) *collectionScanner {
-	return &collectionScanner{
+func newSnapshotIterator(db *mongo.Database, collection config.Collection, cfg config.MongoDB) *snapshotIterator {
+	return &snapshotIterator{
 		db:         db,
 		cfg:        cfg,
 		collection: collection,
 	}
 }
 
-func (c *collectionScanner) HasNext() bool {
-	return !c.done
+func (s *snapshotIterator) HasNext() bool {
+	return !s.done
 }
 
-func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
-	if !c.HasNext() {
+func (s *snapshotIterator) Next() ([]lib.RawMessage, error) {
+	if !s.HasNext() {
 		return nil, fmt.Errorf("no more rows to scan")
 	}
 
 	ctx := context.Background()
-	if c.cursor == nil {
+	if s.cursor == nil {
 		findOptions := options.Find()
-		findOptions.SetBatchSize(c.collection.GetBatchSize())
-		cursor, err := c.db.Collection(c.collection.Name).Find(ctx, bson.D{}, findOptions)
+		findOptions.SetBatchSize(s.collection.GetBatchSize())
+		cursor, err := s.db.Collection(s.collection.Name).Find(ctx, bson.D{}, findOptions)
 		if err != nil {
 			return nil, fmt.Errorf("failed to find documents: %w", err)
 		}
 
-		c.cursor = cursor
+		s.cursor = cursor
 	}
 
 	var rawMsgs []lib.RawMessage
-	for c.collection.GetBatchSize() > int32(len(rawMsgs)) && c.cursor.Next(ctx) {
+	for s.collection.GetBatchSize() > int32(len(rawMsgs)) && s.cursor.Next(ctx) {
 		var result bson.M
-		if err := c.cursor.Decode(&result); err != nil {
+		if err := s.cursor.Decode(&result); err != nil {
 			return nil, fmt.Errorf("failed to decode document: %w", err)
 		}
 
-		mgoMsg, err := ParseMessage(result)
+		mgoMsg, err := ParseMessage(result, "r")
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse message: %w", err)
 		}
 
-		rawMsg, err := mgoMsg.ToRawMessage(c.collection, c.cfg.Database)
+		rawMsg, err := mgoMsg.ToRawMessage(s.collection, s.cfg.Database)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create raw message: %w", err)
 		}
@@ -70,13 +70,13 @@ func (c *collectionScanner) Next() ([]lib.RawMessage, error) {
 		rawMsgs = append(rawMsgs, rawMsg)
 	}
 
-	if err := c.cursor.Err(); err != nil {
+	if err := s.cursor.Err(); err != nil {
 		return nil, fmt.Errorf("failed to iterate over documents: %w", err)
 	}
 
 	// If the number of fetched documents is less than the batch size, we are done
-	if c.collection.GetBatchSize() > int32(len(rawMsgs)) {
-		c.done = true
+	if s.collection.GetBatchSize() > int32(len(rawMsgs)) {
+		s.done = true
 	}
 
 	return rawMsgs, nil

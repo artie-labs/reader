@@ -22,7 +22,7 @@ func TestWriter_MessageToEvent(t *testing.T) {
 		"string": "Hello, world!",
 		"int64":  int64(1234567890),
 		"double": 3.14159,
-	})
+	}, "r")
 	assert.NoError(t, err)
 
 	message, err := msg.ToRawMessage(config.Collection{Name: "collection"}, "database")
