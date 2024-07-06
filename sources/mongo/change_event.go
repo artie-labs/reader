@@ -80,10 +80,6 @@ func NewChangeEvent(rawChangeEvent bson.M) (*ChangeEvent, error) {
 	return changeEvent, nil
 }
 
-func (c ChangeEvent) ObjectID() any {
-	return c.objectID
-}
-
 func (c ChangeEvent) Collection() string {
 	return c.collection
 }
@@ -101,9 +97,9 @@ func (c ChangeEvent) ToMessage() (*Message, error) {
 	switch c.operationType {
 	case "delete":
 		// TODO: Think about providing the `before` row for a deleted event.
-		msg, err := ParseMessage(bson.M{"_id": c.ObjectID()}, "d")
+		msg, err := ParseMessage(bson.M{"_id": c.objectID}, "d")
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse message: %w", err
+			return nil, fmt.Errorf("failed to parse message: %w", err)
 		}
 
 		return msg, nil
