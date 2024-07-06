@@ -84,18 +84,54 @@ func (c ChangeEvent) ObjectID() any {
 	return c.objectID
 }
 
-func (c ChangeEvent) Operation() string {
-	return c.operationType
-}
-
 func (c ChangeEvent) Collection() string {
 	return c.collection
 }
 
-func (c ChangeEvent) FullDocument() (bson.M, error) {
+func (c ChangeEvent) getFullDocument() (bson.M, error) {
 	if c.fullDocument == nil {
 		return nil, fmt.Errorf("fullDocument is not present")
 	}
 
 	return *c.fullDocument, nil
+}
+
+func (c ChangeEvent) ToMessage() (*Message, error) {
+
+	switch c.operationType {
+	case "delete":
+		// TODO: Think about providing the `before` row for a deleted event.
+		msg, err := ParseMessage(bson.M{"_id": c.ObjectID()}, "d")
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse message: %w", err
+		}
+
+		return msg, nil
+	case "insert":
+		fullDocument, err := c.getFullDocument()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get fullDocument from change event: %v", c)
+		}
+
+		msg, err := ParseMessage(fullDocument, "c")
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse message: %w", err)
+		}
+
+		return msg, nil
+	case "update":
+		fullDocument, err := c.getFullDocument()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get fullDocument from change event: %v", c)
+		}
+
+		msg, err := ParseMessage(fullDocument, "u")
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse message: %w", err)
+		}
+
+		return msg, nil
+	default:
+		return nil, fmt.Errorf("unsupported operation type: %q", c.operationType)
+	}
 }
