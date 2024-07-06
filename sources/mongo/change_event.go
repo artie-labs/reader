@@ -15,6 +15,7 @@ type ChangeEvent struct {
 }
 
 func NewChangeEvent(rawChangeEvent bson.M) (*ChangeEvent, error) {
+	// TODO: Add tests
 	operationType, isOk := rawChangeEvent["operationType"]
 	if !isOk {
 		return nil, fmt.Errorf("failed to get operationType from change event: %v", rawChangeEvent)
@@ -93,6 +94,7 @@ func (c ChangeEvent) getFullDocument() (bson.M, error) {
 }
 
 func (c ChangeEvent) ToMessage() (*Message, error) {
+	// TODO: Add tests
 	switch c.operationType {
 	case "delete":
 		// TODO: Think about providing the `before` row for a deleted event.
