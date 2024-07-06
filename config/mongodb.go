@@ -8,6 +8,18 @@ import (
 	"github.com/artie-labs/transfer/lib/stringutil"
 )
 
+func (s StreamingSettings) Validate() error {
+	if !s.Enabled {
+		return nil
+	}
+
+	if s.OffsetFile == "" {
+		return fmt.Errorf("offset file must be passed in when streaming is enabled")
+	}
+
+	return nil
+}
+
 type StreamingSettings struct {
 	Enabled    bool   `yaml:"enabled,omitempty"`
 	OffsetFile string `yaml:"offsetFile,omitempty"`
@@ -56,5 +68,5 @@ func (m MongoDB) Validate() error {
 		}
 	}
 
-	return nil
+	return m.StreamingSettings.Validate()
 }
