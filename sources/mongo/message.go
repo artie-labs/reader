@@ -39,7 +39,7 @@ func (m *Message) ToRawMessage(collection config.Collection, database string) (l
 	return lib.NewRawMessage(collection.TopicSuffix(database), pkMap, evt), nil
 }
 
-func ParseMessage(result bson.M, operation string) (*Message, error) {
+func ParseMessage(result bson.M, op string) (*Message, error) {
 	jsonExtendedBytes, err := bson.MarshalExtJSON(result, false, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal document to JSON extended: %w", err)
@@ -61,7 +61,7 @@ func ParseMessage(result bson.M, operation string) (*Message, error) {
 	}
 	return &Message{
 		jsonExtendedString: string(jsonExtendedBytes),
-		operation:          operation,
+		operation:          op,
 		pkMap: map[string]any{
 			"id": string(pkBytes),
 		},
