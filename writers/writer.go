@@ -26,8 +26,6 @@ func New(destinationWriter DestinationWriter, logProgress bool) Writer {
 
 // Write writes all the messages from an iterator to the destination.
 func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMessage]) (int, error) {
-	fmt.Println("writing?")
-	fmt.Println("are you writing", iter.HasNext())
 	start := time.Now()
 	var count int
 	for iter.HasNext() {
