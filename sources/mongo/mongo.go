@@ -41,7 +41,7 @@ func Load(cfg config.MongoDB) (*Source, bool, error) {
 	return &Source{
 		cfg: cfg,
 		db:  db,
-	}, cfg.Streaming, nil
+	}, cfg.StreamingSettings.Enabled, nil
 }
 
 func (s *Source) Close() error {
@@ -50,8 +50,8 @@ func (s *Source) Close() error {
 }
 
 func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
-	if s.cfg.Streaming {
-		iterator, err := newStreamingIterator(ctx, s.db, s.cfg, s.cfg.OffsetsFile)
+	if s.cfg.StreamingSettings.Enabled {
+		iterator, err := newStreamingIterator(ctx, s.db, s.cfg, s.cfg.StreamingSettings.OffsetFile)
 		if err != nil {
 			return err
 		}

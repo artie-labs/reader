@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/constants"
-	"github.com/artie-labs/reader/lib"
-	"github.com/artie-labs/reader/lib/persistedmap"
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"time"
+
+	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib"
+	"github.com/artie-labs/reader/lib/persistedmap"
 )
 
 const offsetKey = "offset"
@@ -67,8 +68,7 @@ func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.Mo
 	}
 
 	return &streaming{
-		// TODO: Consider making this configurable
-		batchSize:             constants.DefaultBatchSize,
+		batchSize:             cfg.GetStreamingBatchSize(),
 		db:                    db,
 		cfg:                   cfg,
 		changeStream:          cs,
