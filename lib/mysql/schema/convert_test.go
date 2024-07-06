@@ -318,3 +318,16 @@ func TestConvertValues(t *testing.T) {
 		assert.Equal(t, []any{int64(1234), "hello world", true}, values)
 	}
 }
+
+func TestHasNonStrictModeInvalidDate(t *testing.T) {
+	assert.False(t, hasNonStrictModeInvalidDate(""))
+	assert.False(t, hasNonStrictModeInvalidDate("hello world"))
+	assert.False(t, hasNonStrictModeInvalidDate("2021-01-02"))
+	assert.False(t, hasNonStrictModeInvalidDate("2021--01-02"))
+	assert.False(t, hasNonStrictModeInvalidDate("2021-01-02 03:04:05"))
+
+	assert.True(t, hasNonStrictModeInvalidDate("2009-00-00"))
+	assert.True(t, hasNonStrictModeInvalidDate("0000-00-00"))
+	assert.True(t, hasNonStrictModeInvalidDate("0000-00-00 00:00:00"))
+	assert.True(t, hasNonStrictModeInvalidDate("2009-00-00 00:00:00"))
+}

@@ -14,8 +14,8 @@ import (
 
 type Message struct {
 	jsonExtendedString string
-	pkMap              map[string]any
 	operation          string
+	pkMap              map[string]any
 }
 
 func (m *Message) ToRawMessage(collection config.Collection, database string) (lib.RawMessage, error) {
@@ -61,9 +61,9 @@ func ParseMessage(result bson.M, operation string) (*Message, error) {
 	}
 	return &Message{
 		jsonExtendedString: string(jsonExtendedBytes),
+		operation:          operation,
 		pkMap: map[string]any{
 			"id": string(pkBytes),
 		},
-		operation: operation,
 	}, nil
 }
