@@ -33,8 +33,7 @@ func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.Mo
 		collectionsToWatchMap[collection.Name] = collection
 	}
 
-	// Set pipeline to only show me insert, update and delete operations
-	// Full list can be found here: https://www.mongodb.com/docs/manual/reference/change-events/
+	// We only care about DMLs, the full list can be found here: https://www.mongodb.com/docs/manual/reference/change-events/
 	pipeline := mongo.Pipeline{
 		{{"$match", bson.D{
 			{"operationType", bson.D{
