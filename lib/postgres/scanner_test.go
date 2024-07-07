@@ -28,11 +28,6 @@ func TestCastColumn(t *testing.T) {
 			dataType: schema.Text,
 			expected: `"foo"`,
 		},
-		{
-			name:     "time with time zone",
-			dataType: schema.TimeWithTimeZone,
-			expected: `"foo" AT TIME ZONE 'UTC' AS "foo"`,
-		},
 	}
 
 	for _, testCase := range testCases {
