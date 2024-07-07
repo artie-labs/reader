@@ -2,6 +2,7 @@ package adapter
 
 import (
 	"fmt"
+	"github.com/artie-labs/reader/lib/timeutil"
 	"math"
 	"time"
 
@@ -25,8 +26,14 @@ func (TimeWithTimezoneConverter) Convert(value any) (any, error) {
 		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
 	}
 
-	inputLayout := "15:04:05.000000-07"
-	timeValue, err := time.Parse(inputLayout, stringValue)
+	layouts := []string{
+		"15:04:05-07",           // w/o fractional seconds
+		"15:04:05.000-07",       // ms
+		"15:04:05.000000-07",    // microseconds
+		"15:04:05.000000000-07", // ns
+	}
+
+	timeValue, err := timeutil.ParseExact(stringValue, layouts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse time value %q: %w", stringValue, err)
 	}
