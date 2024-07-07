@@ -207,8 +207,8 @@ func TestValueConverterForType_Convert(t *testing.T) {
 		{
 			name:          "time with time zone (postgres.Date)",
 			col:           schema.Column{Name: "t_w_tz", Type: schema.TimeWithTimeZone},
-			value:         "12:00:00+07",
-			expectedValue: "05:00:00.000000Z",
+			value:         "12:00:00.123456789+07",
+			expectedValue: "05:00:00.123456789Z",
 		},
 		{
 			name: "numeric (postgres.Numeric)",

@@ -38,9 +38,9 @@ func (TimeWithTimezoneConverter) Convert(value any) (any, error) {
 		return nil, fmt.Errorf("failed to parse time value %q: %w", stringValue, err)
 	}
 
-	// We need to parse this value into `time.Time`
-	// Then convert it back into a string where the timezone is GMT to match Debezium.
-	outputLayout := "15:04:05.000000Z"
+	// Convert `time.Time` into GMT
+	// Then convert back into a string with ns precision
+	outputLayout := "15:04:05.000000000Z"
 	return timeValue.UTC().Format(outputLayout), nil
 }
 
