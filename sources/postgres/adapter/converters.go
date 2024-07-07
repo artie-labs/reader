@@ -2,10 +2,10 @@ package adapter
 
 import (
 	"fmt"
-	"github.com/artie-labs/reader/lib/timeutil"
 	"math"
 	"time"
 
+	"github.com/artie-labs/reader/lib/timeutil"
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/jackc/pgx/v5/pgtype"
 )
