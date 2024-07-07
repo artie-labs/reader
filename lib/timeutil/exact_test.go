@@ -11,11 +11,17 @@ func TestParseExact(t *testing.T) {
 		// Bad
 		layouts := []string{time.TimeOnly}
 		_, err := ParseExact("2021-01-01", layouts)
-		assert.Error(t, err)
+		assert.ErrorContains(t, err, `failed to parse exact time value: "2021-01-01"`)
 	}
 	{
-		// Expected
-		layouts := []string{time.DateOnly}
+		// Both should be bad.
+		layouts := []string{time.DateTime, time.TimeOnly}
+		_, err := ParseExact("2021-01-01", layouts)
+		assert.ErrorContains(t, err, `failed to parse exact time value: "2021-01-01"`)
+	}
+	{
+		// Good
+		layouts := []string{time.DateTime, time.DateOnly, time.TimeOnly}
 		_, err := ParseExact("2021-01-01", layouts)
 		assert.NoError(t, err)
 	}
