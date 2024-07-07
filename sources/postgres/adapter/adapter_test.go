@@ -205,6 +205,12 @@ func TestValueConverterForType_Convert(t *testing.T) {
 			expectedValue: int32(19480),
 		},
 		{
+			name:          "time with time zone (postgres.Date)",
+			col:           schema.Column{Name: "t_w_tz", Type: schema.TimeWithTimeZone},
+			value:         "12:00:00+07",
+			expectedValue: "05:00:00.000000Z",
+		},
+		{
 			name: "numeric (postgres.Numeric)",
 			col: schema.Column{Name: "numeric_col", Type: schema.Numeric, Opts: &schema.Opts{
 				Scale:     2,
