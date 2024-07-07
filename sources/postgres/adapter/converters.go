@@ -9,6 +9,34 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type TimeWithTimezoneConverter struct{}
+
+func (TimeWithTimezoneConverter) ToField(name string) debezium.Field {
+	return debezium.Field{
+		FieldName:    name,
+		Type:         debezium.String,
+		DebeziumType: debezium.TimeWithTimezone,
+	}
+}
+
+func (TimeWithTimezoneConverter) Convert(value any) (any, error) {
+	stringValue, ok := value.(string)
+	if !ok {
+		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
+	}
+
+	inputLayout := "15:04:05.000000-07"
+	timeValue, err := time.Parse(inputLayout, stringValue)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse time value %q: %w", stringValue, err)
+	}
+
+	// We need to parse this value into `time.Time`
+	// Then convert it back into a string where the timezone is GMT to match Debezium.
+	outputLayout := "15:04:05.000000Z"
+	return timeValue.UTC().Format(outputLayout), nil
+}
+
 type PgTimeConverter struct{}
 
 func (PgTimeConverter) ToField(name string) debezium.Field {

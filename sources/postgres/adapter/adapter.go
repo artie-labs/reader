@@ -103,7 +103,9 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 		return converters.BytesPassthrough{}, nil
 	case schema.Text, schema.UserDefinedText:
 		return converters.StringPassthrough{}, nil
-	case schema.Time, schema.TimeWithTimeZone:
+	case schema.TimeWithTimeZone:
+		return TimeWithTimezoneConverter{}, nil
+	case schema.Time:
 		return PgTimeConverter{}, nil
 	case schema.Date:
 		return converters.DateConverter{}, nil
