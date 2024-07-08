@@ -17,7 +17,7 @@ type Kafka struct {
 	BootstrapServers string `yaml:"bootstrapServers"`
 	TopicPrefix      string `yaml:"topicPrefix"`
 	// Optional
-	AwsEnabled     bool   `yaml:"awsEnabled"`
+	AwsEnabled     bool   `yaml:"awsEnabled,omitempty"`
 	PublishSize    uint   `yaml:"publishSize,omitempty"`
 	MaxRequestSize uint64 `yaml:"maxRequestSize,omitempty"`
 	// If username and password are passed in, we'll use SCRAM w/ SHA512.
