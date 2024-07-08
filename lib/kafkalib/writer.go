@@ -54,7 +54,6 @@ func newWriter(ctx context.Context, cfg config.Kafka) (*kafka.Writer, error) {
 			TLS:         &tls.Config{},
 		}
 	case config.ScramSha512:
-		// If username and password are provided, we'll use SCRAM w/ SHA512.
 		mechanism, err := scram.Mechanism(scram.SHA512, cfg.Username, cfg.Password)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create scram mechanism: %w", err)
