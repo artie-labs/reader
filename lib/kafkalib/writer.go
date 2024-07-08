@@ -64,6 +64,10 @@ func newWriter(ctx context.Context, cfg config.Kafka) (*kafka.Writer, error) {
 			SASL:        mechanism,
 			TLS:         &tls.Config{},
 		}
+	case config.None:
+		// No mechanism
+	default:
+		return nil, fmt.Errorf("unsupported kafka mechanism: %s", cfg.Mechanism())
 	}
 
 	return writer, nil
