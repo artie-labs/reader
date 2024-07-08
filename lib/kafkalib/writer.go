@@ -15,7 +15,6 @@ import (
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
-	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/size"
@@ -58,7 +57,7 @@ func newWriter(ctx context.Context, cfg config.Kafka) (*kafka.Writer, error) {
 		// If username and password are provided, we'll use SCRAM w/ SHA512.
 		mechanism, err := scram.Mechanism(scram.SHA512, cfg.Username, cfg.Password)
 		if err != nil {
-			logger.Panic("Failed to create SCRAM mechanism", slog.Any("err", err))
+			return nil, fmt.Errorf("failed to create scram mechanism: %w", err)
 		}
 
 		writer.Transport = &kafka.Transport{
