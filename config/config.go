@@ -34,7 +34,7 @@ const (
 )
 
 func (k *Kafka) Mechanism() Mechanism {
-	if k.Username != "" {
+	if k.Username != "" && k.Password != "" {
 		return ScramSha512
 	}
 
