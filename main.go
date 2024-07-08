@@ -62,8 +62,9 @@ func buildDestinationWriter(ctx context.Context, cfg *config.Settings, statsD mt
 		if kafkaCfg == nil {
 			return nil, fmt.Errorf("kafka configuration is not set")
 		}
+
 		slog.Info("Kafka config",
-			slog.Bool("aws", kafkaCfg.AwsEnabled),
+			slog.Any("authMechanism", kafkaCfg.Mechanism()),
 			slog.String("kafkaBootstrapServer", kafkaCfg.BootstrapServers),
 			slog.Any("publishSize", kafkaCfg.GetPublishSize()),
 			slog.Uint64("maxRequestSize", kafkaCfg.MaxRequestSize),
