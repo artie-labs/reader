@@ -21,8 +21,9 @@ type Kafka struct {
 	PublishSize    uint   `yaml:"publishSize,omitempty"`
 	MaxRequestSize uint64 `yaml:"maxRequestSize,omitempty"`
 	// If username and password are passed in, we'll use SCRAM w/ SHA512.
-	Username string `yaml:"username,omitempty"`
-	Password string `yaml:"password,omitempty"`
+	Username   string `yaml:"username,omitempty"`
+	Password   string `yaml:"password,omitempty"`
+	DisableTLS bool   `yaml:"disableTLS,omitempty"`
 }
 
 type Mechanism string
