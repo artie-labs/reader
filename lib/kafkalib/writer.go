@@ -48,22 +48,35 @@ func newWriter(ctx context.Context, cfg config.Kafka) (*kafka.Writer, error) {
 			return nil, fmt.Errorf("failed to load AWS configuration: %w", err)
 		}
 
-		writer.Transport = &kafka.Transport{
+		transport := &kafka.Transport{
 			DialTimeout: 10 * time.Second,
 			SASL:        aws_msk_iam_v2.NewMechanism(saslCfg),
-			TLS:         &tls.Config{},
+			// Enable TLS by default
+			TLS: &tls.Config{},
 		}
+
+		if cfg.DisableTLS {
+			transport.TLS = nil
+		}
+
+		writer.Transport = transport
 	case config.ScramSha512:
 		mechanism, err := scram.Mechanism(scram.SHA512, cfg.Username, cfg.Password)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create scram mechanism: %w", err)
 		}
 
-		writer.Transport = &kafka.Transport{
+		transport := &kafka.Transport{
 			DialTimeout: 10 * time.Second,
 			SASL:        mechanism,
 			TLS:         &tls.Config{},
 		}
+
+		if cfg.DisableTLS {
+			transport.TLS = nil
+		}
+
+		writer.Transport = transport
 	case config.None:
 		// No mechanism
 	default:
