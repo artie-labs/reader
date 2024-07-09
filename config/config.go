@@ -13,11 +13,36 @@ import (
 )
 
 type Kafka struct {
+	// Required
 	BootstrapServers string `yaml:"bootstrapServers"`
 	TopicPrefix      string `yaml:"topicPrefix"`
-	AwsEnabled       bool   `yaml:"awsEnabled"`
-	PublishSize      uint   `yaml:"publishSize,omitempty"`
-	MaxRequestSize   uint64 `yaml:"maxRequestSize,omitempty"`
+	// Optional
+	AwsEnabled     bool   `yaml:"awsEnabled,omitempty"`
+	PublishSize    uint   `yaml:"publishSize,omitempty"`
+	MaxRequestSize uint64 `yaml:"maxRequestSize,omitempty"`
+	// If username and password are passed in, we'll use SCRAM w/ SHA512.
+	Username string `yaml:"username,omitempty"`
+	Password string `yaml:"password,omitempty"`
+}
+
+type Mechanism string
+
+const (
+	None        Mechanism = ""
+	ScramSha512 Mechanism = "SCRAM-SHA-512"
+	AwsMskIam   Mechanism = "AWS-MSK-IAM"
+)
+
+func (k *Kafka) Mechanism() Mechanism {
+	if k.Username != "" && k.Password != "" {
+		return ScramSha512
+	}
+
+	if k.AwsEnabled {
+		return AwsMskIam
+	}
+
+	return None
 }
 
 func (k *Kafka) BootstrapAddresses() []string {

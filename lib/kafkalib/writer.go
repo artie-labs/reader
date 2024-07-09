@@ -9,14 +9,15 @@ import (
 	"time"
 
 	awsCfg "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl/aws_msk_iam_v2"
+	"github.com/segmentio/kafka-go/sasl/scram"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/size"
-	"github.com/segmentio/kafka-go"
 )
 
 const (
@@ -38,7 +39,10 @@ func newWriter(ctx context.Context, cfg config.Kafka) (*kafka.Writer, error) {
 		writer.BatchBytes = int64(cfg.MaxRequestSize)
 	}
 
-	if cfg.AwsEnabled {
+	switch cfg.Mechanism() {
+	case config.AwsMskIam:
+		// If using AWS MSK IAM, we expect this to be set in the ENV VAR
+		// (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION, or the AWS Profile should be called default.)
 		saslCfg, err := awsCfg.LoadDefaultConfig(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load AWS configuration: %w", err)
@@ -49,6 +53,21 @@ func newWriter(ctx context.Context, cfg config.Kafka) (*kafka.Writer, error) {
 			SASL:        aws_msk_iam_v2.NewMechanism(saslCfg),
 			TLS:         &tls.Config{},
 		}
+	case config.ScramSha512:
+		mechanism, err := scram.Mechanism(scram.SHA512, cfg.Username, cfg.Password)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create scram mechanism: %w", err)
+		}
+
+		writer.Transport = &kafka.Transport{
+			DialTimeout: 10 * time.Second,
+			SASL:        mechanism,
+			TLS:         &tls.Config{},
+		}
+	case config.None:
+		// No mechanism
+	default:
+		return nil, fmt.Errorf("unsupported kafka mechanism: %s", cfg.Mechanism())
 	}
 
 	return writer, nil
