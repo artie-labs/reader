@@ -146,9 +146,9 @@ func TestValueConverterForType_ToField(t *testing.T) {
 			colName:  "time",
 			dataType: schema.TimeWithTimeZone,
 			expected: debezium.Field{
-				Type:         "int32",
+				Type:         "string",
 				FieldName:    "time",
-				DebeziumType: debezium.Time,
+				DebeziumType: debezium.TimeWithTimezone,
 			},
 		},
 		{
@@ -203,6 +203,12 @@ func TestValueConverterForType_Convert(t *testing.T) {
 			col:           schema.Column{Name: "date_col", Type: schema.Date},
 			value:         time.Date(2023, 5, 3, 0, 0, 0, 0, time.UTC),
 			expectedValue: int32(19480),
+		},
+		{
+			name:          "time with time zone (postgres.Date)",
+			col:           schema.Column{Name: "t_w_tz", Type: schema.TimeWithTimeZone},
+			value:         "12:00:00.123456+07",
+			expectedValue: "05:00:00.123456",
 		},
 		{
 			name: "numeric (postgres.Numeric)",

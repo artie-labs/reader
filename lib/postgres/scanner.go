@@ -142,11 +142,6 @@ func (s scanAdapter) ParsePrimaryKeyValueForOverrides(columnName string, value s
 func castColumn(col schema.Column) string {
 	colName := pgx.Identifier{col.Name}.Sanitize()
 	switch col.Type {
-	case schema.TimeWithTimeZone:
-		// If we don't convert `time with time zone` to UTC we end up with strings like `10:23:54-02`
-		// And pgtype.Time doesn't parse the offset properly.
-		// See https://github.com/jackc/pgx/issues/1940
-		return fmt.Sprintf(`%s AT TIME ZONE 'UTC' AS %q`, colName, col.Name)
 	case schema.Array:
 		return fmt.Sprintf(`ARRAY_TO_JSON(%s)::TEXT as %q`, colName, col.Name)
 	default:
