@@ -18,11 +18,15 @@ import (
 
 func (s *StreamStore) ListenToChannel(ctx context.Context, writer writers.Writer) {
 	for shard := range s.shardChan {
-		go s.processShard(ctx, shard, writer)
+		go s.processShard(ctx, shard, writer, 0)
 	}
 }
 
-func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.Shard, writer writers.Writer) {
+func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.Shard, writer writers.Writer, numAttempts int) {
+	if numAttempts > 100 {
+		slog.Error("Stuck trying to process shard for over 100 attempts now", slog.String("shardId", *shard.ShardId))
+	}
+
 	// Is there another go-routine processing this shard?
 	if s.storage.GetShardProcessing(*shard.ShardId) {
 		return
@@ -34,7 +38,7 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 		if s.storage.GetShardSeen(*parentID) && !s.storage.GetShardProcessed(*parentID) {
 			slog.Info("Parent shard is being processed, let's sleep 3s and retry", slog.String("shardId", *shard.ShardId), slog.String("parentShardId", *parentID))
 			time.Sleep(3 * time.Second)
-			s.processShard(ctx, shard, writer)
+			s.processShard(ctx, shard, writer, numAttempts+1)
 			return
 		}
 	}
