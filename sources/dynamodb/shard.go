@@ -24,7 +24,13 @@ func (s *StreamStore) ListenToChannel(ctx context.Context, writer writers.Writer
 
 func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.Shard, writer writers.Writer, numAttempts int) {
 	if numAttempts > 100 {
-		slog.Error("Stuck trying to process shard for over 100 attempts now", slog.String("shardId", *shard.ShardId))
+		if s.statsD != nil {
+			s.statsD.Incr("shard_stuck", map[string]string{
+				"shardId": *shard.ShardId,
+			})
+		}
+
+		slog.Warn("Shard is stuck...", slog.String("shardId", *shard.ShardId))
 	}
 
 	// Is there another go-routine processing this shard?

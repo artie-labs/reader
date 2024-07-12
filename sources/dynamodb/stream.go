@@ -3,6 +3,7 @@ package dynamodb
 import (
 	"context"
 	"fmt"
+	"github.com/artie-labs/reader/lib/mtr"
 	"log/slog"
 	"time"
 
@@ -21,6 +22,8 @@ type StreamStore struct {
 	streams   *dynamodbstreams.DynamoDBStreams
 	storage   *offsets.OffsetStorage
 	shardChan chan *dynamodbstreams.Shard
+
+	statsD mtr.Client
 }
 
 func (s *StreamStore) Close() error {
