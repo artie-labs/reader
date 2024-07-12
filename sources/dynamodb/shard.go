@@ -116,11 +116,16 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 		if len(getRecordsOutput.Records) > 0 {
 			attempts = 0
 			lastRecord := getRecordsOutput.Records[len(getRecordsOutput.Records)-1]
+			slog.Info("Setting last processed sequence number...",
+				slog.String("shardId", *shard.ShardId),
+				slog.String("seqNumber", *lastRecord.Dynamodb.SequenceNumber),
+			)
 			s.storage.SetLastProcessedSequenceNumber(*shard.ShardId, *lastRecord.Dynamodb.SequenceNumber)
 		} else {
 			attempts += 1
 		}
 
+		slog.Info("Sleeping before next iteration...", slog.Int("attempts", attempts), slog.String("shardId", *shard.ShardId))
 		time.Sleep(jitter.Jitter(jitterSleepBaseMs, jitter.DefaultMaxMs, attempts))
 
 		shardIterator = getRecordsOutput.NextShardIterator
