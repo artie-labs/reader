@@ -59,6 +59,14 @@ type SetArgs struct {
 	DoNotFlushToDisk bool
 }
 
+func (t *TTLMap) Remove(key string) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	delete(t.data, key)
+	t.shouldSave = true
+}
+
 func (t *TTLMap) Set(setArgs SetArgs, ttl time.Duration) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
