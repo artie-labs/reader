@@ -69,6 +69,7 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 
 	iteratorOutput, err := s.streams.GetShardIterator(iteratorInput)
 	if err != nil {
+		// TODO: This could cause deadlock too
 		slog.Warn("Failed to get shard iterator...",
 			slog.Any("err", err),
 			slog.String("streamArn", s.streamArn),
