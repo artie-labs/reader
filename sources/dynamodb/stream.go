@@ -3,11 +3,11 @@ package dynamodb
 import (
 	"context"
 	"fmt"
-	"github.com/artie-labs/reader/lib/mtr"
 	"log/slog"
 	"time"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/mtr"
 	"github.com/artie-labs/reader/sources/dynamodb/offsets"
 	"github.com/artie-labs/reader/writers"
 	"github.com/aws/aws-sdk-go/aws"
