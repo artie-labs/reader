@@ -17,8 +17,8 @@ import (
 	"github.com/artie-labs/reader/sources/dynamodb/offsets"
 )
 
-// jitterSleepBaseMs - sleep for 50 ms as the base.
-const jitterSleepBaseMs = 50
+// jitterSleepBaseMs - sleep for 100 ms as the base.
+const jitterSleepBaseMs = 100
 const shardScannerInterval = 5 * time.Minute
 
 func Load(cfg config.DynamoDB) (sources.Source, bool, error) {
