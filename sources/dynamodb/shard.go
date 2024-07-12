@@ -125,7 +125,6 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 			attempts += 1
 		}
 
-		slog.Info("Sleeping before next iteration...", slog.Int("attempts", attempts), slog.String("shardId", *shard.ShardId))
 		time.Sleep(jitter.Jitter(jitterSleepBaseMs, jitter.DefaultMaxMs, attempts))
 
 		shardIterator = getRecordsOutput.NextShardIterator
