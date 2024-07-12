@@ -91,10 +91,12 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 				logger.Panic("Failed to call `GetRecords` and max number of attempts reached", err)
 			}
 
-			slog.Warn("Failed to get records from shard iterator...",
+			// TODO: Change this back to `Warn` after we know this works.
+			slog.Error("Failed to get records from shard iterator...",
 				slog.Any("err", err),
 				slog.String("streamArn", s.streamArn),
 				slog.String("shardId", *shard.ShardId),
+				slog.Int("numErrs", numErrs),
 			)
 
 			// Unset it so we can process it again
