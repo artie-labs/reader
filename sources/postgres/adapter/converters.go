@@ -7,6 +7,7 @@ import (
 
 	"github.com/artie-labs/reader/lib/timeutil"
 	"github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/typing/ext"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -26,11 +27,11 @@ func (TimeWithTimezoneConverter) Convert(value any) (any, error) {
 		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
 	}
 
+	// No nanosecond precision because the data type only goes to ms.
 	layouts := []string{
-		"15:04:05-07",           // w/o fractional seconds
-		"15:04:05.000-07",       // ms
-		"15:04:05.000000-07",    // microseconds
-		"15:04:05.000000000-07", // ns
+		"15:04:05-07",        // w/o fractional seconds
+		"15:04:05.000-07",    // ms
+		"15:04:05.000000-07", // microseconds
 	}
 
 	timeValue, err := timeutil.ParseExact(stringValue, layouts)
@@ -40,8 +41,7 @@ func (TimeWithTimezoneConverter) Convert(value any) (any, error) {
 
 	// Convert `time.Time` into GMT
 	// Then convert back into a string with ns precision
-	outputLayout := "15:04:05.000000000Z"
-	return timeValue.UTC().Format(outputLayout), nil
+	return timeValue.UTC().Format(ext.PostgresTimeFormatNoTZ), nil
 }
 
 type PgTimeConverter struct{}
