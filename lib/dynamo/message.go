@@ -60,9 +60,7 @@ func transformAttributeValue(attr types.AttributeValue) (any, error) {
 		return list, nil
 	case *types.AttributeValueMemberSS:
 		strSet := make([]string, len(v.Value))
-		for i, s := range v.Value {
-			strSet[i] = s
-		}
+		copy(strSet, v.Value)
 		return strSet, nil
 	case *types.AttributeValueMemberNS:
 		numSet := make([]float64, len(v.Value))
