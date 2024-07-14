@@ -41,8 +41,6 @@ func (s *StreamStore) reprocessShard(ctx context.Context, shard *dynamodbstreams
 	// Unset it so we can process it again
 	s.storage.UnsetShardProcessing(*shard.ShardId)
 	s.processShard(ctx, shard, writer, numErrs+1)
-	return
-
 }
 
 func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.Shard, writer writers.Writer, numErrs int) {
