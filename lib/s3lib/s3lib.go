@@ -40,7 +40,7 @@ type S3File struct {
 	Key    *string `yaml:"key"`
 }
 
-func (s *S3Client) ListFiles(fp string) ([]S3File, error) {
+func (s *S3Client) ListFiles(ctx context.Context, fp string) ([]S3File, error) {
 	bucket, prefix, err := bucketAndPrefixFromFilePath(fp)
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func (s *S3Client) ListFiles(fp string) ([]S3File, error) {
 	})
 
 	for paginator.HasMorePages() {
-		page, err := paginator.NextPage(context.TODO())
+		page, err := paginator.NextPage(ctx)
 		if err != nil {
 			return nil, err
 		}

@@ -31,7 +31,7 @@ func (s *SnapshotStore) Close() error {
 }
 
 func (s *SnapshotStore) Run(ctx context.Context, writer writers.Writer) error {
-	if err := s.scanFilesOverBucket(); err != nil {
+	if err := s.scanFilesOverBucket(ctx); err != nil {
 		return fmt.Errorf("scanning files over bucket failed: %w", err)
 	}
 
@@ -43,13 +43,13 @@ func (s *SnapshotStore) Run(ctx context.Context, writer writers.Writer) error {
 	return nil
 }
 
-func (s *SnapshotStore) scanFilesOverBucket() error {
+func (s *SnapshotStore) scanFilesOverBucket(ctx context.Context) error {
 	if len(s.cfg.SnapshotSettings.SpecifiedFiles) > 0 {
 		// Don't scan because you are already specifying files
 		return nil
 	}
 
-	files, err := s.s3Client.ListFiles(s.cfg.SnapshotSettings.Folder)
+	files, err := s.s3Client.ListFiles(ctx, s.cfg.SnapshotSettings.Folder)
 	if err != nil {
 		return fmt.Errorf("failed to list files: %w", err)
 	}
