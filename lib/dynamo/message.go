@@ -5,9 +5,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
+
+	"github.com/artie-labs/reader/lib"
 )
 
 type Message struct {
@@ -25,7 +26,7 @@ func stringToFloat64(s string) (float64, error) {
 
 // transformAttributeValue converts a DynamoDB AttributeValue to a Go type.
 // References: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html
-func transformAttributeValue(attr AttributeValue) (any, error) {
+func transformAttributeValue(attr any) (any, error) {
 	switch v := attr.(type) {
 	case *types.AttributeValueMemberS:
 		return v.Value, nil
@@ -78,11 +79,7 @@ func transformAttributeValue(attr AttributeValue) (any, error) {
 	return nil, nil
 }
 
-type AttributeValue interface {
-	isAttributeValue()
-}
-
-func transformImage(data map[string]AttributeValue) (map[string]any, error) {
+func transformImage(data map[string]any) (map[string]any, error) {
 	transformed := make(map[string]any)
 	for key, attrValue := range data {
 		val, err := transformAttributeValue(attrValue)

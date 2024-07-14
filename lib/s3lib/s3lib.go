@@ -3,21 +3,22 @@ package s3lib
 import (
 	"bufio"
 	"compress/gzip"
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	ddbTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 type S3Client struct {
-	client *s3.S3
+	client *s3.Client
 }
 
-func NewClient(session *session.Session) *S3Client {
-	return &S3Client{client: s3.New(session)}
+func NewClient(awsCfg aws.Config) *S3Client {
+	return &S3Client{client: s3.NewFromConfig(awsCfg)}
 }
 
 func bucketAndPrefixFromFilePath(fp string) (*string, *string, error) {
@@ -46,38 +47,40 @@ func (s *S3Client) ListFiles(fp string) ([]S3File, error) {
 	}
 
 	var files []S3File
-	err = s.client.ListObjectsPages(&s3.ListObjectsInput{Bucket: bucket, Prefix: prefix},
-		func(page *s3.ListObjectsOutput, lastPage bool) bool {
-			for _, object := range page.Contents {
-				files = append(files, S3File{
-					Key:    object.Key,
-					Bucket: bucket,
-				})
-			}
+	paginator := s3.NewListObjectsV2Paginator(s.client, &s3.ListObjectsV2Input{
+		Bucket: bucket,
+		Prefix: prefix,
+	})
 
-			return true
-		})
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(context.TODO())
+		if err != nil {
+			return nil, err
+		}
 
-	if err != nil {
-		return nil, err
+		for _, object := range page.Contents {
+			files = append(files, S3File{
+				Key:    object.Key,
+				Bucket: bucket,
+			})
+		}
 	}
 
 	return files, nil
 }
 
-// StreamJsonGzipFile - will take a S3 File that is in `json.gz` format from DynamoDB's export to S3
-// It's not a typical JSON file in that it is compressed and it's new line delimited via separated via an array
-// Which means we can stream this file row by row to not OOM.
-func (s *S3Client) StreamJsonGzipFile(file S3File, ch chan<- dynamodb.ItemResponse) error {
+// StreamJsonGzipFile will take an S3 File that is in `json.gz` format from DynamoDB's export to S3.
+// It's not a typical JSON file in that it is compressed and it's new line delimited via an array,
+// which means we can stream this file row by row to not OOM.
+func (s *S3Client) StreamJsonGzipFile(file S3File, ch chan<- ddbTypes.ItemResponse) error {
 	defer close(ch)
-	result, err := s.client.GetObject(&s3.GetObjectInput{
+	result, err := s.client.GetObject(context.TODO(), &s3.GetObjectInput{
 		Bucket: file.Bucket,
 		Key:    file.Key,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to get object from S3: %w", err)
 	}
-
 	defer result.Body.Close()
 
 	// Create a gzip reader
@@ -90,7 +93,7 @@ func (s *S3Client) StreamJsonGzipFile(file S3File, ch chan<- dynamodb.ItemRespon
 	scanner := bufio.NewScanner(gz)
 	for scanner.Scan() {
 		line := scanner.Bytes()
-		var content dynamodb.ItemResponse
+		var content ddbTypes.ItemResponse
 		if err = json.Unmarshal(line, &content); err != nil {
 			return fmt.Errorf("failed to unmarshal: %w", err)
 		}

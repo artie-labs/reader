@@ -1,15 +1,16 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"math/rand"
 	"os"
 	"strconv"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 
 	"github.com/artie-labs/reader/lib/logger"
 )
@@ -30,68 +31,60 @@ func main() {
 		logger.Fatal("Please provide a valid number for rows")
 	}
 
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(region),
-	})
+	awsCfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion(region),
+	)
 	if err != nil {
-		logger.Fatal("Failed to create session", slog.Any("err", err))
+		logger.Fatal("Failed to load AWS config", slog.Any("err", err))
 	}
 
-	svc := dynamodb.New(sess)
+	svc := dynamodb.NewFromConfig(awsCfg)
 
 	// Splitting the items into batches
 	for i := 0; i < numRows; i += maxBatchSize {
-		var writeRequests []*dynamodb.WriteRequest
+		var writeRequests []types.WriteRequest
 		accountID := fmt.Sprintf("account-%d", i)
 		// For each batch, prepare the items
 		for j := 0; j < maxBatchSize && (i+j) < numRows; j++ {
 			userID := fmt.Sprintf("user_id_%v", j)
-			item := map[string]*dynamodb.AttributeValue{
-				"account_id": {
-					S: aws.String(accountID),
+			item := map[string]types.AttributeValue{
+				"account_id": &types.AttributeValueMemberS{
+					Value: accountID,
 				},
-				"user_id": {
-					S: aws.String(userID),
+				"user_id": &types.AttributeValueMemberS{
+					Value: userID,
 				},
-				"random_number": {
-					N: aws.String(fmt.Sprintf("%v", rand.Int63())), // Example number
+				"random_number": &types.AttributeValueMemberN{
+					Value: fmt.Sprintf("%v", rand.Int63()), // Example number
 				},
-				"flag": {
-					BOOL: aws.Bool(rand.Intn(2) == 0), // Randomly true or false
+				"flag": &types.AttributeValueMemberBOOL{
+					Value: rand.Intn(2) == 0, // Randomly true or false
 				},
-				"is_null": {
-					NULL: aws.Bool(true), // Will always be Null
+				"is_null": &types.AttributeValueMemberNULL{
+					Value: true, // Will always be Null
 				},
-				"string_set": {
-					SS: []*string{aws.String("value1"), aws.String("value2"), aws.String("value44"), aws.String("value55"), aws.String("value66")},
+				"string_set": &types.AttributeValueMemberSS{
+					Value: []string{"value1", "value2", "value44", "value55", "value66"},
 				},
-				"number_set": {
-					NS: []*string{aws.String("1"), aws.String("2"), aws.String("3")},
+				"number_set": &types.AttributeValueMemberNS{
+					Value: []string{"1", "2", "3"},
 				},
-				"sample_list": {
-					L: []*dynamodb.AttributeValue{
-						{
-							S: aws.String("item1"),
-						},
-						{
-							N: aws.String("2"),
-						},
+				"sample_list": &types.AttributeValueMemberL{
+					Value: []types.AttributeValue{
+						&types.AttributeValueMemberS{Value: "item1"},
+						&types.AttributeValueMemberN{Value: "2"},
 					},
 				},
-				"sample_map": {
-					M: map[string]*dynamodb.AttributeValue{
-						"key1": {
-							S: aws.String("value1"),
-						},
-						"key2": {
-							N: aws.String("2"),
-						},
+				"sample_map": &types.AttributeValueMemberM{
+					Value: map[string]types.AttributeValue{
+						"key1": &types.AttributeValueMemberS{Value: "value1"},
+						"key2": &types.AttributeValueMemberN{Value: "2"},
 					},
 				},
 			}
 
-			writeRequest := &dynamodb.WriteRequest{
-				PutRequest: &dynamodb.PutRequest{
+			writeRequest := types.WriteRequest{
+				PutRequest: &types.PutRequest{
 					Item: item,
 				},
 			}
@@ -99,12 +92,12 @@ func main() {
 		}
 
 		input := &dynamodb.BatchWriteItemInput{
-			RequestItems: map[string][]*dynamodb.WriteRequest{
+			RequestItems: map[string][]types.WriteRequest{
 				table: writeRequests,
 			},
 		}
 
-		_, err := svc.BatchWriteItem(input)
+		_, err := svc.BatchWriteItem(context.TODO(), input)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Failed to write batch starting at index %d", i), slog.Any("err", err))
 			continue

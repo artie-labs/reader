@@ -1,20 +1,19 @@
 package dynamodb
 
 import (
+	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 	"time"
-
-	"github.com/artie-labs/transfer/lib/ptr"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/s3lib"
 	"github.com/artie-labs/reader/sources"
 	"github.com/artie-labs/reader/sources/dynamodb/offsets"
+	awsCfg "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams"
 )
 
 // jitterSleepBaseMs - sleep for 50 ms as the base.
@@ -22,12 +21,12 @@ const jitterSleepBaseMs = 50
 const shardScannerInterval = 5 * time.Minute
 
 func Load(cfg config.DynamoDB) (sources.Source, bool, error) {
-	sess, err := session.NewSession(&aws.Config{
-		Region:      ptr.ToString(cfg.AwsRegion),
-		Credentials: credentials.NewStaticCredentials(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, ""),
-	})
+	_awsCfg, err := awsCfg.LoadDefaultConfig(context.TODO(),
+		awsCfg.WithRegion(cfg.AwsRegion),
+		awsCfg.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, "")),
+	)
 	if err != nil {
-		return nil, false, fmt.Errorf("failed to create session: %w", err)
+		return nil, false, fmt.Errorf("failed to load AWS config: %w", err)
 	}
 
 	if cfg.Snapshot {
@@ -35,8 +34,8 @@ func Load(cfg config.DynamoDB) (sources.Source, bool, error) {
 			tableName:      cfg.TableName,
 			streamArn:      cfg.StreamArn,
 			cfg:            &cfg,
-			dynamoDBClient: dynamodb.New(sess),
-			s3Client:       s3lib.NewClient(sess),
+			dynamoDBClient: dynamodb.NewFromConfig(_awsCfg),
+			s3Client:       s3lib.NewClient(_awsCfg),
 		}, false, nil
 	} else {
 		return &StreamStore{
@@ -44,8 +43,8 @@ func Load(cfg config.DynamoDB) (sources.Source, bool, error) {
 			streamArn: cfg.StreamArn,
 			cfg:       &cfg,
 			storage:   offsets.NewStorage(cfg.OffsetFile, nil, nil),
-			streams:   dynamodbstreams.New(sess),
-			shardChan: make(chan *dynamodbstreams.Shard),
+			streams:   dynamodbstreams.NewFromConfig(_awsCfg),
+			shardChan: make(chan *types.Shard),
 		}, true, nil
 	}
 }

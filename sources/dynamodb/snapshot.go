@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
@@ -22,7 +23,7 @@ type SnapshotStore struct {
 	cfg       *config.DynamoDB
 
 	s3Client       *s3lib.S3Client
-	dynamoDBClient *dynamodb.DynamoDB
+	dynamoDBClient *dynamodb.Client
 }
 
 func (s *SnapshotStore) Close() error {
@@ -77,7 +78,7 @@ func (s *SnapshotStore) streamAndPublish(ctx context.Context, writer writers.Wri
 		}
 
 		slog.Info("Processing file...", logFields...)
-		ch := make(chan dynamodb.ItemResponse)
+		ch := make(chan types.ItemResponse)
 		go func() {
 			if err := s.s3Client.StreamJsonGzipFile(file, ch); err != nil {
 				logger.Panic("Failed to read file", slog.Any("err", err))
