@@ -1,72 +1,51 @@
 package dynamo
 
 import (
-	"fmt"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	ddbTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 )
 
 // transformSnapshotAttributeValue is the same code as `transformAttributeValue`, but with different imports
 // This is because the types are different, and `attributeValue` is an interface, so we can't use generics.
-func transformSnapshotAttributeValue(attr types.AttributeValue) (any, error) {
+func transformSnapshotAttributeValue(attr ddbTypes.AttributeValue) types.AttributeValue {
 	switch v := attr.(type) {
-	case *types.AttributeValueMemberS:
-		return v.Value, nil
-	case *types.AttributeValueMemberN:
-		number, err := stringToFloat64(v.Value)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert string to float64: %w", err)
-		}
-		return number, nil
-	case *types.AttributeValueMemberBOOL:
-		return v.Value, nil
-	case *types.AttributeValueMemberM:
-		result := make(map[string]any)
+	case *ddbTypes.AttributeValueMemberS:
+		return &types.AttributeValueMemberS{Value: v.Value}
+	case *ddbTypes.AttributeValueMemberN:
+		return &types.AttributeValueMemberN{Value: v.Value}
+	case *ddbTypes.AttributeValueMemberBOOL:
+		return &types.AttributeValueMemberBOOL{Value: v.Value}
+	case *ddbTypes.AttributeValueMemberM:
+		result := make(map[string]types.AttributeValue)
 		for k, v := range v.Value {
-			val, err := transformSnapshotAttributeValue(v)
-			if err != nil {
-				return nil, fmt.Errorf("failed to transform attribute value: %w", err)
-			}
+			val := transformSnapshotAttributeValue(v)
 			result[k] = val
 		}
-		return result, nil
-	case *types.AttributeValueMemberL:
-		list := make([]any, len(v.Value))
+
+		return &types.AttributeValueMemberM{Value: result}
+	case *ddbTypes.AttributeValueMemberL:
+		list := make([]types.AttributeValue, len(v.Value))
 		for i, item := range v.Value {
-			val, err := transformSnapshotAttributeValue(item)
-			if err != nil {
-				return nil, fmt.Errorf("failed to transform attribute value: %w", err)
-			}
+			val := transformSnapshotAttributeValue(item)
 			list[i] = val
 		}
-		return list, nil
-	case *types.AttributeValueMemberSS:
-		strSet := make([]string, len(v.Value))
-		copy(strSet, v.Value)
-		return strSet, nil
-	case *types.AttributeValueMemberNS:
-		numSet := make([]float64, len(v.Value))
-		for i, n := range v.Value {
-			number, err := stringToFloat64(n)
-			if err != nil {
-				return nil, fmt.Errorf("failed to convert string to float64: %w", err)
-			}
-			numSet[i] = number
-		}
-		return numSet, nil
+
+		return &types.AttributeValueMemberL{Value: list}
+	case *ddbTypes.AttributeValueMemberSS:
+		return &types.AttributeValueMemberSS{Value: v.Value}
+	case *ddbTypes.AttributeValueMemberNS:
+		return &types.AttributeValueMemberNS{Value: v.Value}
 	}
 
-	return nil, nil
+	return nil
 }
 
-func transformSnapshotImage(data map[string]types.AttributeValue) (map[string]any, error) {
-	transformed := make(map[string]any)
+func transformSnapshotToStreamImage(data map[string]ddbTypes.AttributeValue) map[string]types.AttributeValue {
+	transformed := make(map[string]types.AttributeValue)
 	for key, attrValue := range data {
-		val, err := transformSnapshotAttributeValue(attrValue)
-		if err != nil {
-			return nil, fmt.Errorf("failed to transform attribute value: %w", err)
-		}
+		val := transformSnapshotAttributeValue(attrValue)
 		transformed[key] = val
 	}
 
-	return transformed, nil
+	return transformed
 }
