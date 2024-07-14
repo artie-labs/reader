@@ -9,8 +9,9 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/sources/dynamodb/offsets"
 	"github.com/artie-labs/reader/writers"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 )
 
 type StreamStore struct {
@@ -18,9 +19,9 @@ type StreamStore struct {
 	streamArn string
 	cfg       *config.DynamoDB
 
-	streams   *dynamodbstreams.DynamoDBStreams
+	streams   *dynamodbstreams.Client
 	storage   *offsets.OffsetStorage
-	shardChan chan *dynamodbstreams.Shard
+	shardChan chan *types.Shard
 }
 
 func (s *StreamStore) Close() error {
@@ -34,7 +35,7 @@ func (s *StreamStore) Run(ctx context.Context, writer writers.Writer) error {
 	go s.ListenToChannel(ctx, writer)
 
 	// Scan it for the first time manually, so we don't have to wait 5 mins
-	if err := s.scanForNewShards(); err != nil {
+	if err := s.scanForNewShards(ctx); err != nil {
 		return fmt.Errorf("failed to scan for new shards: %w", err)
 	}
 	for {
@@ -45,14 +46,14 @@ func (s *StreamStore) Run(ctx context.Context, writer writers.Writer) error {
 			return nil
 		case <-ticker.C:
 			slog.Info("Scanning for new shards...")
-			if err := s.scanForNewShards(); err != nil {
+			if err := s.scanForNewShards(ctx); err != nil {
 				return fmt.Errorf("failed to scan for new shards: %w", err)
 			}
 		}
 	}
 }
 
-func (s *StreamStore) scanForNewShards() error {
+func (s *StreamStore) scanForNewShards(ctx context.Context) error {
 	var exclusiveStartShardId *string
 	for {
 		input := &dynamodbstreams.DescribeStreamInput{
@@ -60,7 +61,7 @@ func (s *StreamStore) scanForNewShards() error {
 			ExclusiveStartShardId: exclusiveStartShardId,
 		}
 
-		result, err := s.streams.DescribeStream(input)
+		result, err := s.streams.DescribeStream(ctx, input)
 		if err != nil {
 			return fmt.Errorf("failed to describe stream: %w", err)
 		}
@@ -71,7 +72,7 @@ func (s *StreamStore) scanForNewShards() error {
 		}
 
 		for _, shard := range result.StreamDescription.Shards {
-			s.shardChan <- shard
+			s.shardChan <- &shard
 		}
 
 		if result.StreamDescription.LastEvaluatedShardId == nil {

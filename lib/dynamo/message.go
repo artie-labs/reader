@@ -5,10 +5,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/artie-labs/transfer/lib/cdc/util"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-
 	"github.com/artie-labs/reader/lib"
+	"github.com/artie-labs/transfer/lib/cdc/util"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 )
 
 type Message struct {
@@ -26,77 +25,70 @@ func stringToFloat64(s string) (float64, error) {
 
 // transformAttributeValue converts a DynamoDB AttributeValue to a Go type.
 // References: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html
-func transformAttributeValue(attr *dynamodb.AttributeValue) (any, error) {
-	switch {
-	case attr.S != nil:
-		return *attr.S, nil
-	case attr.N != nil:
-		number, err := stringToFloat64(*attr.N)
+func transformAttributeValue(attr AttributeValue) (any, error) {
+	switch v := attr.(type) {
+	case *types.AttributeValueMemberS:
+		return v.Value, nil
+	case *types.AttributeValueMemberN:
+		number, err := stringToFloat64(v.Value)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert string to float64: %w", err)
 		}
-
 		return number, nil
-	case attr.BOOL != nil:
-		return *attr.BOOL, nil
-	case attr.M != nil:
+	case *types.AttributeValueMemberBOOL:
+		return v.Value, nil
+	case *types.AttributeValueMemberM:
 		result := make(map[string]any)
-		for k, v := range attr.M {
+		for k, v := range v.Value {
 			val, err := transformAttributeValue(v)
 			if err != nil {
 				return nil, fmt.Errorf("failed to transform attribute value: %w", err)
 			}
-
 			result[k] = val
 		}
-
 		return result, nil
-	case attr.L != nil:
-		list := make([]any, len(attr.L))
-		for i, item := range attr.L {
+	case *types.AttributeValueMemberL:
+		list := make([]any, len(v.Value))
+		for i, item := range v.Value {
 			val, err := transformAttributeValue(item)
 			if err != nil {
 				return nil, fmt.Errorf("failed to transform attribute value: %w", err)
 			}
-
 			list[i] = val
 		}
-
 		return list, nil
-	case attr.SS != nil:
-		// Convert the string set to a slice of strings.
-		strSet := make([]string, len(attr.SS))
-		for i, s := range attr.SS {
-			strSet[i] = *s
+	case *types.AttributeValueMemberSS:
+		strSet := make([]string, len(v.Value))
+		for i, s := range v.Value {
+			strSet[i] = s
 		}
-
 		return strSet, nil
-	case attr.NS != nil:
-		// Convert the number set to a slice of strings (since the numbers are stored as strings).
-		numSet := make([]float64, len(attr.NS))
-		for i, n := range attr.NS {
-			number, err := stringToFloat64(*n)
+	case *types.AttributeValueMemberNS:
+		numSet := make([]float64, len(v.Value))
+		for i, n := range v.Value {
+			number, err := stringToFloat64(n)
 			if err != nil {
 				return nil, fmt.Errorf("failed to convert string to float64: %w", err)
 			}
-
 			numSet[i] = number
 		}
-
 		return numSet, nil
 	}
 
 	return nil, nil
 }
 
-func transformImage(data map[string]*dynamodb.AttributeValue) (map[string]any, error) {
+type AttributeValue interface {
+	isAttributeValue()
+}
+
+func transformImage(data map[string]AttributeValue) (map[string]any, error) {
 	transformed := make(map[string]any)
 	for key, attrValue := range data {
 		val, err := transformAttributeValue(attrValue)
 		if err != nil {
 			return nil, fmt.Errorf("failed to transform attribute value: %w", err)
 		}
-
 		transformed[key] = val
 	}
 
