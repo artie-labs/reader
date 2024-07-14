@@ -17,7 +17,7 @@ func NewMessageFromExport(item ddbTypes.ItemResponse, keys []string, tableName s
 		return nil, fmt.Errorf("keys is nil")
 	}
 
-	rowData, err := transformImage(item.Item)
+	rowData, err := transformSnapshotImage(item.Item)
 	if err != nil {
 		return nil, fmt.Errorf("failed to transform item: %w", err)
 	}

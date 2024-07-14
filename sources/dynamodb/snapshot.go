@@ -67,7 +67,7 @@ func (s *SnapshotStore) scanFilesOverBucket() error {
 }
 
 func (s *SnapshotStore) streamAndPublish(ctx context.Context, writer writers.Writer) error {
-	keys, err := s.retrievePrimaryKeys()
+	keys, err := s.retrievePrimaryKeys(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve primary keys: %w", err)
 	}

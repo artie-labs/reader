@@ -2,31 +2,12 @@ package dynamo
 
 import (
 	"fmt"
-	"strconv"
-	"time"
-
-	"github.com/artie-labs/transfer/lib/cdc/util"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
-
-	"github.com/artie-labs/reader/lib"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-type Message struct {
-	beforeRowData map[string]any
-	afterRowData  map[string]any
-	primaryKey    map[string]any
-	op            string
-	tableName     string
-	executionTime time.Time
-}
-
-func stringToFloat64(s string) (float64, error) {
-	return strconv.ParseFloat(s, 64)
-}
-
-// transformAttributeValue converts a DynamoDB AttributeValue to a Go type.
-// References: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html
-func transformAttributeValue(attr any) (any, error) {
+// transformSnapshotAttributeValue is the same code as `transformAttributeValue`, but with different imports
+// This is because the types are different, and `attributeValue` is an interface, so we can't use generics.
+func transformSnapshotAttributeValue(attr any) (any, error) {
 	switch v := attr.(type) {
 	case *types.AttributeValueMemberS:
 		return v.Value, nil
@@ -79,10 +60,10 @@ func transformAttributeValue(attr any) (any, error) {
 	return nil, nil
 }
 
-func transformImage(data map[string]types.AttributeValue) (map[string]any, error) {
+func transformSnapshotImage(data map[string]types.AttributeValue) (map[string]any, error) {
 	transformed := make(map[string]any)
 	for key, attrValue := range data {
-		val, err := transformAttributeValue(attrValue)
+		val, err := transformSnapshotAttributeValue(attrValue)
 		if err != nil {
 			return nil, fmt.Errorf("failed to transform attribute value: %w", err)
 		}
@@ -90,22 +71,4 @@ func transformImage(data map[string]types.AttributeValue) (map[string]any, error
 	}
 
 	return transformed, nil
-}
-
-func (m *Message) artieMessage() *util.SchemaEventPayload {
-	return &util.SchemaEventPayload{
-		Payload: util.Payload{
-			Before: m.beforeRowData,
-			After:  m.afterRowData,
-			Source: util.Source{
-				TsMs:  m.executionTime.UnixMilli(),
-				Table: m.tableName,
-			},
-			Operation: m.op,
-		},
-	}
-}
-
-func (m *Message) RawMessage() lib.RawMessage {
-	return lib.NewRawMessage(m.tableName, m.primaryKey, m.artieMessage())
 }

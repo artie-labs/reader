@@ -8,7 +8,7 @@ import (
 )
 
 // retrievePrimaryKeys - This function is called when we process the DynamoDB table snapshot.
-// This is because the snapshot is a JSON file and it does not contain which are the partition and sort keys.
+// This is because the snapshot is a JSON file, and it does not contain which are the partition and sort keys.
 func (s *SnapshotStore) retrievePrimaryKeys(ctx context.Context) ([]string, error) {
 	output, err := s.dynamoDBClient.DescribeTable(ctx, &dynamodb.DescribeTableInput{
 		TableName: &s.tableName,
