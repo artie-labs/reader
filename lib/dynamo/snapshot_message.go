@@ -41,6 +41,7 @@ func transformSnapshotAttributeValue(attr ddbTypes.AttributeValue) types.Attribu
 }
 
 func transformSnapshotToStreamImage(data map[string]ddbTypes.AttributeValue) map[string]types.AttributeValue {
+	// TODO: Add tests;
 	transformed := make(map[string]types.AttributeValue)
 	for key, attrValue := range data {
 		val := transformSnapshotAttributeValue(attrValue)
