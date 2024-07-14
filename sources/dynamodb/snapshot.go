@@ -80,7 +80,7 @@ func (s *SnapshotStore) streamAndPublish(ctx context.Context, writer writers.Wri
 		slog.Info("Processing file...", logFields...)
 		ch := make(chan types.ItemResponse)
 		go func() {
-			if err := s.s3Client.StreamJsonGzipFile(file, ch); err != nil {
+			if err := s.s3Client.StreamJsonGzipFile(ctx, file, ch); err != nil {
 				logger.Panic("Failed to read file", slog.Any("err", err))
 			}
 		}()

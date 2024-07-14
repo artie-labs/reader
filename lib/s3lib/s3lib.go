@@ -72,15 +72,17 @@ func (s *S3Client) ListFiles(ctx context.Context, fp string) ([]S3File, error) {
 // StreamJsonGzipFile will take an S3 File that is in `json.gz` format from DynamoDB's export to S3.
 // It's not a typical JSON file in that it is compressed and it's new line delimited via an array,
 // which means we can stream this file row by row to not OOM.
-func (s *S3Client) StreamJsonGzipFile(file S3File, ch chan<- ddbTypes.ItemResponse) error {
+func (s *S3Client) StreamJsonGzipFile(ctx context.Context, file S3File, ch chan<- ddbTypes.ItemResponse) error {
 	defer close(ch)
-	result, err := s.client.GetObject(context.TODO(), &s3.GetObjectInput{
+	result, err := s.client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: file.Bucket,
 		Key:    file.Key,
 	})
+
 	if err != nil {
 		return fmt.Errorf("failed to get object from S3: %w", err)
 	}
+
 	defer result.Body.Close()
 
 	// Create a gzip reader
@@ -88,8 +90,8 @@ func (s *S3Client) StreamJsonGzipFile(file S3File, ch chan<- ddbTypes.ItemRespon
 	if err != nil {
 		return fmt.Errorf("failed to create a GZIP reader for object: %w", err)
 	}
-	defer gz.Close()
 
+	defer gz.Close()
 	scanner := bufio.NewScanner(gz)
 	for scanner.Scan() {
 		line := scanner.Bytes()
