@@ -17,7 +17,6 @@ import (
 	"github.com/artie-labs/reader/sources/dynamodb/offsets"
 )
 
-// jitterSleepBaseMs - sleep for 100 ms as the base.
 const jitterSleepBaseMs = 100
 const shardScannerInterval = 5 * time.Minute
 
