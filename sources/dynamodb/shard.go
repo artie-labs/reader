@@ -2,6 +2,7 @@ package dynamodb
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -30,7 +31,7 @@ func (s *StreamStore) reprocessShard(ctx context.Context, shard *dynamodbstreams
 	}
 
 	// TODO: Change this back to `Warn` after we know this works.
-	slog.Error("Failed to get records from shard iterator...",
+	slog.Error("Failed to process shard, going to try again...",
 		slog.Any("err", err),
 		slog.String("streamArn", s.streamArn),
 		slog.String("shardId", *shard.ShardId),
@@ -89,7 +90,7 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 
 	iteratorOutput, err := s.streams.GetShardIterator(iteratorInput)
 	if err != nil {
-		s.reprocessShard(ctx, shard, writer, numErrs, err)
+		s.reprocessShard(ctx, shard, writer, numErrs, fmt.Errorf("failed to get shard iterator: %w", err))
 		return
 	}
 
@@ -103,7 +104,7 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 
 		getRecordsOutput, err := s.streams.GetRecords(getRecordsInput)
 		if err != nil {
-			s.reprocessShard(ctx, shard, writer, numErrs, err)
+			s.reprocessShard(ctx, shard, writer, numErrs, fmt.Errorf("failed to get records: %w", err))
 			return
 		}
 
