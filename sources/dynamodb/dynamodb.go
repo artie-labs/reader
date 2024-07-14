@@ -44,7 +44,7 @@ func Load(cfg config.DynamoDB) (sources.Source, bool, error) {
 			cfg:       &cfg,
 			storage:   offsets.NewStorage(cfg.OffsetFile, nil, nil),
 			streams:   dynamodbstreams.NewFromConfig(_awsCfg),
-			shardChan: make(chan *types.Shard),
+			shardChan: make(chan types.Shard),
 		}, true, nil
 	}
 }
