@@ -23,7 +23,7 @@ func (s *StreamStore) ListenToChannel(ctx context.Context, writer writers.Writer
 	}
 }
 
-func (s *StreamStore) processShard(ctx context.Context, shard *types.Shard, writer writers.Writer) {
+func (s *StreamStore) processShard(ctx context.Context, shard types.Shard, writer writers.Writer) {
 	// Is there another go-routine processing this shard?
 	if s.storage.GetShardProcessing(*shard.ShardId) {
 		return

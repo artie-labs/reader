@@ -21,7 +21,7 @@ type StreamStore struct {
 
 	streams   *dynamodbstreams.Client
 	storage   *offsets.OffsetStorage
-	shardChan chan *types.Shard
+	shardChan chan types.Shard
 }
 
 func (s *StreamStore) Close() error {
@@ -72,7 +72,7 @@ func (s *StreamStore) scanForNewShards(ctx context.Context) error {
 		}
 
 		for _, shard := range result.StreamDescription.Shards {
-			s.shardChan <- &shard
+			s.shardChan <- shard
 		}
 
 		if result.StreamDescription.LastEvaluatedShardId == nil {
