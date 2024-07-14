@@ -3,17 +3,18 @@ package dynamodb
 import (
 	"context"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 	"time"
+
+	awsCfg "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/s3lib"
 	"github.com/artie-labs/reader/sources"
 	"github.com/artie-labs/reader/sources/dynamodb/offsets"
-	awsCfg "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams"
 )
 
 // jitterSleepBaseMs - sleep for 50 ms as the base.
