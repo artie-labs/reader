@@ -1,17 +1,16 @@
 package dynamo
 
 import (
-	"testing"
-
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestTransformAttributeValue(t *testing.T) {
 	type _tc struct {
 		name          string
 		attr          types.AttributeValue
-		expectedValue interface{}
+		expectedValue any
 	}
 
 	tcs := []_tc{
@@ -55,10 +54,10 @@ func TestTransformAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			expectedValue: map[string]interface{}{
+			expectedValue: map[string]any{
 				"foo": "bar",
 				"bar": float64(123),
-				"nested_map": map[string]interface{}{
+				"nested_map": map[string]any{
 					"foo": "bar",
 				},
 			},
@@ -76,10 +75,10 @@ func TestTransformAttributeValue(t *testing.T) {
 					},
 				},
 			},
-			expectedValue: []interface{}{
+			expectedValue: []any{
 				"foo",
 				float64(123),
-				map[string]interface{}{
+				map[string]any{
 					"foo": "bar",
 				},
 			},

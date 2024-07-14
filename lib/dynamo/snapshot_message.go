@@ -5,9 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 )
 
-// transformSnapshotAttributeValue is the same code as `transformAttributeValue`, but with different imports
-// This is because the types are different, and `attributeValue` is an interface, so we can't use generics.
-func transformSnapshotAttributeValue(attr ddbTypes.AttributeValue) types.AttributeValue {
+func convertSnapshotToStreamingAttribute(attr ddbTypes.AttributeValue) types.AttributeValue {
 	switch v := attr.(type) {
 	case *ddbTypes.AttributeValueMemberS:
 		return &types.AttributeValueMemberS{Value: v.Value}
@@ -18,7 +16,7 @@ func transformSnapshotAttributeValue(attr ddbTypes.AttributeValue) types.Attribu
 	case *ddbTypes.AttributeValueMemberM:
 		result := make(map[string]types.AttributeValue)
 		for k, v := range v.Value {
-			val := transformSnapshotAttributeValue(v)
+			val := convertSnapshotToStreamingAttribute(v)
 			result[k] = val
 		}
 
@@ -26,7 +24,7 @@ func transformSnapshotAttributeValue(attr ddbTypes.AttributeValue) types.Attribu
 	case *ddbTypes.AttributeValueMemberL:
 		list := make([]types.AttributeValue, len(v.Value))
 		for i, item := range v.Value {
-			val := transformSnapshotAttributeValue(item)
+			val := convertSnapshotToStreamingAttribute(item)
 			list[i] = val
 		}
 
@@ -40,11 +38,11 @@ func transformSnapshotAttributeValue(attr ddbTypes.AttributeValue) types.Attribu
 	return nil
 }
 
-func transformSnapshotToStreamImage(data map[string]ddbTypes.AttributeValue) map[string]types.AttributeValue {
-	// TODO: Add tests;
+// TODO: Add tests
+func convertSnapshotToStreamingImage(data map[string]ddbTypes.AttributeValue) map[string]types.AttributeValue {
 	transformed := make(map[string]types.AttributeValue)
 	for key, attrValue := range data {
-		val := transformSnapshotAttributeValue(attrValue)
+		val := convertSnapshotToStreamingAttribute(attrValue)
 		transformed[key] = val
 	}
 
