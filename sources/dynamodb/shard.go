@@ -24,6 +24,26 @@ func (s *StreamStore) ListenToChannel(ctx context.Context, writer writers.Writer
 	}
 }
 
+func (s *StreamStore) reprocessShard(ctx context.Context, shard *dynamodbstreams.Shard, writer writers.Writer, numErrs int, err error) {
+	if numErrs > maxNumErrs {
+		logger.Panic("Failed to call `GetRecords` and max number of attempts reached", err)
+	}
+
+	// TODO: Change this back to `Warn` after we know this works.
+	slog.Error("Failed to get records from shard iterator...",
+		slog.Any("err", err),
+		slog.String("streamArn", s.streamArn),
+		slog.String("shardId", *shard.ShardId),
+		slog.Int("numErrs", numErrs),
+	)
+
+	// Unset it so we can process it again
+	s.storage.UnsetShardProcessing(*shard.ShardId)
+	s.processShard(ctx, shard, writer, numErrs+1)
+	return
+
+}
+
 func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.Shard, writer writers.Writer, numErrs int) {
 	// Is there another go-routine processing this shard?
 	if s.storage.GetShardProcessing(*shard.ShardId) {
@@ -69,12 +89,7 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 
 	iteratorOutput, err := s.streams.GetShardIterator(iteratorInput)
 	if err != nil {
-		// TODO: This could cause deadlock too
-		slog.Warn("Failed to get shard iterator...",
-			slog.Any("err", err),
-			slog.String("streamArn", s.streamArn),
-			slog.String("shardId", *shard.ShardId),
-		)
+		s.reprocessShard(ctx, shard, writer, numErrs, err)
 		return
 	}
 
@@ -88,21 +103,7 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 
 		getRecordsOutput, err := s.streams.GetRecords(getRecordsInput)
 		if err != nil {
-			if numErrs > maxNumErrs {
-				logger.Panic("Failed to call `GetRecords` and max number of attempts reached", err)
-			}
-
-			// TODO: Change this back to `Warn` after we know this works.
-			slog.Error("Failed to get records from shard iterator...",
-				slog.Any("err", err),
-				slog.String("streamArn", s.streamArn),
-				slog.String("shardId", *shard.ShardId),
-				slog.Int("numErrs", numErrs),
-			)
-
-			// Unset it so we can process it again
-			s.storage.UnsetShardProcessing(*shard.ShardId)
-			s.processShard(ctx, shard, writer, numErrs+1)
+			s.reprocessShard(ctx, shard, writer, numErrs, err)
 			return
 		}
 
