@@ -7,7 +7,7 @@ import (
 
 // transformSnapshotAttributeValue is the same code as `transformAttributeValue`, but with different imports
 // This is because the types are different, and `attributeValue` is an interface, so we can't use generics.
-func transformSnapshotAttributeValue(attr any) (any, error) {
+func transformSnapshotAttributeValue(attr types.AttributeValue) (any, error) {
 	switch v := attr.(type) {
 	case *types.AttributeValueMemberS:
 		return v.Value, nil
@@ -22,7 +22,7 @@ func transformSnapshotAttributeValue(attr any) (any, error) {
 	case *types.AttributeValueMemberM:
 		result := make(map[string]any)
 		for k, v := range v.Value {
-			val, err := transformAttributeValue(v)
+			val, err := transformSnapshotAttributeValue(v)
 			if err != nil {
 				return nil, fmt.Errorf("failed to transform attribute value: %w", err)
 			}
@@ -32,7 +32,7 @@ func transformSnapshotAttributeValue(attr any) (any, error) {
 	case *types.AttributeValueMemberL:
 		list := make([]any, len(v.Value))
 		for i, item := range v.Value {
-			val, err := transformAttributeValue(item)
+			val, err := transformSnapshotAttributeValue(item)
 			if err != nil {
 				return nil, fmt.Errorf("failed to transform attribute value: %w", err)
 			}

@@ -26,7 +26,7 @@ func stringToFloat64(s string) (float64, error) {
 
 // transformAttributeValue converts a DynamoDB AttributeValue to a Go type.
 // References: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html
-func transformAttributeValue(attr any) (any, error) {
+func transformAttributeValue(attr types.AttributeValue) (any, error) {
 	switch v := attr.(type) {
 	case *types.AttributeValueMemberS:
 		return v.Value, nil
