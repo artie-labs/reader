@@ -27,7 +27,7 @@ func (s *StreamStore) ListenToChannel(ctx context.Context, writer writers.Writer
 
 func (s *StreamStore) reprocessShard(ctx context.Context, shard *dynamodbstreams.Shard, writer writers.Writer, numErrs int, err error) {
 	if numErrs > maxNumErrs {
-		logger.Panic("Failed to call `GetRecords` and max number of attempts reached", err)
+		logger.Panic(fmt.Sprintf("Failed to process shard: %s and the max number of attempts have been reached: %v", *shard.ShardId, err))
 	}
 
 	slog.Warn("Failed to process shard, going to try again...",
