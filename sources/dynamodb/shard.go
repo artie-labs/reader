@@ -30,8 +30,7 @@ func (s *StreamStore) reprocessShard(ctx context.Context, shard *dynamodbstreams
 		logger.Panic("Failed to call `GetRecords` and max number of attempts reached", err)
 	}
 
-	// TODO: Change this back to `Warn` after we know this works.
-	slog.Error("Failed to process shard, going to try again...",
+	slog.Warn("Failed to process shard, going to try again...",
 		slog.Any("err", err),
 		slog.String("streamArn", s.streamArn),
 		slog.String("shardId", *shard.ShardId),
