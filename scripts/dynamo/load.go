@@ -47,11 +47,9 @@ func main() {
 	for i := offset + 0; i < offset+numRows; i += maxBatchSize {
 		var writeRequests []types.WriteRequest
 		accountID := fmt.Sprintf("account-%d", i)
-		fmt.Println("accountID", accountID)
 		// For each batch, prepare the items
 		for j := 0; j < maxBatchSize; j++ {
 			userID := fmt.Sprintf("user_id_%v", j)
-			fmt.Println("userID", userID, "accountID", accountID)
 			item := map[string]types.AttributeValue{
 				"account_id": &types.AttributeValueMemberS{
 					Value: accountID,
