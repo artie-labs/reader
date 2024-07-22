@@ -20,6 +20,7 @@ const (
 	region       = "us-east-1"
 	table        = "ddb-test"
 	maxBatchSize = 25 // DynamoDB's limit for batch write
+	offset       = 5000
 )
 
 func main() {
@@ -41,11 +42,12 @@ func main() {
 	svc := dynamodb.NewFromConfig(awsCfg)
 
 	// Splitting the items into batches
-	for i := 0; i < numRows; i += maxBatchSize {
+	for i := offset + 0; i < offset+numRows; i += maxBatchSize {
+		fmt.Println("i", i)
 		var writeRequests []types.WriteRequest
 		accountID := fmt.Sprintf("account-%d", i)
 		// For each batch, prepare the items
-		for j := 0; j < maxBatchSize && (i+j) < numRows; j++ {
+		for j := 0; j < maxBatchSize; j++ {
 			userID := fmt.Sprintf("user_id_%v", j)
 			item := map[string]types.AttributeValue{
 				"account_id": &types.AttributeValueMemberS{
