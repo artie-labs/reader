@@ -144,7 +144,7 @@ func TestValueConverterForType(t *testing.T) {
 				Type:         "bytes",
 				DebeziumType: "org.apache.kafka.connect.data.Decimal",
 				FieldName:    colName,
-				Parameters: map[string]interface{}{
+				Parameters: map[string]any{
 					"scale":                     "3",
 					"connect.decimal.precision": "5",
 				},

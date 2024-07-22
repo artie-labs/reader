@@ -39,8 +39,8 @@ func Test_NewMessage(t *testing.T) {
 		}, "testTable")
 
 		assert.NoError(t, err)
-		assert.Equal(t, map[string]interface{}{"foo": "bar"}, msg.afterRowData)
-		assert.Equal(t, map[string]interface{}{"user_id": "123"}, msg.primaryKey)
+		assert.Equal(t, map[string]any{"foo": "bar"}, msg.afterRowData)
+		assert.Equal(t, map[string]any{"user_id": "123"}, msg.primaryKey)
 		assert.Equal(t, "c", msg.op)
 		assert.Equal(t, "testTable", msg.tableName)
 		assert.Equal(t, time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC), msg.executionTime)
@@ -65,8 +65,8 @@ func Test_NewMessage(t *testing.T) {
 		}, "testTable")
 
 		assert.NoError(t, err)
-		assert.Equal(t, map[string]interface{}{"foo": "bar"}, msg.afterRowData)
-		assert.Equal(t, map[string]interface{}{"user_id": "123"}, msg.primaryKey)
+		assert.Equal(t, map[string]any{"foo": "bar"}, msg.afterRowData)
+		assert.Equal(t, map[string]any{"user_id": "123"}, msg.primaryKey)
 		assert.Equal(t, "u", msg.op)
 		assert.Equal(t, "testTable", msg.tableName)
 		assert.Equal(t, time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC), msg.executionTime)
@@ -91,8 +91,8 @@ func Test_NewMessage(t *testing.T) {
 		}, "testTable")
 
 		assert.NoError(t, err)
-		assert.Equal(t, map[string]interface{}{"foo": "bar"}, msg.beforeRowData)
-		assert.Equal(t, map[string]interface{}{"user_id": "123"}, msg.primaryKey)
+		assert.Equal(t, map[string]any{"foo": "bar"}, msg.beforeRowData)
+		assert.Equal(t, map[string]any{"user_id": "123"}, msg.primaryKey)
 		assert.Equal(t, 0, len(msg.afterRowData))
 		assert.Equal(t, "d", msg.op)
 		assert.Equal(t, "testTable", msg.tableName)
