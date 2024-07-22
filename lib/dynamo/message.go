@@ -2,6 +2,7 @@ package dynamo
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"time"
 
@@ -59,9 +60,7 @@ func transformAttributeValue(attr types.AttributeValue) (any, error) {
 		}
 		return list, nil
 	case *types.AttributeValueMemberSS:
-		strSet := make([]string, len(v.Value))
-		copy(strSet, v.Value)
-		return strSet, nil
+		return slices.Clone(v.Value), nil
 	case *types.AttributeValueMemberNS:
 		numSet := make([]float64, len(v.Value))
 		for i, n := range v.Value {
