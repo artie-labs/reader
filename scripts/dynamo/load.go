@@ -31,9 +31,7 @@ func main() {
 		logger.Fatal("Please provide a valid number for rows")
 	}
 
-	awsCfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithRegion(region),
-	)
+	awsCfg, err := config.LoadDefaultConfig(context.Background(), config.WithRegion(region))
 	if err != nil {
 		logger.Fatal("Failed to load AWS config", slog.Any("err", err))
 	}
