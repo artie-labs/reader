@@ -26,12 +26,13 @@ func main() {
 		logger.Fatal(fmt.Sprintf("Usage: %s <number_of_rows>", os.Args[0]))
 	}
 
+	ctx := context.Background()
 	numRows, err := strconv.Atoi(os.Args[1])
 	if err != nil || numRows < 1 {
 		logger.Fatal("Please provide a valid number for rows")
 	}
 
-	awsCfg, err := config.LoadDefaultConfig(context.Background(), config.WithRegion(region))
+	awsCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(region))
 	if err != nil {
 		logger.Fatal("Failed to load AWS config", slog.Any("err", err))
 	}
@@ -95,8 +96,7 @@ func main() {
 			},
 		}
 
-		_, err := svc.BatchWriteItem(context.TODO(), input)
-		if err != nil {
+		if _, err = svc.BatchWriteItem(ctx, input); err != nil {
 			slog.Error(fmt.Sprintf("Failed to write batch starting at index %d", i), slog.Any("err", err))
 			continue
 		}
