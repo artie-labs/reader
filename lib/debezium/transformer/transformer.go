@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/artie-labs/transfer/lib/cdc"
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/artie-labs/transfer/lib/debezium"
 
@@ -58,7 +57,7 @@ func NewDebeziumTransformerWithIterator(adapter Adapter, iter RowsIterator) *Deb
 		FieldsObject: []debezium.FieldsObject{{
 			Fields:     fields,
 			Optional:   false,
-			FieldLabel: cdc.After,
+			FieldLabel: debezium.After,
 		}},
 	}
 
