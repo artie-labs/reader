@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -96,6 +97,7 @@ func main() {
 			},
 		}
 
+		time.Sleep(3 * time.Second)
 		if _, err = svc.BatchWriteItem(ctx, input); err != nil {
 			slog.Error(fmt.Sprintf("Failed to write batch starting at index %d", i), slog.Any("err", err))
 			continue
