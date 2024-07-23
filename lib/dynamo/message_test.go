@@ -14,7 +14,7 @@ func TestTransformAttributeValue(t *testing.T) {
 		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
 			S: ptr.ToString("hello"),
 		})
-		assert.NoError(t, err, err)
+		assert.NoError(t, err)
 		assert.Equal(t, "hello", actualValue)
 		assert.Equal(t, debezium.String, fieldType)
 	}
@@ -23,7 +23,7 @@ func TestTransformAttributeValue(t *testing.T) {
 		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
 			N: ptr.ToString("123"),
 		})
-		assert.NoError(t, err, err)
+		assert.NoError(t, err)
 		assert.Equal(t, float64(123), actualValue)
 		assert.Equal(t, debezium.Float, fieldType)
 	}
@@ -32,7 +32,7 @@ func TestTransformAttributeValue(t *testing.T) {
 		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
 			B: []byte("hello"),
 		})
-		assert.NoError(t, err, err)
+		assert.NoError(t, err)
 		assert.Equal(t, []byte("hello"), actualValue)
 		assert.Equal(t, debezium.Bytes, fieldType)
 	}
@@ -44,7 +44,7 @@ func TestTransformAttributeValue(t *testing.T) {
 				[]byte("world"),
 			},
 		})
-		assert.NoError(t, err, err)
+		assert.NoError(t, err)
 		assert.Equal(t, [][]byte{[]byte("hello"), []byte("world")}, actualValue)
 		assert.Equal(t, debezium.Array, fieldType)
 	}
@@ -53,7 +53,7 @@ func TestTransformAttributeValue(t *testing.T) {
 		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
 			BOOL: ptr.ToBool(true),
 		})
-		assert.NoError(t, err, err)
+		assert.NoError(t, err)
 		assert.Equal(t, true, actualValue)
 		assert.Equal(t, debezium.Boolean, fieldType)
 	}
@@ -77,7 +77,7 @@ func TestTransformAttributeValue(t *testing.T) {
 			},
 		})
 
-		assert.NoError(t, err, err)
+		assert.NoError(t, err)
 		assert.Equal(t, map[string]any{
 			"foo": "bar",
 			"bar": float64(123),
@@ -107,7 +107,7 @@ func TestTransformAttributeValue(t *testing.T) {
 			},
 		})
 
-		assert.NoError(t, err, err)
+		assert.NoError(t, err)
 		assert.Equal(t, []any{
 			"foo",
 			float64(123),
@@ -126,7 +126,7 @@ func TestTransformAttributeValue(t *testing.T) {
 			},
 		})
 
-		assert.NoError(t, err, err)
+		assert.NoError(t, err)
 		assert.Equal(t, []string{"foo", "bar"}, actualValue)
 		assert.Equal(t, debezium.Array, fieldType)
 	}
@@ -139,7 +139,7 @@ func TestTransformAttributeValue(t *testing.T) {
 			},
 		})
 
-		assert.NoError(t, err, err)
+		assert.NoError(t, err)
 		assert.Equal(t, []float64{123, 456}, actualValue)
 		assert.Equal(t, debezium.Array, fieldType)
 	}
