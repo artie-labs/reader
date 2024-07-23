@@ -39,6 +39,10 @@ func transformAttributeValue(attr *dynamodb.AttributeValue) (any, debezium.Field
 		}
 
 		return number, debezium.Float, nil
+	case attr.B != nil:
+		return attr.B, debezium.Bytes, nil
+	case attr.BS != nil:
+		return attr.BS, debezium.Array, nil
 	case attr.BOOL != nil:
 		return *attr.BOOL, debezium.Boolean, nil
 	case attr.M != nil:

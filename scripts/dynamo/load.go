@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -18,15 +19,16 @@ const (
 	region       = "us-east-1"
 	table        = "ddb-test"
 	maxBatchSize = 25 // DynamoDB's limit for batch write
+	offset       = 500000
 )
 
 func main() {
 	if len(os.Args) != 2 {
-		logger.Fatal(fmt.Sprintf("Usage: %s <number_of_rows>", os.Args[0]))
+		logger.Fatal(fmt.Sprintf("Usage: %s <num_batches>", os.Args[0]))
 	}
 
-	numRows, err := strconv.Atoi(os.Args[1])
-	if err != nil || numRows < 1 {
+	numBatches, err := strconv.Atoi(os.Args[1])
+	if err != nil || numBatches < 1 {
 		logger.Fatal("Please provide a valid number for rows")
 	}
 
@@ -39,12 +41,13 @@ func main() {
 
 	svc := dynamodb.New(sess)
 
+	var rowsWritten int
 	// Splitting the items into batches
-	for i := 0; i < numRows; i += maxBatchSize {
+	for i := offset; i < offset+numBatches; i++ {
 		var writeRequests []*dynamodb.WriteRequest
 		accountID := fmt.Sprintf("account-%d", i)
 		// For each batch, prepare the items
-		for j := 0; j < maxBatchSize && (i+j) < numRows; j++ {
+		for j := 0; j < maxBatchSize; j++ {
 			userID := fmt.Sprintf("user_id_%v", j)
 			item := map[string]*dynamodb.AttributeValue{
 				"account_id": {
@@ -52,6 +55,12 @@ func main() {
 				},
 				"user_id": {
 					S: aws.String(userID),
+				},
+				"b": {
+					B: []byte("hello world"),
+				},
+				"bs": {
+					BS: [][]byte{[]byte("hello"), []byte("world")},
 				},
 				"random_number": {
 					N: aws.String(fmt.Sprintf("%v", rand.Int63())), // Example number
@@ -104,12 +113,16 @@ func main() {
 			},
 		}
 
-		_, err := svc.BatchWriteItem(input)
-		if err != nil {
+		if _, err = svc.BatchWriteItem(input); err != nil {
 			slog.Error(fmt.Sprintf("Failed to write batch starting at index %d", i), slog.Any("err", err))
 			continue
 		}
 
+		// Our test DDB has low WCUs
+		time.Sleep(2 * time.Second)
+		rowsWritten += len(writeRequests)
 		slog.Info(fmt.Sprintf("Inserted batch of items starting from index %d", i))
 	}
+
+	slog.Info("Successfully inserted all items", slog.Int("num_rows", rowsWritten))
 }
