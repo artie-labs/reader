@@ -70,10 +70,6 @@ func (s *S3Client) ListFiles(ctx context.Context, fp string) ([]S3File, error) {
 	return files, nil
 }
 
-type ddbItemExport struct {
-	Item map[string]any `json:"Item"`
-}
-
 // StreamJsonGzipFile will take an S3 File that is in `json.gz` format from DynamoDB's export to S3.
 // It's not a typical JSON file in that it is compressed and it's new line delimited via an array,
 // which means we can stream this file row by row to not OOM.
@@ -98,20 +94,9 @@ func (s *S3Client) StreamJsonGzipFile(ctx context.Context, file S3File, ch chan<
 	defer gz.Close()
 	scanner := bufio.NewScanner(gz)
 	for scanner.Scan() {
-		line := scanner.Bytes()
-
-		var export ddbItemExport
-		if err = json.Unmarshal(line, &export); err != nil {
-			return fmt.Errorf("failed to unmarshal JSON: %w", err)
-		}
-
-		avMap := make(map[string]ddbTypes.AttributeValue)
-		for key, val := range export.Item {
-			attributeValue, err := attributevalue.Marshal(val)
-			if err != nil {
-				return fmt.Errorf("failed to marshal attribute value: %w", err)
-			}
-			avMap[key] = attributeValue
+		avMap, err := unmarshalDynamoDBExport(scanner.Bytes())
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal DynamoDB export: %w", err)
 		}
 
 		ch <- avMap
@@ -122,4 +107,41 @@ func (s *S3Client) StreamJsonGzipFile(ctx context.Context, file S3File, ch chan<
 	}
 
 	return nil
+}
+
+func unmarshalDynamoDBExport(item []byte) (map[string]ddbTypes.AttributeValue, error) {
+	type ddbItemExport struct {
+		Item map[string]any `json:"Item"`
+	}
+
+	var export ddbItemExport
+	if err := json.Unmarshal(item, &export); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
+	}
+
+	attributeValue, err := attributevalue.Marshal(export.Item)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal attribute value: %w", err)
+	}
+
+	castedAttrValue, isOk := attributeValue.(*ddbTypes.AttributeValueMemberM)
+	if !isOk {
+		return nil, fmt.Errorf("attributeValue is not type *ddbTypes.AttributeValueMemberM")
+	}
+
+	avMap := make(map[string]ddbTypes.AttributeValue)
+	for key, value := range castedAttrValue.Value {
+		attrValueM, isOk := value.(*ddbTypes.AttributeValueMemberM)
+		if !isOk {
+			return nil, fmt.Errorf("value is not type *ddbTypes.AttributeValueMemberM")
+		}
+
+		for _, castedValue := range attrValueM.Value {
+			// We need to break out of the loop because DynamoDB JSON looks like: {"key": {"S": "value"}} and {"key": "value"}
+			avMap[key] = castedValue
+			break
+		}
+	}
+
+	return avMap, nil
 }

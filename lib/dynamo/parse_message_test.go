@@ -139,7 +139,7 @@ func Test_NewMessageFromExport(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		msg, err := NewMessageFromExport(ddbTypes.ItemResponse{Item: tc.item}, tc.keys, tc.tableName)
+		msg, err := NewMessageFromExport(tc.item, tc.keys, tc.tableName)
 		if tc.expectedErr != "" {
 			assert.Equal(t, tc.expectedErr, err.Error(), tc.name)
 		} else {
