@@ -2,11 +2,11 @@ package dynamo
 
 import (
 	"fmt"
-	"github.com/artie-labs/transfer/lib/cdc/util"
 	"slices"
 	"strconv"
 	"time"
 
+	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 
