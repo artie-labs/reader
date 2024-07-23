@@ -28,6 +28,26 @@ func TestTransformAttributeValue(t *testing.T) {
 		assert.Equal(t, debezium.Float, fieldType)
 	}
 	{
+		// Bytes
+		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
+			B: []byte("hello"),
+		})
+		assert.NoError(t, err, err)
+		assert.Equal(t, []byte("hello"), actualValue)
+		assert.Equal(t, debezium.Bytes, fieldType)
+	}
+	{
+		// Bytes set
+		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
+			BS: [][]byte{
+				[]byte("hello"),
+			},
+		})
+		assert.NoError(t, err, err)
+		assert.Equal(t, [][]byte{[]byte("hello")}, actualValue)
+		assert.Equal(t, debezium.Array, fieldType)
+	}
+	{
 		// Boolean
 		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
 			BOOL: ptr.ToBool(true),
