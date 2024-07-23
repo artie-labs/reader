@@ -209,6 +209,7 @@ func (w *Writer) flush(reason string) error {
 			tableData.InMemoryColumns().DeleteColumn(constants.DeleteColumnMarker)
 		}
 
+		tableData.InMemoryColumns().DeleteColumn(constants.OnlySetDeleteColumnMarker)
 		if err = w.destination.Append(tableData.TableData, isBigQuery(w.destination)); err != nil {
 			tags["what"] = "merge_fail"
 			tags["retryable"] = fmt.Sprint(w.destination.IsRetryableError(err))

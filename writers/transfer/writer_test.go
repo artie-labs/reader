@@ -36,15 +36,25 @@ func TestWriter_MessageToEvent(t *testing.T) {
 			CDCKeyFormat: kafkalib.JSONKeyFmt,
 		},
 	}
+
 	evtOut, err := writer.messageToEvent(message)
 	assert.NoError(t, err)
-	assert.Equal(t, map[string]any{
-		"__artie_delete": false,
-		"_id":            "507f1f77bcf86cd799439011",
-		"double":         3.14159,
-		"int64":          int32(1234567890),
-		"string":         "Hello, world!",
-	}, evtOut.Data)
 
+	for expectedKey, expectedValue := range map[string]any{
+		"__artie_delete":          false,
+		"__artie_only_set_delete": false,
+		"_id":                     "507f1f77bcf86cd799439011",
+		"double":                  3.14159,
+		"int64":                   int32(1234567890),
+		"string":                  "Hello, world!",
+	} {
+		actualValue, isOk := evtOut.Data[expectedKey]
+		assert.True(t, isOk, expectedKey)
+		assert.Equal(t, expectedValue, actualValue, expectedKey)
+
+		delete(evtOut.Data, expectedKey)
+	}
+
+	assert.Empty(t, evtOut.Data)
 	assert.Equal(t, map[string]any{"_id": objId.Hex()}, evtOut.PrimaryKeyMap)
 }
