@@ -2,6 +2,7 @@ package dynamo
 
 import (
 	"fmt"
+	"github.com/artie-labs/transfer/lib/cdc/util"
 	"slices"
 	"strconv"
 	"time"
@@ -37,9 +38,9 @@ func transformAttributeValue(attr types.AttributeValue) (any, debezium.FieldType
 		if err != nil {
 			return nil, "", fmt.Errorf("failed to convert string to float64: %w", err)
 		}
-		return number, nil
+		return number, debezium.Float, nil
 	case *types.AttributeValueMemberBOOL:
-		return v.Value, nil
+		return v.Value, debezium.Boolean, nil
 	case *types.AttributeValueMemberM:
 		result := make(map[string]any)
 		for k, v := range v.Value {
@@ -49,19 +50,19 @@ func transformAttributeValue(attr types.AttributeValue) (any, debezium.FieldType
 			}
 			result[k] = val
 		}
-		return result, nil
+		return result, debezium.Map, nil
 	case *types.AttributeValueMemberL:
 		list := make([]any, len(v.Value))
 		for i, item := range v.Value {
-			val, err := transformAttributeValue(item)
+			val, _, err := transformAttributeValue(item)
 			if err != nil {
 				return nil, "", fmt.Errorf("failed to transform attribute value: %w", err)
 			}
 			list[i] = val
 		}
-		return list, nil
+		return list, debezium.Array, nil
 	case *types.AttributeValueMemberSS:
-		return slices.Clone(v.Value), nil
+		return slices.Clone(v.Value), debezium.Array, nil
 	case *types.AttributeValueMemberNS:
 		numSet := make([]float64, len(v.Value))
 		for i, n := range v.Value {
@@ -71,7 +72,7 @@ func transformAttributeValue(attr types.AttributeValue) (any, debezium.FieldType
 			}
 			numSet[i] = number
 		}
-		return numSet, nil
+		return numSet, debezium.Array, nil
 	}
 
 	return nil, "", nil

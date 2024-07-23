@@ -26,10 +26,7 @@ func (s *StreamStore) ListenToChannel(ctx context.Context, writer writers.Writer
 	}
 }
 
-<<<<<<< HEAD
-func (s *StreamStore) processShard(ctx context.Context, shard types.Shard, writer writers.Writer) {
-=======
-func (s *StreamStore) reprocessShard(ctx context.Context, shard *dynamodbstreams.Shard, writer writers.Writer, numErrs int, err error) {
+func (s *StreamStore) reprocessShard(ctx context.Context, shard types.Shard, writer writers.Writer, numErrs int, err error) {
 	if numErrs > maxNumErrs {
 		logger.Panic(fmt.Sprintf("Failed to process shard: %s and the max number of attempts have been reached", *shard.ShardId), err)
 	}
@@ -46,8 +43,7 @@ func (s *StreamStore) reprocessShard(ctx context.Context, shard *dynamodbstreams
 	s.processShard(ctx, shard, writer, numErrs+1)
 }
 
-func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.Shard, writer writers.Writer, numErrs int) {
->>>>>>> master
+func (s *StreamStore) processShard(ctx context.Context, shard types.Shard, writer writers.Writer, numErrs int) {
 	// Is there another go-routine processing this shard?
 	if s.storage.GetShardProcessing(*shard.ShardId) {
 		return
