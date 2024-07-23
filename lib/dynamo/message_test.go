@@ -41,10 +41,11 @@ func TestTransformAttributeValue(t *testing.T) {
 		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
 			BS: [][]byte{
 				[]byte("hello"),
+				[]byte("world"),
 			},
 		})
 		assert.NoError(t, err, err)
-		assert.Equal(t, [][]byte{[]byte("hello")}, actualValue)
+		assert.Equal(t, [][]byte{[]byte("hello"), []byte("world")}, actualValue)
 		assert.Equal(t, debezium.Array, fieldType)
 	}
 	{

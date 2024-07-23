@@ -53,6 +53,12 @@ func main() {
 				"user_id": {
 					S: aws.String(userID),
 				},
+				"b": {
+					B: []byte("hello world"),
+				},
+				"bs": {
+					BS: [][]byte{[]byte("hello"), []byte("world")},
+				},
 				"random_number": {
 					N: aws.String(fmt.Sprintf("%v", rand.Int63())), // Example number
 				},
