@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -116,6 +117,9 @@ func main() {
 			slog.Error(fmt.Sprintf("Failed to write batch starting at index %d", i), slog.Any("err", err))
 			continue
 		}
+
+		// Our test DDB has low WCUs
+		time.Sleep(2 * time.Second)
 		rowsWritten += len(writeRequests)
 		slog.Info(fmt.Sprintf("Inserted batch of items starting from index %d", i))
 	}
