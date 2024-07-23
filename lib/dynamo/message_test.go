@@ -119,7 +119,8 @@ func TestTransformAttributeValue(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		actualValue, err := transformAttributeValue(tc.attr)
+		// TODO: Rewrite this whole thing
+		actualValue, _, err := transformAttributeValue(tc.attr)
 		assert.NoError(t, err, tc.name)
 		assert.Equal(t, tc.expectedValue, actualValue, tc.name)
 	}
