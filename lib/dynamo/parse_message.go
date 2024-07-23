@@ -17,7 +17,7 @@ func NewMessageFromExport(item dynamodb.ItemResponse, keys []string, tableName s
 		return nil, fmt.Errorf("keys is nil")
 	}
 
-	rowData, fields, err := transformImage(item.Item)
+	rowData, afterSchema, err := transformImage(item.Item)
 	if err != nil {
 		return nil, fmt.Errorf("failed to transform item: %w", err)
 	}
@@ -39,7 +39,7 @@ func NewMessageFromExport(item dynamodb.ItemResponse, keys []string, tableName s
 		// Perhaps we can have it inferred from the manifest file in the future.
 		executionTime: time.Now(),
 		afterRowData:  rowData,
-		afterSchema:   fields,
+		afterSchema:   afterSchema,
 		primaryKey:    primaryKeys,
 	}, nil
 }
@@ -75,7 +75,7 @@ func NewMessage(record *dynamodbstreams.Record, tableName string) (*Message, err
 		return nil, fmt.Errorf("failed to transform old image: %w", err)
 	}
 
-	afterData, schema, err := transformImage(record.Dynamodb.NewImage)
+	afterData, afterSchema, err := transformImage(record.Dynamodb.NewImage)
 	if err != nil {
 		return nil, fmt.Errorf("failed to transform new image: %w", err)
 	}
@@ -91,7 +91,7 @@ func NewMessage(record *dynamodbstreams.Record, tableName string) (*Message, err
 		executionTime: executionTime,
 		beforeRowData: beforeData,
 		afterRowData:  afterData,
-		afterSchema:   schema,
+		afterSchema:   afterSchema,
 		primaryKey:    primaryKey,
 	}, nil
 }
