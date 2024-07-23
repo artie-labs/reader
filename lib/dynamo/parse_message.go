@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 )
 
-func NewMessageFromExport(item ddbTypes.ItemResponse, keys []string, tableName string) (*Message, error) {
-	if len(item.Item) == 0 {
+func NewMessageFromExport(item map[string]ddbTypes.AttributeValue, keys []string, tableName string) (*Message, error) {
+	if len(item) == 0 {
 		return nil, fmt.Errorf("item is nil or keys do not exist in this item payload")
 	}
 
@@ -17,7 +17,7 @@ func NewMessageFromExport(item ddbTypes.ItemResponse, keys []string, tableName s
 		return nil, fmt.Errorf("keys is nil")
 	}
 
-	rowData, afterSchema, err := transformImage(convertSnapshotToStreamingImage(item.Item))
+	rowData, afterSchema, err := transformImage(convertSnapshotToStreamingImage(item))
 	if err != nil {
 		return nil, fmt.Errorf("failed to transform item: %w", err)
 	}

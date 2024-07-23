@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -69,10 +70,14 @@ func (s *S3Client) ListFiles(ctx context.Context, fp string) ([]S3File, error) {
 	return files, nil
 }
 
+type ddbItemExport struct {
+	Item map[string]any `json:"Item"`
+}
+
 // StreamJsonGzipFile will take an S3 File that is in `json.gz` format from DynamoDB's export to S3.
 // It's not a typical JSON file in that it is compressed and it's new line delimited via an array,
 // which means we can stream this file row by row to not OOM.
-func (s *S3Client) StreamJsonGzipFile(ctx context.Context, file S3File, ch chan<- ddbTypes.ItemResponse) error {
+func (s *S3Client) StreamJsonGzipFile(ctx context.Context, file S3File, ch chan<- map[string]ddbTypes.AttributeValue) error {
 	defer close(ch)
 	result, err := s.client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: file.Bucket,
@@ -85,7 +90,6 @@ func (s *S3Client) StreamJsonGzipFile(ctx context.Context, file S3File, ch chan<
 
 	defer result.Body.Close()
 
-	// Create a gzip reader
 	gz, err := gzip.NewReader(result.Body)
 	if err != nil {
 		return fmt.Errorf("failed to create a GZIP reader for object: %w", err)
@@ -95,12 +99,22 @@ func (s *S3Client) StreamJsonGzipFile(ctx context.Context, file S3File, ch chan<
 	scanner := bufio.NewScanner(gz)
 	for scanner.Scan() {
 		line := scanner.Bytes()
-		var content ddbTypes.ItemResponse
-		if err = json.Unmarshal(line, &content); err != nil {
-			return fmt.Errorf("failed to unmarshal: %w", err)
+
+		var export ddbItemExport
+		if err = json.Unmarshal(line, &export); err != nil {
+			return fmt.Errorf("failed to unmarshal JSON: %w", err)
 		}
 
-		ch <- content
+		avMap := make(map[string]ddbTypes.AttributeValue)
+		for key, val := range export.Item {
+			attributeValue, err := attributevalue.Marshal(val)
+			if err != nil {
+				return fmt.Errorf("failed to marshal attribute value: %w", err)
+			}
+			avMap[key] = attributeValue
+		}
+
+		ch <- avMap
 	}
 
 	if err = scanner.Err(); err != nil {
