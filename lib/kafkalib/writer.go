@@ -2,21 +2,19 @@ package kafkalib
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"time"
 
-	awsCfg "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/segmentio/kafka-go/sasl/aws_msk_iam_v2"
+	"github.com/artie-labs/transfer/lib/jitter"
+	"github.com/artie-labs/transfer/lib/kafkalib"
+	"github.com/artie-labs/transfer/lib/size"
+	"github.com/segmentio/kafka-go"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/mtr"
-	"github.com/artie-labs/transfer/lib/jitter"
-	"github.com/artie-labs/transfer/lib/size"
-	"github.com/segmentio/kafka-go"
 )
 
 const (
@@ -26,29 +24,23 @@ const (
 
 func newWriter(ctx context.Context, cfg config.Kafka) (*kafka.Writer, error) {
 	slog.Info("Setting kafka bootstrap URLs", slog.Any("urls", cfg.BootstrapAddresses()))
+	kafkaConn := kafkalib.NewConnection(cfg.AwsEnabled, cfg.DisableTLS, cfg.Username, cfg.Password)
+	transport, err := kafkaConn.Transport(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create kafka transport: %w", err)
+	}
+
 	writer := &kafka.Writer{
 		Addr:                   kafka.TCP(cfg.BootstrapAddresses()...),
-		Compression:            kafka.Gzip,
-		Balancer:               &kafka.LeastBytes{},
-		WriteTimeout:           5 * time.Second,
 		AllowAutoTopicCreation: true,
+		Balancer:               &kafka.LeastBytes{},
+		Compression:            kafka.Gzip,
+		Transport:              transport,
+		WriteTimeout:           5 * time.Second,
 	}
 
 	if cfg.MaxRequestSize > 0 {
 		writer.BatchBytes = int64(cfg.MaxRequestSize)
-	}
-
-	if cfg.AwsEnabled {
-		saslCfg, err := awsCfg.LoadDefaultConfig(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("failed to load AWS configuration: %w", err)
-		}
-
-		writer.Transport = &kafka.Transport{
-			DialTimeout: 10 * time.Second,
-			SASL:        aws_msk_iam_v2.NewMechanism(saslCfg),
-			TLS:         &tls.Config{},
-		}
 	}
 
 	return writer, nil

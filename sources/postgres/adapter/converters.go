@@ -5,9 +5,44 @@ import (
 	"math"
 	"time"
 
+	"github.com/artie-labs/reader/lib/timeutil"
 	"github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/typing/ext"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type TimeWithTimezoneConverter struct{}
+
+func (TimeWithTimezoneConverter) ToField(name string) debezium.Field {
+	return debezium.Field{
+		FieldName:    name,
+		Type:         debezium.String,
+		DebeziumType: debezium.TimeWithTimezone,
+	}
+}
+
+func (TimeWithTimezoneConverter) Convert(value any) (any, error) {
+	stringValue, ok := value.(string)
+	if !ok {
+		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
+	}
+
+	// No nanosecond precision because the data type only goes to ms.
+	layouts := []string{
+		"15:04:05-07",        // w/o fractional seconds
+		"15:04:05.000-07",    // ms
+		"15:04:05.000000-07", // microseconds
+	}
+
+	timeValue, err := timeutil.ParseExact(stringValue, layouts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse time value %q: %w", stringValue, err)
+	}
+
+	// Convert `time.Time` into GMT
+	// Then convert back into a string with ns precision
+	return timeValue.UTC().Format(ext.PostgresTimeFormatNoTZ), nil
+}
 
 type PgTimeConverter struct{}
 

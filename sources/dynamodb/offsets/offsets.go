@@ -67,6 +67,10 @@ func (o *OffsetStorage) SetShardProcessing(shardID string) {
 	}, ShardExpirationAndBuffer)
 }
 
+func (o *OffsetStorage) UnsetShardProcessing(shardID string) {
+	o.ttlMap.Remove(shardProcessingKey(shardID))
+}
+
 func (o *OffsetStorage) GetShardProcessing(shardID string) bool {
 	_, isOk := o.ttlMap.Get(shardProcessingKey(shardID))
 	return isOk

@@ -1,6 +1,7 @@
 package dynamo
 
 import (
+	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/stretchr/testify/assert"
@@ -8,119 +9,138 @@ import (
 )
 
 func TestTransformAttributeValue(t *testing.T) {
-	type _tc struct {
-		name          string
-		attr          *dynamodb.AttributeValue
-		expectedValue any
+	{
+		// String
+		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
+			S: ptr.ToString("hello"),
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, "hello", actualValue)
+		assert.Equal(t, debezium.String, fieldType)
 	}
-
-	tcs := []_tc{
-		{
-			name: "string",
-			attr: &dynamodb.AttributeValue{
-				S: ptr.ToString("hello"),
+	{
+		// Number
+		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
+			N: ptr.ToString("123"),
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, float64(123), actualValue)
+		assert.Equal(t, debezium.Float, fieldType)
+	}
+	{
+		// Bytes
+		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
+			B: []byte("hello"),
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, []byte("hello"), actualValue)
+		assert.Equal(t, debezium.Bytes, fieldType)
+	}
+	{
+		// Bytes set
+		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
+			BS: [][]byte{
+				[]byte("hello"),
+				[]byte("world"),
 			},
-			expectedValue: "hello",
-		},
-		{
-			name: "number",
-			attr: &dynamodb.AttributeValue{
-				N: ptr.ToString("123"),
-			},
-			expectedValue: float64(123),
-		},
-		{
-			name: "boolean",
-			attr: &dynamodb.AttributeValue{
-				BOOL: ptr.ToBool(true),
-			},
-			expectedValue: true,
-		},
-		{
-			name: "map",
-			attr: &dynamodb.AttributeValue{
-				M: map[string]*dynamodb.AttributeValue{
-					"foo": {
-						S: ptr.ToString("bar"),
-					},
-					"bar": {
-						N: ptr.ToString("123"),
-					},
-					"nested_map": {
-						M: map[string]*dynamodb.AttributeValue{
-							"foo": {
-								S: ptr.ToString("bar"),
-							},
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, [][]byte{[]byte("hello"), []byte("world")}, actualValue)
+		assert.Equal(t, debezium.Array, fieldType)
+	}
+	{
+		// Boolean
+		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
+			BOOL: ptr.ToBool(true),
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, true, actualValue)
+		assert.Equal(t, debezium.Boolean, fieldType)
+	}
+	{
+		// Map
+		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
+			M: map[string]*dynamodb.AttributeValue{
+				"foo": {
+					S: ptr.ToString("bar"),
+				},
+				"bar": {
+					N: ptr.ToString("123"),
+				},
+				"nested_map": {
+					M: map[string]*dynamodb.AttributeValue{
+						"foo": {
+							S: ptr.ToString("bar"),
 						},
 					},
 				},
 			},
-			expectedValue: map[string]any{
+		})
+
+		assert.NoError(t, err)
+		assert.Equal(t, map[string]any{
+			"foo": "bar",
+			"bar": float64(123),
+			"nested_map": map[string]any{
 				"foo": "bar",
-				"bar": float64(123),
-				"nested_map": map[string]any{
-					"foo": "bar",
-				},
 			},
-		},
-		{
-			name: "list",
-			attr: &dynamodb.AttributeValue{
-				L: []*dynamodb.AttributeValue{
-					{
-						S: ptr.ToString("foo"),
-					},
-					{
-						N: ptr.ToString("123"),
-					},
-					{
-						M: map[string]*dynamodb.AttributeValue{
-							"foo": {
-								S: ptr.ToString("bar"),
-							},
+		}, actualValue)
+		assert.Equal(t, debezium.Map, fieldType)
+	}
+	{
+		// List
+		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
+			L: []*dynamodb.AttributeValue{
+				{
+					S: ptr.ToString("foo"),
+				},
+				{
+					N: ptr.ToString("123"),
+				},
+				{
+					M: map[string]*dynamodb.AttributeValue{
+						"foo": {
+							S: ptr.ToString("bar"),
 						},
 					},
 				},
 			},
-			expectedValue: []any{
-				"foo",
-				float64(123),
-				map[string]any{
-					"foo": "bar",
-				},
-			},
-		},
-		{
-			name: "string set",
-			attr: &dynamodb.AttributeValue{
-				SS: []*string{
-					ptr.ToString("foo"),
-					ptr.ToString("bar"),
-				},
-			},
-			expectedValue: []string{
-				"foo",
-				"bar",
-			},
-		},
-		{
-			name: "number set",
-			attr: &dynamodb.AttributeValue{
-				NS: []*string{
-					ptr.ToString("123"),
-					ptr.ToString("456"),
-				},
-			},
-			expectedValue: []float64{
-				123,
-				456,
-			},
-		},
-	}
+		})
 
-	for _, tc := range tcs {
-		actualValue, err := transformAttributeValue(tc.attr)
-		assert.NoError(t, err, tc.name)
-		assert.Equal(t, tc.expectedValue, actualValue, tc.name)
+		assert.NoError(t, err)
+		assert.Equal(t, []any{
+			"foo",
+			float64(123),
+			map[string]any{
+				"foo": "bar",
+			},
+		}, actualValue)
+		assert.Equal(t, debezium.Array, fieldType)
+	}
+	{
+		// String set
+		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
+			SS: []*string{
+				ptr.ToString("foo"),
+				ptr.ToString("bar"),
+			},
+		})
+
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"foo", "bar"}, actualValue)
+		assert.Equal(t, debezium.Array, fieldType)
+	}
+	{
+		// Number set
+		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
+			NS: []*string{
+				ptr.ToString("123"),
+				ptr.ToString("456"),
+			},
+		})
+
+		assert.NoError(t, err)
+		assert.Equal(t, []float64{123, 456}, actualValue)
+		assert.Equal(t, debezium.Array, fieldType)
 	}
 }

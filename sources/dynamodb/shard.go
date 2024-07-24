@@ -2,6 +2,7 @@ package dynamodb
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -16,13 +17,32 @@ import (
 	"github.com/artie-labs/reader/writers"
 )
 
+const maxNumErrs = 25
+
 func (s *StreamStore) ListenToChannel(ctx context.Context, writer writers.Writer) {
 	for shard := range s.shardChan {
-		go s.processShard(ctx, shard, writer)
+		go s.processShard(ctx, shard, writer, 0)
 	}
 }
 
-func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.Shard, writer writers.Writer) {
+func (s *StreamStore) reprocessShard(ctx context.Context, shard *dynamodbstreams.Shard, writer writers.Writer, numErrs int, err error) {
+	if numErrs > maxNumErrs {
+		logger.Panic(fmt.Sprintf("Failed to process shard: %s and the max number of attempts have been reached", *shard.ShardId), err)
+	}
+
+	slog.Warn("Failed to process shard, going to try again...",
+		slog.Any("err", err),
+		slog.String("streamArn", s.streamArn),
+		slog.String("shardId", *shard.ShardId),
+		slog.Int("numErrs", numErrs),
+	)
+
+	// Unset it so we can process it again
+	s.storage.UnsetShardProcessing(*shard.ShardId)
+	s.processShard(ctx, shard, writer, numErrs+1)
+}
+
+func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.Shard, writer writers.Writer, numErrs int) {
 	// Is there another go-routine processing this shard?
 	if s.storage.GetShardProcessing(*shard.ShardId) {
 		return
@@ -30,11 +50,11 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 
 	if parentID := shard.ParentShardId; parentID != nil {
 		// Have we seen the parent? If so, let's wait for processing to finish
-		// If we haven't seen the parent, then we can assume this is the parent and we don't need to wait.
+		// If we haven't seen the parent, then we can assume this is the parent, and we don't need to wait.
 		if s.storage.GetShardSeen(*parentID) && !s.storage.GetShardProcessed(*parentID) {
 			slog.Info("Parent shard is being processed, let's sleep 3s and retry", slog.String("shardId", *shard.ShardId), slog.String("parentShardId", *parentID))
 			time.Sleep(3 * time.Second)
-			s.processShard(ctx, shard, writer)
+			s.processShard(ctx, shard, writer, numErrs)
 			return
 		}
 	}
@@ -67,11 +87,7 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 
 	iteratorOutput, err := s.streams.GetShardIterator(iteratorInput)
 	if err != nil {
-		slog.Warn("Failed to get shard iterator...",
-			slog.Any("err", err),
-			slog.String("streamArn", s.streamArn),
-			slog.String("shardId", *shard.ShardId),
-		)
+		s.reprocessShard(ctx, shard, writer, numErrs, fmt.Errorf("failed to get shard iterator: %w", err))
 		return
 	}
 
@@ -85,12 +101,8 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 
 		getRecordsOutput, err := s.streams.GetRecords(getRecordsInput)
 		if err != nil {
-			slog.Warn("Failed to get records from shard iterator...",
-				slog.Any("err", err),
-				slog.String("streamArn", s.streamArn),
-				slog.String("shardId", *shard.ShardId),
-			)
-			break
+			s.reprocessShard(ctx, shard, writer, numErrs, fmt.Errorf("failed to get records: %w", err))
+			return
 		}
 
 		var messages []lib.RawMessage
