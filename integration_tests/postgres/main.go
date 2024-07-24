@@ -693,7 +693,7 @@ const expectedPayloadTemplate = `{
 			"c_serial": 1000000123,
 			"c_smallint": 32767,
 			"c_text": "QWERTYUIOP",
-			"c_time_with_timezone": "10:34:17.746572",
+			"c_time_with_timezone": "10:34:17.746572Z",
 			"c_time_without_timezone": 45296000,
 			"c_timestamp_with_timezone": "2001-02-16T13:38:40Z",
 			"c_timestamp_without_timezone": 982355920000000,
