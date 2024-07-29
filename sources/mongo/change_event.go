@@ -7,7 +7,6 @@ import (
 
 type ChangeEvent struct {
 	operationType string
-	documentKey   bson.M
 	collection    string
 	objectID      any
 
@@ -15,7 +14,6 @@ type ChangeEvent struct {
 }
 
 func NewChangeEvent(rawChangeEvent bson.M) (*ChangeEvent, error) {
-	// TODO: Add tests
 	operationType, isOk := rawChangeEvent["operationType"]
 	if !isOk {
 		return nil, fmt.Errorf("failed to get operationType from change event: %v", rawChangeEvent)
@@ -63,7 +61,6 @@ func NewChangeEvent(rawChangeEvent bson.M) (*ChangeEvent, error) {
 
 	changeEvent := &ChangeEvent{
 		operationType: castedOperationType,
-		documentKey:   castedDocumentKey,
 		collection:    collString,
 		objectID:      objectID,
 	}
