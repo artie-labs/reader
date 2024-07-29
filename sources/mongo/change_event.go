@@ -91,7 +91,6 @@ func (c ChangeEvent) getFullDocument() (bson.M, error) {
 }
 
 func (c ChangeEvent) ToMessage() (*Message, error) {
-	// TODO: Add tests
 	switch c.operationType {
 	case "delete":
 		// TODO: Think about providing the `before` row for a deleted event.

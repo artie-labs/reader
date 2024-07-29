@@ -45,6 +45,16 @@ func TestNewChangeEvent(t *testing.T) {
 		assert.Equal(t, "customers", changeEvent.collection)
 		assert.Equal(t, objectID, changeEvent.objectID)
 		assert.Equal(t, fullDocument, *changeEvent.fullDocument)
+
+		// ToMessage
+		msg, err := changeEvent.ToMessage()
+		assert.NoError(t, err)
+		assert.Equal(t, map[string]interface{}{"id": `{"$oid":"66a7f5fe65e80fad9c4773e7"}`}, msg.pkMap)
+		assert.Equal(t, "c", msg.operation)
+
+		var expectedObj bson.M
+		assert.NoError(t, bson.UnmarshalExtJSON([]byte(msg.jsonExtendedString), false, &expectedObj))
+		assert.Equal(t, fullDocument, expectedObj)
 	}
 	{
 		// Update
@@ -90,6 +100,16 @@ func TestNewChangeEvent(t *testing.T) {
 		assert.Equal(t, "customers", changeEvent.collection)
 		assert.Equal(t, objectID, changeEvent.objectID)
 		assert.Equal(t, fullDocument, *changeEvent.fullDocument)
+
+		// ToMessage
+		msg, err := changeEvent.ToMessage()
+		assert.NoError(t, err)
+		assert.Equal(t, map[string]interface{}{"id": `{"$oid":"66834270bd422bc9b54b2be7"}`}, msg.pkMap)
+		assert.Equal(t, "u", msg.operation)
+
+		var expectedObj bson.M
+		assert.NoError(t, bson.UnmarshalExtJSON([]byte(msg.jsonExtendedString), false, &expectedObj))
+		assert.Equal(t, fullDocument, expectedObj)
 	}
 	{
 		// Delete
@@ -120,5 +140,12 @@ func TestNewChangeEvent(t *testing.T) {
 		assert.Equal(t, "customers", changeEvent.collection)
 		assert.Equal(t, objectID, changeEvent.objectID)
 		assert.Nil(t, changeEvent.fullDocument)
+
+		// ToMessage
+		msg, err := changeEvent.ToMessage()
+		assert.NoError(t, err)
+		assert.Equal(t, map[string]interface{}{"id": `{"$oid":"66834270bd422bc9b54b2be6"}`}, msg.pkMap)
+		assert.Equal(t, "d", msg.operation)
+		assert.Equal(t, `{"_id":{"$oid":"66834270bd422bc9b54b2be6"}}`, msg.jsonExtendedString)
 	}
 }
