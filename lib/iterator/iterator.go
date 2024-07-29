@@ -6,8 +6,7 @@ type Iterator[T any] interface {
 }
 
 type StreamingIterator[T any] interface {
-	HasNext() bool
-	Next() (T, error)
+	Iterator[T]
 	CommitOffset()
 }
 

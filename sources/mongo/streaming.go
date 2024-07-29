@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/artie-labs/reader/lib/iterator"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -27,7 +28,7 @@ type streaming struct {
 	batchSize             int32
 }
 
-func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.MongoDB, filePath string) (*streaming, error) {
+func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.MongoDB, filePath string) (iterator.StreamingIterator[[]lib.RawMessage], error) {
 	collectionsToWatchMap := make(map[string]config.Collection)
 	for _, collection := range cfg.Collections {
 		collectionsToWatchMap[collection.Name] = collection
