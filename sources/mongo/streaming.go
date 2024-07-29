@@ -60,7 +60,7 @@ func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.Mo
 
 		var token bson.Raw
 		if err = bson.Unmarshal(decodedBytes, &token); err != nil {
-			return nil, fmt.Errorf("failed to marshal resume token: %w", err)
+			return nil, fmt.Errorf("failed to unmarshal resume token: %w", err)
 		}
 
 		opts.SetResumeAfter(token)
