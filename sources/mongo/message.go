@@ -59,7 +59,6 @@ func ParseMessage(result bson.M, op string) (*Message, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal ext json: %w", err)
 	}
-
 	return &Message{
 		jsonExtendedString: string(jsonExtendedBytes),
 		operation:          op,

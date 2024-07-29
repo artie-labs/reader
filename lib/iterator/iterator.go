@@ -5,6 +5,11 @@ type Iterator[T any] interface {
 	Next() (T, error)
 }
 
+type StreamingIterator[T any] interface {
+	Iterator[T]
+	CommitOffset()
+}
+
 // Collect returns a new slice containing all the items from an [Iterator].
 // Used for testing, use only with iterators containing a finite amount of items that fit in memory.
 func Collect[T any](iter Iterator[T]) ([]T, error) {

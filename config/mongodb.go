@@ -8,13 +8,31 @@ import (
 	"github.com/artie-labs/transfer/lib/stringutil"
 )
 
-type MongoDB struct {
-	Host     string `yaml:"host"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
-	Database string `yaml:"database"`
+func (s StreamingSettings) Validate() error {
+	if !s.Enabled {
+		return nil
+	}
 
-	Collections []Collection `yaml:"collections"`
+	if s.OffsetFile == "" {
+		return fmt.Errorf("offset file must be passed in when streaming is enabled")
+	}
+
+	return nil
+}
+
+type StreamingSettings struct {
+	Enabled    bool   `yaml:"enabled,omitempty"`
+	OffsetFile string `yaml:"offsetFile,omitempty"`
+	BatchSize  int32  `yaml:"batchSize,omitempty"`
+}
+
+type MongoDB struct {
+	Host              string            `yaml:"host"`
+	Username          string            `yaml:"username"`
+	Password          string            `yaml:"password"`
+	Database          string            `yaml:"database"`
+	Collections       []Collection      `yaml:"collections"`
+	StreamingSettings StreamingSettings `yaml:"streamingSettings,omitempty"`
 }
 
 type Collection struct {
@@ -29,6 +47,10 @@ func (c Collection) TopicSuffix(db string) string {
 
 func (c Collection) GetBatchSize() int32 {
 	return cmp.Or(c.BatchSize, constants.DefaultBatchSize)
+}
+
+func (m MongoDB) GetStreamingBatchSize() int32 {
+	return cmp.Or(m.StreamingSettings.BatchSize, constants.DefaultBatchSize)
 }
 
 func (m MongoDB) Validate() error {
@@ -46,5 +68,5 @@ func (m MongoDB) Validate() error {
 		}
 	}
 
-	return nil
+	return m.StreamingSettings.Validate()
 }
