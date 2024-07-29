@@ -58,7 +58,12 @@ func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.Mo
 			return nil, fmt.Errorf("failed to decode resume token: %w", err)
 		}
 
-		opts.SetResumeAfter(decodedBytes)
+		var token bson.Raw
+		if err = bson.Unmarshal(decodedBytes, &token); err != nil {
+			return nil, fmt.Errorf("failed to marshal resume token: %w", err)
+		}
+
+		opts.SetResumeAfter(token)
 	}
 
 	cs, err := db.Watch(ctx, pipeline, opts)
@@ -81,15 +86,17 @@ func (s *streaming) HasNext() bool {
 	return true
 }
 
+func (s *streaming) CommitOffset() {
+	s.offsets.Set(offsetKey, base64.StdEncoding.EncodeToString(s.changeStream.ResumeToken()))
+}
+
 func (s *streaming) Next() ([]lib.RawMessage, error) {
 	var rawMsgs []lib.RawMessage
 	for s.batchSize > int32(len(rawMsgs)) && s.changeStream.TryNext(s.ctx) {
 		var rawChangeEvent bson.M
 		if err := s.changeStream.Decode(&rawChangeEvent); err != nil {
-			return nil, fmt.Errorf("failed to decode change event: %v", err)
+			return nil, fmt.Errorf("failed to decode change event: %w", err)
 		}
-
-		s.offsets.Set(offsetKey, base64.StdEncoding.EncodeToString(s.changeStream.ResumeToken()))
 
 		changeEvent, err := NewChangeEvent(rawChangeEvent)
 		if err != nil {

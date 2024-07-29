@@ -33,11 +33,16 @@ func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMess
 		msgs, err := iter.Next()
 		if err != nil {
 			return 0, fmt.Errorf("failed to iterate over messages: %w", err)
-
 		} else if len(msgs) > 0 {
 			if err = w.destinationWriter.Write(ctx, msgs); err != nil {
 				return 0, fmt.Errorf("failed to write messages: %w", err)
 			}
+
+			// Is it a streaming iterator? if so, let's commit the offset.
+			if streamingIter, isOk := iter.(iterator.StreamingIterator[[]lib.RawMessage]); isOk {
+				streamingIter.CommitOffset()
+			}
+
 			count += len(msgs)
 		}
 		if w.logProgress {
