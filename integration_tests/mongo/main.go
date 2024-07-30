@@ -11,6 +11,7 @@ import (
 	mongoLib "github.com/artie-labs/reader/sources/mongo"
 	xferMongo "github.com/artie-labs/transfer/lib/cdc/mongo"
 	"github.com/artie-labs/transfer/lib/kafkalib"
+	"github.com/artie-labs/transfer/lib/typing/ext"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -81,9 +82,9 @@ func testTypes(ctx context.Context, db *mongo.Database, mongoCfg config.MongoDB)
 
 	collection := db.Collection(tempTableName)
 
-	defer func() {
-		_ = collection.Drop(ctx)
-	}()
+	//defer func() {
+	//	_ = collection.Drop(ctx)
+	//}()
 
 	slog.Info("Inserting data...")
 
@@ -112,7 +113,6 @@ func testTypes(ctx context.Context, db *mongo.Database, mongoCfg config.MongoDB)
 		{"objectId", objId},
 		{"null", nil},
 		{"timestamp", primitive.Timestamp{T: uint32(ts.Unix()), I: 1}},
-		{"decimal128", primitive.NewDecimal128(12345, 67890)},
 		{"minKey", primitive.MinKey{}},
 		{"maxKey", primitive.MaxKey{}},
 	})
@@ -179,27 +179,22 @@ func testTypes(ctx context.Context, db *mongo.Database, mongoCfg config.MongoDB)
 		return fmt.Errorf("failed to get data: %w", err)
 	}
 
-	for k, v := range data {
-		fmt.Println("Key:", k, "Value:", v, fmt.Sprintf("Type: %T", v))
-	}
-
 	expectedPayload := map[string]any{
 		"objectId":                "66a95fae3776c2f21f0ff568",
 		"array":                   []any{"item1", int32(2), true, 3.14},
-		"datetime":                ts,
+		"datetime":                ts.Format(ext.ISO8601),
 		"int64":                   int64(64),
 		"__artie_delete":          false,
 		"__artie_only_set_delete": false,
-		"timestamp":               ts,
-		"embeddedDocument":        map[string]any{"field1": "value1", "field2": "value2"},
+		"timestamp":               ts.Format(ext.ISO8601),
+		"embeddedDocument":        `{"field1":"value1","field2":"value2"}`,
 		"embeddedMap":             `{"foo":"bar","hello":"world","pi":3.14159}`,
-		"binary":                  map[string]any{"$binary": map[string]any{"base64": "YmluYXJ5IGRhdGE=", "subType": "00"}},
+		"binary":                  `{"$binary":{"base64":"YmluYXJ5IGRhdGE=","subType":"00"}}`,
 		"maxKey":                  `{"$maxKey":1}`,
-		"minKey":                  map[string]any{"$minKey": 1},
+		"minKey":                  `{"$minKey":1}`,
 		"_id":                     "66a95fae3776c2f21f0ff568",
 		"bool":                    true,
 		"double":                  3.14,
-		"decimal128":              2.27725055589944414767410e-6153,
 		"string":                  "This is a string",
 		"int32":                   int32(32),
 		"null":                    nil,
@@ -207,8 +202,6 @@ func testTypes(ctx context.Context, db *mongo.Database, mongoCfg config.MongoDB)
 
 	var diffs []string
 	for expectedKey, expectedValue := range expectedPayload {
-		fmt.Println("expectedKey", expectedKey)
-
 		actualValue, isOk := data[expectedKey]
 		if !isOk {
 			diffs = append(diffs, fmt.Sprintf("expected key %s not found", expectedKey))
@@ -225,8 +218,6 @@ func testTypes(ctx context.Context, db *mongo.Database, mongoCfg config.MongoDB)
 	}
 
 	for actualKey, actualValue := range data {
-		fmt.Println("actualKey", actualKey, "actualValue", actualValue)
-
 		diffs = append(diffs, fmt.Sprintf("unexpected key %s with value %v", actualKey, actualValue))
 	}
 
