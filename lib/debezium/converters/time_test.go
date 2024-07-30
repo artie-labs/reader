@@ -1,6 +1,7 @@
 package converters
 
 import (
+	"fmt"
 	"math"
 	"testing"
 	"time"
@@ -11,6 +12,20 @@ import (
 )
 
 func parseUsingTransfer(converter ValueConverter, value int64) (*ext.ExtendedTime, error) {
+	if transferConverter := converter.ToField("foo").ToValueConverter(); transferConverter != nil {
+		val, err := transferConverter.Convert(value)
+		if err != nil {
+			return nil, err
+		}
+
+		extTime, isOk := val.(*ext.ExtendedTime)
+		if !isOk {
+			return nil, fmt.Errorf("expected *ext.ExtendedTime got %T", val)
+		}
+
+		return extTime, nil
+	}
+
 	return debezium.FromDebeziumTypeToTime(converter.ToField("foo").DebeziumType, value)
 }
 

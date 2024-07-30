@@ -7,7 +7,6 @@ import (
 
 	transferMongo "github.com/artie-labs/transfer/lib/cdc/mongo"
 	"github.com/artie-labs/transfer/lib/kafkalib"
-	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -76,7 +75,7 @@ func TestParseMessage(t *testing.T) {
 
 	rawMsgBytes, err := json.Marshal(rawMsg.Event())
 	assert.NoError(t, err)
-	kvMap, err := dbz.GetEventFromBytes(typing.Settings{}, rawMsgBytes)
+	kvMap, err := dbz.GetEventFromBytes(rawMsgBytes)
 	assert.NoError(t, err)
 
 	expectedMap := map[string]any{
