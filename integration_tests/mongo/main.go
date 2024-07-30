@@ -11,7 +11,6 @@ import (
 	mongoLib "github.com/artie-labs/reader/sources/mongo"
 	xferMongo "github.com/artie-labs/transfer/lib/cdc/mongo"
 	"github.com/artie-labs/transfer/lib/kafkalib"
-	"github.com/artie-labs/transfer/lib/typing"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -165,7 +164,7 @@ func testTypes(ctx context.Context, db *mongo.Database, mongoCfg config.MongoDB)
 		return fmt.Errorf("failed to marshal event: %w", err)
 	}
 
-	evt, err := dbz.GetEventFromBytes(typing.Settings{}, valueBytes)
+	evt, err := dbz.GetEventFromBytes(valueBytes)
 	if err != nil {
 		return fmt.Errorf("failed to get event from bytes: %w", err)
 	}
