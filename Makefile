@@ -6,6 +6,10 @@ static:
 test:
 	go test ./...
 
+.PHONY: mongo-itest
+mongo-itest:
+	go run integration_tests/mongo/main.go
+
 .PHONY: mysql-itest
 mysql-itest:
 	go run integration_tests/mysql/main.go

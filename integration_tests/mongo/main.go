@@ -82,9 +82,9 @@ func testTypes(ctx context.Context, db *mongo.Database, mongoCfg config.MongoDB)
 
 	collection := db.Collection(tempTableName)
 
-	//defer func() {
-	//	_ = collection.Drop(ctx)
-	//}()
+	defer func() {
+		_ = collection.Drop(ctx)
+	}()
 
 	slog.Info("Inserting data...")
 
