@@ -69,7 +69,7 @@ func readTable(db *sql.DB, tableName string, batchSize int) ([]lib.RawMessage, e
 		return nil, err
 	}
 
-	return utils.ReadTable(db, dbzAdapter)
+	return utils.ReadTable(dbzAdapter)
 }
 
 const testTypesCreateTableQuery = `

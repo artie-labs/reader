@@ -26,7 +26,7 @@ func CreateTemporaryTable(db *sql.DB, query string) (string, func()) {
 	}
 }
 
-func ReadTable(db *sql.DB, dbzAdapter transformer.Adapter) ([]lib.RawMessage, error) {
+func ReadTable(dbzAdapter transformer.Adapter) ([]lib.RawMessage, error) {
 	dbzTransformer, err := transformer.NewDebeziumTransformer(dbzAdapter)
 	if err != nil {
 		return nil, err

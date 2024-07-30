@@ -1,75 +1,68 @@
 package main
 
 import (
+	"context"
+	"crypto/tls"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
+	mongoLib "github.com/artie-labs/reader/sources/mongo"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"log/slog"
 	"maps"
+	"math/rand/v2"
 	"os"
-
-	"github.com/lmittmann/tint"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/integration_tests/utils"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/logger"
-	"github.com/artie-labs/reader/lib/rdbms"
-	"github.com/artie-labs/reader/sources/mysql/adapter"
 )
 
 func main() {
 	if err := os.Setenv("TZ", "UTC"); err != nil {
 		logger.Fatal("Unable to set TZ env var: %w", err)
 	}
-	slog.SetDefault(slog.New(tint.NewHandler(os.Stderr, &tint.Options{})))
 
-	var mysqlHost string = os.Getenv("MYSQL_HOST")
-	if mysqlHost == "" {
-		mysqlHost = "127.0.0.1"
+	var mongoHost = os.Getenv("MONGO_HOST")
+	if mongoHost == "" {
+		mongoHost = "127.0.0.1"
 	}
 
-	var mysqlCfg = config.MySQL{
-		Host:     mysqlHost,
-		Port:     3306,
+	mongoCfg := config.MongoDB{
+		Host:     fmt.Sprintf("%s:27017", mongoHost),
 		Username: "root",
-		Password: "mysql",
-		Database: "mysql",
+		Password: "example",
+		Database: "test",
 	}
 
-	db, err := sql.Open("mysql", mysqlCfg.ToDSN())
+	creds := options.Credential{
+		Username: mongoCfg.Username,
+		Password: mongoCfg.Password,
+	}
+
+	opts := options.Client().ApplyURI(mongoCfg.Host).SetAuth(creds).SetTLSConfig(&tls.Config{})
+	ctx := context.Background()
+
+	client, err := mongo.Connect(ctx, opts)
 	if err != nil {
-		logger.Fatal("Could not connect to MySQL", slog.Any("err", err))
+		logger.Fatal("Could not connect to MongoDB", slog.Any("err", err))
 	}
 
-	// Modify sql_mode so that we can use '0000-00-00' dates
-	_, err = db.Exec("SET SESSION sql_mode = ''")
-	if err != nil {
-		logger.Fatal("Unable to change sql_mode", slog.Any("err", err))
-	}
-
-	if err = testTypes(db, mysqlCfg.Database); err != nil {
+	db := client.Database(mongoCfg.Database)
+	if err = testTypes(ctx, db, mongoCfg.Database); err != nil {
 		logger.Fatal("Types test failed", slog.Any("err", err))
 	}
 
-	if err = testScan(db, mysqlCfg.Database); err != nil {
+	if err = testScan(db, mongoCfg.Database); err != nil {
 		logger.Fatal("Scan test failed", slog.Any("err", err))
 	}
 }
 
-func readTable(db *sql.DB, dbName, tableName string, batchSize int) ([]lib.RawMessage, error) {
-	tableCfg := config.MySQLTable{
-		Name:      tableName,
-		BatchSize: uint(batchSize),
-	}
-
-	dbzAdapter, err := adapter.NewMySQLAdapter(db, dbName, tableCfg)
-	if err != nil {
-		return nil, err
-	}
-
-	return utils.ReadTable(dbzAdapter)
+func readTable(db *mongo.Database, collection config.Collection, cfg config.MongoDB) ([]lib.RawMessage, error) {
+	return utils.ReadTable(mongoLib.NewSnapshotIterator(db, collection, cfg))
 }
 
 const testTypesCreateTableQuery = `
@@ -608,20 +601,19 @@ const expectedPayloadTemplate = `{
 	}
 }`
 
-// testTypes checks that MySQL data types are handled correctly.
-func testTypes(db *sql.DB, dbName string) error {
-	tempTableName, dropTableFunc := utils.CreateTemporaryTable(db, testTypesCreateTableQuery)
-	defer dropTableFunc()
+// testTypes checks that MongoDB data types are handled correctly.
+func testTypes(ctx context.Context, db *mongo.Database, dbName string) error {
+	tempTableName := fmt.Sprintf("artie_reader_%d", 10_000+rand.Int32N(10_000))
 
-	// Check reading an empty table
-	_, err := readTable(db, dbName, tempTableName, 100)
-	if err == nil {
-		return fmt.Errorf("expected an error")
-	} else if !errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
-		return err
-	}
+	collection := db.Collection(tempTableName)
+
+	defer func() {
+		_ = collection.Drop(ctx)
+	}()
 
 	slog.Info("Inserting data...")
+	collection.InsertOne(ctx, bson.D{})
+
 	if _, err := db.Exec(fmt.Sprintf(testTypesInsertQuery, tempTableName)); err != nil {
 		return fmt.Errorf("unable to insert data: %w", err)
 	}
