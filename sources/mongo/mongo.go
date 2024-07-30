@@ -69,7 +69,7 @@ func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
 				slog.Any("batchSize", collection.GetBatchSize()),
 			)
 
-			iterator := newSnapshotIterator(s.db, collection, s.cfg)
+			iterator := NewSnapshotIterator(s.db, collection, s.cfg)
 			count, err := writer.Write(ctx, iterator)
 			if err != nil {
 				return fmt.Errorf("failed to snapshot collection %q: %w", collection.Name, err)
