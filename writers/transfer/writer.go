@@ -77,7 +77,7 @@ func (w *Writer) messageToEvent(message lib.RawMessage) (event.Event, error) {
 		}
 
 		var dbz mongo.Debezium
-		evt, err = dbz.GetEventFromBytes(w.cfg.SharedTransferConfig.TypingSettings, bytes)
+		evt, err = dbz.GetEventFromBytes(bytes)
 		if err != nil {
 			return event.Event{}, err
 		}
