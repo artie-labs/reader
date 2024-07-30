@@ -193,6 +193,7 @@ func testTypes(ctx context.Context, db *mongo.Database, mongoCfg config.MongoDB)
 		"__artie_only_set_delete": false,
 		"timestamp":               ts,
 		"embeddedDocument":        map[string]any{"field1": "value1", "field2": "value2"},
+		"embeddedMap":             `{"foo":"bar","hello":"world","pi":3.14159}`,
 		"binary":                  map[string]any{"$binary": map[string]any{"base64": "YmluYXJ5IGRhdGE=", "subType": "00"}},
 		"maxKey":                  `{"$maxKey":1}`,
 		"minKey":                  map[string]any{"$minKey": 1},
@@ -220,7 +221,7 @@ func testTypes(ctx context.Context, db *mongo.Database, mongoCfg config.MongoDB)
 			continue
 		}
 
-		diffs = append(diffs, fmt.Sprintf("key: %s's expected value %v does not match actual value %v", expectedKey, expectedValue, actualValue))
+		diffs = append(diffs, fmt.Sprintf("key: %s's expected value (%v), type: %T does not match actual value (%v), type: %T", expectedKey, expectedValue, expectedValue, actualValue, actualValue))
 		delete(data, expectedKey)
 	}
 
