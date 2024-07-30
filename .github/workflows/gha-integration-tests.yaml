@@ -60,4 +60,4 @@ jobs:
         with:
           go-version: 1.22
       - name: Run integration test
-        run: MONGO_HOST=mongo make mysql-itest
+        run: MONGO_HOST=mongo make mongo-itest
