@@ -55,6 +55,10 @@ func ParseMessage(result bson.M, op string) (*Message, error) {
 	switch castedPk := bsonPk.(type) {
 	case primitive.ObjectID:
 		idString = fmt.Sprintf(`{"$oid":"%s"}`, castedPk.Hex())
+	case string:
+		idString = castedPk
+	case int, int32, int64:
+		idString = fmt.Sprintf("%d", castedPk)
 	default:
 		var jsonExtendedMap map[string]any
 		if err = json.Unmarshal(jsonExtendedBytes, &jsonExtendedMap); err != nil {

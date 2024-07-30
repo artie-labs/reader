@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -16,22 +17,39 @@ import (
 )
 
 func TestParseMessagePartitionKey(t *testing.T) {
-	objId, err := primitive.ObjectIDFromHex("507f1f77bcf86cd799439011")
-	assert.NoError(t, err)
-	msg, err := ParseMessage(bson.M{"_id": objId}, "r")
-	assert.NoError(t, err)
-	assert.Equal(t, `{"$oid":"507f1f77bcf86cd799439011"}`, msg.pkMap["id"])
+	{
+		// Primary key as object ID
+		objId, err := primitive.ObjectIDFromHex("507f1f77bcf86cd799439011")
+		assert.NoError(t, err)
+		msg, err := ParseMessage(bson.M{"_id": objId}, "r")
+		assert.NoError(t, err)
+		assert.Equal(t, `{"$oid":"507f1f77bcf86cd799439011"}`, msg.pkMap["id"])
 
-	rawMsg, err := msg.ToRawMessage(config.Collection{}, "database")
-	assert.NoError(t, err)
+		rawMsg, err := msg.ToRawMessage(config.Collection{}, "database")
+		assert.NoError(t, err)
 
-	rawMsgBytes, err := json.Marshal(rawMsg.PartitionKey())
-	assert.NoError(t, err)
+		rawMsgBytes, err := json.Marshal(rawMsg.PartitionKey())
+		assert.NoError(t, err)
 
-	var dbz transferMongo.Debezium
-	pkMap, err := dbz.GetPrimaryKey(rawMsgBytes, &kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt})
-	assert.NoError(t, err)
-	assert.Equal(t, "507f1f77bcf86cd799439011", pkMap["_id"])
+		var dbz transferMongo.Debezium
+		pkMap, err := dbz.GetPrimaryKey(rawMsgBytes, &kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt})
+		assert.NoError(t, err)
+		assert.Equal(t, "507f1f77bcf86cd799439011", pkMap["_id"])
+	}
+	{
+		// Primary key as string
+		msg, err := ParseMessage(bson.M{"_id": "hello world"}, "r")
+		assert.NoError(t, err)
+		assert.Equal(t, "hello world", msg.pkMap["id"])
+	}
+	{
+		// Primary key as ints
+		for _, val := range []any{1001, int32(1002), int64(1003)} {
+			msg, err := ParseMessage(bson.M{"_id": val}, "r")
+			assert.NoError(t, err)
+			assert.Equal(t, fmt.Sprint(val), msg.pkMap["id"])
+		}
+	}
 }
 
 func TestParseMessage(t *testing.T) {
