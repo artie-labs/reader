@@ -41,15 +41,15 @@ func (m *Message) ToRawMessage(collection config.Collection, database string) (l
 }
 
 func ParseMessage(result bson.M, op string) (*Message, error) {
+	bsonPk, isOk := result["_id"]
+	if !isOk {
+		return nil, fmt.Errorf("failed to get partition key, row: %v", result)
+	}
+
 	// When canonical is enabled, it will emphasize type preservation
 	jsonExtendedBytes, err := bson.MarshalExtJSON(result, true, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal document to JSON extended: %w", err)
-	}
-
-	bsonPk, isOk := result["_id"]
-	if !isOk {
-		return nil, fmt.Errorf("failed to get partition key, row: %v", result)
 	}
 
 	var idString string
