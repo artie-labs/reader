@@ -13,7 +13,7 @@ type Throttler struct {
 
 func NewThrottler(limit int64) (*Throttler, error) {
 	if limit <= 0 {
-		return nil, fmt.Errorf("Throttler limit should be greater than 0")
+		return nil, fmt.Errorf("throttler limit should be greater than 0")
 	}
 
 	return &Throttler{limit: limit}, nil

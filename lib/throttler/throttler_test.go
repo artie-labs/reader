@@ -9,7 +9,7 @@ import (
 func TestThrottler(t *testing.T) {
 	{
 		_, err := NewThrottler(0)
-		assert.ErrorContains(t, err, "Throttler limit should be greater than 0")
+		assert.ErrorContains(t, err, "throttler limit should be greater than 0")
 	}
 	{
 		throttler, err := NewThrottler(1)
