@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"fmt"
+	"github.com/artie-labs/reader/lib/iterator"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
@@ -21,7 +22,7 @@ type snapshotIterator struct {
 	done   bool
 }
 
-func newSnapshotIterator(db *mongo.Database, collection config.Collection, cfg config.MongoDB) *snapshotIterator {
+func NewSnapshotIterator(db *mongo.Database, collection config.Collection, cfg config.MongoDB) iterator.Iterator[[]lib.RawMessage] {
 	return &snapshotIterator{
 		db:         db,
 		cfg:        cfg,

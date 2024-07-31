@@ -44,3 +44,20 @@ jobs:
           go-version: 1.22
       - name: Run integration test
         run: MYSQL_HOST=mysql make mysql-itest
+  MongoDB:
+    runs-on: ubuntu-latest
+    container: golang:1.22
+    services:
+      mongo:
+        image: mongo:7.0
+        env:
+          MONGO_INITDB_ROOT_USERNAME: root
+          MONGO_INITDB_ROOT_PASSWORD: example
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.22
+      - name: Run integration test
+        run: MONGO_HOST=mongodb://mongo make mongo-itest

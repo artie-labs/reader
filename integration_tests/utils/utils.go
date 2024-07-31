@@ -3,6 +3,7 @@ package utils
 import (
 	"database/sql"
 	"fmt"
+	"github.com/artie-labs/transfer/lib/cdc/mongo"
 	"log/slog"
 	"math/rand/v2"
 	"strings"
@@ -26,7 +27,7 @@ func CreateTemporaryTable(db *sql.DB, query string) (string, func()) {
 	}
 }
 
-func ReadTable(db *sql.DB, dbzAdapter transformer.Adapter) ([]lib.RawMessage, error) {
+func ReadTable(dbzAdapter transformer.Adapter) ([]lib.RawMessage, error) {
 	dbzTransformer, err := transformer.NewDebeziumTransformer(dbzAdapter)
 	if err != nil {
 		return nil, err
@@ -41,6 +42,14 @@ func ReadTable(db *sql.DB, dbzAdapter transformer.Adapter) ([]lib.RawMessage, er
 		rows = append(rows, batch...)
 	}
 	return rows, nil
+}
+
+func GetMongoEvent(message lib.RawMessage) mongo.SchemaEventPayload {
+	event, ok := message.Event().(*mongo.SchemaEventPayload)
+	if !ok {
+		panic("event is not of type *mongo.SchemaEventPayload")
+	}
+	return *event
 }
 
 func GetEvent(message lib.RawMessage) util.SchemaEventPayload {

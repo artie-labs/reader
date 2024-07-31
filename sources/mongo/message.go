@@ -41,7 +41,8 @@ func (m *Message) ToRawMessage(collection config.Collection, database string) (l
 }
 
 func ParseMessage(result bson.M, op string) (*Message, error) {
-	jsonExtendedBytes, err := bson.MarshalExtJSON(result, false, false)
+	// When canonical is enabled, it will emphasize type preservation
+	jsonExtendedBytes, err := bson.MarshalExtJSON(result, true, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal document to JSON extended: %w", err)
 	}
