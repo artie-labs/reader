@@ -19,7 +19,7 @@ resource "aws_iam_role" "dynamodb_streams_role" {
     Version   = "2012-10-17",
     Statement = [
       {
-        Action    = "sts:AssumeRole",
+        Action = "sts:AssumeRole",
         Principal = {
           Service = "ec2.amazonaws.com"
         },
@@ -45,8 +45,11 @@ resource "aws_iam_policy" "dynamodb_streams_access" {
           "dynamodb:GetRecords",
           "dynamodb:ListStreams",
 
-          // Stuff only required for export (snapshot)
-          "dynamodb:DescribeTable"
+          // Required for export
+          "dynamodb:DescribeTable",
+          "dynamodb:ListExports",
+          "dynamodb:DescribeExport",
+          "dynamodb:ExportTableToPointInTime"
         ],
         // Don't want to use "*"? You can specify like this:
         // Resource = [ TABLE_ARN, TABLE_ARN + "/stream/*" ]
@@ -63,9 +66,12 @@ resource "aws_iam_policy" "dynamodb_streams_access" {
       {
         "Effect" : "Allow",
         "Action" : [
-          "s3:GetObject"
+          "s3:GetObject",
+          // Required for export
+          "s3:PutObject",
+          "s3:GetBucketLocation"
         ],
-        "Resource" : "arn:aws:s3:::artie-transfer-test/AWSDynamoDB/*"
+        "Resource" : "arn:aws:s3:::artie-transfer-test/*"
       }
     ]
   })
