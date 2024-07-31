@@ -203,18 +203,17 @@ func testTypes(ctx context.Context, db *mongo.Database, mongoCfg config.MongoDB)
 	var diffs []string
 	for expectedKey, expectedValue := range expectedPayload {
 		actualValue, isOk := data[expectedKey]
+		delete(data, expectedKey)
 		if !isOk {
 			diffs = append(diffs, fmt.Sprintf("expected key %s not found", expectedKey))
 			continue
 		}
 
 		if reflect.DeepEqual(expectedValue, actualValue) {
-			delete(data, expectedKey)
 			continue
 		}
 
 		diffs = append(diffs, fmt.Sprintf("key: %s's expected value (%v), type: %T does not match actual value (%v), type: %T", expectedKey, expectedValue, expectedValue, actualValue, actualValue))
-		delete(data, expectedKey)
 	}
 
 	for actualKey, actualValue := range data {
