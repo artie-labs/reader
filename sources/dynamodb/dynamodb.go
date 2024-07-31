@@ -42,6 +42,11 @@ func Load(cfg config.DynamoDB) (sources.Source, bool, error) {
 			s3Client:       s3lib.NewClient(sess),
 		}, false, nil
 	} else {
+		_throttler, err := throttler.NewThrottler(concurrencyLimit)
+		if err != nil {
+			return nil, false, fmt.Errorf("failed to create throttler: %w", err)
+		}
+
 		return &StreamStore{
 			tableName: cfg.TableName,
 			streamArn: cfg.StreamArn,
@@ -49,7 +54,7 @@ func Load(cfg config.DynamoDB) (sources.Source, bool, error) {
 			storage:   offsets.NewStorage(cfg.OffsetFile, nil, nil),
 			streams:   dynamodbstreams.New(sess),
 			shardChan: make(chan *dynamodbstreams.Shard),
-			throttler: &throttler.Throttler{Limit: concurrencyLimit},
+			throttler: _throttler,
 		}, true, nil
 	}
 }

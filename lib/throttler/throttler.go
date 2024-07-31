@@ -1,11 +1,22 @@
 package throttler
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 type Throttler struct {
-	Limit   int64
+	limit   int64
 	running int64
 	mu      sync.Mutex
+}
+
+func NewThrottler(limit int64) (*Throttler, error) {
+	if limit <= 0 {
+		return nil, fmt.Errorf("Throttler limit should be greater than 0")
+	}
+
+	return &Throttler{limit: limit}, nil
 }
 
 func (t *Throttler) Start() {
@@ -21,5 +32,5 @@ func (t *Throttler) Done() {
 }
 
 func (t *Throttler) Allowed() bool {
-	return t.running < t.Limit
+	return t.running < t.limit
 }
