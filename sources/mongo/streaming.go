@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/artie-labs/reader/lib/iterator"
+	"log/slog"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,6 +13,7 @@ import (
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
+	"github.com/artie-labs/reader/lib/iterator"
 	"github.com/artie-labs/reader/lib/persistedmap"
 )
 
@@ -88,7 +89,9 @@ func (s *streaming) HasNext() bool {
 }
 
 func (s *streaming) CommitOffset() {
-	s.offsets.Set(offsetKey, base64.StdEncoding.EncodeToString(s.changeStream.ResumeToken()))
+	offset := base64.StdEncoding.EncodeToString(s.changeStream.ResumeToken())
+	slog.Info("Committing offset", slog.String("offset", offset))
+	s.offsets.Set(offsetKey, offset)
 }
 
 func (s *streaming) Next() ([]lib.RawMessage, error) {
