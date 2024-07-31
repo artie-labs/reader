@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/artie-labs/reader/config"
@@ -13,6 +14,28 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
 )
 
+type Throttler struct {
+	limit   int64
+	running int64
+	mu      sync.Mutex
+}
+
+func (t *Throttler) Start() {
+	t.mu.Lock()
+	t.running++
+	t.mu.Unlock()
+}
+
+func (t *Throttler) Done() {
+	t.mu.Lock()
+	t.running--
+	t.mu.Unlock()
+}
+
+func (t *Throttler) Allowed() bool {
+	return t.running < t.limit
+}
+
 type StreamStore struct {
 	tableName string
 	streamArn string
@@ -21,6 +44,7 @@ type StreamStore struct {
 	streams   *dynamodbstreams.DynamoDBStreams
 	storage   *offsets.OffsetStorage
 	shardChan chan *dynamodbstreams.Shard
+	throttler *Throttler
 }
 
 func (s *StreamStore) Close() error {

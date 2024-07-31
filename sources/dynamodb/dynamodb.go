@@ -20,6 +20,9 @@ import (
 const jitterSleepBaseMs = 100
 const shardScannerInterval = 5 * time.Minute
 
+// concurrencyLimit is the maximum number of shards we should be processing at once
+const concurrencyLimit = 20
+
 func Load(cfg config.DynamoDB) (sources.Source, bool, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      ptr.ToString(cfg.AwsRegion),
@@ -45,6 +48,7 @@ func Load(cfg config.DynamoDB) (sources.Source, bool, error) {
 			storage:   offsets.NewStorage(cfg.OffsetFile, nil, nil),
 			streams:   dynamodbstreams.New(sess),
 			shardChan: make(chan *dynamodbstreams.Shard),
+			throttler: &Throttler{limit: concurrencyLimit},
 		}, true, nil
 	}
 }
