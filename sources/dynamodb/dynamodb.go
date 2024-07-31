@@ -13,6 +13,7 @@ import (
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/s3lib"
+	"github.com/artie-labs/reader/lib/throttler"
 	"github.com/artie-labs/reader/sources"
 	"github.com/artie-labs/reader/sources/dynamodb/offsets"
 )
@@ -48,7 +49,7 @@ func Load(cfg config.DynamoDB) (sources.Source, bool, error) {
 			storage:   offsets.NewStorage(cfg.OffsetFile, nil, nil),
 			streams:   dynamodbstreams.New(sess),
 			shardChan: make(chan *dynamodbstreams.Shard),
-			throttler: &Throttler{limit: concurrencyLimit},
+			throttler: &throttler.Throttler{Limit: concurrencyLimit},
 		}, true, nil
 	}
 }
