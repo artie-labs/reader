@@ -78,9 +78,10 @@ func (s *SnapshotStore) streamAndPublish(ctx context.Context, writer writers.Wri
 		}
 
 		slog.Info("Processing file...", logFields...)
+		// We're using an unbuffered channel, this will block sender if the receiver is not ready.
 		ch := make(chan dynamodb.ItemResponse)
 		go func() {
-			if err := s.s3Client.StreamJsonGzipFile(file, ch); err != nil {
+			if err = s.s3Client.StreamJsonGzipFile(file, ch); err != nil {
 				logger.Panic("Failed to read file", slog.Any("err", err))
 			}
 		}()
@@ -93,7 +94,8 @@ func (s *SnapshotStore) streamAndPublish(ctx context.Context, writer writers.Wri
 			}
 
 			messages = append(messages, dynamoMsg.RawMessage())
-			// If there are more than 500k messages, we don't need to wait until the whole file is read. Let's publish now
+			// If there are more than 500k messages, we don't need to wait until the whole file is read.
+			// We can write what we have and continue reading the file. This is done to prevent OOM errors.
 			if len(messages) > 500_000 {
 				if _, err = writer.Write(ctx, iterator.Once(messages)); err != nil {
 					return fmt.Errorf("failed to write messages: %w", err)
