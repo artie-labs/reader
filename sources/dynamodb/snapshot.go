@@ -91,12 +91,22 @@ func (s *SnapshotStore) streamAndPublish(ctx context.Context, writer writers.Wri
 			if err != nil {
 				return fmt.Errorf("failed to cast message from DynamoDB, msg: %v, err: %w", msg, err)
 			}
+
 			messages = append(messages, dynamoMsg.RawMessage())
+			// If there are more than 500k messages, we don't need to wait until the whole file is read. Let's publish now
+			if len(messages) > 500_000 {
+				if _, err = writer.Write(ctx, iterator.Once(messages)); err != nil {
+					return fmt.Errorf("failed to write messages: %w", err)
+				}
+
+				// Clear messages
+				messages = []lib.RawMessage{}
+			}
 		}
 
 		// TODO: Create an actual iterator over the files that is passed to the writer.
 		if _, err = writer.Write(ctx, iterator.Once(messages)); err != nil {
-			return fmt.Errorf("failed to publish messages: %w", err)
+			return fmt.Errorf("failed to write messages: %w", err)
 		}
 
 		slog.Info("Successfully processed file...", logFields...)
