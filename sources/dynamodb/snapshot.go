@@ -71,6 +71,7 @@ func (s *SnapshotStore) streamAndPublish(ctx context.Context, writer writers.Wri
 		return fmt.Errorf("failed to retrieve primary keys: %w", err)
 	}
 
+	writer.SetRunOnComplete(false)
 	for _, file := range s.cfg.SnapshotSettings.SpecifiedFiles {
 		logFields := []any{
 			slog.String("fileName", *file.Key),
@@ -101,5 +102,5 @@ func (s *SnapshotStore) streamAndPublish(ctx context.Context, writer writers.Wri
 		slog.Info("Successfully processed file...", logFields...)
 	}
 
-	return nil
+	return writer.OnComplete()
 }
