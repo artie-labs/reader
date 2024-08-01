@@ -69,6 +69,8 @@ func (s *S3Client) ListFiles(fp string) ([]S3File, error) {
 // It's not a typical JSON file in that it is compressed and it's new line delimited via separated via an array
 // Which means we can stream this file row by row to not OOM.
 func (s *S3Client) StreamJsonGzipFile(file S3File, ch chan<- dynamodb.ItemResponse) error {
+	const maxBufferSize = 1024 * 1024 // 1 MB or adjust as needed
+
 	defer close(ch)
 	result, err := s.client.GetObject(&s3.GetObjectInput{
 		Bucket: file.Bucket,
@@ -88,6 +90,9 @@ func (s *S3Client) StreamJsonGzipFile(file S3File, ch chan<- dynamodb.ItemRespon
 	defer gz.Close()
 
 	scanner := bufio.NewScanner(gz)
+	buf := make([]byte, maxBufferSize)
+	scanner.Buffer(buf, maxBufferSize)
+
 	for scanner.Scan() {
 		line := scanner.Bytes()
 		var content dynamodb.ItemResponse
