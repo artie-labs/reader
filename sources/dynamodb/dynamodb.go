@@ -22,7 +22,7 @@ const (
 	jitterSleepBaseMs    = 100
 	shardScannerInterval = 5 * time.Minute
 	// concurrencyLimit is the maximum number of shards we should be processing at once
-	concurrencyLimit = 30
+	concurrencyLimit = 100
 )
 
 func Load(cfg config.DynamoDB) (sources.Source, bool, error) {
