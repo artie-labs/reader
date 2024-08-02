@@ -55,5 +55,9 @@ func (s *SnapshotSettings) Validate() error {
 		return fmt.Errorf("folder is empty")
 	}
 
+	if s.S3Bucket == "" {
+		return fmt.Errorf("s3Bucket is empty")
+	}
+
 	return nil
 }
