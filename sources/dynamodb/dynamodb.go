@@ -18,11 +18,12 @@ import (
 	"github.com/artie-labs/reader/sources/dynamodb/offsets"
 )
 
-const jitterSleepBaseMs = 100
-const shardScannerInterval = 5 * time.Minute
-
-// concurrencyLimit is the maximum number of shards we should be processing at once
-const concurrencyLimit = 20
+const (
+	jitterSleepBaseMs    = 100
+	shardScannerInterval = 5 * time.Minute
+	// concurrencyLimit is the maximum number of shards we should be processing at once
+	concurrencyLimit = 30
+)
 
 func Load(cfg config.DynamoDB) (sources.Source, bool, error) {
 	sess, err := session.NewSession(&aws.Config{
