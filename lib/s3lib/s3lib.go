@@ -13,11 +13,15 @@ import (
 )
 
 type S3Client struct {
-	client *s3.S3
+	bucketName *string
+	client     *s3.S3
 }
 
-func NewClient(session *session.Session) *S3Client {
-	return &S3Client{client: s3.New(session)}
+func NewClient(bucketName string, session *session.Session) *S3Client {
+	return &S3Client{
+		bucketName: &bucketName,
+		client:     s3.New(session),
+	}
 }
 
 func bucketAndPrefixFromFilePath(fp string) (*string, *string, error) {
@@ -35,8 +39,7 @@ func bucketAndPrefixFromFilePath(fp string) (*string, *string, error) {
 }
 
 type S3File struct {
-	Bucket *string `yaml:"bucket"`
-	Key    *string `yaml:"key"`
+	Key *string `yaml:"key"`
 }
 
 func (s *S3Client) ListFiles(fp string) ([]S3File, error) {
@@ -49,10 +52,7 @@ func (s *S3Client) ListFiles(fp string) ([]S3File, error) {
 	err = s.client.ListObjectsPages(&s3.ListObjectsInput{Bucket: bucket, Prefix: prefix},
 		func(page *s3.ListObjectsOutput, lastPage bool) bool {
 			for _, object := range page.Contents {
-				files = append(files, S3File{
-					Key:    object.Key,
-					Bucket: bucket,
-				})
+				files = append(files, S3File{Key: object.Key})
 			}
 
 			return true
@@ -73,7 +73,7 @@ func (s *S3Client) StreamJsonGzipFile(file S3File, ch chan<- dynamodb.ItemRespon
 
 	defer close(ch)
 	result, err := s.client.GetObject(&s3.GetObjectInput{
-		Bucket: file.Bucket,
+		Bucket: s.bucketName,
 		Key:    file.Key,
 	})
 	if err != nil {
