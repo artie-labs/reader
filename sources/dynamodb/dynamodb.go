@@ -39,7 +39,7 @@ func Load(cfg config.DynamoDB) (sources.Source, bool, error) {
 			streamArn:      cfg.StreamArn,
 			cfg:            &cfg,
 			dynamoDBClient: dynamodb.New(sess),
-			s3Client:       s3lib.NewClient(sess),
+			s3Client:       s3lib.NewClient(cfg.SnapshotSettings.S3Bucket, sess),
 		}, false, nil
 	} else {
 		_throttler, err := throttler.NewThrottler(concurrencyLimit)

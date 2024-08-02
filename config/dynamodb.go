@@ -39,7 +39,8 @@ func (d *DynamoDB) Validate() error {
 }
 
 type SnapshotSettings struct {
-	Folder string `yaml:"folder"`
+	S3Bucket string `yaml:"s3Bucket"`
+	Folder   string `yaml:"folder"`
 	// If the files are not specified, that's okay.
 	// We will scan the folder and then load into `specifiedFiles`
 	SpecifiedFiles []s3lib.S3File `yaml:"specifiedFiles"`
