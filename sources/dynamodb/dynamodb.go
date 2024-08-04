@@ -28,7 +28,7 @@ const (
 	concurrencyLimit = 30
 )
 
-func Load(cfg config.DynamoDB) (sources.Source, bool, error) {
+func Load(ctx context.Context, cfg config.DynamoDB) (sources.Source, bool, error) {
 	// TODO: Use v2
 	sess, err := session.NewSession(&aws.Config{
 		Region:      ptr.ToString(cfg.AwsRegion),
@@ -39,7 +39,8 @@ func Load(cfg config.DynamoDB) (sources.Source, bool, error) {
 	}
 
 	if cfg.Snapshot {
-		_awsCfg, err := awsCfg.LoadDefaultConfig(context.Background(),
+		_awsCfg, err := awsCfg.LoadDefaultConfig(
+			ctx,
 			awsCfg.WithRegion(cfg.AwsRegion),
 			awsCfg.WithCredentialsProvider(credentialsV2.NewStaticCredentialsProvider(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, "")),
 		)
