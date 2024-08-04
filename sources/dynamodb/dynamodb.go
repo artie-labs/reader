@@ -1,10 +1,13 @@
 package dynamodb
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/ptr"
+	awsCfg "github.com/aws/aws-sdk-go-v2/config"
+	credentialsV2 "github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -35,12 +38,20 @@ func Load(cfg config.DynamoDB) (sources.Source, bool, error) {
 	}
 
 	if cfg.Snapshot {
+		_awsCfg, err := awsCfg.LoadDefaultConfig(context.Background(),
+			awsCfg.WithRegion(cfg.AwsRegion),
+			awsCfg.WithCredentialsProvider(credentialsV2.NewStaticCredentialsProvider(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, "")),
+		)
+		if err != nil {
+			return nil, false, fmt.Errorf("failed to create session v2: %w", err)
+		}
+
 		return &SnapshotStore{
 			tableName:      cfg.TableName,
 			streamArn:      cfg.StreamArn,
 			cfg:            &cfg,
 			dynamoDBClient: dynamodb.New(sess),
-			s3Client:       s3lib.NewClient(cfg.SnapshotSettings.S3Bucket, sess),
+			s3Client:       s3lib.NewClient(cfg.SnapshotSettings.S3Bucket, _awsCfg),
 		}, false, nil
 	} else {
 		_throttler, err := throttler.NewThrottler(concurrencyLimit)

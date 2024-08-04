@@ -3,24 +3,25 @@ package s3lib
 import (
 	"bufio"
 	"compress/gzip"
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/s3"
 )
 
 type S3Client struct {
 	bucketName *string
-	client     *s3.S3
+	client     *s3.Client
 }
 
-func NewClient(bucketName string, session *session.Session) *S3Client {
+func NewClient(bucketName string, awsCfg aws.Config) *S3Client {
 	return &S3Client{
 		bucketName: &bucketName,
-		client:     s3.New(session),
+		client:     s3.NewFromConfig(awsCfg),
 	}
 }
 
@@ -42,37 +43,41 @@ type S3File struct {
 	Key *string `yaml:"key"`
 }
 
-func (s *S3Client) ListFiles(fp string) ([]S3File, error) {
+func (s *S3Client) ListFiles(ctx context.Context, fp string) ([]S3File, error) {
 	bucket, prefix, err := bucketAndPrefixFromFilePath(fp)
 	if err != nil {
 		return nil, err
 	}
 
 	var files []S3File
-	err = s.client.ListObjectsPages(&s3.ListObjectsInput{Bucket: bucket, Prefix: prefix},
-		func(page *s3.ListObjectsOutput, lastPage bool) bool {
-			for _, object := range page.Contents {
-				files = append(files, S3File{Key: object.Key})
-			}
+	paginator := s3.NewListObjectsV2Paginator(s.client, &s3.ListObjectsV2Input{
+		Bucket: bucket,
+		Prefix: prefix,
+	})
 
-			return true
-		})
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(ctx)
+		if err != nil {
+			return nil, err
+		}
 
-	if err != nil {
-		return nil, err
+		for _, object := range page.Contents {
+			files = append(files, S3File{
+				Key: object.Key,
+			})
+		}
 	}
-
 	return files, nil
 }
 
 // StreamJsonGzipFile - will take a S3 File that is in `json.gz` format from DynamoDB's export to S3
 // It's not a typical JSON file in that it is compressed and it's new line delimited via separated via an array
 // Which means we can stream this file row by row to not OOM.
-func (s *S3Client) StreamJsonGzipFile(file S3File, ch chan<- dynamodb.ItemResponse) error {
+func (s *S3Client) StreamJsonGzipFile(ctx context.Context, file S3File, ch chan<- dynamodb.ItemResponse) error {
 	const maxBufferSize = 1024 * 1024 // 1 MB or adjust as needed
 
 	defer close(ch)
-	result, err := s.client.GetObject(&s3.GetObjectInput{
+	result, err := s.client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: s.bucketName,
 		Key:    file.Key,
 	})
