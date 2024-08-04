@@ -29,6 +29,7 @@ const (
 )
 
 func Load(cfg config.DynamoDB) (sources.Source, bool, error) {
+	// TODO: Use v2
 	sess, err := session.NewSession(&aws.Config{
 		Region:      ptr.ToString(cfg.AwsRegion),
 		Credentials: credentials.NewStaticCredentials(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, ""),
