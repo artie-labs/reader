@@ -24,13 +24,13 @@ Artie Reader reads from databases to perform historical snapshots and also reads
 
 ## Supports:
 
-|            | Snapshot | Streaming       |
-|------------|----------|-----------------|
-| DynamoDB   | ✅        | ✅               |
-| MongoDB    | ✅        | 🚧 Experimental |
-| MySQL      | ✅        | ❌               |
-| PostgreSQL | ✅        | ❌               |
-| SQL Server | ✅        | ❌               |
+|            | Snapshot | Streaming |
+|------------|----------|-----------|
+| DynamoDB   | ✅        | ✅         |
+| MongoDB    | ✅        | ✅         |
+| MySQL      | ✅        | ❌         |
+| PostgreSQL | ✅        | ❌         |
+| SQL Server | ✅        | ❌         |
 
 
 ## Running
