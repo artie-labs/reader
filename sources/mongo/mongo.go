@@ -28,7 +28,7 @@ func Load(cfg config.MongoDB) (*Source, bool, error) {
 
 	opts := options.Client().ApplyURI(cfg.Host).SetAuth(creds)
 	if !cfg.DisableTLS {
-		opts.SetTLSConfig(&tls.Config{})
+		opts = opts.SetTLSConfig(&tls.Config{})
 	}
 
 	ctx := context.Background()
