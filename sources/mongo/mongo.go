@@ -26,7 +26,11 @@ func Load(cfg config.MongoDB) (*Source, bool, error) {
 		Password: cfg.Password,
 	}
 
-	opts := options.Client().ApplyURI(cfg.Host).SetAuth(creds).SetTLSConfig(&tls.Config{})
+	opts := options.Client().ApplyURI(cfg.Host).SetAuth(creds)
+	if !cfg.DisableTLS {
+		opts.SetTLSConfig(&tls.Config{})
+	}
+
 	ctx := context.Background()
 	client, err := mongo.Connect(ctx, opts)
 	if err != nil {
