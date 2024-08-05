@@ -33,6 +33,7 @@ type MongoDB struct {
 	Database          string            `yaml:"database"`
 	Collections       []Collection      `yaml:"collections"`
 	StreamingSettings StreamingSettings `yaml:"streamingSettings,omitempty"`
+	DisableTLS        bool              `yaml:"disableTLS"`
 }
 
 type Collection struct {
