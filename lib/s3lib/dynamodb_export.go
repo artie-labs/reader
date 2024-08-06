@@ -1,6 +1,7 @@
 package s3lib
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
@@ -20,6 +21,7 @@ type exportedPayload struct {
 }
 
 func parseDynamoDBJSON(data []byte) (map[string]types.AttributeValue, error) {
+	fmt.Println(string(data))
 	var payload exportedPayload
 	if err := json.Unmarshal(data, &payload); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal JSON, %w", err)
@@ -64,7 +66,12 @@ func convertToAttributeValue(value map[string]any) (types.AttributeValue, error)
 				return nil, err
 			}
 
-			return &types.AttributeValueMemberB{Value: []byte(castedVal)}, nil
+			decodedBytes, err := base64.StdEncoding.DecodeString(castedVal)
+			if err != nil {
+				return nil, fmt.Errorf("failed to base64 decode: %w", err)
+			}
+
+			return &types.AttributeValueMemberB{Value: decodedBytes}, nil
 		case "SS":
 			listVal, isOk := val.([]any)
 			if !isOk {
@@ -110,7 +117,12 @@ func convertToAttributeValue(value map[string]any) (types.AttributeValue, error)
 					return nil, fmt.Errorf("failed to convert list value: %w", err)
 				}
 
-				bs[i] = []byte(castedValue)
+				decodedBytes, err := base64.StdEncoding.DecodeString(castedValue)
+				if err != nil {
+					return nil, fmt.Errorf("failed to base64 decode: %w", err)
+				}
+
+				bs[i] = decodedBytes
 			}
 
 			return &types.AttributeValueMemberBS{Value: bs}, nil

@@ -74,6 +74,15 @@ const validDynamoDBJSON = `{
                 "1"
             ]
         },
+        "b": {
+            "B": "aGVsbG8gd29ybGQ="
+        },
+        "bs": {
+            "BS": [
+                "aGVsbG8=",
+                "d29ybGQ="
+            ]
+        },
         "sample_map": {
             "M": {
                 "key1": {
@@ -92,7 +101,7 @@ func TestParseDynamoDBJSON(t *testing.T) {
 		// Valid JSON
 		value, err := parseDynamoDBJSON([]byte(validDynamoDBJSON))
 		assert.NoError(t, err)
-		assert.Equal(t, 9, len(value))
+		assert.Equal(t, 11, len(value))
 
 		{
 			// String
@@ -127,6 +136,20 @@ func TestParseDynamoDBJSON(t *testing.T) {
 			assert.True(t, isOk)
 			assert.Equal(t, 5, len(val.Value))
 			assert.Equal(t, []string{"value2", "value44", "value55", "value66", "value1"}, val.Value)
+		}
+		{
+			// Bytes
+			val, isOk := value["b"].(*types.AttributeValueMemberB)
+			assert.True(t, isOk)
+			assert.Equal(t, []byte("hello world"), val.Value)
+		}
+		{
+			// Bytes set
+			val, isOk := value["bs"].(*types.AttributeValueMemberBS)
+			assert.True(t, isOk)
+			assert.Equal(t, 2, len(val.Value))
+			assert.Equal(t, []byte("hello"), val.Value[0])
+			assert.Equal(t, []byte("world"), val.Value[1])
 		}
 		{
 			// Number set
