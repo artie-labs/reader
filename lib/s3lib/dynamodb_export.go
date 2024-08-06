@@ -21,7 +21,6 @@ type exportedPayload struct {
 }
 
 func parseDynamoDBJSON(data []byte) (map[string]types.AttributeValue, error) {
-	fmt.Println(string(data))
 	var payload exportedPayload
 	if err := json.Unmarshal(data, &payload); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal JSON, %w", err)
