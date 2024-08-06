@@ -1,8 +1,8 @@
 package dynamodb
 
 import (
-	"context"
 	"cmp"
+	"context"
 	"fmt"
 	"time"
 
