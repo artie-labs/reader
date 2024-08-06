@@ -38,7 +38,10 @@ func parseDynamoDBJSON(data []byte) (map[string]types.AttributeValue, error) {
 	return dynamoMap, nil
 }
 
-func convertToAttributeValue(value map[string]interface{}) (types.AttributeValue, error) {
+// convertToAttributeValue converts a map[string]any in DynamoDB encoding into types.AttributeValue.
+// This is necessary because the serialization from DynamoDB JSON to map[string]types.AttributeValue was removed from v1 -> v2 of the SDK.
+// See discussion: https://github.com/aws/aws-sdk-go-v2/discussions/1652
+func convertToAttributeValue(value map[string]any) (types.AttributeValue, error) {
 	for key, val := range value {
 		switch key {
 		case "S":
