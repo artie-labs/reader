@@ -43,7 +43,7 @@ func main() {
 
 	var rowsWritten int
 	// Splitting the items into batches
-	for i := offset + 0; i < offset+numBatches; i += maxBatchSize {
+	for i := offset; i < offset+numBatches; i++ {
 		var writeRequests []types.WriteRequest
 		accountID := fmt.Sprintf("account-%d", i)
 		// For each batch, prepare the items
@@ -99,7 +99,6 @@ func main() {
 			writeRequests = append(writeRequests, writeRequest)
 		}
 
-		rowsWritten += len(writeRequests)
 		input := &dynamodb.BatchWriteItemInput{
 			RequestItems: map[string][]types.WriteRequest{
 				table: writeRequests,
