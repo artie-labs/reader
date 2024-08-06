@@ -26,6 +26,7 @@ const (
 )
 
 func Load(ctx context.Context, cfg config.DynamoDB) (sources.Source, bool, error) {
+	// TODO: Parse `arn` to get the region.
 	_awsCfg, err := awsCfg.LoadDefaultConfig(ctx,
 		awsCfg.WithRegion(cfg.AwsRegion),
 		awsCfg.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, "")),
