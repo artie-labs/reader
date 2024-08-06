@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/throttler"
 	"github.com/artie-labs/reader/sources/dynamodb/offsets"
 	"github.com/artie-labs/reader/writers"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -22,6 +23,7 @@ type StreamStore struct {
 	streams   *dynamodbstreams.Client
 	storage   *offsets.OffsetStorage
 	shardChan chan types.Shard
+	throttler *throttler.Throttler
 }
 
 func (s *StreamStore) Close() error {

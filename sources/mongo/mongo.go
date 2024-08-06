@@ -20,28 +20,32 @@ type Source struct {
 	db  *mongo.Database
 }
 
-func Load(cfg config.MongoDB) (*Source, error) {
+func Load(cfg config.MongoDB) (*Source, bool, error) {
 	creds := options.Credential{
 		Username: cfg.Username,
 		Password: cfg.Password,
 	}
 
-	opts := options.Client().ApplyURI(cfg.Host).SetAuth(creds).SetTLSConfig(&tls.Config{})
+	opts := options.Client().ApplyURI(cfg.Host).SetAuth(creds)
+	if !cfg.DisableTLS {
+		opts = opts.SetTLSConfig(&tls.Config{})
+	}
+
 	ctx := context.Background()
 	client, err := mongo.Connect(ctx, opts)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
+		return nil, false, fmt.Errorf("failed to connect to MongoDB: %w", err)
 	}
 
 	if err = client.Ping(ctx, readpref.Primary()); err != nil {
-		return nil, fmt.Errorf("failed to ping MongoDB: %w", err)
+		return nil, false, fmt.Errorf("failed to ping MongoDB: %w", err)
 	}
 
 	db := client.Database(cfg.Database)
 	return &Source{
 		cfg: cfg,
 		db:  db,
-	}, nil
+	}, cfg.StreamingSettings.Enabled, nil
 }
 
 func (s *Source) Close() error {
@@ -50,21 +54,33 @@ func (s *Source) Close() error {
 }
 
 func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
-	for _, collection := range s.cfg.Collections {
-		snapshotStartTime := time.Now()
-
-		slog.Info("Scanning collection",
-			slog.String("collectionName", collection.Name),
-			slog.String("topicSuffix", collection.TopicSuffix(s.db.Name())),
-			slog.Any("batchSize", collection.GetBatchSize()),
-		)
-
-		count, err := writer.Write(ctx, newSnapshotIterator(s.db, collection, s.cfg))
+	if s.cfg.StreamingSettings.Enabled {
+		iterator, err := newStreamingIterator(ctx, s.db, s.cfg, s.cfg.StreamingSettings.OffsetFile)
 		if err != nil {
-			return fmt.Errorf("failed to snapshot collection %q: %w", collection.Name, err)
+			return err
 		}
 
-		slog.Info("Finished snapshotting", slog.Int("scannedTotal", count), slog.Duration("totalDuration", time.Since(snapshotStartTime)))
+		if _, err = writer.Write(ctx, iterator); err != nil {
+			return fmt.Errorf("failed to stream: %w", err)
+		}
+	} else {
+		for _, collection := range s.cfg.Collections {
+			snapshotStartTime := time.Now()
+
+			slog.Info("Scanning collection",
+				slog.String("collectionName", collection.Name),
+				slog.String("topicSuffix", collection.TopicSuffix(s.db.Name())),
+				slog.Any("batchSize", collection.GetBatchSize()),
+			)
+
+			iterator := NewSnapshotIterator(s.db, collection, s.cfg)
+			count, err := writer.Write(ctx, iterator)
+			if err != nil {
+				return fmt.Errorf("failed to snapshot collection %q: %w", collection.Name, err)
+			}
+
+			slog.Info("Finished snapshotting", slog.Int("scannedTotal", count), slog.Duration("totalDuration", time.Since(snapshotStartTime)))
+		}
 	}
 
 	return nil

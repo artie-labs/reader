@@ -14,11 +14,15 @@ import (
 )
 
 type S3Client struct {
-	client *s3.Client
+	bucketName *string
+	client     *s3.Client
 }
 
-func NewClient(awsCfg aws.Config) *S3Client {
-	return &S3Client{client: s3.NewFromConfig(awsCfg)}
+func NewClient(bucketName string, awsCfg aws.Config) *S3Client {
+	return &S3Client{
+		bucketName: &bucketName,
+		client:     s3.NewFromConfig(awsCfg),
+	}
 }
 
 func bucketAndPrefixFromFilePath(fp string) (*string, *string, error) {
@@ -36,8 +40,7 @@ func bucketAndPrefixFromFilePath(fp string) (*string, *string, error) {
 }
 
 type S3File struct {
-	Bucket *string `yaml:"bucket"`
-	Key    *string `yaml:"key"`
+	Key *string `yaml:"key"`
 }
 
 func (s *S3Client) ListFiles(ctx context.Context, fp string) ([]S3File, error) {
@@ -60,22 +63,22 @@ func (s *S3Client) ListFiles(ctx context.Context, fp string) ([]S3File, error) {
 
 		for _, object := range page.Contents {
 			files = append(files, S3File{
-				Key:    object.Key,
-				Bucket: bucket,
+				Key: object.Key,
 			})
 		}
 	}
-
 	return files, nil
 }
 
-// StreamJsonGzipFile will take an S3 File that is in `json.gz` format from DynamoDB's export to S3.
-// It's not a typical JSON file in that it is compressed and it's new line delimited via an array,
-// which means we can stream this file row by row to not OOM.
+// StreamJsonGzipFile - will take a S3 File that is in `json.gz` format from DynamoDB's export to S3
+// It's not a typical JSON file in that it is compressed and it's new line delimited via separated via an array
+// Which means we can stream this file row by row to not OOM.
 func (s *S3Client) StreamJsonGzipFile(ctx context.Context, file S3File, ch chan<- ddbTypes.ItemResponse) error {
+	const maxBufferSize = 1024 * 1024 // 1 MB or adjust as needed
+
 	defer close(ch)
 	result, err := s.client.GetObject(ctx, &s3.GetObjectInput{
-		Bucket: file.Bucket,
+		Bucket: s.bucketName,
 		Key:    file.Key,
 	})
 
@@ -93,6 +96,9 @@ func (s *S3Client) StreamJsonGzipFile(ctx context.Context, file S3File, ch chan<
 
 	defer gz.Close()
 	scanner := bufio.NewScanner(gz)
+	buf := make([]byte, maxBufferSize)
+	scanner.Buffer(buf, maxBufferSize)
+
 	for scanner.Scan() {
 		line := scanner.Bytes()
 		var content ddbTypes.ItemResponse

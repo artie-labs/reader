@@ -45,7 +45,7 @@ func TestWriter_MessageToEvent(t *testing.T) {
 		"__artie_only_set_delete": false,
 		"_id":                     "507f1f77bcf86cd799439011",
 		"double":                  3.14159,
-		"int64":                   int32(1234567890),
+		"int64":                   int64(1234567890),
 		"string":                  "Hello, world!",
 	} {
 		actualValue, isOk := evtOut.Data[expectedKey]

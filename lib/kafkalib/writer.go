@@ -89,7 +89,9 @@ func (b *BatchWriter) Write(ctx context.Context, rawMsgs []lib.RawMessage) error
 	}
 
 	var msgs []kafka.Message
+	var sampleExecutionTime time.Time
 	for _, rawMsg := range rawMsgs {
+		sampleExecutionTime = rawMsg.Event().GetExecutionTime()
 		kafkaMsg, err := newMessage(b.cfg.TopicPrefix, rawMsg)
 		if err != nil {
 			return fmt.Errorf("failed to encode kafka message: %w", err)
@@ -135,6 +137,7 @@ func (b *BatchWriter) Write(ctx context.Context, rawMsgs []lib.RawMessage) error
 
 		if b.statsD != nil {
 			b.statsD.Count("kafka.publish", int64(len(batch)), tags)
+			b.statsD.Gauge("kafka.lag_ms", float64(time.Since(sampleExecutionTime).Milliseconds()), tags)
 		}
 
 		if kafkaErr != nil {

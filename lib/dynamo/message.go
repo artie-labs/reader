@@ -39,6 +39,10 @@ func transformAttributeValue(attr types.AttributeValue) (any, debezium.FieldType
 			return nil, "", fmt.Errorf("failed to convert string to float64: %w", err)
 		}
 		return number, debezium.Float, nil
+	case *types.AttributeValueMemberB:
+		return v.Value, debezium.Bytes, nil
+	case *types.AttributeValueMemberBS:
+		return v.Value, debezium.Array, nil
 	case *types.AttributeValueMemberBOOL:
 		return v.Value, debezium.Boolean, nil
 	case *types.AttributeValueMemberM:

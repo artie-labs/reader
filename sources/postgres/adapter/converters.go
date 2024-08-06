@@ -7,7 +7,6 @@ import (
 
 	"github.com/artie-labs/reader/lib/timeutil"
 	"github.com/artie-labs/transfer/lib/debezium"
-	"github.com/artie-labs/transfer/lib/typing/ext"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -41,7 +40,7 @@ func (TimeWithTimezoneConverter) Convert(value any) (any, error) {
 
 	// Convert `time.Time` into GMT
 	// Then convert back into a string with ns precision
-	return timeValue.UTC().Format(ext.PostgresTimeFormatNoTZ), nil
+	return timeValue.UTC().Format("15:04:05.000000Z"), nil
 }
 
 type PgTimeConverter struct{}

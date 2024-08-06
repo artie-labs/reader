@@ -67,6 +67,14 @@ func (s *StreamStore) processShard(ctx context.Context, shard types.Shard, write
 		return
 	}
 
+	for !s.throttler.Allowed() {
+		slog.Warn("Throttler limit reached, waiting for a slot to open up...", slog.String("shardId", *shard.ShardId))
+		time.Sleep(1 * time.Second)
+	}
+
+	s.throttler.Start()
+	defer s.throttler.Done()
+
 	slog.Info("Processing shard...", slog.String("shardId", *shard.ShardId))
 
 	iteratorType := types.ShardIteratorTypeTrimHorizon

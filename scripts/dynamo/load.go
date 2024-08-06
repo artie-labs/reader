@@ -25,12 +25,12 @@ const (
 
 func main() {
 	if len(os.Args) != 2 {
-		logger.Fatal(fmt.Sprintf("Usage: %s <number_of_rows>", os.Args[0]))
+		logger.Fatal(fmt.Sprintf("Usage: %s <num_batches>", os.Args[0]))
 	}
 
 	ctx := context.Background()
-	numRows, err := strconv.Atoi(os.Args[1])
-	if err != nil || numRows < 1 {
+	numBatches, err := strconv.Atoi(os.Args[1])
+	if err != nil || numBatches < 1 {
 		logger.Fatal("Please provide a valid number for rows")
 	}
 
@@ -42,9 +42,8 @@ func main() {
 	svc := dynamodb.NewFromConfig(awsCfg)
 
 	var rowsWritten int
-
 	// Splitting the items into batches
-	for i := offset + 0; i < offset+numRows; i += maxBatchSize {
+	for i := offset + 0; i < offset+numBatches; i += maxBatchSize {
 		var writeRequests []types.WriteRequest
 		accountID := fmt.Sprintf("account-%d", i)
 		// For each batch, prepare the items
@@ -56,6 +55,12 @@ func main() {
 				},
 				"user_id": &types.AttributeValueMemberS{
 					Value: userID,
+				},
+				"b": &types.AttributeValueMemberB{
+					Value: []byte("hello world"),
+				},
+				"bs": &types.AttributeValueMemberBS{
+					Value: [][]byte{[]byte("hello"), []byte("world")},
 				},
 				"random_number": &types.AttributeValueMemberN{
 					Value: fmt.Sprintf("%v", rand.Int63()), // Example number
@@ -95,19 +100,22 @@ func main() {
 		}
 
 		rowsWritten += len(writeRequests)
-
 		input := &dynamodb.BatchWriteItemInput{
 			RequestItems: map[string][]types.WriteRequest{
 				table: writeRequests,
 			},
 		}
 
-		time.Sleep(3 * time.Second)
 		if _, err = svc.BatchWriteItem(ctx, input); err != nil {
 			slog.Error(fmt.Sprintf("Failed to write batch starting at index %d", i), slog.Any("err", err))
 			continue
 		}
 
-		slog.Info(fmt.Sprintf("Inserted batch of items starting from index %d, wrote a total of: %d rows", i, rowsWritten))
+		// Our test DDB has low WCUs
+		time.Sleep(2 * time.Second)
+		rowsWritten += len(writeRequests)
+		slog.Info(fmt.Sprintf("Inserted batch of items starting from index %d", i))
 	}
+
+	slog.Info("Successfully inserted all items", slog.Int("num_rows", rowsWritten))
 }
