@@ -2,6 +2,7 @@ package dynamodb
 
 import (
 	"context"
+	"cmp"
 	"fmt"
 	"time"
 
@@ -22,10 +23,9 @@ import (
 )
 
 const (
-	jitterSleepBaseMs    = 100
-	shardScannerInterval = 5 * time.Minute
-	// concurrencyLimit is the maximum number of shards we should be processing at once
-	concurrencyLimit = 30
+	jitterSleepBaseMs             = 100
+	shardScannerInterval          = 5 * time.Minute
+	defaultConcurrencyLimit int64 = 100
 )
 
 func Load(ctx context.Context, cfg config.DynamoDB) (sources.Source, bool, error) {
@@ -56,7 +56,8 @@ func Load(ctx context.Context, cfg config.DynamoDB) (sources.Source, bool, error
 			s3Client:       s3lib.NewClient(cfg.SnapshotSettings.S3Bucket, _awsCfg),
 		}, false, nil
 	} else {
-		_throttler, err := throttler.NewThrottler(concurrencyLimit)
+		// TODO: Should we be throttling based on go-routines? Or should we be using buffered channels?
+		_throttler, err := throttler.NewThrottler(cmp.Or(cfg.MaxConcurrency, defaultConcurrencyLimit))
 		if err != nil {
 			return nil, false, fmt.Errorf("failed to create throttler: %w", err)
 		}

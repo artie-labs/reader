@@ -15,6 +15,7 @@ type DynamoDB struct {
 	AwsSecretAccessKey string `yaml:"awsSecretAccessKey"`
 	StreamArn          string `yaml:"streamArn"`
 	TableName          string `yaml:"tableName"`
+	MaxConcurrency     int64  `yaml:"__maxConcurrency"`
 
 	Snapshot         bool              `yaml:"snapshot"`
 	SnapshotSettings *SnapshotSettings `yaml:"snapshotSettings"`
