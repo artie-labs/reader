@@ -3,11 +3,11 @@ package mongo
 import (
 	"context"
 	"fmt"
-	"github.com/artie-labs/reader/lib/iterator"
-
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
+	"github.com/artie-labs/reader/lib/iterator"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -41,9 +41,30 @@ func (s *snapshotIterator) Next() ([]lib.RawMessage, error) {
 
 	ctx := context.Background()
 	if s.cursor == nil {
+		// Filter
+		filter := bson.D{}
+		if s.collection.StartObjectID != "" {
+			key, err := primitive.ObjectIDFromHex(s.collection.StartObjectID)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse start object id %q: %w", s.collection.StartObjectID, err)
+			}
+
+			filter = append(filter, bson.E{Key: "_id", Value: bson.D{{Key: "$gte", Value: key}}})
+		}
+
+		if s.collection.EndObjectID != "" {
+			key, err := primitive.ObjectIDFromHex(s.collection.EndObjectID)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse end object id %q: %w", s.collection.EndObjectID, err)
+			}
+
+			filter = append(filter, bson.E{Key: "_id", Value: bson.D{{Key: "$lte", Value: key}}})
+		}
+
+		// Find options
 		findOptions := options.Find()
 		findOptions.SetBatchSize(s.collection.GetBatchSize())
-		cursor, err := s.db.Collection(s.collection.Name).Find(ctx, bson.D{}, findOptions)
+		cursor, err := s.db.Collection(s.collection.Name).Find(ctx, filter, findOptions)
 		if err != nil {
 			return nil, fmt.Errorf("failed to find documents: %w", err)
 		}
