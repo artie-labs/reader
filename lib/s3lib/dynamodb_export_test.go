@@ -94,8 +94,55 @@ func TestParseDynamoDBJSON(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, 9, len(value))
 
-		// Check keys
-		value, isOk := value["account_id"].(*types.AttributeValueMemberS{})
-		assert.True(t, isOk)
+		{
+			// String
+			val, isOk := value["account_id"].(*types.AttributeValueMemberS)
+			assert.True(t, isOk)
+			assert.Equal(t, "account-9825", val.Value)
+		}
+		{
+			// Number
+			val, isOk := value["random_number"].(*types.AttributeValueMemberN)
+			assert.True(t, isOk)
+			assert.Equal(t, "4851973137566368817", val.Value)
+		}
+		{
+			// Boolean
+			val, isOk := value["flag"].(*types.AttributeValueMemberBOOL)
+			assert.True(t, isOk)
+			assert.Equal(t, false, val.Value)
+		}
+		{
+			// List
+			val, isOk := value["sample_list"].(*types.AttributeValueMemberL)
+			assert.True(t, isOk)
+			assert.Equal(t, 2, len(val.Value))
+
+			assert.Equal(t, "item1", val.Value[0].(*types.AttributeValueMemberS).Value)
+			assert.Equal(t, "2", val.Value[1].(*types.AttributeValueMemberN).Value)
+		}
+		{
+			// String set
+			val, isOk := value["string_set"].(*types.AttributeValueMemberSS)
+			assert.True(t, isOk)
+			assert.Equal(t, 5, len(val.Value))
+			assert.Equal(t, []string{"value2", "value44", "value55", "value66", "value1"}, val.Value)
+		}
+		{
+			// Number set
+			val, isOk := value["number_set"].(*types.AttributeValueMemberNS)
+			assert.True(t, isOk)
+			assert.Equal(t, 3, len(val.Value))
+			assert.Equal(t, []string{"3", "2", "1"}, val.Value)
+		}
+		{
+			// Map
+			val, isOk := value["sample_map"].(*types.AttributeValueMemberM)
+			assert.True(t, isOk)
+			assert.Equal(t, 2, len(val.Value))
+
+			assert.Equal(t, "value1", val.Value["key1"].(*types.AttributeValueMemberS).Value)
+			assert.Equal(t, "2", val.Value["key2"].(*types.AttributeValueMemberN).Value)
+		}
 	}
 }
