@@ -6,6 +6,7 @@ import (
 )
 
 func convertSnapshotToStreamingAttribute(attr ddbTypes.AttributeValue) types.AttributeValue {
+	// TODO: Add tests
 	switch v := attr.(type) {
 	case *ddbTypes.AttributeValueMemberS:
 		return &types.AttributeValueMemberS{Value: v.Value}
@@ -42,8 +43,8 @@ func convertSnapshotToStreamingAttribute(attr ddbTypes.AttributeValue) types.Att
 	return nil
 }
 
-// TODO: Add tests
 func convertSnapshotToStreamingImage(data map[string]ddbTypes.AttributeValue) map[string]types.AttributeValue {
+	// TODO: Add tests
 	transformed := make(map[string]types.AttributeValue)
 	for key, attrValue := range data {
 		val := convertSnapshotToStreamingAttribute(attrValue)
