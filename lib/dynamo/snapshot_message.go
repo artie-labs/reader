@@ -11,6 +11,10 @@ func convertSnapshotToStreamingAttribute(attr ddbTypes.AttributeValue) types.Att
 		return &types.AttributeValueMemberS{Value: v.Value}
 	case *ddbTypes.AttributeValueMemberN:
 		return &types.AttributeValueMemberN{Value: v.Value}
+	case *ddbTypes.AttributeValueMemberB:
+		return &types.AttributeValueMemberB{Value: v.Value}
+	case *ddbTypes.AttributeValueMemberBS:
+		return &types.AttributeValueMemberBS{Value: v.Value}
 	case *ddbTypes.AttributeValueMemberBOOL:
 		return &types.AttributeValueMemberBOOL{Value: v.Value}
 	case *ddbTypes.AttributeValueMemberM:
