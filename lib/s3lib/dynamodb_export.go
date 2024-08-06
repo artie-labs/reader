@@ -6,14 +6,19 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 )
 
+type exportedPayload struct {
+	Item map[string]map[string]interface{} `json:"Item"`
+}
+
 func parseDynamoDBJSON(data []byte) (map[string]types.AttributeValue, error) {
-	var rawMap map[string]map[string]interface{}
-	if err := json.Unmarshal(data, &rawMap); err != nil {
+	var payload exportedPayload
+	if err := json.Unmarshal(data, &payload); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal JSON, %w", err)
 	}
 
 	dynamoMap := make(map[string]types.AttributeValue)
-	for k, v := range rawMap {
+	for k, v := range payload.Item {
+		fmt.Println("converting", k, v)
 		val, err := convertToAttributeValue(v)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert %q: %w", k, err)
