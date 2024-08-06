@@ -18,7 +18,6 @@ func parseDynamoDBJSON(data []byte) (map[string]types.AttributeValue, error) {
 
 	dynamoMap := make(map[string]types.AttributeValue)
 	for k, v := range payload.Item {
-		fmt.Println("converting", k, v)
 		val, err := convertToAttributeValue(v)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert %q: %w", k, err)
