@@ -99,8 +99,7 @@ func (s *S3Client) StreamJsonGzipFile(ctx context.Context, file S3File, ch chan<
 	scanner.Buffer(buf, maxBufferSize)
 
 	for scanner.Scan() {
-		line := scanner.Bytes()
-		output, err := parseDynamoDBJSON(line)
+		output, err := parseDynamoDBJSON(scanner.Bytes())
 		if err != nil {
 			return fmt.Errorf("failed to parse dynamodb json: %w", err)
 		}
