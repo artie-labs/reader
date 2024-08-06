@@ -34,13 +34,13 @@ func setUpMetrics(cfg *config.Metrics) (mtr.Client, error) {
 	return client, nil
 }
 
-func buildSource(cfg *config.Settings) (sources.Source, bool, error) {
+func buildSource(ctx context.Context, cfg *config.Settings) (sources.Source, bool, error) {
 	var source sources.Source
 	var isStreamingMode bool
 	var err error
 	switch cfg.Source {
 	case config.SourceDynamo:
-		source, isStreamingMode, err = dynamodb.Load(*cfg.DynamoDB)
+		source, isStreamingMode, err = dynamodb.Load(ctx, *cfg.DynamoDB)
 	case config.SourceMongoDB:
 		return mongo.Load(*cfg.MongoDB)
 	case config.SourceMSSQL:
@@ -108,7 +108,7 @@ func main() {
 		logger.Fatal(fmt.Sprintf("Failed to init %q destination writer", cfg.Destination), slog.Any("err", err))
 	}
 
-	source, isStreamingMode, err := buildSource(cfg)
+	source, isStreamingMode, err := buildSource(ctx, cfg)
 	if err != nil {
 		logger.Fatal(fmt.Sprintf("Failed to init %q source", cfg.Source), slog.Any("err", err))
 	}
