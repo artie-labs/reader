@@ -6,6 +6,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 )
 
+func assertType[T any](val interface{}) (T, error) {
+	castedVal, isOk := val.(T)
+	if !isOk {
+		var zero T
+		return zero, fmt.Errorf("expected type %T, got %T", zero, val)
+	}
+	return castedVal, nil
+}
+
 type exportedPayload struct {
 	Item map[string]map[string]interface{} `json:"Item"`
 }
@@ -27,15 +36,6 @@ func parseDynamoDBJSON(data []byte) (map[string]types.AttributeValue, error) {
 	}
 
 	return dynamoMap, nil
-}
-
-func assertType[T any](val interface{}) (T, error) {
-	castedVal, isOk := val.(T)
-	if !isOk {
-		var zero T
-		return zero, fmt.Errorf("expected type %T, got %T", zero, val)
-	}
-	return castedVal, nil
 }
 
 func convertToAttributeValue(value map[string]interface{}) (types.AttributeValue, error) {
