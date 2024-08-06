@@ -4,13 +4,11 @@ import (
 	"bufio"
 	"compress/gzip"
 	"context"
-	"encoding/json"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	ddbTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
@@ -72,13 +70,13 @@ func (s *S3Client) ListFiles(ctx context.Context, fp string) ([]S3File, error) {
 }
 
 type Output struct {
-	Item map[string]map[string]any `json:"Item"`
+	Item map[string]any `json:"Item"`
 }
 
 // StreamJsonGzipFile - will take a S3 File that is in `json.gz` format from DynamoDB's export to S3
 // It's not a typical JSON file in that it is compressed and it's new line delimited via separated via an array
 // Which means we can stream this file row by row to not OOM.
-func (s *S3Client) StreamJsonGzipFile(ctx context.Context, file S3File, ch chan<- ddbTypes.ItemResponse) error {
+func (s *S3Client) StreamJsonGzipFile(ctx context.Context, file S3File, ch chan<- map[string]types.AttributeValue) error {
 	const maxBufferSize = 1024 * 1024 // 1 MB or adjust as needed
 
 	defer close(ch)
@@ -106,31 +104,12 @@ func (s *S3Client) StreamJsonGzipFile(ctx context.Context, file S3File, ch chan<
 
 	for scanner.Scan() {
 		line := scanner.Bytes()
-		var content Output
-
-		fmt.Println("", string(line))
-		if err = json.Unmarshal(line, &content); err != nil {
-			return fmt.Errorf("failed to unmarshal: %w", err)
-		}
-
-		val, err := attributevalue.MarshalMap(content.Item)
+		output, err := parseDynamoDBJSON(line)
 		if err != nil {
-			return fmt.Errorf("failed to marshal: %w", err)
+			return fmt.Errorf("failed to parse dynamodb json: %w", err)
 		}
 
-		for k, v := range val {
-			castedVal, isOk := v.(*ddbTypes.AttributeValueMemberM)
-			if !isOk {
-				return fmt.Errorf("expected *ddbTypes.AttributeValueMemberM, got %T", v)
-			}
-
-			for castedKey, castedValue := range castedVal.Value {
-				fmt.Println("k", k, "castedKey", castedKey, "castedValue", castedValue, fmt.Sprintf("%T", castedValue))
-			}
-		}
-
-		fmt.Println("Output", content)
-		//ch <- content
+		ch <- output
 	}
 
 	if err = scanner.Err(); err != nil {

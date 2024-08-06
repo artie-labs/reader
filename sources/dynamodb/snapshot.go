@@ -6,7 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
@@ -79,7 +79,7 @@ func (s *SnapshotStore) streamAndPublish(ctx context.Context, writer writers.Wri
 		}
 
 		slog.Info("Processing file...", logFields...)
-		ch := make(chan types.ItemResponse)
+		ch := make(chan map[string]types.AttributeValue)
 		go func() {
 			if err := s.s3Client.StreamJsonGzipFile(ctx, file, ch); err != nil {
 				logger.Panic("Failed to read file", slog.Any("err", err))

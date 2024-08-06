@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	ddbTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -103,22 +102,22 @@ func Test_NewMessage(t *testing.T) {
 func Test_NewMessageFromExport(t *testing.T) {
 	tcs := []struct {
 		name        string
-		item        map[string]ddbTypes.AttributeValue
+		item        map[string]types.AttributeValue
 		keys        []string
 		tableName   string
 		expectedErr string
 	}{
 		{
 			name:        "Test with empty item",
-			item:        map[string]ddbTypes.AttributeValue{},
+			item:        map[string]types.AttributeValue{},
 			keys:        []string{"id"},
 			tableName:   "test",
 			expectedErr: "item is nil or keys do not exist in this item payload",
 		},
 		{
 			name: "Test with empty keys",
-			item: map[string]ddbTypes.AttributeValue{
-				"id": &ddbTypes.AttributeValueMemberS{
+			item: map[string]types.AttributeValue{
+				"id": &types.AttributeValueMemberS{
 					Value: "1",
 				},
 			},
@@ -128,8 +127,8 @@ func Test_NewMessageFromExport(t *testing.T) {
 		},
 		{
 			name: "Test with valid item and keys",
-			item: map[string]ddbTypes.AttributeValue{
-				"id": &ddbTypes.AttributeValueMemberS{
+			item: map[string]types.AttributeValue{
+				"id": &types.AttributeValueMemberS{
 					Value: "1",
 				},
 			},
@@ -139,7 +138,7 @@ func Test_NewMessageFromExport(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		msg, err := NewMessageFromExport(ddbTypes.ItemResponse{Item: tc.item}, tc.keys, tc.tableName)
+		msg, err := NewMessageFromExport(tc.item, tc.keys, tc.tableName)
 		if tc.expectedErr != "" {
 			assert.Equal(t, tc.expectedErr, err.Error(), tc.name)
 		} else {

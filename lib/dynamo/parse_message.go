@@ -2,15 +2,12 @@ package dynamo
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/feature/dynamodbstreams/attributevalue"
-	"time"
-
-	ddbTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
+	"time"
 )
 
-func NewMessageFromExport(item ddbTypes.ItemResponse, keys []string, tableName string) (*Message, error) {
-	if len(item.Item) == 0 {
+func NewMessageFromExport(item map[string]types.AttributeValue, keys []string, tableName string) (*Message, error) {
+	if len(item) == 0 {
 		return nil, fmt.Errorf("item is nil or keys do not exist in this item payload")
 	}
 
@@ -18,12 +15,7 @@ func NewMessageFromExport(item ddbTypes.ItemResponse, keys []string, tableName s
 		return nil, fmt.Errorf("keys is nil")
 	}
 
-	val, err := attributevalue.FromDynamoDBMap(item.Item)
-	if err != nil {
-		return nil, fmt.Errorf("failed to cast item.Item: %w", err)
-	}
-
-	rowData, afterSchema, err := transformImage(val)
+	rowData, afterSchema, err := transformImage(item)
 	if err != nil {
 		return nil, fmt.Errorf("failed to transform item: %w", err)
 	}
