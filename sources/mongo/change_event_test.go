@@ -68,7 +68,7 @@ func TestNewChangeEvent(t *testing.T) {
 			"last_name":  "Kzlhlza",
 		}
 
-		changeEvent, err := NewChangeEvent(bson.M{
+		rawMsg := bson.M{
 			"_id": bson.M{
 				"_data": "8266A7F95F000000072B042C0100296E5A1004778E391F64D84D65A154AA02089381C9463C6F7065726174696F6E54797065003C7570646174650046646F63756D656E744B65790046645F6964006466834270BD422BC9B54B2BE7000004",
 			},
@@ -92,8 +92,9 @@ func TestNewChangeEvent(t *testing.T) {
 				},
 			},
 			"wallTime": 1722284383120,
-		})
+		}
 
+		changeEvent, err := NewChangeEvent(rawMsg)
 		assert.NoError(t, err)
 		assert.NotNil(t, changeEvent)
 		assert.Equal(t, "update", changeEvent.operationType)
@@ -110,6 +111,15 @@ func TestNewChangeEvent(t *testing.T) {
 		var expectedObj bson.M
 		assert.NoError(t, bson.UnmarshalExtJSON([]byte(msg.jsonExtendedString), false, &expectedObj))
 		assert.Equal(t, fullDocument, expectedObj)
+
+		{
+			// Edge case with update where `fullDocument` is present, but it's null
+			rawMsg["fullDocument"] = nil
+			changeEvent, err = NewChangeEvent(rawMsg)
+			assert.NoError(t, err)
+			assert.NotNil(t, changeEvent.fullDocument)
+			assert.Equal(t, bson.M{"_id": objectID}, *changeEvent.fullDocument)
+		}
 	}
 	{
 		// Delete
