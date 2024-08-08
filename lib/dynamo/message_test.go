@@ -2,8 +2,8 @@ package dynamo
 
 import (
 	"github.com/artie-labs/transfer/lib/debezium"
-	"github.com/artie-labs/transfer/lib/ptr"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
+
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -11,8 +11,8 @@ import (
 func TestTransformAttributeValue(t *testing.T) {
 	{
 		// String
-		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
-			S: ptr.ToString("hello"),
+		actualValue, fieldType, err := transformAttributeValue(&types.AttributeValueMemberS{
+			Value: "hello",
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, "hello", actualValue)
@@ -20,8 +20,8 @@ func TestTransformAttributeValue(t *testing.T) {
 	}
 	{
 		// Number
-		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
-			N: ptr.ToString("123"),
+		actualValue, fieldType, err := transformAttributeValue(&types.AttributeValueMemberN{
+			Value: "123",
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, float64(123), actualValue)
@@ -29,8 +29,8 @@ func TestTransformAttributeValue(t *testing.T) {
 	}
 	{
 		// Bytes
-		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
-			B: []byte("hello"),
+		actualValue, fieldType, err := transformAttributeValue(&types.AttributeValueMemberB{
+			Value: []byte("hello"),
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, []byte("hello"), actualValue)
@@ -38,8 +38,8 @@ func TestTransformAttributeValue(t *testing.T) {
 	}
 	{
 		// Bytes set
-		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
-			BS: [][]byte{
+		actualValue, fieldType, err := transformAttributeValue(&types.AttributeValueMemberBS{
+			Value: [][]byte{
 				[]byte("hello"),
 				[]byte("world"),
 			},
@@ -50,8 +50,8 @@ func TestTransformAttributeValue(t *testing.T) {
 	}
 	{
 		// Boolean
-		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
-			BOOL: ptr.ToBool(true),
+		actualValue, fieldType, err := transformAttributeValue(&types.AttributeValueMemberBOOL{
+			Value: true,
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, true, actualValue)
@@ -59,18 +59,18 @@ func TestTransformAttributeValue(t *testing.T) {
 	}
 	{
 		// Map
-		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
-			M: map[string]*dynamodb.AttributeValue{
-				"foo": {
-					S: ptr.ToString("bar"),
+		actualValue, fieldType, err := transformAttributeValue(&types.AttributeValueMemberM{
+			Value: map[string]types.AttributeValue{
+				"foo": &types.AttributeValueMemberS{
+					Value: "bar",
 				},
-				"bar": {
-					N: ptr.ToString("123"),
+				"bar": &types.AttributeValueMemberN{
+					Value: "123",
 				},
-				"nested_map": {
-					M: map[string]*dynamodb.AttributeValue{
-						"foo": {
-							S: ptr.ToString("bar"),
+				"nested_map": &types.AttributeValueMemberM{
+					Value: map[string]types.AttributeValue{
+						"foo": &types.AttributeValueMemberS{
+							Value: "bar",
 						},
 					},
 				},
@@ -89,18 +89,18 @@ func TestTransformAttributeValue(t *testing.T) {
 	}
 	{
 		// List
-		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
-			L: []*dynamodb.AttributeValue{
-				{
-					S: ptr.ToString("foo"),
+		actualValue, fieldType, err := transformAttributeValue(&types.AttributeValueMemberL{
+			Value: []types.AttributeValue{
+				&types.AttributeValueMemberS{
+					Value: "foo",
 				},
-				{
-					N: ptr.ToString("123"),
+				&types.AttributeValueMemberN{
+					Value: "123",
 				},
-				{
-					M: map[string]*dynamodb.AttributeValue{
-						"foo": {
-							S: ptr.ToString("bar"),
+				&types.AttributeValueMemberM{
+					Value: map[string]types.AttributeValue{
+						"foo": &types.AttributeValueMemberS{
+							Value: "bar",
 						},
 					},
 				},
@@ -119,11 +119,8 @@ func TestTransformAttributeValue(t *testing.T) {
 	}
 	{
 		// String set
-		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
-			SS: []*string{
-				ptr.ToString("foo"),
-				ptr.ToString("bar"),
-			},
+		actualValue, fieldType, err := transformAttributeValue(&types.AttributeValueMemberSS{
+			Value: []string{"foo", "bar"},
 		})
 
 		assert.NoError(t, err)
@@ -132,11 +129,8 @@ func TestTransformAttributeValue(t *testing.T) {
 	}
 	{
 		// Number set
-		actualValue, fieldType, err := transformAttributeValue(&dynamodb.AttributeValue{
-			NS: []*string{
-				ptr.ToString("123"),
-				ptr.ToString("456"),
-			},
+		actualValue, fieldType, err := transformAttributeValue(&types.AttributeValueMemberNS{
+			Value: []string{"123", "456"},
 		})
 
 		assert.NoError(t, err)

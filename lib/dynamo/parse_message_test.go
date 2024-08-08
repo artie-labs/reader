@@ -1,46 +1,40 @@
 package dynamo
 
 import (
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
 	"testing"
 	"time"
 
-	"github.com/artie-labs/transfer/lib/ptr"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_NewMessage(t *testing.T) {
 	{
-		// Invalid payloads
-		_, err := NewMessage(nil, "testTable")
-		assert.ErrorContains(t, err, "record is nil or dynamodb does not exist in this event payload")
-
-		_, err = NewMessage(&dynamodbstreams.Record{}, "testTable")
+		_, err := NewMessage(types.Record{}, "testTable")
 		assert.ErrorContains(t, err, "record is nil or dynamodb does not exist in this event payload")
 
 		// No keys.
-		_, err = NewMessage(&dynamodbstreams.Record{Dynamodb: &dynamodbstreams.StreamRecord{}}, "testTable")
+		_, err = NewMessage(types.Record{Dynamodb: &types.StreamRecord{}}, "testTable")
 		assert.ErrorContains(t, err, "keys is nil")
 	}
 	{
 		// Insert
-		msg, err := NewMessage(&dynamodbstreams.Record{
-			Dynamodb: &dynamodbstreams.StreamRecord{
-				NewImage: map[string]*dynamodb.AttributeValue{
-					"foo": {
-						S: ptr.ToString("bar"),
+		msg, err := NewMessage(types.Record{
+			Dynamodb: &types.StreamRecord{
+				NewImage: map[string]types.AttributeValue{
+					"foo": &types.AttributeValueMemberS{
+						Value: "bar",
 					},
 				},
-				Keys: map[string]*dynamodb.AttributeValue{
-					"user_id": {
-						S: ptr.ToString("123"),
+				Keys: map[string]types.AttributeValue{
+					"user_id": &types.AttributeValueMemberS{
+						Value: "123",
 					},
 				},
 				ApproximateCreationDateTime: aws.Time(time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC)),
 			},
-			EventName: ptr.ToString("INSERT"),
+			EventName: types.OperationTypeInsert,
 		}, "testTable")
 
 		assert.NoError(t, err)
@@ -52,21 +46,21 @@ func Test_NewMessage(t *testing.T) {
 	}
 	{
 		// Update
-		msg, err := NewMessage(&dynamodbstreams.Record{
-			Dynamodb: &dynamodbstreams.StreamRecord{
-				NewImage: map[string]*dynamodb.AttributeValue{
-					"foo": {
-						S: ptr.ToString("bar"),
+		msg, err := NewMessage(types.Record{
+			Dynamodb: &types.StreamRecord{
+				NewImage: map[string]types.AttributeValue{
+					"foo": &types.AttributeValueMemberS{
+						Value: "bar",
 					},
 				},
-				Keys: map[string]*dynamodb.AttributeValue{
-					"user_id": {
-						S: ptr.ToString("123"),
+				Keys: map[string]types.AttributeValue{
+					"user_id": &types.AttributeValueMemberS{
+						Value: "123",
 					},
 				},
 				ApproximateCreationDateTime: aws.Time(time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC)),
 			},
-			EventName: ptr.ToString("MODIFY"),
+			EventName: types.OperationTypeModify,
 		}, "testTable")
 
 		assert.NoError(t, err)
@@ -78,21 +72,21 @@ func Test_NewMessage(t *testing.T) {
 	}
 	{
 		// Delete
-		msg, err := NewMessage(&dynamodbstreams.Record{
-			Dynamodb: &dynamodbstreams.StreamRecord{
-				OldImage: map[string]*dynamodb.AttributeValue{
-					"foo": {
-						S: ptr.ToString("bar"),
+		msg, err := NewMessage(types.Record{
+			Dynamodb: &types.StreamRecord{
+				OldImage: map[string]types.AttributeValue{
+					"foo": &types.AttributeValueMemberS{
+						Value: "bar",
 					},
 				},
-				Keys: map[string]*dynamodb.AttributeValue{
-					"user_id": {
-						S: ptr.ToString("123"),
+				Keys: map[string]types.AttributeValue{
+					"user_id": &types.AttributeValueMemberS{
+						Value: "123",
 					},
 				},
 				ApproximateCreationDateTime: aws.Time(time.Date(2023, 8, 28, 0, 0, 0, 0, time.UTC)),
 			},
-			EventName: ptr.ToString("REMOVE"),
+			EventName: types.OperationTypeRemove,
 		}, "testTable")
 
 		assert.NoError(t, err)
@@ -108,27 +102,23 @@ func Test_NewMessage(t *testing.T) {
 func Test_NewMessageFromExport(t *testing.T) {
 	tcs := []struct {
 		name        string
-		item        dynamodb.ItemResponse
+		item        map[string]types.AttributeValue
 		keys        []string
 		tableName   string
 		expectedErr string
 	}{
 		{
-			name: "Test with empty item",
-			item: dynamodb.ItemResponse{
-				Item: map[string]*dynamodb.AttributeValue{},
-			},
+			name:        "Test with empty item",
+			item:        map[string]types.AttributeValue{},
 			keys:        []string{"id"},
 			tableName:   "test",
 			expectedErr: "item is nil or keys do not exist in this item payload",
 		},
 		{
 			name: "Test with empty keys",
-			item: dynamodb.ItemResponse{
-				Item: map[string]*dynamodb.AttributeValue{
-					"id": {
-						S: ptr.ToString("1"),
-					},
+			item: map[string]types.AttributeValue{
+				"id": &types.AttributeValueMemberS{
+					Value: "1",
 				},
 			},
 			keys:        []string{},
@@ -137,11 +127,9 @@ func Test_NewMessageFromExport(t *testing.T) {
 		},
 		{
 			name: "Test with valid item and keys",
-			item: dynamodb.ItemResponse{
-				Item: map[string]*dynamodb.AttributeValue{
-					"id": {
-						S: ptr.ToString("1"),
-					},
+			item: map[string]types.AttributeValue{
+				"id": &types.AttributeValueMemberS{
+					Value: "1",
 				},
 			},
 			keys:      []string{"id"},

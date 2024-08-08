@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
@@ -22,7 +23,7 @@ type SnapshotStore struct {
 	cfg       *config.DynamoDB
 
 	s3Client       *s3lib.S3Client
-	dynamoDBClient *dynamodb.DynamoDB
+	dynamoDBClient *dynamodb.Client
 }
 
 func (s *SnapshotStore) Close() error {
@@ -66,7 +67,7 @@ func (s *SnapshotStore) scanFilesOverBucket(ctx context.Context) error {
 }
 
 func (s *SnapshotStore) streamAndPublish(ctx context.Context, writer writers.Writer) error {
-	keys, err := s.retrievePrimaryKeys()
+	keys, err := s.retrievePrimaryKeys(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve primary keys: %w", err)
 	}
@@ -78,10 +79,9 @@ func (s *SnapshotStore) streamAndPublish(ctx context.Context, writer writers.Wri
 		}
 
 		slog.Info("Processing file...", logFields...)
-		// We're using an unbuffered channel, this will block sender if the receiver is not ready.
-		ch := make(chan dynamodb.ItemResponse)
+		ch := make(chan map[string]types.AttributeValue)
 		go func() {
-			if err = s.s3Client.StreamJsonGzipFile(ctx, file, ch); err != nil {
+			if err := s.s3Client.StreamJsonGzipFile(ctx, file, ch); err != nil {
 				logger.Panic("Failed to read file", slog.Any("err", err))
 			}
 		}()

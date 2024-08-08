@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 )
 
-func NewMessageFromExport(item dynamodb.ItemResponse, keys []string, tableName string) (*Message, error) {
-	if len(item.Item) == 0 {
+func NewMessageFromExport(item map[string]types.AttributeValue, keys []string, tableName string) (*Message, error) {
+	if len(item) == 0 {
 		return nil, fmt.Errorf("item is nil or keys do not exist in this item payload")
 	}
 
@@ -17,7 +16,7 @@ func NewMessageFromExport(item dynamodb.ItemResponse, keys []string, tableName s
 		return nil, fmt.Errorf("keys is nil")
 	}
 
-	rowData, afterSchema, err := transformImage(item.Item)
+	rowData, afterSchema, err := transformImage(item)
 	if err != nil {
 		return nil, fmt.Errorf("failed to transform item: %w", err)
 	}
@@ -44,8 +43,8 @@ func NewMessageFromExport(item dynamodb.ItemResponse, keys []string, tableName s
 	}, nil
 }
 
-func NewMessage(record *dynamodbstreams.Record, tableName string) (*Message, error) {
-	if record == nil || record.Dynamodb == nil {
+func NewMessage(record types.Record, tableName string) (*Message, error) {
+	if record.Dynamodb == nil {
 		return nil, fmt.Errorf("record is nil or dynamodb does not exist in this event payload")
 	}
 
@@ -59,15 +58,13 @@ func NewMessage(record *dynamodbstreams.Record, tableName string) (*Message, err
 	}
 
 	op := "r"
-	if record.EventName != nil {
-		switch *record.EventName {
-		case "INSERT":
-			op = "c"
-		case "MODIFY":
-			op = "u"
-		case "REMOVE":
-			op = "d"
-		}
+	switch record.EventName {
+	case types.OperationTypeInsert:
+		op = "c"
+	case types.OperationTypeModify:
+		op = "u"
+	case types.OperationTypeRemove:
+		op = "d"
 	}
 
 	beforeData, _, err := transformImage(record.Dynamodb.OldImage)

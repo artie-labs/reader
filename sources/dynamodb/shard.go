@@ -8,7 +8,8 @@ import (
 
 	"github.com/artie-labs/transfer/lib/jitter"
 	"github.com/artie-labs/transfer/lib/ptr"
-	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/dynamo"
@@ -25,7 +26,7 @@ func (s *StreamStore) ListenToChannel(ctx context.Context, writer writers.Writer
 	}
 }
 
-func (s *StreamStore) reprocessShard(ctx context.Context, shard *dynamodbstreams.Shard, writer writers.Writer, numErrs int, err error) {
+func (s *StreamStore) reprocessShard(ctx context.Context, shard types.Shard, writer writers.Writer, numErrs int, err error) {
 	if numErrs > maxNumErrs {
 		logger.Panic(fmt.Sprintf("Failed to process shard: %s and the max number of attempts have been reached", *shard.ShardId), err)
 	}
@@ -42,7 +43,7 @@ func (s *StreamStore) reprocessShard(ctx context.Context, shard *dynamodbstreams
 	s.processShard(ctx, shard, writer, numErrs+1)
 }
 
-func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.Shard, writer writers.Writer, numErrs int) {
+func (s *StreamStore) processShard(ctx context.Context, shard types.Shard, writer writers.Writer, numErrs int) {
 	// Is there another go-routine processing this shard?
 	if s.storage.GetShardProcessing(*shard.ShardId) {
 		return
@@ -76,24 +77,24 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 
 	slog.Info("Processing shard...", slog.String("shardId", *shard.ShardId))
 
-	iteratorType := "TRIM_HORIZON"
+	iteratorType := types.ShardIteratorTypeTrimHorizon
 	var startingSequenceNumber string
 	if seqNumber, exists := s.storage.LastProcessedSequenceNumber(*shard.ShardId); exists {
-		iteratorType = "AFTER_SEQUENCE_NUMBER"
+		iteratorType = types.ShardIteratorTypeAfterSequenceNumber
 		startingSequenceNumber = seqNumber
 	}
 
 	iteratorInput := &dynamodbstreams.GetShardIteratorInput{
 		StreamArn:         ptr.ToString(s.streamArn),
 		ShardId:           shard.ShardId,
-		ShardIteratorType: ptr.ToString(iteratorType),
+		ShardIteratorType: iteratorType,
 	}
 
 	if startingSequenceNumber != "" {
 		iteratorInput.SequenceNumber = ptr.ToString(startingSequenceNumber)
 	}
 
-	iteratorOutput, err := s.streams.GetShardIterator(iteratorInput)
+	iteratorOutput, err := s.streams.GetShardIterator(ctx, iteratorInput)
 	if err != nil {
 		s.reprocessShard(ctx, shard, writer, numErrs, fmt.Errorf("failed to get shard iterator: %w", err))
 		return
@@ -104,10 +105,10 @@ func (s *StreamStore) processShard(ctx context.Context, shard *dynamodbstreams.S
 	for shardIterator != nil {
 		getRecordsInput := &dynamodbstreams.GetRecordsInput{
 			ShardIterator: shardIterator,
-			Limit:         ptr.ToInt64(1000),
+			Limit:         ptr.ToInt32(1000),
 		}
 
-		getRecordsOutput, err := s.streams.GetRecords(getRecordsInput)
+		getRecordsOutput, err := s.streams.GetRecords(ctx, getRecordsInput)
 		if err != nil {
 			s.reprocessShard(ctx, shard, writer, numErrs, fmt.Errorf("failed to get records: %w", err))
 			return
