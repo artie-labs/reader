@@ -58,68 +58,71 @@ func TestNewChangeEvent(t *testing.T) {
 	}
 	{
 		// Update
-		objectID, err := primitive.ObjectIDFromHex("66834270bd422bc9b54b2be7")
-		assert.NoError(t, err)
-
-		fullDocument := bson.M{
-			"_id":        objectID,
-			"email":      "ilbwm.kzlhlza@example.com",
-			"first_name": "Robin",
-			"last_name":  "Kzlhlza",
-		}
-
-		rawMsg := bson.M{
-			"_id": bson.M{
-				"_data": "8266A7F95F000000072B042C0100296E5A1004778E391F64D84D65A154AA02089381C9463C6F7065726174696F6E54797065003C7570646174650046646F63756D656E744B65790046645F6964006466834270BD422BC9B54B2BE7000004",
-			},
-			"clusterTime": bson.M{
-				"ts": primitive.Timestamp{T: 1722284383, I: 7},
-			},
-			"documentKey": bson.M{
-				"_id": objectID,
-			},
-			"fullDocument": fullDocument,
-			"ns": bson.M{
-				"coll": "customers",
-				"db":   "inventory",
-			},
-			"operationType": "update",
-			"updateDescription": bson.M{
-				"removedFields":   []interface{}{},
-				"truncatedArrays": []interface{}{},
-				"updatedFields": bson.M{
-					"first_name": "Robin",
-				},
-			},
-			"wallTime": 1722284383120,
-		}
-
-		changeEvent, err := NewChangeEvent(rawMsg)
-		assert.NoError(t, err)
-		assert.NotNil(t, changeEvent)
-		assert.Equal(t, "update", changeEvent.operationType)
-		assert.Equal(t, "customers", changeEvent.collection)
-		assert.Equal(t, objectID, changeEvent.objectID)
-		assert.Equal(t, fullDocument, *changeEvent.fullDocument)
-
-		// ToMessage
-		msg, err := changeEvent.ToMessage()
-		assert.NoError(t, err)
-		assert.Equal(t, map[string]interface{}{"id": `{"$oid":"66834270bd422bc9b54b2be7"}`}, msg.pkMap)
-		assert.Equal(t, "u", msg.operation)
-
-		var expectedObj bson.M
-		assert.NoError(t, bson.UnmarshalExtJSON([]byte(msg.jsonExtendedString), false, &expectedObj))
-		assert.Equal(t, fullDocument, expectedObj)
-
-		{
-			// Edge case with update where `fullDocument` is present, but it's null
-			rawMsg["fullDocument"] = nil
-			changeEvent, err = NewChangeEvent(rawMsg)
+		for _, action := range []string{"update", "replace"} {
+			objectID, err := primitive.ObjectIDFromHex("66834270bd422bc9b54b2be7")
 			assert.NoError(t, err)
-			assert.NotNil(t, changeEvent.fullDocument)
-			assert.Equal(t, bson.M{"_id": objectID}, *changeEvent.fullDocument)
+
+			fullDocument := bson.M{
+				"_id":        objectID,
+				"email":      "ilbwm.kzlhlza@example.com",
+				"first_name": "Robin",
+				"last_name":  "Kzlhlza",
+			}
+
+			rawMsg := bson.M{
+				"_id": bson.M{
+					"_data": "8266A7F95F000000072B042C0100296E5A1004778E391F64D84D65A154AA02089381C9463C6F7065726174696F6E54797065003C7570646174650046646F63756D656E744B65790046645F6964006466834270BD422BC9B54B2BE7000004",
+				},
+				"clusterTime": bson.M{
+					"ts": primitive.Timestamp{T: 1722284383, I: 7},
+				},
+				"documentKey": bson.M{
+					"_id": objectID,
+				},
+				"fullDocument": fullDocument,
+				"ns": bson.M{
+					"coll": "customers",
+					"db":   "inventory",
+				},
+				"operationType": action,
+				"updateDescription": bson.M{
+					"removedFields":   []interface{}{},
+					"truncatedArrays": []interface{}{},
+					"updatedFields": bson.M{
+						"first_name": "Robin",
+					},
+				},
+				"wallTime": 1722284383120,
+			}
+
+			changeEvent, err := NewChangeEvent(rawMsg)
+			assert.NoError(t, err)
+			assert.NotNil(t, changeEvent)
+			assert.Equal(t, action, changeEvent.operationType)
+			assert.Equal(t, "customers", changeEvent.collection)
+			assert.Equal(t, objectID, changeEvent.objectID)
+			assert.Equal(t, fullDocument, *changeEvent.fullDocument)
+
+			// ToMessage
+			msg, err := changeEvent.ToMessage()
+			assert.NoError(t, err)
+			assert.Equal(t, map[string]interface{}{"id": `{"$oid":"66834270bd422bc9b54b2be7"}`}, msg.pkMap)
+			assert.Equal(t, "u", msg.operation)
+
+			var expectedObj bson.M
+			assert.NoError(t, bson.UnmarshalExtJSON([]byte(msg.jsonExtendedString), false, &expectedObj))
+			assert.Equal(t, fullDocument, expectedObj)
+
+			{
+				// Edge case with update where `fullDocument` is present, but it's null
+				rawMsg["fullDocument"] = nil
+				changeEvent, err = NewChangeEvent(rawMsg)
+				assert.NoError(t, err)
+				assert.NotNil(t, changeEvent.fullDocument)
+				assert.Equal(t, bson.M{"_id": objectID}, *changeEvent.fullDocument)
+			}
 		}
+
 	}
 	{
 		// Delete
