@@ -67,6 +67,7 @@ func NewChangeEvent(rawChangeEvent bson.M) (*ChangeEvent, error) {
 
 	fullDoc, isOk := rawChangeEvent["fullDocument"]
 	if isOk {
+		fmt.Println("rawChangeEvent", rawChangeEvent)
 		castedFullDocument, isOk := fullDoc.(bson.M)
 		if !isOk {
 			return nil, fmt.Errorf("expected fullDocument to be bson.M, got: %T", fullDoc)
