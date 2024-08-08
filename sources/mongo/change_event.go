@@ -71,6 +71,11 @@ func NewChangeEvent(rawChangeEvent bson.M) (*ChangeEvent, error) {
 		case bson.M:
 			changeEvent.fullDocument = &castedFullDoc
 		case nil:
+			// This may happen if:
+			// t0: Updated document A
+			// t1: Deleted document A
+			// t2: Looking up the after object for document A
+			// https://www.mongodb.com/community/forums/t/how-can-change-stream-update-operations-come-with-null-fulldocument-when-changestreamfulldocumentoption-updatelookup-was-used/2537/5
 			changeEvent.fullDocument = &bson.M{
 				"_id": objectID,
 			}
