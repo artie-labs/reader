@@ -2,8 +2,9 @@ package dynamo
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 )
 
 func NewMessageFromExport(item map[string]types.AttributeValue, keys []string, tableName string) (*Message, error) {
