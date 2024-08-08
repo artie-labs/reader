@@ -37,9 +37,10 @@ type MongoDB struct {
 }
 
 type Collection struct {
-	Name      string `yaml:"name"`
-	BatchSize int32  `yaml:"batchSize,omitempty"`
-	// TODO: In the future, we should be able to support customers passing Start/End PK values.
+	Name          string `yaml:"name"`
+	BatchSize     int32  `yaml:"batchSize,omitempty"`
+	StartObjectID string `yaml:"startObjectID,omitempty"`
+	EndObjectID   string `yaml:"endObjectID,omitempty"`
 }
 
 func (c Collection) TopicSuffix(db string) string {
