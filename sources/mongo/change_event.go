@@ -121,7 +121,7 @@ func (c ChangeEvent) ToMessage() (*Message, error) {
 		}
 
 		return msg, nil
-	case "update":
+	case "update", "replace":
 		fullDocument, err := c.getFullDocument()
 		if err != nil {
 			return nil, fmt.Errorf("failed to get fullDocument from change event: %v", c)
