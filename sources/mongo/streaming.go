@@ -39,7 +39,7 @@ func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.Mo
 	pipeline := mongo.Pipeline{
 		{{"$match", bson.D{
 			{"operationType", bson.D{
-				{"$in", bson.A{"insert", "update", "delete"}},
+				{"$in", bson.A{"insert", "update", "delete", "replace"}},
 			}},
 		}}},
 	}
