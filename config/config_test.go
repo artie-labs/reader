@@ -15,7 +15,6 @@ import (
 func dynamoDBCfg() *DynamoDB {
 	return &DynamoDB{
 		OffsetFile:         "offset.txt",
-		AwsRegion:          "us-east-1",
 		AwsAccessKeyID:     "key-id",
 		AwsSecretAccessKey: "secret-access-key",
 		StreamArn:          "arn:aws:dynamodb:us-east-1:123456789012:table/TableName/stream/2020-01-01T00:00:00.000",
