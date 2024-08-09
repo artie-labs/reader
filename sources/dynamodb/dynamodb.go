@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"time"
 
 	awsCfg "github.com/aws/aws-sdk-go-v2/config"
@@ -26,9 +27,13 @@ const (
 )
 
 func Load(ctx context.Context, cfg config.DynamoDB) (sources.Source, bool, error) {
-	// TODO: Parse `arn` to get the region.
+	parsedArn, err := arn.Parse(cfg.StreamArn)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to parse stream ARN: %w", err)
+	}
+
 	_awsCfg, err := awsCfg.LoadDefaultConfig(ctx,
-		awsCfg.WithRegion(cfg.AwsRegion),
+		awsCfg.WithRegion(parsedArn.Region),
 		awsCfg.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(cfg.AwsAccessKeyID, cfg.AwsSecretAccessKey, "")),
 	)
 

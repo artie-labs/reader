@@ -10,7 +10,6 @@ import (
 
 type DynamoDB struct {
 	OffsetFile         string `yaml:"offsetFile"`
-	AwsRegion          string `yaml:"awsRegion"`
 	AwsAccessKeyID     string `yaml:"awsAccessKeyId"`
 	AwsSecretAccessKey string `yaml:"awsSecretAccessKey"`
 	StreamArn          string `yaml:"streamArn"`
@@ -26,8 +25,8 @@ func (d *DynamoDB) Validate() error {
 		return fmt.Errorf("dynamodb config is nil")
 	}
 
-	if stringutil.Empty(d.OffsetFile, d.AwsRegion, d.AwsAccessKeyID, d.AwsSecretAccessKey, d.StreamArn, d.TableName) {
-		return fmt.Errorf("one of the dynamoDB configs is empty: offsetFile, awsRegion, awsAccessKeyID, awsSecretAccessKey, streamArn or tableName")
+	if stringutil.Empty(d.OffsetFile, d.AwsAccessKeyID, d.AwsSecretAccessKey, d.StreamArn, d.TableName) {
+		return fmt.Errorf("one of the dynamoDB configs is empty: offsetFile, awsAccessKeyID, awsSecretAccessKey, streamArn or tableName")
 	}
 
 	if d.Snapshot {
