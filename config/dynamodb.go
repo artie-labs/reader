@@ -9,15 +9,13 @@ import (
 )
 
 type DynamoDB struct {
-	OffsetFile         string `yaml:"offsetFile"`
-	AwsAccessKeyID     string `yaml:"awsAccessKeyId"`
-	AwsSecretAccessKey string `yaml:"awsSecretAccessKey"`
-	StreamArn          string `yaml:"streamArn"`
-	TableName          string `yaml:"tableName"`
-	MaxConcurrency     int64  `yaml:"__maxConcurrency"`
-
-	Snapshot         bool              `yaml:"snapshot"`
-	SnapshotSettings *SnapshotSettings `yaml:"snapshotSettings"`
+	OffsetFile         string            `yaml:"offsetFile"`
+	AwsAccessKeyID     string            `yaml:"awsAccessKeyId"`
+	AwsSecretAccessKey string            `yaml:"awsSecretAccessKey"`
+	StreamArn          string            `yaml:"streamArn"`
+	TableName          string            `yaml:"tableName"`
+	Snapshot           bool              `yaml:"snapshot"`
+	SnapshotSettings   *SnapshotSettings `yaml:"snapshotSettings"`
 }
 
 func (d *DynamoDB) Validate() error {
