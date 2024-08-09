@@ -4,9 +4,9 @@ import (
 	"cmp"
 	"context"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	awsCfg "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
