@@ -67,14 +67,6 @@ func (s *StreamStore) processShard(ctx context.Context, shard types.Shard, write
 		return
 	}
 
-	for !s.throttler.Allowed() {
-		slog.Warn("Throttler limit reached, waiting for a slot to open up...", slog.String("shardId", *shard.ShardId))
-		time.Sleep(1 * time.Second)
-	}
-
-	s.throttler.Start()
-	defer s.throttler.Done()
-
 	slog.Info("Processing shard...", slog.String("shardId", *shard.ShardId))
 
 	iteratorType := types.ShardIteratorTypeTrimHorizon
@@ -128,7 +120,6 @@ func (s *StreamStore) processShard(ctx context.Context, shard types.Shard, write
 			messages = append(messages, msg.RawMessage())
 		}
 
-		// TODO: Create an actual iterator over the shards that is passed to the writer.
 		if _, err = writer.Write(ctx, iterator.Once(messages)); err != nil {
 			logger.Panic("Failed to publish messages, exiting...", slog.Any("err", err))
 		}

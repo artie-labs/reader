@@ -15,7 +15,6 @@ func TestLoad(t *testing.T) {
 		AwsSecretAccessKey: "",
 		StreamArn:          "arn:aws:dynamodb:us-east-1:99999:table/ddb-test/stream/2024-04-26T00:54:24.794",
 		TableName:          "",
-		MaxConcurrency:     0,
 		Snapshot:           false,
 		SnapshotSettings:   nil,
 	}
