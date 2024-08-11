@@ -14,16 +14,18 @@ import (
 )
 
 type Message struct {
-	jsonExtendedString string
-	operation          string
-	pkMap              map[string]any
+	afterJsonExtendedString  string
+	beforeJSONExtendedString *string
+	operation                string
+	pkMap                    map[string]any
 }
 
 func (m *Message) ToRawMessage(collection config.Collection, database string) (lib.RawMessage, error) {
 	evt := &mongo.SchemaEventPayload{
 		Schema: debezium.Schema{},
 		Payload: mongo.Payload{
-			After: &m.jsonExtendedString,
+			After:  &m.afterJsonExtendedString,
+			Before: m.beforeJSONExtendedString,
 			Source: mongo.Source{
 				Database:   database,
 				Collection: collection.Name,
@@ -40,14 +42,14 @@ func (m *Message) ToRawMessage(collection config.Collection, database string) (l
 	return lib.NewRawMessage(collection.TopicSuffix(database), pkMap, evt), nil
 }
 
-func ParseMessage(result bson.M, op string) (*Message, error) {
-	bsonPk, isOk := result["_id"]
+func ParseMessage(after bson.M, op string) (*Message, error) {
+	bsonPk, isOk := after["_id"]
 	if !isOk {
-		return nil, fmt.Errorf("failed to get partition key, row: %v", result)
+		return nil, fmt.Errorf("failed to get partition key, row: %v", after)
 	}
 
 	// When canonical is enabled, it will emphasize type preservation
-	jsonExtendedBytes, err := bson.MarshalExtJSON(result, true, false)
+	afterRow, err := bson.MarshalExtJSON(after, true, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal document to JSON extended: %w", err)
 	}
@@ -62,7 +64,7 @@ func ParseMessage(result bson.M, op string) (*Message, error) {
 		idString = fmt.Sprintf("%d", castedPk)
 	default:
 		var jsonExtendedMap map[string]any
-		if err = json.Unmarshal(jsonExtendedBytes, &jsonExtendedMap); err != nil {
+		if err = json.Unmarshal(afterRow, &jsonExtendedMap); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal JSON extended to map: %w", err)
 		}
 
@@ -80,8 +82,8 @@ func ParseMessage(result bson.M, op string) (*Message, error) {
 	}
 
 	return &Message{
-		jsonExtendedString: string(jsonExtendedBytes),
-		operation:          op,
+		afterJsonExtendedString: string(afterRow),
+		operation:               op,
 		pkMap: map[string]any{
 			"id": idString,
 		},
