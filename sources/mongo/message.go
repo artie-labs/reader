@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/transfer/lib/cdc/mongo"
 	"github.com/artie-labs/transfer/lib/debezium"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+
+	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib"
+	"github.com/artie-labs/reader/lib/ptr"
 )
 
 type Message struct {
@@ -42,7 +44,7 @@ func (m *Message) ToRawMessage(collection config.Collection, database string) (l
 	return lib.NewRawMessage(collection.TopicSuffix(database), pkMap, evt), nil
 }
 
-func ParseMessage(after bson.M, op string) (*Message, error) {
+func ParseMessage(after bson.M, before *bson.M, op string) (*Message, error) {
 	bsonPk, isOk := after["_id"]
 	if !isOk {
 		return nil, fmt.Errorf("failed to get partition key, row: %v", after)
@@ -81,11 +83,22 @@ func ParseMessage(after bson.M, op string) (*Message, error) {
 		idString = string(pkBytes)
 	}
 
-	return &Message{
+	msg := &Message{
 		afterJsonExtendedString: string(afterRow),
 		operation:               op,
 		pkMap: map[string]any{
 			"id": idString,
 		},
-	}, nil
+	}
+
+	if before != nil {
+		beforeRow, err := bson.MarshalExtJSON(*before, true, false)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal document to JSON extended: %w", err)
+		}
+
+		msg.beforeJSONExtendedString = ptr.ToPtr(string(beforeRow))
+	}
+
+	return msg, nil
 }
