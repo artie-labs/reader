@@ -46,7 +46,7 @@ func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.Mo
 
 	// Setting `updateLookup` will emit the whole document for updates
 	// Ref: https://www.mongodb.com/docs/manual/reference/change-events/update/#description
-	opts := options.ChangeStream().SetFullDocument(options.UpdateLookup)
+	opts := options.ChangeStream().SetFullDocument(options.UpdateLookup).SetFullDocumentBeforeChange(options.WhenAvailable)
 
 	storage := persistedmap.NewPersistedMap(filePath)
 	if encodedResumeToken, exists := storage.Get(offsetKey); exists {

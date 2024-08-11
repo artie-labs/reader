@@ -28,12 +28,12 @@ type StreamingSettings struct {
 
 type MongoDB struct {
 	Host              string            `yaml:"host"`
-	Username          string            `yaml:"username"`
-	Password          string            `yaml:"password"`
+	Username          string            `yaml:"username,omitempty"`
+	Password          string            `yaml:"password,omitempty"`
 	Database          string            `yaml:"database"`
 	Collections       []Collection      `yaml:"collections"`
 	StreamingSettings StreamingSettings `yaml:"streamingSettings,omitempty"`
-	DisableTLS        bool              `yaml:"disableTLS"`
+	DisableTLS        bool              `yaml:"disableTLS,omitempty"`
 }
 
 type Collection struct {
@@ -57,7 +57,7 @@ func (m MongoDB) GetStreamingBatchSize() int32 {
 
 func (m MongoDB) Validate() error {
 	if stringutil.Empty(m.Host, m.Database) {
-		return fmt.Errorf("one of the MongoDB settings is empty: host, database")
+		return fmt.Errorf("one of the MongoDB settings is empty: host or database")
 	}
 
 	if len(m.Collections) == 0 {
