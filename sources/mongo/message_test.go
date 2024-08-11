@@ -20,7 +20,7 @@ func TestParseMessagePartitionKey(t *testing.T) {
 		// Primary key as object ID
 		objId, err := primitive.ObjectIDFromHex("507f1f77bcf86cd799439011")
 		assert.NoError(t, err)
-		msg, err := ParseMessage(bson.M{"_id": objId}, "r")
+		msg, err := ParseMessage(bson.M{"_id": objId}, nil, "r")
 		assert.NoError(t, err)
 		assert.Equal(t, `{"$oid":"507f1f77bcf86cd799439011"}`, msg.pkMap["id"])
 
@@ -37,14 +37,14 @@ func TestParseMessagePartitionKey(t *testing.T) {
 	}
 	{
 		// Primary key as string
-		msg, err := ParseMessage(bson.M{"_id": "hello world"}, "r")
+		msg, err := ParseMessage(bson.M{"_id": "hello world"}, nil, "r")
 		assert.NoError(t, err)
 		assert.Equal(t, "hello world", msg.pkMap["id"])
 	}
 	{
 		// Primary key as ints
 		for _, val := range []any{1001, int32(1002), int64(1003)} {
-			msg, err := ParseMessage(bson.M{"_id": val}, "r")
+			msg, err := ParseMessage(bson.M{"_id": val}, nil, "r")
 			assert.NoError(t, err)
 			assert.Equal(t, fmt.Sprint(val), msg.pkMap["id"])
 		}
@@ -78,7 +78,7 @@ func TestParseMessage(t *testing.T) {
 			"trueValue":  true,
 			"falseValue": false,
 			"nullValue":  nil,
-		}, "r")
+		}, nil, "r")
 	assert.NoError(t, err)
 
 	rawMsg, err := msg.ToRawMessage(config.Collection{}, "database")
