@@ -2,16 +2,15 @@ package mongo
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"log/slog"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 
 	"github.com/artie-labs/reader/config"
+	mongoLib "github.com/artie-labs/reader/lib/mongo"
 	"github.com/artie-labs/reader/writers"
 )
 
@@ -21,18 +20,8 @@ type Source struct {
 }
 
 func Load(cfg config.MongoDB) (*Source, bool, error) {
-	creds := options.Credential{
-		Username: cfg.Username,
-		Password: cfg.Password,
-	}
-
-	opts := options.Client().ApplyURI(cfg.Host).SetAuth(creds)
-	if !cfg.DisableTLS {
-		opts = opts.SetTLSConfig(&tls.Config{})
-	}
-
 	ctx := context.Background()
-	client, err := mongo.Connect(ctx, opts)
+	client, err := mongo.Connect(ctx, mongoLib.OptsFromConfig(cfg))
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to connect to MongoDB: %w", err)
 	}
