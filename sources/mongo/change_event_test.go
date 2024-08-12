@@ -55,7 +55,7 @@ func TestNewChangeEvent(t *testing.T) {
 		assert.Nil(t, msg.beforeJSONExtendedString)
 
 		var actualDoc bson.M
-		assert.NoError(t, bson.UnmarshalExtJSON([]byte(msg.afterJsonExtendedString), false, &actualDoc))
+		assert.NoError(t, bson.UnmarshalExtJSON([]byte(msg.afterJSONExtendedString), false, &actualDoc))
 		assert.Equal(t, fullDocument, actualDoc)
 	}
 	{
@@ -113,7 +113,7 @@ func TestNewChangeEvent(t *testing.T) {
 			assert.Equal(t, "u", msg.operation)
 
 			var expectedObj bson.M
-			assert.NoError(t, bson.UnmarshalExtJSON([]byte(msg.afterJsonExtendedString), false, &expectedObj))
+			assert.NoError(t, bson.UnmarshalExtJSON([]byte(msg.afterJSONExtendedString), false, &expectedObj))
 			assert.Equal(t, fullDocument, expectedObj)
 
 			{
@@ -191,7 +191,7 @@ func TestNewChangeEvent(t *testing.T) {
 			{
 				// Full Document
 				var actualDoc bson.M
-				assert.NoError(t, bson.UnmarshalExtJSON([]byte(msg.afterJsonExtendedString), false, &actualDoc))
+				assert.NoError(t, bson.UnmarshalExtJSON([]byte(msg.afterJSONExtendedString), false, &actualDoc))
 				assert.Equal(t, fullDocument, actualDoc)
 			}
 			{
@@ -247,7 +247,7 @@ func TestNewChangeEvent(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, map[string]interface{}{"id": `{"$oid":"66834270bd422bc9b54b2be6"}`}, msg.pkMap)
 		assert.Equal(t, "d", msg.operation)
-		assert.Equal(t, `{"_id":{"$oid":"66834270bd422bc9b54b2be6"}}`, msg.afterJsonExtendedString)
+		assert.Equal(t, `{"_id":{"$oid":"66834270bd422bc9b54b2be6"}}`, msg.afterJSONExtendedString)
 		assert.Nil(t, msg.beforeJSONExtendedString)
 	}
 	{
@@ -294,7 +294,7 @@ func TestNewChangeEvent(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, map[string]interface{}{"id": `{"$oid":"66834270bd422bc9b54b2be6"}`}, msg.pkMap)
 		assert.Equal(t, "d", msg.operation)
-		assert.Equal(t, `{"_id":{"$oid":"66834270bd422bc9b54b2be6"}}`, msg.afterJsonExtendedString)
+		assert.Equal(t, `{"_id":{"$oid":"66834270bd422bc9b54b2be6"}}`, msg.afterJSONExtendedString)
 
 		var actualBeforeDoc bson.M
 		assert.NoError(t, bson.UnmarshalExtJSON([]byte(*msg.beforeJSONExtendedString), false, &actualBeforeDoc))

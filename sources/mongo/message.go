@@ -16,7 +16,7 @@ import (
 )
 
 type Message struct {
-	afterJsonExtendedString  string
+	afterJSONExtendedString  string
 	beforeJSONExtendedString *string
 	operation                string
 	pkMap                    map[string]any
@@ -26,7 +26,7 @@ func (m *Message) ToRawMessage(collection config.Collection, database string) (l
 	evt := &mongo.SchemaEventPayload{
 		Schema: debezium.Schema{},
 		Payload: mongo.Payload{
-			After:  &m.afterJsonExtendedString,
+			After:  &m.afterJSONExtendedString,
 			Before: m.beforeJSONExtendedString,
 			Source: mongo.Source{
 				Database:   database,
@@ -84,7 +84,7 @@ func ParseMessage(after bson.M, before *bson.M, op string) (*Message, error) {
 	}
 
 	msg := &Message{
-		afterJsonExtendedString: string(afterRow),
+		afterJSONExtendedString: string(afterRow),
 		operation:               op,
 		pkMap: map[string]any{
 			"id": idString,
