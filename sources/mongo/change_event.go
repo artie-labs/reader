@@ -11,6 +11,8 @@ type ChangeEvent struct {
 	objectID      any
 
 	fullDocument *bson.M
+	// fullDocumentBeforeChange (optional) is only present if the db + collection enabled `changeStreamPreAndPostImages`
+	fullDocumentBeforeChange *bson.M
 }
 
 func NewChangeEvent(rawChangeEvent bson.M) (*ChangeEvent, error) {
@@ -84,6 +86,16 @@ func NewChangeEvent(rawChangeEvent bson.M) (*ChangeEvent, error) {
 		}
 	}
 
+	fullDocumentBeforeChange, isOk := rawChangeEvent["fullDocumentBeforeChange"]
+	if isOk {
+		castedFullDocumentBeforeChange, isOk := fullDocumentBeforeChange.(bson.M)
+		if !isOk {
+			return nil, fmt.Errorf("expected fullDocumentBeforeChange to be bson.M, got: %T", fullDocumentBeforeChange)
+		}
+
+		changeEvent.fullDocumentBeforeChange = &castedFullDocumentBeforeChange
+	}
+
 	return changeEvent, nil
 }
 
@@ -102,8 +114,7 @@ func (c ChangeEvent) getFullDocument() (bson.M, error) {
 func (c ChangeEvent) ToMessage() (*Message, error) {
 	switch c.operationType {
 	case "delete":
-		// TODO: Think about providing the `before` row for a deleted event.
-		msg, err := ParseMessage(bson.M{"_id": c.objectID}, "d")
+		msg, err := ParseMessage(bson.M{"_id": c.objectID}, c.fullDocumentBeforeChange, "d")
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse message: %w", err)
 		}
@@ -115,7 +126,7 @@ func (c ChangeEvent) ToMessage() (*Message, error) {
 			return nil, fmt.Errorf("failed to get fullDocument from change event: %v", c)
 		}
 
-		msg, err := ParseMessage(fullDocument, "c")
+		msg, err := ParseMessage(fullDocument, nil, "c")
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse message: %w", err)
 		}
@@ -127,7 +138,7 @@ func (c ChangeEvent) ToMessage() (*Message, error) {
 			return nil, fmt.Errorf("failed to get fullDocument from change event: %v", c)
 		}
 
-		msg, err := ParseMessage(fullDocument, "u")
+		msg, err := ParseMessage(fullDocument, c.fullDocumentBeforeChange, "u")
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse message: %w", err)
 		}
