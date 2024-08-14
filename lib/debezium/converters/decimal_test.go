@@ -78,7 +78,7 @@ func TestVariableNumericConverter_Convert(t *testing.T) {
 	{
 		// Wrong type
 		_, err := converter.Convert(1234)
-		assert.ErrorContains(t, err, "expected string got int with value: 1234")
+		assert.ErrorContains(t, err, "expected type string, got int")
 	}
 	{
 		// Malformed value - empty string.
