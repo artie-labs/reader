@@ -4,7 +4,7 @@ go 1.22.4
 
 require (
 	github.com/DataDog/datadog-go/v5 v5.5.0
-	github.com/artie-labs/transfer v1.26.5
+	github.com/artie-labs/transfer v1.26.8
 	github.com/aws/aws-sdk-go-v2 v1.30.3
 	github.com/aws/aws-sdk-go-v2/config v1.27.27
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.27
@@ -63,7 +63,7 @@ require (
 	github.com/aws/smithy-go v1.20.3 // indirect
 	github.com/danieljoos/wincred v1.2.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/dvsekhvalnov/jose2go v1.7.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/francoispqt/gojay v1.2.13 // indirect
@@ -96,7 +96,7 @@ require (
 	github.com/lestrrat-go/blackmagic v1.0.2 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/iter v1.0.2 // indirect
-	github.com/lestrrat-go/jwx v1.2.29 // indirect
+	github.com/lestrrat-go/jwx v1.2.30 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
@@ -111,7 +111,7 @@ require (
 	github.com/snowflakedb/gosnowflake v1.11.0 // indirect
 	github.com/twpayne/go-geom v1.5.3 // indirect
 	github.com/viant/afs v1.16.1-0.20220601210902-dc23d64dda15 // indirect
-	github.com/viant/bigquery v0.2.1-0.20230129024722-24ed6fd5555f // indirect
+	github.com/viant/bigquery v0.3.3 // indirect
 	github.com/viant/parsly v0.0.0-20220907184615-a27c125714a1 // indirect
 	github.com/viant/scy v0.3.2-0.20220825213848-acc5c59cde78 // indirect
 	github.com/viant/toolbox v0.34.5 // indirect

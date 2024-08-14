@@ -4,17 +4,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+
+	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 )
-
-func assertType[T any](val any) (T, error) {
-	castedVal, isOk := val.(T)
-	if !isOk {
-		var zero T
-		return zero, fmt.Errorf("expected type %T, got %T", zero, val)
-	}
-	return castedVal, nil
-}
 
 type exportedPayload struct {
 	Item map[string]map[string]any `json:"Item"`
@@ -46,21 +39,21 @@ func convertToAttributeValue(value map[string]any) (types.AttributeValue, error)
 	for key, val := range value {
 		switch key {
 		case "S":
-			castedVal, err := assertType[string](val)
+			castedVal, err := typing.AssertType[string](val)
 			if err != nil {
 				return nil, err
 			}
 
 			return &types.AttributeValueMemberS{Value: castedVal}, nil
 		case "N":
-			castedVal, err := assertType[string](val)
+			castedVal, err := typing.AssertType[string](val)
 			if err != nil {
 				return nil, err
 			}
 
 			return &types.AttributeValueMemberN{Value: castedVal}, nil
 		case "B":
-			castedVal, err := assertType[string](val)
+			castedVal, err := typing.AssertType[string](val)
 			if err != nil {
 				return nil, err
 			}
@@ -79,7 +72,7 @@ func convertToAttributeValue(value map[string]any) (types.AttributeValue, error)
 
 			ss := make([]string, len(listVal))
 			for i, v := range listVal {
-				castedValue, err := assertType[string](v)
+				castedValue, err := typing.AssertType[string](v)
 				if err != nil {
 					return nil, fmt.Errorf("failed to convert list value: %w", err)
 				}
@@ -94,7 +87,7 @@ func convertToAttributeValue(value map[string]any) (types.AttributeValue, error)
 
 			ns := make([]string, len(listVal))
 			for i, v := range listVal {
-				castedValue, err := assertType[string](v)
+				castedValue, err := typing.AssertType[string](v)
 				if err != nil {
 					return nil, fmt.Errorf("failed to convert list value: %w", err)
 				}
@@ -111,7 +104,7 @@ func convertToAttributeValue(value map[string]any) (types.AttributeValue, error)
 
 			bs := make([][]byte, len(listVal))
 			for i, v := range listVal {
-				castedValue, err := assertType[string](v)
+				castedValue, err := typing.AssertType[string](v)
 				if err != nil {
 					return nil, fmt.Errorf("failed to convert list value: %w", err)
 				}
@@ -126,14 +119,14 @@ func convertToAttributeValue(value map[string]any) (types.AttributeValue, error)
 
 			return &types.AttributeValueMemberBS{Value: bs}, nil
 		case "BOOL":
-			castedVal, err := assertType[bool](val)
+			castedVal, err := typing.AssertType[bool](val)
 			if err != nil {
 				return nil, err
 			}
 
 			return &types.AttributeValueMemberBOOL{Value: castedVal}, nil
 		case "NULL":
-			castedVal, err := assertType[bool](val)
+			castedVal, err := typing.AssertType[bool](val)
 			if err != nil {
 				return nil, err
 			}
