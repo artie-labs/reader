@@ -2,6 +2,7 @@ package converters
 
 import (
 	"fmt"
+	"github.com/artie-labs/transfer/lib/typing"
 
 	"github.com/artie-labs/transfer/lib/debezium"
 )
@@ -17,11 +18,12 @@ func (BooleanPassthrough) ToField(name string) debezium.Field {
 }
 
 func (BooleanPassthrough) Convert(value any) (any, error) {
-	boolValue, isOk := value.(bool)
-	if isOk {
-		return boolValue, nil
+	boolVal, err := typing.AssertType[bool](value)
+	if err != nil {
+		return nil, err
 	}
-	return nil, fmt.Errorf("expected bool got %T with value: %v", value, value)
+
+	return boolVal, nil
 }
 
 // int16, int32, int64 -> int16
@@ -115,11 +117,12 @@ func (StringPassthrough) ToField(name string) debezium.Field {
 }
 
 func (StringPassthrough) Convert(value any) (any, error) {
-	castValue, isOk := value.(string)
-	if isOk {
-		return castValue, nil
+	castedValue, err := typing.AssertType[string](value)
+	if err != nil {
+		return nil, err
 	}
-	return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
+
+	return castedValue, nil
 }
 
 // bytes -> bytes

@@ -2,8 +2,8 @@ package converters
 
 import (
 	"fmt"
-
 	"github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/cockroachdb/apd/v3"
 )
 
@@ -34,9 +34,9 @@ func (d decimalConverter) ToField(name string) debezium.Field {
 }
 
 func (d decimalConverter) Convert(value any) (any, error) {
-	stringValue, isOk := value.(string)
-	if !isOk {
-		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
+	stringValue, err := typing.AssertType[string](value)
+	if err != nil {
+		return nil, err
 	}
 
 	decimal, _, err := apd.NewFromString(stringValue)
@@ -58,9 +58,9 @@ func (VariableNumericConverter) ToField(name string) debezium.Field {
 }
 
 func (VariableNumericConverter) Convert(value any) (any, error) {
-	stringValue, ok := value.(string)
-	if !ok {
-		return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
+	stringValue, err := typing.AssertType[string](value)
+	if err != nil {
+		return nil, err
 	}
 
 	decimal, _, err := apd.NewFromString(stringValue)

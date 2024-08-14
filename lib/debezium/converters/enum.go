@@ -1,9 +1,8 @@
 package converters
 
 import (
-	"fmt"
-
 	"github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/typing"
 )
 
 type EnumConverter struct{}
@@ -17,11 +16,12 @@ func (EnumConverter) ToField(name string) debezium.Field {
 }
 
 func (EnumConverter) Convert(value any) (any, error) {
-	castValue, isOk := value.(string)
-	if isOk {
-		return castValue, nil
+	castedValue, err := typing.AssertType[string](value)
+	if err != nil {
+		return nil, err
 	}
-	return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
+
+	return castedValue, nil
 }
 
 type EnumSetConverter struct{}
@@ -35,9 +35,10 @@ func (EnumSetConverter) ToField(name string) debezium.Field {
 }
 
 func (EnumSetConverter) Convert(value any) (any, error) {
-	castValue, isOk := value.(string)
-	if isOk {
-		return castValue, nil
+	castedValue, err := typing.AssertType[string](value)
+	if err != nil {
+		return nil, err
 	}
-	return nil, fmt.Errorf("expected string got %T with value: %v", value, value)
+
+	return castedValue, nil
 }
