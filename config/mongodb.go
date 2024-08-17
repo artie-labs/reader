@@ -34,6 +34,10 @@ type MongoDB struct {
 	Collections       []Collection      `yaml:"collections"`
 	StreamingSettings StreamingSettings `yaml:"streamingSettings,omitempty"`
 	DisableTLS        bool              `yaml:"disableTLS,omitempty"`
+
+	// DisableFullDocumentBeforeChange - This is relevant if you're connecting to Document DB.
+	// BSON field '$changeStream.fullDocumentBeforeChange' is an unknown field.
+	DisableFullDocumentBeforeChange bool `yaml:"disableFullDocumentBeforeChange,omitempty"`
 }
 
 type Collection struct {
