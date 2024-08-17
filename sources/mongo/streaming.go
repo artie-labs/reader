@@ -50,9 +50,8 @@ func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.Mo
 		SetFullDocument(options.UpdateLookup)
 
 	if !cfg.DisableFullDocumentBeforeChange {
-		opts = opts.
-			// FullDocumentBeforeChange will kick in if the db + collection enabled `changeStreamPreAndPostImages`
-			SetFullDocumentBeforeChange(options.WhenAvailable)
+		// FullDocumentBeforeChange will kick in if the db + collection enabled `changeStreamPreAndPostImages`
+		opts = opts.SetFullDocumentBeforeChange(options.WhenAvailable)
 	}
 
 	storage := persistedmap.NewPersistedMap(filePath)
