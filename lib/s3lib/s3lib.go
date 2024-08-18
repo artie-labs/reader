@@ -49,11 +49,7 @@ func (s *S3Client) ListFiles(ctx context.Context, fp string) ([]S3File, error) {
 	}
 
 	var files []S3File
-	paginator := s3.NewListObjectsV2Paginator(s.client, &s3.ListObjectsV2Input{
-		Bucket: bucket,
-		Prefix: prefix,
-	})
-
+	paginator := s3.NewListObjectsV2Paginator(s.client, &s3.ListObjectsV2Input{Bucket: bucket, Prefix: prefix})
 	for paginator.HasMorePages() {
 		page, err := paginator.NextPage(ctx)
 		if err != nil {
@@ -72,10 +68,19 @@ func (s *S3Client) ListFiles(ctx context.Context, fp string) ([]S3File, error) {
 // StreamJsonGzipFile - will take a S3 File that is in `json.gz` format from DynamoDB's export to S3
 // It's not a typical JSON file in that it is compressed and it's new line delimited via separated via an array
 // Which means we can stream this file row by row to not OOM.
-func (s *S3Client) StreamJsonGzipFile(ctx context.Context, file S3File, ch chan<- map[string]types.AttributeValue) error {
-	const maxBufferSize = 1024 * 1024 // 1 MB or adjust as needed
-
+func (s *S3Client) StreamJsonGzipFile(ctx context.Context, files []S3File, ch chan<- map[string]types.AttributeValue) error {
 	defer close(ch)
+	for _, file := range files {
+		if err := s.streamJsonGzipFile(ctx, file, ch); err != nil {
+			return fmt.Errorf("failed to read s3: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (s *S3Client) streamJsonGzipFile(ctx context.Context, file S3File, ch chan<- map[string]types.AttributeValue) error {
+	const maxBufferSize = 1024 * 1024
 	result, err := s.client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: s.bucketName,
 		Key:    file.Key,
