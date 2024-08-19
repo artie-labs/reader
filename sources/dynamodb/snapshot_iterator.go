@@ -37,7 +37,7 @@ func (s *SnapshotIterator) Next() ([]lib.RawMessage, error) {
 		}
 
 		msgs = append(msgs, dynamoMsg.RawMessage())
-		if s.batchSize > int32(len(msgs)) {
+		if int32(len(msgs)) >= s.batchSize {
 			return msgs, nil
 		}
 	}
