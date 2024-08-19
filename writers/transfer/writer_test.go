@@ -1,16 +1,14 @@
 package transfer
 
 import (
+	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/mongo"
-	"testing"
-
 	transferCfg "github.com/artie-labs/transfer/lib/config"
 	"github.com/artie-labs/transfer/lib/kafkalib"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-
-	"github.com/artie-labs/reader/config"
+	"testing"
 )
 
 func TestWriter_MessageToEvent(t *testing.T) {
