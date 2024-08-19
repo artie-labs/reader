@@ -14,7 +14,7 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/iterator"
-	"github.com/artie-labs/reader/lib/persistedmap"
+	"github.com/artie-labs/reader/lib/storage/persistedmap"
 )
 
 const offsetKey = "offset"
