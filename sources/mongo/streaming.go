@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/artie-labs/reader/lib/storage/persistedmap"
 	"log/slog"
 	"time"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/iterator"
-	"github.com/artie-labs/reader/lib/persistedmap"
 )
 
 const offsetKey = "offset"
