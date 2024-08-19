@@ -65,10 +65,7 @@ func (s *S3Client) ListFiles(ctx context.Context, fp string) ([]S3File, error) {
 	return files, nil
 }
 
-// StreamJsonGzipFile - will take a S3 File that is in `json.gz` format from DynamoDB's export to S3
-// It's not a typical JSON file in that it is compressed and it's new line delimited via separated via an array
-// Which means we can stream this file row by row to not OOM.
-func (s *S3Client) StreamJsonGzipFile(ctx context.Context, files []S3File, ch chan<- map[string]types.AttributeValue) error {
+func (s *S3Client) StreamJsonGzipFiles(ctx context.Context, files []S3File, ch chan<- map[string]types.AttributeValue) error {
 	defer close(ch)
 	for _, file := range files {
 		if err := s.streamJsonGzipFile(ctx, file, ch); err != nil {

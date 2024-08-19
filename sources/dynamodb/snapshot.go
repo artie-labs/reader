@@ -40,7 +40,7 @@ func (s *SnapshotStore) Run(ctx context.Context, writer writers.Writer) error {
 
 	ch := make(chan map[string]types.AttributeValue)
 	go func() {
-		if err = s.s3Client.StreamJsonGzipFile(ctx, s.cfg.SnapshotSettings.SpecifiedFiles, ch); err != nil {
+		if err = s.s3Client.StreamJsonGzipFiles(ctx, s.cfg.SnapshotSettings.SpecifiedFiles, ch); err != nil {
 			logger.Panic("Failed to read file", slog.Any("err", err))
 		}
 	}()
