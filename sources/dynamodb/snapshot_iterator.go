@@ -25,7 +25,7 @@ func NewSnapshotIterator(ch chan map[string]types.AttributeValue, keys []string,
 }
 
 func (s *SnapshotIterator) HasNext() bool {
-	return s.done
+	return !s.done
 }
 
 func (s *SnapshotIterator) Next() ([]lib.RawMessage, error) {
