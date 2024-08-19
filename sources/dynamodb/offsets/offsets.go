@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/artie-labs/reader/lib/ttlmap"
+	"github.com/artie-labs/reader/lib/storage/ttlmap"
 )
 
 // ShardExpirationAndBuffer - Buffer for when a shard is closed as the records have a TTL of 24h. However, garbage collection is async.

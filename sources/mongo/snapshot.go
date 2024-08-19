@@ -3,13 +3,16 @@ package mongo
 import (
 	"context"
 	"fmt"
-	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib"
-	"github.com/artie-labs/reader/lib/iterator"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib"
+	"github.com/artie-labs/reader/lib/iterator"
+	mongoLib "github.com/artie-labs/reader/lib/mongo"
 )
 
 type snapshotIterator struct {
@@ -79,7 +82,7 @@ func (s *snapshotIterator) Next() ([]lib.RawMessage, error) {
 			return nil, fmt.Errorf("failed to decode document: %w", err)
 		}
 
-		mgoMsg, err := ParseMessage(result, nil, "r")
+		mgoMsg, err := mongoLib.ParseMessage(result, nil, "r")
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse message: %w", err)
 		}

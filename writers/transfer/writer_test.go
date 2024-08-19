@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/sources/mongo"
+	"github.com/artie-labs/reader/lib/mongo"
 )
 
 func TestWriter_MessageToEvent(t *testing.T) {

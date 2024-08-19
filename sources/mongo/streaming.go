@@ -14,7 +14,8 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/iterator"
-	"github.com/artie-labs/reader/lib/persistedmap"
+	mongoLib "github.com/artie-labs/reader/lib/mongo"
+	"github.com/artie-labs/reader/lib/storage/persistedmap"
 )
 
 const offsetKey = "offset"
@@ -47,9 +48,12 @@ func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.Mo
 	opts := options.ChangeStream().
 		// Setting `updateLookup` will emit the whole document for updates
 		// Ref: https://www.mongodb.com/docs/manual/reference/change-events/update/#description
-		SetFullDocument(options.UpdateLookup).
+		SetFullDocument(options.UpdateLookup)
+
+	if !cfg.DisableFullDocumentBeforeChange {
 		// FullDocumentBeforeChange will kick in if the db + collection enabled `changeStreamPreAndPostImages`
-		SetFullDocumentBeforeChange(options.WhenAvailable)
+		opts = opts.SetFullDocumentBeforeChange(options.WhenAvailable)
+	}
 
 	storage := persistedmap.NewPersistedMap(filePath)
 	if encodedResumeToken, exists := storage.Get(offsetKey); exists {
@@ -105,7 +109,7 @@ func (s *streaming) Next() ([]lib.RawMessage, error) {
 			return nil, fmt.Errorf("failed to decode change event: %w", err)
 		}
 
-		changeEvent, err := NewChangeEvent(rawChangeEvent)
+		changeEvent, err := mongoLib.NewChangeEvent(rawChangeEvent)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse change event: %w", err)
 		}
