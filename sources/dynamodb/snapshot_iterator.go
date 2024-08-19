@@ -24,11 +24,11 @@ func NewSnapshotIterator(ch chan map[string]types.AttributeValue, keys []string,
 	}
 }
 
-func (s SnapshotIterator) HasNext() bool {
+func (s *SnapshotIterator) HasNext() bool {
 	return s.done
 }
 
-func (s SnapshotIterator) Next() ([]lib.RawMessage, error) {
+func (s *SnapshotIterator) Next() ([]lib.RawMessage, error) {
 	var msgs []lib.RawMessage
 	for msg := range s.ch {
 		dynamoMsg, err := dynamo.NewMessageFromExport(msg, s.keys, s.tableName)
