@@ -1,6 +1,7 @@
 package transfer
 
 import (
+	"github.com/artie-labs/reader/lib/mongo"
 	"testing"
 
 	transferCfg "github.com/artie-labs/transfer/lib/config"
@@ -10,7 +11,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/sources/mongo"
 )
 
 func TestWriter_MessageToEvent(t *testing.T) {
