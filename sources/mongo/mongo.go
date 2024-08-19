@@ -19,8 +19,7 @@ type Source struct {
 	db  *mongo.Database
 }
 
-func Load(cfg config.MongoDB) (*Source, bool, error) {
-	ctx := context.Background()
+func Load(ctx context.Context, cfg config.MongoDB) (*Source, bool, error) {
 	client, err := mongo.Connect(ctx, mongoLib.OptsFromConfig(cfg))
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to connect to MongoDB: %w", err)
@@ -30,11 +29,7 @@ func Load(cfg config.MongoDB) (*Source, bool, error) {
 		return nil, false, fmt.Errorf("failed to ping MongoDB: %w", err)
 	}
 
-	db := client.Database(cfg.Database)
-	return &Source{
-		cfg: cfg,
-		db:  db,
-	}, cfg.StreamingSettings.Enabled, nil
+	return &Source{cfg: cfg, db: client.Database(cfg.Database)}, cfg.StreamingSettings.Enabled, nil
 }
 
 func (s *Source) Close() error {

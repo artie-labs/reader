@@ -42,7 +42,7 @@ func buildSource(ctx context.Context, cfg *config.Settings) (sources.Source, boo
 	case config.SourceDynamo:
 		source, isStreamingMode, err = dynamodb.Load(ctx, *cfg.DynamoDB)
 	case config.SourceMongoDB:
-		return mongo.Load(*cfg.MongoDB)
+		return mongo.Load(ctx, *cfg.MongoDB)
 	case config.SourceMSSQL:
 		source, err = mssql.Load(*cfg.MSSQL)
 	case config.SourceMySQL:

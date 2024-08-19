@@ -14,6 +14,7 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/iterator"
+	mongoLib "github.com/artie-labs/reader/lib/mongo"
 	"github.com/artie-labs/reader/lib/storage/persistedmap"
 )
 
@@ -108,7 +109,7 @@ func (s *streaming) Next() ([]lib.RawMessage, error) {
 			return nil, fmt.Errorf("failed to decode change event: %w", err)
 		}
 
-		changeEvent, err := NewChangeEvent(rawChangeEvent)
+		changeEvent, err := mongoLib.NewChangeEvent(rawChangeEvent)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse change event: %w", err)
 		}
