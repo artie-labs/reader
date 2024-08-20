@@ -106,6 +106,10 @@ func (m *Message) artieMessage() *util.SchemaEventPayload {
 	if len(m.afterSchema) > 0 {
 		var fields []debezium.Field
 		for colName, fieldType := range m.afterSchema {
+			if fieldType == "" {
+				continue
+			}
+			
 			fields = append(fields, debezium.Field{
 				Type:      fieldType,
 				Optional:  true,
