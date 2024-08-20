@@ -109,7 +109,7 @@ func (m *Message) artieMessage() *util.SchemaEventPayload {
 			if fieldType == "" {
 				continue
 			}
-			
+
 			fields = append(fields, debezium.Field{
 				Type:      fieldType,
 				Optional:  true,
