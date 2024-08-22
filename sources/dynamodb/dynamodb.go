@@ -3,13 +3,15 @@ package dynamodb
 import (
 	"context"
 	"fmt"
+
+	"github.com/aws/aws-sdk-go-v2/aws/arn"
+	awsCfg "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/sources"
 	"github.com/artie-labs/reader/sources/dynamodb/snapshot"
 	"github.com/artie-labs/reader/sources/dynamodb/stream"
-	"github.com/aws/aws-sdk-go-v2/aws/arn"
-	awsCfg "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
 )
 
 func Load(ctx context.Context, cfg config.DynamoDB) (sources.Source, bool, error) {

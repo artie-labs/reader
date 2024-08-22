@@ -6,12 +6,13 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/sources/dynamodb/offsets"
-	"github.com/artie-labs/reader/writers"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
+
+	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/sources/dynamodb/offsets"
+	"github.com/artie-labs/reader/writers"
 )
 
 const (

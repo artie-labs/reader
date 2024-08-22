@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 )
 
-type SnapshotIterator struct {
+type Iterator struct {
 	ch        chan map[string]types.AttributeValue
 	keys      []string
 	tableName string
@@ -15,8 +15,8 @@ type SnapshotIterator struct {
 	done      bool
 }
 
-func NewSnapshotIterator(ch chan map[string]types.AttributeValue, keys []string, tblName string, batchSize int32) *SnapshotIterator {
-	return &SnapshotIterator{
+func NewSnapshotIterator(ch chan map[string]types.AttributeValue, keys []string, tblName string, batchSize int32) *Iterator {
+	return &Iterator{
 		ch:        ch,
 		keys:      keys,
 		tableName: tblName,
@@ -24,11 +24,11 @@ func NewSnapshotIterator(ch chan map[string]types.AttributeValue, keys []string,
 	}
 }
 
-func (s *SnapshotIterator) HasNext() bool {
+func (s *Iterator) HasNext() bool {
 	return !s.done
 }
 
-func (s *SnapshotIterator) Next() ([]lib.RawMessage, error) {
+func (s *Iterator) Next() ([]lib.RawMessage, error) {
 	var msgs []lib.RawMessage
 	for msg := range s.ch {
 		dynamoMsg, err := dynamo.NewMessageFromExport(msg, s.keys, s.tableName)

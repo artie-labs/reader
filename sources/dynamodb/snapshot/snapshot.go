@@ -3,15 +3,15 @@ package snapshot
 import (
 	"context"
 	"fmt"
-	"github.com/artie-labs/reader/lib/dynamo"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"log/slog"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/dynamo"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/s3lib"
 	"github.com/artie-labs/reader/writers"
