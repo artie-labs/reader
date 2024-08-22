@@ -1,19 +1,13 @@
-package dynamodb
+package dynamo
 
 import (
 	"context"
 	"fmt"
-
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
-// retrievePrimaryKeys - This function is called when we process the DynamoDB table snapshot.
-// This is because the snapshot is a JSON file, and it does not contain which are the partition and sort keys.
-func (s *SnapshotStore) retrievePrimaryKeys(ctx context.Context) ([]string, error) {
-	output, err := s.dynamoDBClient.DescribeTable(ctx, &dynamodb.DescribeTableInput{
-		TableName: &s.tableName,
-	})
-
+func RetrievePrimaryKeys(ctx context.Context, client *dynamodb.Client, tableName string) ([]string, error) {
+	output, err := client.DescribeTable(ctx, &dynamodb.DescribeTableInput{TableName: &tableName})
 	if err != nil {
 		return nil, err
 	}

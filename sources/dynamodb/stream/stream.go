@@ -1,4 +1,4 @@
-package dynamodb
+package stream
 
 import (
 	"context"
@@ -14,7 +14,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 )
 
-type StreamStore struct {
+const (
+	jitterSleepBaseMs    = 100
+	shardScannerInterval = 5 * time.Minute
+)
+
+type Store struct {
 	tableName string
 	streamArn string
 	cfg       *config.DynamoDB
@@ -24,11 +29,22 @@ type StreamStore struct {
 	shardChan chan types.Shard
 }
 
-func (s *StreamStore) Close() error {
+func NewStore(cfg config.DynamoDB, awsCfg aws.Config) *Store {
+	return &Store{
+		tableName: cfg.TableName,
+		streamArn: cfg.StreamArn,
+		cfg:       &cfg,
+		streams:   dynamodbstreams.NewFromConfig(awsCfg),
+		storage:   offsets.NewStorage(cfg.OffsetFile, nil, nil),
+		shardChan: make(chan types.Shard),
+	}
+}
+
+func (s *Store) Close() error {
 	return nil
 }
 
-func (s *StreamStore) Run(ctx context.Context, writer writers.Writer) error {
+func (s *Store) Run(ctx context.Context, writer writers.Writer) error {
 	ticker := time.NewTicker(shardScannerInterval)
 
 	// Start to subscribe to the channel
@@ -53,7 +69,7 @@ func (s *StreamStore) Run(ctx context.Context, writer writers.Writer) error {
 	}
 }
 
-func (s *StreamStore) scanForNewShards(ctx context.Context) error {
+func (s *Store) scanForNewShards(ctx context.Context) error {
 	var exclusiveStartShardId *string
 	for {
 		input := &dynamodbstreams.DescribeStreamInput{
