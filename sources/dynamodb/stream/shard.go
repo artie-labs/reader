@@ -1,4 +1,4 @@
-package dynamodb
+package stream
 
 import (
 	"context"
@@ -20,13 +20,13 @@ import (
 
 const maxNumErrs = 25
 
-func (s *StreamStore) ListenToChannel(ctx context.Context, writer writers.Writer) {
+func (s *Store) ListenToChannel(ctx context.Context, writer writers.Writer) {
 	for shard := range s.shardChan {
 		go s.processShard(ctx, shard, writer, 0)
 	}
 }
 
-func (s *StreamStore) reprocessShard(ctx context.Context, shard types.Shard, writer writers.Writer, numErrs int, err error) {
+func (s *Store) reprocessShard(ctx context.Context, shard types.Shard, writer writers.Writer, numErrs int, err error) {
 	if numErrs > maxNumErrs {
 		logger.Panic(fmt.Sprintf("Failed to process shard: %s and the max number of attempts have been reached", *shard.ShardId), err)
 	}
@@ -43,7 +43,7 @@ func (s *StreamStore) reprocessShard(ctx context.Context, shard types.Shard, wri
 	s.processShard(ctx, shard, writer, numErrs+1)
 }
 
-func (s *StreamStore) processShard(ctx context.Context, shard types.Shard, writer writers.Writer, numErrs int) {
+func (s *Store) processShard(ctx context.Context, shard types.Shard, writer writers.Writer, numErrs int) {
 	// Is there another go-routine processing this shard?
 	if s.storage.GetShardProcessing(*shard.ShardId) {
 		return

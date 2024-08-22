@@ -1,4 +1,4 @@
-package dynamodb
+package snapshot
 
 import (
 	"context"
@@ -6,16 +6,18 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/dynamo"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/s3lib"
 	"github.com/artie-labs/reader/writers"
 )
 
-type SnapshotStore struct {
+type Store struct {
 	tableName      string
 	streamArn      string
 	cfg            *config.DynamoDB
@@ -23,17 +25,27 @@ type SnapshotStore struct {
 	dynamoDBClient *dynamodb.Client
 }
 
-func (s *SnapshotStore) Close() error {
+func NewStore(cfg config.DynamoDB, awsCfg aws.Config) *Store {
+	return &Store{
+		tableName:      cfg.TableName,
+		streamArn:      cfg.StreamArn,
+		cfg:            &cfg,
+		s3Client:       s3lib.NewClient(cfg.SnapshotSettings.S3Bucket, awsCfg),
+		dynamoDBClient: dynamodb.NewFromConfig(awsCfg),
+	}
+}
+
+func (s *Store) Close() error {
 	return nil
 }
 
-func (s *SnapshotStore) Run(ctx context.Context, writer writers.Writer) error {
+func (s *Store) Run(ctx context.Context, writer writers.Writer) error {
 	start := time.Now()
 	if err := s.scanFilesOverBucket(ctx); err != nil {
 		return fmt.Errorf("scanning files over bucket failed: %w", err)
 	}
 
-	keys, err := s.retrievePrimaryKeys(ctx)
+	keys, err := dynamo.RetrievePrimaryKeys(ctx, s.dynamoDBClient, s.tableName)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve primary keys: %w", err)
 	}
@@ -58,7 +70,7 @@ func (s *SnapshotStore) Run(ctx context.Context, writer writers.Writer) error {
 	return nil
 }
 
-func (s *SnapshotStore) scanFilesOverBucket(ctx context.Context) error {
+func (s *Store) scanFilesOverBucket(ctx context.Context) error {
 	if len(s.cfg.SnapshotSettings.SpecifiedFiles) > 0 {
 		// Don't scan because you are already specifying files
 		return nil
