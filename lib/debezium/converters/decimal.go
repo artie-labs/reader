@@ -43,7 +43,7 @@ func encodeDecimalWithScale(decimal *apd.Decimal, scale int32) []byte {
 	if decimal.Exponent != targetExponent {
 		// TODO: We may be able to remove this conversion and just return an error to maintain parity with `org.apache.kafka.connect.data.Decimal`
 		// https://github.com/a0x8o/kafka/blob/54eff6af115ee647f60129f2ce6a044cb17215d0/connect/api/src/main/java/org/apache/kafka/connect/data/Decimal.java#L69
-		slog.Warn("Value scale is different from expected scale",
+		slog.Warn("Value scale is different from schema scale",
 			slog.Any("value", decimal.Text('f')),
 			slog.Any("actual", -decimal.Exponent),
 			slog.Any("expected", scale),
