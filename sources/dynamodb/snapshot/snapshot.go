@@ -28,13 +28,13 @@ type Store struct {
 	dynamoDBClient *dynamodb.Client
 }
 
-func NewStore(cfg config.DynamoDB, awsCfg aws.Config) (*Store, error) {
+func NewStore(ctx context.Context, cfg config.DynamoDB, awsCfg aws.Config) (*Store, error) {
 	bucketName, prefixName, err := s3lib.BucketAndPrefixFromFilePath(cfg.SnapshotSettings.Folder)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Store{
+	store := &Store{
 		tableName:      cfg.TableName,
 		streamArn:      cfg.StreamArn,
 		s3BucketName:   bucketName,
@@ -42,7 +42,41 @@ func NewStore(cfg config.DynamoDB, awsCfg aws.Config) (*Store, error) {
 		cfg:            &cfg,
 		s3Client:       s3lib.NewClient(bucketName, awsCfg),
 		dynamoDBClient: dynamodb.NewFromConfig(awsCfg),
-	}, nil
+	}
+
+	if cfg.SnapshotSettings.ShouldInitiateExport {
+		exportARN, manifestFilePath, err := store.findRecentExport(ctx, cfg.SnapshotSettings.Folder)
+		if err != nil {
+			return nil, err
+		}
+
+		if manifestFilePath != nil {
+			if err = store.loadFolderFromManifest(bucketName, *manifestFilePath); err != nil {
+				return nil, err
+			}
+		}
+
+		manifestFilePath, err = store.checkExportStatus(ctx, exportARN)
+		if err != nil {
+			return nil, fmt.Errorf("failed to check export status: %w", err)
+		}
+
+		if err = store.loadFolderFromManifest(bucketName, *manifestFilePath); err != nil {
+			return nil, err
+		}
+	}
+
+	return store, nil
+}
+
+func (s *Store) loadFolderFromManifest(bucketName string, manifestFilePath string) error {
+	folder, err := dynamo.ParseManifestFile(bucketName, manifestFilePath)
+	if err != nil {
+		return fmt.Errorf("failed to parse manifest: %w", err)
+	}
+
+	s.cfg.SnapshotSettings.Folder = folder
+	return nil
 }
 
 func (s *Store) Close() error {

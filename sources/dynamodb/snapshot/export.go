@@ -12,7 +12,6 @@ import (
 )
 
 func (s *Store) findRecentExport(ctx context.Context, s3FilePath string) (*string, *string, error) {
-
 	tableARN, err := dynamo.GetTableArnFromStreamArn(s.streamArn)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get table ARN from stream ARN: %w", err)
@@ -34,7 +33,7 @@ func (s *Store) findRecentExport(ctx context.Context, s3FilePath string) (*strin
 			return nil, nil, fmt.Errorf("failed to describe export: %w", err)
 		}
 
-		if exportDescription.ExportDescription.S3Bucket == bucketName && exportDescription.ExportDescription.S3Prefix == prefixName {
+		if *exportDescription.ExportDescription.S3Bucket == s.s3BucketName && *exportDescription.ExportDescription.S3Prefix == s.s3PrefixName {
 			if export.ExportStatus == types.ExportStatusCompleted {
 				return export.ExportArn, exportDescription.ExportDescription.ExportManifest, nil
 			}
@@ -73,11 +72,7 @@ func (s *Store) listExports(ctx context.Context, tableARN string) ([]types.Expor
 
 func (s *Store) checkExportStatus(ctx context.Context, exportARN *string) (*string, error) {
 	for {
-		describeInput := &dynamodb.DescribeExportInput{
-			ExportArn: exportARN,
-		}
-
-		result, err := s.dynamoDBClient.DescribeExport(ctx, describeInput)
+		result, err := s.dynamoDBClient.DescribeExport(ctx, &dynamodb.DescribeExportInput{ExportArn: exportARN})
 		if err != nil {
 			return nil, fmt.Errorf("failed to describe export: %w", err)
 		}
