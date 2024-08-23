@@ -49,7 +49,6 @@ func (s *Store) findRecentExport(ctx context.Context, s3FilePath string) (*strin
 
 func (s *Store) listExports(ctx context.Context, tableARN string) ([]types.ExportSummary, error) {
 	var out []types.ExportSummary
-
 	var nextToken *string
 	for {
 		exports, err := s.dynamoDBClient.ListExports(ctx, &dynamodb.ListExportsInput{
