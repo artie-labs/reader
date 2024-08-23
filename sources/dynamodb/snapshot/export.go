@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+// findRecentExport - This will check against the DynamoDB table to see if there is a recent export for the given S3 file path.
+// It will then return the exportARN, manifestFilePath and error if any.
 func (s *Store) findRecentExport(ctx context.Context, s3FilePath string) (*string, *string, error) {
 	tableARN, err := dynamo.GetTableArnFromStreamArn(s.streamArn)
 	if err != nil {
