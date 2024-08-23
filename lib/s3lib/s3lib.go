@@ -24,18 +24,16 @@ func NewClient(bucketName string, awsCfg aws.Config) *S3Client {
 	}
 }
 
-func BucketAndPrefixFromFilePath(fp string) (*string, *string, error) {
+func BucketAndPrefixFromFilePath(fp string) (string, string, error) {
 	// Remove the s3:// prefix if it's there
 	fp = strings.TrimPrefix(fp, "s3://")
 
 	parts := strings.SplitN(fp, "/", 2)
 	if len(parts) < 2 {
-		return nil, nil, fmt.Errorf("invalid S3 path, missing prefix")
+		return "", "", fmt.Errorf("invalid S3 path, missing prefix")
 	}
 
-	bucket := parts[0]
-	prefix := parts[1]
-	return &bucket, &prefix, nil
+	return parts[0], parts[1], nil
 }
 
 type S3File struct {
@@ -49,7 +47,7 @@ func (s *S3Client) ListFiles(ctx context.Context, fp string) ([]S3File, error) {
 	}
 
 	var files []S3File
-	paginator := s3.NewListObjectsV2Paginator(s.client, &s3.ListObjectsV2Input{Bucket: bucket, Prefix: prefix})
+	paginator := s3.NewListObjectsV2Paginator(s.client, &s3.ListObjectsV2Input{Bucket: &bucket, Prefix: &prefix})
 	for paginator.HasMorePages() {
 		page, err := paginator.NextPage(ctx)
 		if err != nil {

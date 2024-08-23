@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/artie-labs/reader/lib/dynamo"
-	"github.com/artie-labs/reader/lib/s3lib"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
@@ -13,10 +12,6 @@ import (
 )
 
 func (s *Store) findRecentExport(ctx context.Context, s3FilePath string) (*string, *string, error) {
-	bucketName, prefixName, err := s3lib.BucketAndPrefixFromFilePath(s3FilePath)
-	if err != nil {
-		return nil, nil, err
-	}
 
 	tableARN, err := dynamo.GetTableArnFromStreamArn(s.streamArn)
 	if err != nil {

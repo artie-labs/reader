@@ -18,21 +18,31 @@ import (
 )
 
 type Store struct {
-	tableName      string
-	streamArn      string
+	tableName    string
+	streamArn    string
+	s3BucketName string
+	s3PrefixName string
+
 	cfg            *config.DynamoDB
 	s3Client       *s3lib.S3Client
 	dynamoDBClient *dynamodb.Client
 }
 
-func NewStore(cfg config.DynamoDB, awsCfg aws.Config) *Store {
+func NewStore(cfg config.DynamoDB, awsCfg aws.Config) (*Store, error) {
+	bucketName, prefixName, err := s3lib.BucketAndPrefixFromFilePath(cfg.SnapshotSettings.Folder)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Store{
 		tableName:      cfg.TableName,
 		streamArn:      cfg.StreamArn,
+		s3BucketName:   bucketName,
+		s3PrefixName:   prefixName,
 		cfg:            &cfg,
-		s3Client:       s3lib.NewClient(cfg.SnapshotSettings.S3Bucket, awsCfg),
+		s3Client:       s3lib.NewClient(bucketName, awsCfg),
 		dynamoDBClient: dynamodb.NewFromConfig(awsCfg),
-	}
+	}, nil
 }
 
 func (s *Store) Close() error {

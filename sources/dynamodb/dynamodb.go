@@ -30,7 +30,12 @@ func Load(ctx context.Context, cfg config.DynamoDB) (sources.Source, bool, error
 	}
 
 	if cfg.Snapshot {
-		return snapshot.NewStore(cfg, _awsCfg), false, nil
+		store, err := snapshot.NewStore(cfg, _awsCfg)
+		if err != nil {
+			return nil, false, err
+		}
+
+		return store, false, nil
 	} else {
 		return stream.NewStore(cfg, _awsCfg), true, nil
 	}
