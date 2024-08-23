@@ -16,7 +16,6 @@ func GetTableArnFromStreamArn(streamArn string) (string, error) {
 }
 
 func ParseManifestFile(bucket string, manifestFilePath string) (string, error) {
-	// artie-ddb-export/AWSDynamoDB/01722458674792-8831c8f6/manifest-summary.json
 	if !strings.HasSuffix(manifestFilePath, "manifest-summary.json") {
 		return "", fmt.Errorf("invalid manifest filepath: %s", manifestFilePath)
 	}
