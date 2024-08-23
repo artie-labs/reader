@@ -51,11 +51,7 @@ func (s *Store) listExports(ctx context.Context, tableARN string) ([]types.Expor
 	var out []types.ExportSummary
 	var nextToken *string
 	for {
-		exports, err := s.dynamoDBClient.ListExports(ctx, &dynamodb.ListExportsInput{
-			TableArn:  aws.String(tableARN),
-			NextToken: nextToken,
-		})
-
+		exports, err := s.dynamoDBClient.ListExports(ctx, &dynamodb.ListExportsInput{TableArn: aws.String(tableARN), NextToken: nextToken})
 		if err != nil {
 			return nil, fmt.Errorf("failed to list exports: %w", err)
 		}
