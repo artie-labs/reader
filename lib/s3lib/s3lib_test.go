@@ -60,7 +60,7 @@ func TestBucketAndPrefixFromFilePath(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		actualBucket, actualPrefix, actualErr := bucketAndPrefixFromFilePath(tc.fp)
+		actualBucket, actualPrefix, actualErr := BucketAndPrefixFromFilePath(tc.fp)
 		if tc.expectedErr != "" {
 			assert.ErrorContains(t, actualErr, tc.expectedErr, tc.name)
 		} else {

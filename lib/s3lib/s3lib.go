@@ -24,7 +24,7 @@ func NewClient(bucketName string, awsCfg aws.Config) *S3Client {
 	}
 }
 
-func bucketAndPrefixFromFilePath(fp string) (*string, *string, error) {
+func BucketAndPrefixFromFilePath(fp string) (*string, *string, error) {
 	// Remove the s3:// prefix if it's there
 	fp = strings.TrimPrefix(fp, "s3://")
 
@@ -43,7 +43,7 @@ type S3File struct {
 }
 
 func (s *S3Client) ListFiles(ctx context.Context, fp string) ([]S3File, error) {
-	bucket, prefix, err := bucketAndPrefixFromFilePath(fp)
+	bucket, prefix, err := BucketAndPrefixFromFilePath(fp)
 	if err != nil {
 		return nil, err
 	}
