@@ -26,9 +26,7 @@ func NewClient(bucketName string, awsCfg aws.Config) *S3Client {
 
 func BucketAndPrefixFromFilePath(fp string) (string, string, error) {
 	// Remove the s3:// prefix if it's there
-	fp = strings.TrimPrefix(fp, "s3://")
-
-	parts := strings.SplitN(fp, "/", 2)
+	parts := strings.SplitN(strings.TrimPrefix(fp, "s3://"), "/", 2)
 	if len(parts) < 2 {
 		return "", "", fmt.Errorf("invalid S3 path, missing prefix")
 	}
