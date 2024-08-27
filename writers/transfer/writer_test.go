@@ -29,12 +29,8 @@ func TestWriter_MessageToEvent(t *testing.T) {
 	assert.NoError(t, err)
 
 	writer := Writer{
-		cfg: transferCfg.Config{
-			SharedTransferConfig: transferCfg.SharedTransferConfig{},
-		},
-		tc: &kafkalib.TopicConfig{
-			CDCKeyFormat: kafkalib.JSONKeyFmt,
-		},
+		cfg: transferCfg.Config{SharedTransferConfig: transferCfg.SharedTransferConfig{}},
+		tc:  kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt},
 	}
 
 	evtOut, err := writer.messageToEvent(message)
