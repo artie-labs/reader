@@ -31,7 +31,7 @@ func TestParseMessagePartitionKey(t *testing.T) {
 		assert.NoError(t, err)
 
 		var dbz transferMongo.Debezium
-		pkMap, err := dbz.GetPrimaryKey(rawMsgBytes, &kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt})
+		pkMap, err := dbz.GetPrimaryKey(rawMsgBytes, kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt})
 		assert.NoError(t, err)
 		assert.Equal(t, "507f1f77bcf86cd799439011", pkMap["_id"])
 	}
@@ -88,7 +88,7 @@ func TestParseMessage(t *testing.T) {
 	assert.NoError(t, err)
 
 	var dbz transferMongo.Debezium
-	pkMap, err := dbz.GetPrimaryKey(rawPkBytes, &kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt})
+	pkMap, err := dbz.GetPrimaryKey(rawPkBytes, kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt})
 	assert.NoError(t, err)
 
 	rawMsgBytes, err := json.Marshal(rawMsg.Event())
@@ -111,7 +111,7 @@ func TestParseMessage(t *testing.T) {
 		"nullValue":   nil,
 	}
 
-	actualKVMap, err := kvMap.GetData(pkMap, &kafkalib.TopicConfig{})
+	actualKVMap, err := kvMap.GetData(pkMap, kafkalib.TopicConfig{})
 	assert.NoError(t, err)
 	for expectedKey, expectedVal := range expectedMap {
 		actualVal, isOk := actualKVMap[expectedKey]

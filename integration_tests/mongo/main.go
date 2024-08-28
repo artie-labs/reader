@@ -169,12 +169,12 @@ func testTypes(ctx context.Context, db *mongo.Database, mongoCfg config.MongoDB)
 		return fmt.Errorf("failed to get event from bytes: %w", err)
 	}
 
-	pkMap, err := dbz.GetPrimaryKey(actualPkBytes, &kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt})
+	pkMap, err := dbz.GetPrimaryKey(actualPkBytes, kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt})
 	if err != nil {
 		return fmt.Errorf("failed to get primary key: %w", err)
 	}
 
-	data, err := evt.GetData(pkMap, &kafkalib.TopicConfig{})
+	data, err := evt.GetData(pkMap, kafkalib.TopicConfig{})
 	if err != nil {
 		return fmt.Errorf("failed to get data: %w", err)
 	}
