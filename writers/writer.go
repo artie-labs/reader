@@ -55,8 +55,11 @@ func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMess
 		}
 	}
 
-	if err := w.destinationWriter.OnComplete(); err != nil {
-		return 0, fmt.Errorf("failed running destination OnComplete: %w", err)
+	// Only run [OnComplete] if we wrote messages out. Otherwise, primary keys may not be loaded.
+	if count > 0 {
+		if err := w.destinationWriter.OnComplete(); err != nil {
+			return 0, fmt.Errorf("failed running destination OnComplete: %w", err)
+		}
 	}
 
 	return count, nil
