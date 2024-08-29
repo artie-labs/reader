@@ -88,12 +88,17 @@ func NewChangeEvent(rawChangeEvent bson.M) (*ChangeEvent, error) {
 
 	fullDocumentBeforeChange, isOk := rawChangeEvent["fullDocumentBeforeChange"]
 	if isOk {
-		castedFullDocumentBeforeChange, isOk := fullDocumentBeforeChange.(bson.M)
-		if !isOk {
-			return nil, fmt.Errorf("expected fullDocumentBeforeChange to be bson.M, got: %T", fullDocumentBeforeChange)
+		switch castedFullDoc := fullDocumentBeforeChange.(type) {
+		case bson.M:
+			changeEvent.fullDocumentBeforeChange = &castedFullDoc
+		case nil:
+			// This may happen if the row was purged before we can read it
+			changeEvent.fullDocumentBeforeChange = &bson.M{
+				"_id": objectID,
+			}
+		default:
+			return nil, fmt.Errorf("expected fullDocumentBeforeChange to be bson.M or nil, got: %T", fullDoc)
 		}
-
-		changeEvent.fullDocumentBeforeChange = &castedFullDocumentBeforeChange
 	}
 
 	return changeEvent, nil
