@@ -97,7 +97,7 @@ func NewChangeEvent(rawChangeEvent bson.M) (*ChangeEvent, error) {
 				"_id": objectID,
 			}
 		default:
-			return nil, fmt.Errorf("expected fullDocument to be bson.M or nil, got: %T", fullDoc)
+			return nil, fmt.Errorf("expected fullDocumentBeforeChange to be bson.M or nil, got: %T", fullDoc)
 		}
 	}
 
