@@ -92,7 +92,7 @@ func NewChangeEvent(rawChangeEvent bson.M) (*ChangeEvent, error) {
 		case bson.M:
 			changeEvent.fullDocumentBeforeChange = &castedFullDoc
 		case nil:
-			// TODO: Look into why this happens.
+			// This may happen if the row was purged before we can read it
 			changeEvent.fullDocumentBeforeChange = &bson.M{
 				"_id": objectID,
 			}
