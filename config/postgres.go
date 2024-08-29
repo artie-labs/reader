@@ -39,6 +39,7 @@ type PostgreSQLTable struct {
 
 	// Optional settings
 	BatchSize                  uint     `yaml:"batchSize,omitempty"`
+	PrimaryKeysOverride        []string `yaml:"primaryKeysOverride,omitempty"`
 	OptionalPrimaryKeyValStart string   `yaml:"optionalPrimaryKeyValStart,omitempty"`
 	OptionalPrimaryKeyValEnd   string   `yaml:"optionalPrimaryKeyValEnd,omitempty"`
 	ExcludeColumns             []string `yaml:"excludeColumns,omitempty"`
