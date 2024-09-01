@@ -3,6 +3,7 @@ package mongo
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/artie-labs/transfer/lib/typing/ext"
 	"testing"
 	"time"
 
@@ -105,7 +106,7 @@ func TestParseMessage(t *testing.T) {
 		"decimal":     "1234.5",
 		"subDocument": `{"nestedString":"Nested value"}`,
 		"array":       []any{"apple", "banana", "cherry"},
-		"datetime":    "2024-02-13T20:37:48+00:00",
+		"datetime":    ext.NewExtendedTime(time.Date(2024, time.February, 13, 20, 37, 48, 0, time.UTC), ext.DateTimeKindType, "2006-01-02T15:04:05.999-07:00"),
 		"trueValue":   true,
 		"falseValue":  false,
 		"nullValue":   nil,

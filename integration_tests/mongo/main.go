@@ -182,11 +182,11 @@ func testTypes(ctx context.Context, db *mongo.Database, mongoCfg config.MongoDB)
 	expectedPayload := map[string]any{
 		"objectId":                "66a95fae3776c2f21f0ff568",
 		"array":                   []any{"item1", int32(2), true, 3.14},
-		"datetime":                ts.Format(ext.ISO8601),
+		"datetime":                ext.NewExtendedTime(ts, ext.DateTimeKindType, "2006-01-02T15:04:05.999-07:00"),
 		"int64":                   int64(64),
 		"__artie_delete":          false,
 		"__artie_only_set_delete": false,
-		"timestamp":               ts.Format(ext.ISO8601),
+		"timestamp":               ext.NewExtendedTime(ts, ext.DateTimeKindType, "2006-01-02T15:04:05.999-07:00"),
 		"embeddedDocument":        `{"field1":"value1","field2":"value2"}`,
 		"embeddedMap":             `{"foo":"bar","hello":"world","pi":3.14159}`,
 		"binary":                  `{"$binary":{"base64":"YmluYXJ5IGRhdGE=","subType":"00"}}`,
