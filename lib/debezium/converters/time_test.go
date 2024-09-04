@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/artie-labs/transfer/lib/typing/ext"
 	"github.com/stretchr/testify/assert"
 )
@@ -26,7 +26,12 @@ func parseUsingTransfer(converter ValueConverter, value int64) (*ext.ExtendedTim
 		return extTime, nil
 	}
 
-	return debezium.FromDebeziumTypeToTime(converter.ToField("foo").DebeziumType, value)
+	parsedValue, err := converter.ToField("foo").ParseValue(value)
+	if err != nil {
+		return nil, err
+	}
+
+	return typing.AssertType[*ext.ExtendedTime](parsedValue)
 }
 
 func TestTimeConverter_Convert(t *testing.T) {
