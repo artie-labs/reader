@@ -2,11 +2,11 @@ package converters
 
 import (
 	"fmt"
-	"github.com/artie-labs/transfer/lib/typing"
 	"math"
 	"testing"
 	"time"
 
+	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/artie-labs/transfer/lib/typing/ext"
 	"github.com/stretchr/testify/assert"
 )
