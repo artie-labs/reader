@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/debezium/converters"
 	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/cockroachdb/apd/v3"
 )
@@ -51,7 +52,7 @@ func encodeDecimalWithScale(decimal *apd.Decimal, scale int32) []byte {
 
 		decimal = decimalWithNewExponent(decimal, targetExponent)
 	}
-	bytes, _ := debezium.EncodeDecimal(decimal)
+	bytes, _ := converters.EncodeDecimal(decimal)
 	return bytes
 }
 
@@ -116,9 +117,9 @@ func (VariableNumericConverter) Convert(value any) (any, error) {
 		return nil, fmt.Errorf(`unable to use %q as a decimal: %w`, stringValue, err)
 	}
 
-	bytes, scale := debezium.EncodeDecimal(decimal)
+	bytes, scale := converters.EncodeDecimal(decimal)
 	return map[string]any{
-		"scale": int32(scale),
+		"scale": scale,
 		"value": bytes,
 	}, nil
 }
