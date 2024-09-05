@@ -2,10 +2,10 @@ package converters
 
 import (
 	"fmt"
-	"github.com/artie-labs/transfer/lib/debezium/converters"
 	"log/slog"
 
 	"github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/debezium/converters"
 	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/cockroachdb/apd/v3"
 )

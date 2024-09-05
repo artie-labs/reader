@@ -2,13 +2,13 @@ package converters
 
 import (
 	"fmt"
-	"github.com/artie-labs/transfer/lib/debezium/converters"
-	"github.com/artie-labs/transfer/lib/typing/decimal"
 	"testing"
 
 	"github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/debezium/converters"
 	"github.com/artie-labs/transfer/lib/numbers"
 	"github.com/artie-labs/transfer/lib/ptr"
+	"github.com/artie-labs/transfer/lib/typing/decimal"
 	"github.com/cockroachdb/apd/v3"
 	"github.com/stretchr/testify/assert"
 )
