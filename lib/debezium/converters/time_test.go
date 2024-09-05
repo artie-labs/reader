@@ -97,8 +97,8 @@ func TestMicroTimeConverter_Convert(t *testing.T) {
 		assert.NoError(t, err)
 		transferValue, err := parseUsingTransfer(converter, value.(int64))
 		assert.NoError(t, err)
-		assert.Equal(t, time.Date(1970, time.January, 1, 1, 2, 3, 0, time.UTC), transferValue.Time)
-		assert.Equal(t, ext.TimeKindType, transferValue.NestedKind.Type)
+		assert.Equal(t, time.Date(1970, time.January, 1, 1, 2, 3, 0, time.UTC), transferValue.GetTime())
+		assert.Equal(t, ext.TimeKindType, transferValue.GetNestedKind().Type)
 	}
 }
 
@@ -207,8 +207,8 @@ func TestDateConverter_Convert(t *testing.T) {
 		assert.NoError(t, err)
 		transferValue, err := parseUsingTransfer(converter, int64(value.(int32)))
 		assert.NoError(t, err)
-		assert.Equal(t, time.Date(2023, time.May, 3, 0, 0, 0, 0, time.UTC), transferValue.Time)
-		assert.Equal(t, ext.DateKindType, transferValue.NestedKind.Type)
+		assert.Equal(t, time.Date(2023, time.May, 3, 0, 0, 0, 0, time.UTC), transferValue.GetTime())
+		assert.Equal(t, ext.DateKindType, transferValue.GetNestedKind().Type)
 	}
 }
 
@@ -259,8 +259,8 @@ func TestMicroTimestampConverter_Convert(t *testing.T) {
 		assert.NoError(t, err)
 		transferValue, err := parseUsingTransfer(converter, value.(int64))
 		assert.NoError(t, err)
-		assert.Equal(t, timeValue, transferValue.Time)
-		assert.Equal(t, ext.DateTimeKindType, transferValue.NestedKind.Type)
+		assert.Equal(t, timeValue, transferValue.GetTime())
+		assert.Equal(t, ext.DateTimeKindType, transferValue.GetNestedKind().Type)
 	}
 }
 
