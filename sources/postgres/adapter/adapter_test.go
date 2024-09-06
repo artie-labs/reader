@@ -1,6 +1,7 @@
 package adapter
 
 import (
+	"github.com/artie-labs/transfer/lib/typing/decimal"
 	"testing"
 	"time"
 
@@ -262,10 +263,10 @@ func TestValueConverterForType_Convert(t *testing.T) {
 		if tc.numericValue {
 			bytes, ok := actualValue.([]byte)
 			assert.True(t, ok)
-			field := converter.ToField(tc.col.Name)
-			val, err := field.DecodeDecimal(bytes)
+
+			val, err := converter.ToField(tc.col.Name).ParseValue(bytes)
 			assert.NoError(t, err, tc.name)
-			assert.Equal(t, tc.expectedValue, val.String(), tc.name)
+			assert.Equal(t, tc.expectedValue, val.(*decimal.Decimal).String(), tc.name)
 		} else {
 			assert.Equal(t, tc.expectedValue, actualValue, tc.name)
 		}
