@@ -5,6 +5,7 @@ import (
 
 	"github.com/artie-labs/reader/lib/ptr"
 	transferDbz "github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/typing/decimal"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -41,9 +42,12 @@ func TestMoneyConverter_Convert(t *testing.T) {
 	decodeValue := func(value any) string {
 		bytes, ok := value.([]byte)
 		assert.True(t, ok)
-		val, err := decimalField.DecodeDecimal(bytes)
+
+		valueConverter, err := decimalField.ToValueConverter()
 		assert.NoError(t, err)
-		return val.String()
+		val, err := valueConverter.Convert(bytes)
+		assert.NoError(t, err)
+		return val.(*decimal.Decimal).String()
 	}
 	{
 		// Converter where mutateString is true
