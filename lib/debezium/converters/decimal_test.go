@@ -217,10 +217,7 @@ func TestDecimalConverter_Convert(t *testing.T) {
 		bytes, ok := converted.([]byte)
 		assert.True(t, ok)
 
-		valConverter, err := converter.ToField("").ToValueConverter()
-		assert.NoError(t, err)
-
-		actualValue, err := valConverter.Convert(bytes)
+		actualValue, err := converter.ToField("").ParseValue(bytes)
 		assert.NoError(t, err)
 		assert.Equal(t, "1.23", actualValue.(*decimal.Decimal).String())
 	}

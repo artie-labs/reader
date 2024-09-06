@@ -1,7 +1,6 @@
 package adapter
 
 import (
-	"github.com/artie-labs/transfer/lib/typing/decimal"
 	"testing"
 	"time"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 	"github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/typing/decimal"
 )
 
 func TestPostgresAdapter_TableName(t *testing.T) {

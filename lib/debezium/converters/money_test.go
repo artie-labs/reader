@@ -1,11 +1,11 @@
 package converters
 
 import (
-	"github.com/artie-labs/transfer/lib/typing/decimal"
 	"testing"
 
 	"github.com/artie-labs/reader/lib/ptr"
 	transferDbz "github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/typing/decimal"
 	"github.com/stretchr/testify/assert"
 )
 
