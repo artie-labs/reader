@@ -70,11 +70,9 @@ func TestMoneyConverter_Convert(t *testing.T) {
 			assert.Equal(t, "1234.56", decodeValue(converted))
 		}
 		{
-			// string with $, comma, and no cents
-			converted, err := converter.Convert("$1000,234")
-			assert.NoError(t, err)
-			assert.Equal(t, []byte{0x5, 0xf6, 0x3c, 0x68}, converted)
-			assert.Equal(t, "1000234.00", decodeValue(converted))
+			// string no cents
+			_, err := converter.Convert("$1000,234")
+			assert.ErrorContains(t, err, "value scale (0) is different from schema scale (2)")
 		}
 		{
 			// Malformed string - empty string.
