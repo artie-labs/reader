@@ -89,6 +89,14 @@ func TestParseColumnDataType(t *testing.T) {
 		assert.Equal(t, Decimal, dataType)
 		assert.Equal(t, &Opts{Precision: ptr.ToInt(5), Scale: ptr2.ToUint16(2)}, opts)
 	}
+	{
+		// Blob
+		for _, blob := range []string{"blob", "tinyblob", "mediumblob", "longblob"} {
+			dataType, _, err := parseColumnDataType(blob)
+			assert.NoError(t, err)
+			assert.Equal(t, Blob, dataType, blob)
+		}
+	}
 }
 
 func TestBuildPkValuesQuery(t *testing.T) {
