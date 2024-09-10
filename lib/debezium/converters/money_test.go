@@ -70,7 +70,7 @@ func TestMoneyConverter_Convert(t *testing.T) {
 			assert.Equal(t, "1234.56", decodeValue(converted))
 		}
 		{
-			// string no cents
+			// string with missing cents
 			_, err := converter.Convert("$1000,234")
 			assert.ErrorContains(t, err, "value scale (0) is different from schema scale (2)")
 		}
