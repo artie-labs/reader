@@ -201,7 +201,7 @@ func parseColumnDataType(originalS string) (DataType, *Opts, error) {
 		return Binary, nil, nil
 	case "varbinary":
 		return Varbinary, nil, nil
-	case "blob":
+	case "blob", "tinyblob", "mediumblob", "longblob":
 		return Blob, nil, nil
 	case "text":
 		return Text, nil, nil

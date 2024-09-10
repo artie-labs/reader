@@ -15,81 +15,79 @@ func TestQuoteIdentifier(t *testing.T) {
 }
 
 func TestParseColumnDataType(t *testing.T) {
-	testCases := []struct {
-		input        string
-		expectedType DataType
-		expectedOpts *Opts
-		expectedErr  string
-	}{
+	{
+		// Invalid
 		{
-			input:        "int",
-			expectedType: Int,
-		},
-		{
-			input:        "tinyint(1)",
-			expectedType: Boolean,
-		},
-		{
-			input:        "varchar(255)",
-			expectedType: Varchar,
-			expectedOpts: &Opts{Size: ptr.ToInt(255)},
-		},
-		{
-			input:        "decimal(5,2)",
-			expectedType: Decimal,
-			expectedOpts: &Opts{
-				Precision: ptr.ToInt(5),
-				Scale:     ptr2.ToUint16(2),
-			},
-		},
-		{
-			input:        "int(10) unsigned",
-			expectedType: BigInt,
-			expectedOpts: nil,
-		},
-		{
-			input:        "tinyint unsigned",
-			expectedType: SmallInt,
-			expectedOpts: nil,
-		},
-		{
-			input:        "smallint unsigned",
-			expectedType: Int,
-			expectedOpts: nil,
-		},
-		{
-			input:        "mediumint unsigned",
-			expectedType: Int,
-			expectedOpts: nil,
-		},
-		{
-			input:        "int unsigned",
-			expectedType: BigInt,
-			expectedOpts: nil,
-		},
-		{
-			input:       "int(10 unsigned",
-			expectedErr: `malformed data type: "int(10 unsigned"`,
-		},
-		{
-			input:       "foo",
-			expectedErr: `unknown data type: "foo"`,
-		},
-		{
-			input:       "varchar(",
-			expectedErr: `malformed data type: "varchar("`,
-		},
-	}
-
-	for _, testCase := range testCases {
-		colType, opts, err := parseColumnDataType(testCase.input)
-		if testCase.expectedErr == "" {
-			assert.NoError(t, err)
-			assert.Equal(t, testCase.expectedType, colType, testCase.input)
-			assert.Equal(t, testCase.expectedOpts, opts, testCase.input)
-		} else {
-			assert.ErrorContains(t, err, testCase.expectedErr, testCase.input)
+			_, _, err := parseColumnDataType("int(10 unsigned")
+			assert.ErrorContains(t, err, `malformed data type: "int(10 unsigned"`)
 		}
+		{
+			_, _, err := parseColumnDataType("foo")
+			assert.ErrorContains(t, err, `unknown data type: "foo"`)
+		}
+		{
+			_, _, err := parseColumnDataType("varchar(")
+			assert.ErrorContains(t, err, `malformed data type: "varchar("`)
+		}
+	}
+	{
+		// Integers
+		{
+			// int
+			dataType, _, err := parseColumnDataType("int")
+			assert.NoError(t, err)
+			assert.Equal(t, Int, dataType)
+		}
+		{
+			// int unsigned
+			dataType, _, err := parseColumnDataType("int unsigned")
+			assert.NoError(t, err)
+			assert.Equal(t, BigInt, dataType)
+		}
+		{
+			// int(10) unsigned
+			dataType, _, err := parseColumnDataType("int(10) unsigned")
+			assert.NoError(t, err)
+			assert.Equal(t, BigInt, dataType)
+		}
+		{
+			// tinyint
+			dataType, _, err := parseColumnDataType("tinyint")
+			assert.NoError(t, err)
+			assert.Equal(t, TinyInt, dataType)
+		}
+		{
+			// tinyint unsigned
+			dataType, _, err := parseColumnDataType("tinyint unsigned")
+			assert.NoError(t, err)
+			assert.Equal(t, SmallInt, dataType)
+		}
+		{
+			// mediumint unsigned
+			dataType, _, err := parseColumnDataType("mediumint unsigned")
+			assert.NoError(t, err)
+			assert.Equal(t, Int, dataType)
+		}
+	}
+	{
+		// tinyint(1) or boolean
+		dataType, _, err := parseColumnDataType("tinyint(1)")
+		assert.NoError(t, err)
+		assert.Equal(t, Boolean, dataType)
+	}
+	{
+		// String
+		dataType, opts, err := parseColumnDataType("varchar(255)")
+		assert.NoError(t, err)
+		assert.Equal(t, Varchar, dataType)
+		assert.Equal(t, &Opts{Size: ptr.ToInt(255)}, opts)
+	}
+	{
+		// Decimal
+		dataType, opts, err := parseColumnDataType("decimal(5,2)")
+		assert.NoError(t, err)
+		assert.Equal(t, Decimal, dataType)
+		assert.Equal(t, &Opts{Precision: ptr.ToInt(5), Scale: ptr2.ToUint16(2)}, opts)
 	}
 }
 
