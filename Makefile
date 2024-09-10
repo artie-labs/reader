@@ -1,3 +1,7 @@
+.PHONY: vet
+vet:
+	go vet ./...
+
 .PHONY: static
 static:
 	staticcheck ./...
