@@ -2,7 +2,6 @@ package converters
 
 import (
 	"fmt"
-	"log/slog"
 
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/artie-labs/transfer/lib/debezium/converters"
@@ -10,50 +9,17 @@ import (
 	"github.com/cockroachdb/apd/v3"
 )
 
-// decimalWithNewExponent takes a [*apd.Decimal] and returns a new [*apd.Decimal] with a the given exponent.
-// If the new exponent is less precise then the extra digits will be truncated.
-func decimalWithNewExponent(decimal *apd.Decimal, newExponent int32) *apd.Decimal {
-	exponentDelta := newExponent - decimal.Exponent // Exponent is negative.
-
-	if exponentDelta == 0 {
-		return new(apd.Decimal).Set(decimal)
-	}
-
-	coefficient := new(apd.BigInt).Set(&decimal.Coeff)
-
-	if exponentDelta < 0 {
-		multiplier := new(apd.BigInt).Exp(apd.NewBigInt(10), apd.NewBigInt(int64(-exponentDelta)), nil)
-		coefficient.Mul(coefficient, multiplier)
-	} else if exponentDelta > 0 {
-		divisor := new(apd.BigInt).Exp(apd.NewBigInt(10), apd.NewBigInt(int64(exponentDelta)), nil)
-		coefficient.Div(coefficient, divisor)
-	}
-
-	return &apd.Decimal{
-		Form:     decimal.Form,
-		Negative: decimal.Negative,
-		Exponent: newExponent,
-		Coeff:    *coefficient,
-	}
-}
-
 // encodeDecimalWithScale is used to encode a [*apd.Decimal] to `org.apache.kafka.connect.data.Decimal`
 // using a specific scale.
-func encodeDecimalWithScale(decimal *apd.Decimal, scale int32) []byte {
+func encodeDecimalWithScale(decimal *apd.Decimal, scale int32) ([]byte, error) {
 	targetExponent := -scale // Negate scale since [Decimal.Exponent] is negative.
 	if decimal.Exponent != targetExponent {
-		// TODO: We may be able to remove this conversion and just return an error to maintain parity with `org.apache.kafka.connect.data.Decimal`
+		// Return an error if the scales are different, this maintains parity with `org.apache.kafka.connect.data.Decimal`.
 		// https://github.com/a0x8o/kafka/blob/54eff6af115ee647f60129f2ce6a044cb17215d0/connect/api/src/main/java/org/apache/kafka/connect/data/Decimal.java#L69
-		slog.Warn("Value scale is different from schema scale",
-			slog.Any("value", decimal.Text('f')),
-			slog.Any("actual", -decimal.Exponent),
-			slog.Any("expected", scale),
-		)
-
-		decimal = decimalWithNewExponent(decimal, targetExponent)
+		return nil, fmt.Errorf("value scale (%d) is different from schema scale (%d)", -decimal.Exponent, scale)
 	}
 	bytes, _ := converters.EncodeDecimal(decimal)
-	return bytes
+	return bytes, nil
 }
 
 type decimalConverter struct {
@@ -93,7 +59,7 @@ func (d decimalConverter) Convert(value any) (any, error) {
 		return nil, fmt.Errorf(`unable to use %q as a decimal: %w`, stringValue, err)
 	}
 
-	return encodeDecimalWithScale(decimal, int32(d.scale)), nil
+	return encodeDecimalWithScale(decimal, int32(d.scale))
 }
 
 type VariableNumericConverter struct{}
