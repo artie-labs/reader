@@ -38,9 +38,9 @@ func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.Mo
 
 	// We only care about DMLs, the full list can be found here: https://www.mongodb.com/docs/manual/reference/change-events/
 	pipeline := mongo.Pipeline{
-		{{"$match", bson.D{
-			{"operationType", bson.D{
-				{"$in", bson.A{"insert", "update", "delete", "replace"}},
+		{{Key: "$match", Value: bson.D{
+			{Key: "operationType", Value: bson.D{
+				{Key: "$in", Value: bson.A{"insert", "update", "delete", "replace"}},
 			}},
 		}}},
 	}
