@@ -9,34 +9,20 @@ import (
 	"github.com/artie-labs/transfer/lib/numbers"
 	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/artie-labs/transfer/lib/typing/decimal"
-	"github.com/cockroachdb/apd/v3"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDecimalWithNewExponent(t *testing.T) {
-	assert.Equal(t, "0", decimalWithNewExponent(apd.New(0, 0), 0).Text('f'))
-	assert.Equal(t, "00", decimalWithNewExponent(apd.New(0, 1), 1).Text('f'))
-	assert.Equal(t, "0", decimalWithNewExponent(apd.New(0, 100), 0).Text('f'))
-	assert.Equal(t, "00", decimalWithNewExponent(apd.New(0, 0), 1).Text('f'))
-	assert.Equal(t, "0.0", decimalWithNewExponent(apd.New(0, 0), -1).Text('f'))
-
-	// Same exponent:
-	assert.Equal(t, "12.349", decimalWithNewExponent(numbers.MustParseDecimal("12.349"), -3).Text('f'))
-	// More precise exponent:
-	assert.Equal(t, "12.3490", decimalWithNewExponent(numbers.MustParseDecimal("12.349"), -4).Text('f'))
-	assert.Equal(t, "12.34900", decimalWithNewExponent(numbers.MustParseDecimal("12.349"), -5).Text('f'))
-	// Lest precise exponent:
-	// Extra digits should be truncated rather than rounded.
-	assert.Equal(t, "12.34", decimalWithNewExponent(numbers.MustParseDecimal("12.349"), -2).Text('f'))
-	assert.Equal(t, "12.3", decimalWithNewExponent(numbers.MustParseDecimal("12.349"), -1).Text('f'))
-	assert.Equal(t, "12", decimalWithNewExponent(numbers.MustParseDecimal("12.349"), 0).Text('f'))
-	assert.Equal(t, "10", decimalWithNewExponent(numbers.MustParseDecimal("12.349"), 1).Text('f'))
-}
-
 func TestEncodeDecimalWithScale(t *testing.T) {
 	mustEncodeAndDecodeDecimal := func(value string, scale int32) string {
-		bytes := encodeDecimalWithScale(numbers.MustParseDecimal(value), scale)
+		bytes, err := encodeDecimalWithScale(numbers.MustParseDecimal(value), scale)
+		assert.NoError(t, err)
 		return converters.DecodeDecimal(bytes, scale).String()
+	}
+
+	mustReturnError := func(value string, scale int32) error {
+		_, err := encodeDecimalWithScale(numbers.MustParseDecimal(value), scale)
+		assert.Error(t, err)
+		return err
 	}
 
 	// Whole numbers:
@@ -52,28 +38,10 @@ func TestEncodeDecimalWithScale(t *testing.T) {
 	// Scale of 15 that is equal to the amount of decimal places in the value:
 	assert.Equal(t, "145.183000000000000", mustEncodeAndDecodeDecimal("145.183000000000000", 15))
 	assert.Equal(t, "-145.183000000000000", mustEncodeAndDecodeDecimal("-145.183000000000000", 15))
-	// If scale is smaller than the amount of decimal places then the extra places should be truncated without rounding:
-	assert.Equal(t, "145.18300000000000", mustEncodeAndDecodeDecimal("145.183000000000000", 14))
-	assert.Equal(t, "145.18300000000000", mustEncodeAndDecodeDecimal("145.183000000000005", 14))
-	assert.Equal(t, "-145.18300000000000", mustEncodeAndDecodeDecimal("-145.183000000000005", 14))
-	assert.Equal(t, "145.18300000000000", mustEncodeAndDecodeDecimal("145.183000000000009", 14))
-	assert.Equal(t, "-145.18300000000000", mustEncodeAndDecodeDecimal("-145.183000000000009", 14))
-	assert.Equal(t, "-145.18300000000000", mustEncodeAndDecodeDecimal("-145.183000000000000", 14))
-	assert.Equal(t, "145.18300000000000", mustEncodeAndDecodeDecimal("145.183000000000001", 14))
-	assert.Equal(t, "-145.18300000000000", mustEncodeAndDecodeDecimal("-145.183000000000001", 14))
-	assert.Equal(t, "145.18300000000000", mustEncodeAndDecodeDecimal("145.183000000000004", 14))
-	assert.Equal(t, "-145.18300000000000", mustEncodeAndDecodeDecimal("-145.183000000000004", 14))
-	// If scale is larger than the amount of decimal places then the extra places should be padded with zeros:
-	assert.Equal(t, "145.1830000000000000", mustEncodeAndDecodeDecimal("145.183000000000000", 16))
-	assert.Equal(t, "-145.1830000000000000", mustEncodeAndDecodeDecimal("-145.183000000000000", 16))
-	assert.Equal(t, "145.1830000000000010", mustEncodeAndDecodeDecimal("145.183000000000001", 16))
-	assert.Equal(t, "-145.1830000000000010", mustEncodeAndDecodeDecimal("-145.183000000000001", 16))
-	assert.Equal(t, "145.1830000000000040", mustEncodeAndDecodeDecimal("145.183000000000004", 16))
-	assert.Equal(t, "-145.1830000000000040", mustEncodeAndDecodeDecimal("-145.183000000000004", 16))
-	assert.Equal(t, "145.1830000000000050", mustEncodeAndDecodeDecimal("145.183000000000005", 16))
-	assert.Equal(t, "-145.1830000000000050", mustEncodeAndDecodeDecimal("-145.183000000000005", 16))
-	assert.Equal(t, "145.1830000000000090", mustEncodeAndDecodeDecimal("145.183000000000009", 16))
-	assert.Equal(t, "-145.1830000000000090", mustEncodeAndDecodeDecimal("-145.183000000000009", 16))
+	// If scale is smaller than the amount of decimal places then an error should be returned:
+	assert.ErrorContains(t, mustReturnError("145.183000000000000", 14), "value scale (15) is different from schema scale (14)")
+	// If scale is larger than the amount of decimal places then an error should be returned:
+	assert.ErrorContains(t, mustReturnError("-145.183000000000005", 16), "value scale (15) is different from schema scale (16)")
 
 	assert.Equal(t, "-9063701308.217222135", mustEncodeAndDecodeDecimal("-9063701308.217222135", 9))
 	assert.Equal(t, "-74961544796695.89960242", mustEncodeAndDecodeDecimal("-74961544796695.89960242", 8))
