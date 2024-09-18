@@ -1,12 +1,9 @@
 package schema
 
 import (
-	"testing"
-
-	ptr2 "github.com/artie-labs/reader/lib/ptr"
-
-	"github.com/artie-labs/transfer/lib/ptr"
+	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestQuoteIdentifier(t *testing.T) {
@@ -80,14 +77,14 @@ func TestParseColumnDataType(t *testing.T) {
 		dataType, opts, err := parseColumnDataType("varchar(255)")
 		assert.NoError(t, err)
 		assert.Equal(t, Varchar, dataType)
-		assert.Equal(t, &Opts{Size: ptr.ToInt(255)}, opts)
+		assert.Equal(t, &Opts{Size: typing.ToPtr(255)}, opts)
 	}
 	{
 		// Decimal
 		dataType, opts, err := parseColumnDataType("decimal(5,2)")
 		assert.NoError(t, err)
 		assert.Equal(t, Decimal, dataType)
-		assert.Equal(t, &Opts{Precision: ptr.ToInt(5), Scale: ptr2.ToUint16(2)}, opts)
+		assert.Equal(t, &Opts{Precision: typing.ToPtr(5), Scale: typing.ToPtr(uint16(2))}, opts)
 	}
 	{
 		// Blob
