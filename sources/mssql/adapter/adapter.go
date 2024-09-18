@@ -3,13 +3,13 @@ package adapter
 import (
 	"database/sql"
 	"fmt"
+	"github.com/artie-labs/transfer/lib/typing"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/mssql"
 	"github.com/artie-labs/reader/lib/mssql/schema"
-	ptr2 "github.com/artie-labs/reader/lib/ptr"
 	"github.com/artie-labs/reader/lib/rdbms/column"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
@@ -94,7 +94,7 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	case schema.Money:
 		return converters.MoneyConverter{
 			// MSSQL uses scale of 4 for money
-			ScaleOverride: ptr2.ToUint16(4),
+			ScaleOverride: typing.ToPtr(uint16(4)),
 		}, nil
 	case schema.String, schema.UniqueIdentifier:
 		return converters.StringPassthrough{}, nil
