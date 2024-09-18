@@ -1,10 +1,9 @@
 package s3lib
 
 import (
-	"testing"
-
-	"github.com/artie-labs/transfer/lib/ptr"
+	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestBucketAndPrefixFromFilePath(t *testing.T) {
@@ -18,39 +17,39 @@ func TestBucketAndPrefixFromFilePath(t *testing.T) {
 		{
 			name:           "valid path (w/ S3 prefix)",
 			fp:             "s3://bucket/prefix",
-			expectedBucket: ptr.ToString("bucket"),
-			expectedPrefix: ptr.ToString("prefix"),
+			expectedBucket: typing.ToPtr("bucket"),
+			expectedPrefix: typing.ToPtr("prefix"),
 		},
 		{
 			name:           "valid path (w/ S3 prefix) with trailing slash",
 			fp:             "s3://bucket/prefix/",
-			expectedBucket: ptr.ToString("bucket"),
-			expectedPrefix: ptr.ToString("prefix/"),
+			expectedBucket: typing.ToPtr("bucket"),
+			expectedPrefix: typing.ToPtr("prefix/"),
 		},
 		{
 			name:           "valid path (w/ S3 prefix) with multiple slashes",
 			fp:             "s3://bucket/prefix/with/multiple/slashes",
-			expectedBucket: ptr.ToString("bucket"),
-			expectedPrefix: ptr.ToString("prefix/with/multiple/slashes"),
+			expectedBucket: typing.ToPtr("bucket"),
+			expectedPrefix: typing.ToPtr("prefix/with/multiple/slashes"),
 		},
 		// Without S3 prefix
 		{
 			name:           "valid path (w/o S3 prefix)",
 			fp:             "bucket/prefix",
-			expectedBucket: ptr.ToString("bucket"),
-			expectedPrefix: ptr.ToString("prefix"),
+			expectedBucket: typing.ToPtr("bucket"),
+			expectedPrefix: typing.ToPtr("prefix"),
 		},
 		{
 			name:           "valid path (w/o S3 prefix) with trailing slash",
 			fp:             "bucket/prefix/",
-			expectedBucket: ptr.ToString("bucket"),
-			expectedPrefix: ptr.ToString("prefix/"),
+			expectedBucket: typing.ToPtr("bucket"),
+			expectedPrefix: typing.ToPtr("prefix/"),
 		},
 		{
 			name:           "valid path (w/o S3 prefix) with multiple slashes",
 			fp:             "bucket/prefix/with/multiple/slashes",
-			expectedBucket: ptr.ToString("bucket"),
-			expectedPrefix: ptr.ToString("prefix/with/multiple/slashes"),
+			expectedBucket: typing.ToPtr("bucket"),
+			expectedPrefix: typing.ToPtr("prefix/with/multiple/slashes"),
 		},
 		{
 			name:        "invalid path",

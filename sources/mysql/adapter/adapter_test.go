@@ -1,12 +1,10 @@
 package adapter
 
 import (
+	"github.com/artie-labs/transfer/lib/typing"
 	"testing"
 
-	ptr2 "github.com/artie-labs/reader/lib/ptr"
-
 	"github.com/artie-labs/transfer/lib/debezium"
-	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/lib/mysql"
@@ -137,8 +135,8 @@ func TestValueConverterForType(t *testing.T) {
 			name:     "decimal",
 			dataType: schema.Decimal,
 			opts: &schema.Opts{
-				Scale:     ptr2.ToUint16(3),
-				Precision: ptr.ToInt(5),
+				Scale:     typing.ToPtr(uint16(3)),
+				Precision: typing.ToPtr(5),
 			},
 			expected: debezium.Field{
 				Type:         "bytes",

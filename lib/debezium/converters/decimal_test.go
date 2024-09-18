@@ -2,12 +2,12 @@ package converters
 
 import (
 	"fmt"
+	"github.com/artie-labs/transfer/lib/typing"
 	"testing"
 
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/artie-labs/transfer/lib/debezium/converters"
 	"github.com/artie-labs/transfer/lib/numbers"
-	"github.com/artie-labs/transfer/lib/ptr"
 	"github.com/artie-labs/transfer/lib/typing/decimal"
 	"github.com/stretchr/testify/assert"
 )
@@ -152,7 +152,7 @@ func TestDecimalConverter_ToField(t *testing.T) {
 	}
 	{
 		// With precision
-		converter := NewDecimalConverter(2, ptr.ToInt(3))
+		converter := NewDecimalConverter(2, typing.ToPtr(3))
 		expected := debezium.Field{
 			Type:         "bytes",
 			FieldName:    "col",
