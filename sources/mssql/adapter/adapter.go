@@ -3,7 +3,6 @@ package adapter
 import (
 	"database/sql"
 	"fmt"
-	"github.com/artie-labs/transfer/lib/typing"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium/converters"
@@ -12,6 +11,7 @@ import (
 	"github.com/artie-labs/reader/lib/mssql/schema"
 	"github.com/artie-labs/reader/lib/rdbms/column"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
+	"github.com/artie-labs/transfer/lib/typing"
 )
 
 const defaultErrorRetries = 10
