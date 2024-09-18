@@ -3,11 +3,11 @@ package mongo
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/artie-labs/transfer/lib/typing"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/cdc/mongo"
 	"github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/typing"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
