@@ -1,9 +1,9 @@
 package converters
 
 import (
+	"github.com/artie-labs/transfer/lib/typing"
 	"testing"
 
-	"github.com/artie-labs/reader/lib/ptr"
 	transferDbz "github.com/artie-labs/transfer/lib/debezium"
 	"github.com/artie-labs/transfer/lib/typing/decimal"
 	"github.com/stretchr/testify/assert"
@@ -18,7 +18,7 @@ func TestMoney_Scale(t *testing.T) {
 	{
 		// Specified
 		converter := MoneyConverter{
-			ScaleOverride: ptr.ToUint16(3),
+			ScaleOverride: typing.ToPtr(uint16(3)),
 		}
 		assert.Equal(t, uint16(3), converter.Scale())
 	}
