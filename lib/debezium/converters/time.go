@@ -189,7 +189,7 @@ func (ZonedTimestampConverter) Convert(value any) (any, error) {
 	}
 
 	// A string representation of a timestamp with timezone information, where the timezone is GMT.
-	layout := "2006-01-02T15:04:05.9999999Z"
+	layout := "2006-01-02T15:04:05.999999Z"
 	return timeValue.UTC().Format(layout), nil
 }
 

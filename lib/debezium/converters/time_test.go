@@ -286,9 +286,15 @@ func TestZonedTimestampConverter_Convert(t *testing.T) {
 	}
 	{
 		// time.Time
-		value, err := converter.Convert(time.Date(2001, 2, 3, 4, 5, 0, 0, time.UTC))
+		_ts := time.Date(2001, 2, 3, 4, 5, 0, 0, time.UTC)
+		value, err := converter.Convert(_ts)
 		assert.NoError(t, err)
 		assert.Equal(t, "2001-02-03T04:05:00Z", value)
+
+		// Check Transfer to ensure no precision loss
+		ts, err := converters.DateTimeWithTimezone{}.Convert(value)
+		assert.NoError(t, err)
+		assert.Equal(t, _ts, ts.(*ext.ExtendedTime).GetTime())
 	}
 	{
 		// time.Time (ms)
@@ -315,23 +321,16 @@ func TestZonedTimestampConverter_Convert(t *testing.T) {
 		assert.Equal(t, _ts, ts.(*ext.ExtendedTime).GetTime())
 	}
 	{
-		// time.Time (nanoseconds)
-		_ts := time.Date(2001, 2, 3, 4, 5, 1, 9099999, time.UTC)
-
+		// Different timezone
+		_ts := time.Date(2001, 2, 3, 4, 5, 0, 0, time.FixedZone("CET", 1*60*60))
 		value, err := converter.Convert(_ts)
 		assert.NoError(t, err)
-		assert.Equal(t, "2001-02-03T04:05:01.0090999Z", value)
+		assert.Equal(t, "2001-02-03T03:05:00Z", value)
 
 		// Check Transfer to ensure no precision loss
 		ts, err := converters.DateTimeWithTimezone{}.Convert(value)
 		assert.NoError(t, err)
-		assert.Equal(t, _ts, ts.(*ext.ExtendedTime).GetTime())
-	}
-	{
-		// Different timezone
-		value, err := converter.Convert(time.Date(2001, 2, 3, 4, 5, 0, 0, time.FixedZone("CET", 1*60*60)))
-		assert.NoError(t, err)
-		assert.Equal(t, "2001-02-03T03:05:00Z", value)
+		assert.Equal(t, _ts.UTC(), ts.(*ext.ExtendedTime).GetTime())
 	}
 }
 
