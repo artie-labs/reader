@@ -188,7 +188,7 @@ func (ZonedTimestampConverter) Convert(value any) (any, error) {
 		return nil, nil
 	}
 
-	return timeValue.Format(time.RFC3339Nano), nil
+	return timeValue.Format("2006-01-02T15:04:05.9999999Z"), nil
 }
 
 type YearConverter struct{}
