@@ -1,11 +1,11 @@
 package converters
 
 import (
-	"github.com/artie-labs/transfer/lib/debezium/converters"
 	"math"
 	"testing"
 	"time"
 
+	"github.com/artie-labs/transfer/lib/debezium/converters"
 	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/artie-labs/transfer/lib/typing/ext"
 	"github.com/stretchr/testify/assert"
