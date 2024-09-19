@@ -22,16 +22,16 @@ func encodeDecimalWithScale(decimal *apd.Decimal, scale int32) ([]byte, error) {
 	return bytes, nil
 }
 
-type decimalConverter struct {
+type DecimalConverter struct {
 	scale     uint16
 	precision *int
 }
 
-func NewDecimalConverter(scale uint16, precision *int) decimalConverter {
-	return decimalConverter{scale: scale, precision: precision}
+func NewDecimalConverter(scale uint16, precision *int) DecimalConverter {
+	return DecimalConverter{scale: scale, precision: precision}
 }
 
-func (d decimalConverter) ToField(name string) debezium.Field {
+func (d DecimalConverter) ToField(name string) debezium.Field {
 	field := debezium.Field{
 		FieldName:    name,
 		Type:         debezium.Bytes,
@@ -48,7 +48,7 @@ func (d decimalConverter) ToField(name string) debezium.Field {
 	return field
 }
 
-func (d decimalConverter) Convert(value any) (any, error) {
+func (d DecimalConverter) Convert(value any) (any, error) {
 	stringValue, err := typing.AssertType[string](value)
 	if err != nil {
 		return nil, err
