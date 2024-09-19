@@ -245,7 +245,7 @@ func TestMicroTimestampConverter_Convert(t *testing.T) {
 		transferValue, err := parseUsingTransfer(converter, value.(int64))
 		assert.NoError(t, err)
 		assert.Equal(t, timeValue, transferValue.GetTime())
-		assert.Equal(t, ext.DateTimeKindType, transferValue.GetNestedKind().Type)
+		assert.Equal(t, ext.TimestampTzKindType, transferValue.GetNestedKind().Type)
 	}
 }
 
@@ -288,6 +288,30 @@ func TestZonedTimestampConverter_Convert(t *testing.T) {
 		value, err := converter.Convert(time.Date(2001, 2, 3, 4, 5, 0, 0, time.UTC))
 		assert.NoError(t, err)
 		assert.Equal(t, "2001-02-03T04:05:00Z", value)
+	}
+	{
+		// time.Time (ms)
+		value, err := converter.Convert(time.Date(2001, 2, 3, 4, 5, 1, 900000, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, "2001-02-03T04:05:01.0009Z", value)
+	}
+	{
+		// time.Time (microseconds)
+		value, err := converter.Convert(time.Date(2001, 2, 3, 4, 5, 1, 909000, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, "2001-02-03T04:05:01.000909Z", value)
+	}
+	{
+		// time.Time (nanoseconds)
+		value, err := converter.Convert(time.Date(2001, 2, 3, 4, 5, 1, 9099999, time.UTC))
+		assert.NoError(t, err)
+		assert.Equal(t, "2001-02-03T04:05:01.0090999Z", value)
+	}
+	{
+		// Different timezone
+		value, err := converter.Convert(time.Date(2001, 2, 3, 4, 5, 0, 0, time.FixedZone("CET", 1*60*60)))
+		assert.NoError(t, err)
+		assert.Equal(t, "2001-02-03T03:05:00Z", value)
 	}
 }
 

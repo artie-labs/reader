@@ -188,7 +188,9 @@ func (ZonedTimestampConverter) Convert(value any) (any, error) {
 		return nil, nil
 	}
 
-	return timeValue.Format("2006-01-02T15:04:05.9999999Z"), nil
+	// A string representation of a timestamp with timezone information, where the timezone is GMT.
+	layout := "2006-01-02T15:04:05.9999999Z"
+	return timeValue.UTC().Format(layout), nil
 }
 
 type YearConverter struct{}
