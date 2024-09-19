@@ -12,22 +12,34 @@ import (
 const DateTimeFormat = "2006-01-02 15:04:05.999999999"
 
 // ConvertValue takes a value returned from the MySQL driver and converts it to a native Go type.
-func ConvertValue(value any, colType DataType) (any, error) {
+func ConvertValue(value any, colType DataType, opts *Opts) (any, error) {
 	if value == nil {
 		return nil, nil
 	}
 
 	switch colType {
 	case Bit:
+		if opts == nil || opts.Size == nil {
+			return nil, fmt.Errorf("bit column has no size")
+		}
+
 		// Bits
 		castValue, ok := value.([]byte)
 		if !ok {
 			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
 		}
-		if len(castValue) != 1 || castValue[0] > 1 {
-			return nil, fmt.Errorf("bit value is invalid: %v", value)
+
+		switch *opts.Size {
+		case 0:
+			return nil, fmt.Errorf("bit column has size 0, valid range is [1, 64]")
+		case 1:
+			if len(castValue) != 1 || castValue[0] > 1 {
+				return nil, fmt.Errorf("bit value is invalid: %v", value)
+			}
+			return castValue[0] == 1, nil
+		default:
+			return castValue, nil
 		}
-		return castValue[0] == 1, nil
 	case Boolean:
 		castVal, ok := value.(int64)
 		if !ok {
@@ -177,7 +189,7 @@ func ConvertValues(values []any, cols []Column) error {
 
 	for i, value := range values {
 		col := cols[i]
-		convertedVal, err := ConvertValue(value, col.Type)
+		convertedVal, err := ConvertValue(value, col.Type, col.Opts)
 		if err != nil {
 			return fmt.Errorf("failed to convert value for column %q: %w", col.Name, err)
 		}

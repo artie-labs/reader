@@ -176,7 +176,12 @@ func parseColumnDataType(originalS string) (DataType, *Opts, error) {
 	case "double":
 		return Double, nil, nil
 	case "bit":
-		return Bit, nil, nil
+		size, err := strconv.Atoi(metadata)
+		if err != nil {
+			return -1, nil, fmt.Errorf("failed to parse metadata value %q: %w", s, err)
+		}
+
+		return Bit, &Opts{Size: typing.ToPtr(size)}, nil
 	case "date":
 		return Date, nil, nil
 	case "datetime":
