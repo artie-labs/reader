@@ -2,10 +2,10 @@ package schema
 
 import (
 	"encoding/base64"
-	"github.com/artie-labs/transfer/lib/typing"
 	"testing"
 	"time"
 
+	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/stretchr/testify/assert"
 )
 
