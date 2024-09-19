@@ -85,7 +85,7 @@ func TestValueConverterForType(t *testing.T) {
 				Size: typing.ToPtr(5),
 			},
 			expected: debezium.Field{
-				Type:      debezium.Bytes,
+				Type:      "bytes",
 				FieldName: colName,
 			},
 		},
