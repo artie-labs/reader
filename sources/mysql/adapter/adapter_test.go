@@ -68,10 +68,24 @@ func TestValueConverterForType(t *testing.T) {
 			expectedErr: "unable get value converter for DataType(-1)",
 		},
 		{
-			name:     "bit",
+			name:     "bit(1)",
 			dataType: schema.Bit,
+			opts: &schema.Opts{
+				Size: typing.ToPtr(1),
+			},
 			expected: debezium.Field{
 				Type:      "boolean",
+				FieldName: colName,
+			},
+		},
+		{
+			name:     "bit(5)",
+			dataType: schema.Bit,
+			opts: &schema.Opts{
+				Size: typing.ToPtr(5),
+			},
+			expected: debezium.Field{
+				Type:      "bytes",
 				FieldName: colName,
 			},
 		},

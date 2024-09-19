@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,6 +21,7 @@ func TestConvertValue(t *testing.T) {
 	tests := []struct {
 		name        string
 		dataType    DataType
+		opts        *Opts
 		value       any
 		expected    any
 		expectedErr string
@@ -34,24 +36,28 @@ func TestConvertValue(t *testing.T) {
 			name:     "bit - 0 value",
 			dataType: Bit,
 			value:    []byte{byte(0)},
+			opts:     &Opts{Size: typing.ToPtr(1)},
 			expected: false,
 		},
 		{
 			name:     "bit - 1 value",
 			dataType: Bit,
 			value:    []byte{byte(1)},
+			opts:     &Opts{Size: typing.ToPtr(1)},
 			expected: true,
 		},
 		{
 			name:        "bit - 2 value",
 			dataType:    Bit,
 			value:       []byte{byte(2)},
+			opts:        &Opts{Size: typing.ToPtr(1)},
 			expectedErr: "bit value is invalid",
 		},
 		{
 			name:        "bit - 2 bytes",
 			dataType:    Bit,
 			value:       []byte{byte(1), byte(1)},
+			opts:        &Opts{Size: typing.ToPtr(1)},
 			expectedErr: "bit value is invalid",
 		},
 		{
@@ -279,7 +285,7 @@ func TestConvertValue(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		value, err := ConvertValue(tc.value, tc.dataType)
+		value, err := ConvertValue(tc.value, tc.dataType, tc.opts)
 		if tc.expectedErr == "" {
 			assert.NoError(t, err, tc.name)
 			assert.Equal(t, tc.expected, value, tc.name)
@@ -293,7 +299,7 @@ func TestConvertValues(t *testing.T) {
 	columns := []Column{
 		{Name: "a", Type: Int},
 		{Name: "b", Type: Varchar},
-		{Name: "c", Type: Bit},
+		{Name: "c", Type: Bit, Opts: &Opts{Size: typing.ToPtr(1)}},
 	}
 
 	{

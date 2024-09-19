@@ -83,7 +83,17 @@ func (m MySQLAdapter) PartitionKeys() []string {
 
 func valueConverterForType(d schema.DataType, opts *schema.Opts) (converters.ValueConverter, error) {
 	switch d {
-	case schema.Bit, schema.Boolean:
+	case schema.Bit:
+		if opts == nil || opts.Size == nil {
+			return nil, fmt.Errorf("size is required for bit type")
+		}
+
+		if *opts.Size == 1 {
+			return converters.BooleanPassthrough{}, nil
+		}
+
+		return converters.BytesPassthrough{}, nil
+	case schema.Boolean:
 		return converters.BooleanPassthrough{}, nil
 	case schema.TinyInt, schema.SmallInt:
 		return converters.Int16Passthrough{}, nil
