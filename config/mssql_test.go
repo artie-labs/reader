@@ -130,6 +130,26 @@ func TestMSSQL_Validate(t *testing.T) {
 		assert.ErrorContains(t, m.Validate(), "table name and schema must be passed in")
 	}
 	{
+		// Exclude and include columns at the same time
+		m := &MSSQL{
+			Host:     "host",
+			Port:     1,
+			Username: "username",
+			Password: "password",
+			Database: "database",
+			Tables: []*MSSQLTable{
+				{
+					Name:           "name",
+					Schema:         "schema",
+					IncludeColumns: []string{"foo"},
+					ExcludeColumns: []string{"bar"},
+				},
+			},
+		}
+
+		assert.ErrorContains(t, m.Validate(), "cannot exclude and include columns at the same time")
+	}
+	{
 		// Valid
 		m := &MSSQL{
 			Host:     "host",
