@@ -49,3 +49,26 @@ func FilterOutExcludedColumns[T ~int, O any](columns []Column[T, O], excludeName
 	}
 	return result, nil
 }
+
+// FilterForIncludedColumns returns a list of columns including only those that match `includeNames`.
+// All primary keys must be included, else it'll return an error.
+func FilterForIncludedColumns[T ~int, O any](columns []Column[T, O], includeNames []string, primaryKeys []string) ([]Column[T, O], error) {
+	if len(includeNames) == 0 {
+		return columns, nil
+	}
+
+	// All primary keys must be included
+	for _, key := range primaryKeys {
+		if !slices.Contains(includeNames, key) {
+			return nil, fmt.Errorf("primary key column %q must be included", key)
+		}
+	}
+
+	var result []Column[T, O]
+	for _, column := range columns {
+		if slices.Contains(includeNames, column.Name) {
+			result = append(result, column)
+		}
+	}
+	return result, nil
+}

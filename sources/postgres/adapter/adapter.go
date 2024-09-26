@@ -31,7 +31,14 @@ func NewPostgresAdapter(db *sql.DB, tableCfg config.PostgreSQLTable) (PostgresAd
 		return PostgresAdapter{}, fmt.Errorf("failed to load metadata for table %s.%s: %w", tableCfg.Schema, tableCfg.Name, err)
 	}
 
+	// Exclude columns (if any) from the table metadata
 	columns, err := column.FilterOutExcludedColumns(table.Columns, tableCfg.ExcludeColumns, table.PrimaryKeys)
+	if err != nil {
+		return PostgresAdapter{}, err
+	}
+
+	// Include columns (if any) from the table metadata
+	columns, err = column.FilterForIncludedColumns(columns, tableCfg.IncludeColumns, table.PrimaryKeys)
 	if err != nil {
 		return PostgresAdapter{}, err
 	}
