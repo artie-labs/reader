@@ -162,20 +162,31 @@ func TestFilterOutExcludedColumns(t *testing.T) {
 func TestFilterForIncludedColumns(t *testing.T) {
 	{
 		// Empty `includeNames`
-		value, err := FilterForIncludedColumns([]mockColumn{{Name: "foo"}}, []string{})
+		value, err := FilterForIncludedColumns([]mockColumn{{Name: "foo"}}, []string{}, []string{})
 		assert.NoError(t, err)
 		assert.Equal(t, value, []mockColumn{{Name: "foo"}})
 	}
 	{
 		// Non-empty `includeNames`, included column is not in list
-		value, err := FilterForIncludedColumns([]mockColumn{{Name: "foo"}}, []string{"bar"})
+		value, err := FilterForIncludedColumns([]mockColumn{{Name: "foo"}}, []string{"bar"}, []string{})
 		assert.NoError(t, err)
 		assert.Equal(t, value, []mockColumn(nil))
 	}
 	{
 		// Non-empty `includeNames`, included column is in list
-		value, err := FilterForIncludedColumns([]mockColumn{{Name: "foo"}, {Name: "bar"}}, []string{"bar"})
+		value, err := FilterForIncludedColumns([]mockColumn{{Name: "foo"}, {Name: "bar"}}, []string{"bar"}, []string{})
 		assert.NoError(t, err)
 		assert.Equal(t, value, []mockColumn{{Name: "bar"}})
+	}
+	{
+		// Non-empty `includeNames`, included column is in list, primary key is not included
+		_, err := FilterForIncludedColumns([]mockColumn{{Name: "foo"}, {Name: "bar"}}, []string{"bar"}, []string{"foo"})
+		assert.ErrorContains(t, err, `primary key column "foo" must be included`)
+	}
+	{
+		// Non-empty `includeNames`, included column is in list, primary key is included
+		value, err := FilterForIncludedColumns([]mockColumn{{Name: "foo"}, {Name: "bar"}}, []string{"foo", "bar"}, []string{"foo"})
+		assert.NoError(t, err)
+		assert.Equal(t, value, []mockColumn{{Name: "foo"}, {Name: "bar"}})
 	}
 }

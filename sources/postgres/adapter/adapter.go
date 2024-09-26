@@ -38,7 +38,7 @@ func NewPostgresAdapter(db *sql.DB, tableCfg config.PostgreSQLTable) (PostgresAd
 	}
 
 	// Include columns (if any) from the table metadata
-	columns, err = column.FilterForIncludedColumns(columns, tableCfg.IncludeColumns)
+	columns, err = column.FilterForIncludedColumns(columns, tableCfg.IncludeColumns, table.PrimaryKeys)
 	if err != nil {
 		return PostgresAdapter{}, err
 	}
