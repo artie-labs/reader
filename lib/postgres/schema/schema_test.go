@@ -7,135 +7,141 @@ import (
 )
 
 func TestParseColumnDataType(t *testing.T) {
-	type _testCase struct {
-		name      string
-		colKind   string
-		precision *int
-		scale     *uint16
-		udtName   *string
-
-		expectedDataType DataType
-		expectedOpts     *Opts
-		expectedErr      string
+	{
+		// Array
+		dataType, opts, err := ParseColumnDataType("ARRAY", nil, nil, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, Array, dataType)
+		assert.Nil(t, opts)
 	}
-
-	var testCases = []_testCase{
+	{
+		// String
 		{
-			name:             "array",
-			colKind:          "ARRAY",
-			expectedDataType: Array,
-		},
-		{
-			name:             "character varying",
-			colKind:          "character varying",
-			expectedDataType: Text,
-		},
-		{
-			name:             "bit",
-			colKind:          "bit",
-			expectedDataType: Bit,
-		},
-		{
-			name:             "bool",
-			colKind:          "boolean",
-			expectedDataType: Boolean,
-		},
-		{
-			name:             "interval",
-			colKind:          "interval",
-			expectedDataType: Interval,
-		},
-		{
-			name:             "time with time zone",
-			colKind:          "time with time zone",
-			expectedDataType: TimeWithTimeZone,
-		},
-		{
-			name:             "time without time zone",
-			colKind:          "time without time zone",
-			expectedDataType: Time,
-		},
-		{
-			name:             "date",
-			colKind:          "date",
-			expectedDataType: Date,
-		},
-		{
-			name:             "char_text",
-			colKind:          "character",
-			expectedDataType: Text,
-		},
-		{
-			name:             "inet",
-			colKind:          "inet",
-			expectedDataType: Text,
-		},
-		{
-			name:             "numeric",
-			colKind:          "numeric",
-			expectedDataType: VariableNumeric,
-		},
-		{
-			name:             "numeric - with scale + precision",
-			colKind:          "numeric",
-			scale:            typing.ToPtr(uint16(2)),
-			precision:        typing.ToPtr(3),
-			expectedDataType: Numeric,
-			expectedOpts: &Opts{
-				Scale:     2,
-				Precision: 3,
-			},
-		},
-		{
-			name:             "variable numeric",
-			colKind:          "variable numeric",
-			expectedDataType: VariableNumeric,
-		},
-		{
-			name:             "money",
-			colKind:          "money",
-			expectedDataType: Money,
-		},
-		{
-			name:             "hstore",
-			colKind:          "user-defined",
-			udtName:          typing.ToPtr("hstore"),
-			expectedDataType: HStore,
-		},
-		{
-			name:             "geometry",
-			colKind:          "user-defined",
-			udtName:          typing.ToPtr("geometry"),
-			expectedDataType: Geometry,
-		},
-		{
-			name:             "geography",
-			colKind:          "user-defined",
-			udtName:          typing.ToPtr("geography"),
-			expectedDataType: Geography,
-		},
-		{
-			name:             "user-defined text",
-			colKind:          "user-defined",
-			udtName:          typing.ToPtr("foo"),
-			expectedDataType: UserDefinedText,
-		},
-		{
-			name:        "unsupported",
-			colKind:     "foo",
-			expectedErr: `unknown data type: "foo"`,
-		},
-	}
-
-	for _, testCase := range testCases {
-		dataType, opts, err := ParseColumnDataType(testCase.colKind, testCase.precision, testCase.scale, testCase.udtName)
-		if testCase.expectedErr == "" {
-			assert.NoError(t, err, testCase.name)
-			assert.Equal(t, testCase.expectedDataType, dataType, testCase.name)
-			assert.Equal(t, testCase.expectedOpts, opts, testCase.name)
-		} else {
-			assert.ErrorContains(t, err, testCase.expectedErr, testCase.name)
+			// Character varying
+			dataType, opts, err := ParseColumnDataType("character varying", nil, nil, nil)
+			assert.NoError(t, err)
+			assert.Equal(t, Text, dataType)
+			assert.Nil(t, opts)
 		}
+		{
+			// Character
+			dataType, opts, err := ParseColumnDataType("character", nil, nil, nil)
+			assert.NoError(t, err)
+			assert.Equal(t, Text, dataType)
+			assert.Nil(t, opts)
+		}
+	}
+	{
+		// bit
+		dataType, opts, err := ParseColumnDataType("bit", nil, nil, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, Bit, dataType)
+		assert.Nil(t, opts)
+	}
+	{
+		// boolean
+		dataType, opts, err := ParseColumnDataType("boolean", nil, nil, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, Boolean, dataType)
+		assert.Nil(t, opts)
+	}
+	{
+		// interval
+		dataType, opts, err := ParseColumnDataType("interval", nil, nil, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, Interval, dataType)
+		assert.Nil(t, opts)
+	}
+	{
+		// time with time zone
+		dataType, opts, err := ParseColumnDataType("time with time zone", nil, nil, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, TimeWithTimeZone, dataType)
+		assert.Nil(t, opts)
+	}
+	{
+		// time without time zone
+		dataType, opts, err := ParseColumnDataType("time without time zone", nil, nil, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, Time, dataType)
+		assert.Nil(t, opts)
+	}
+	{
+		// date
+		dataType, opts, err := ParseColumnDataType("date", nil, nil, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, Date, dataType)
+		assert.Nil(t, opts)
+	}
+	{
+		// inet
+		dataType, opts, err := ParseColumnDataType("inet", nil, nil, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, Text, dataType)
+		assert.Nil(t, opts)
+	}
+	{
+		// numeric
+		dataType, opts, err := ParseColumnDataType("numeric", nil, nil, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, VariableNumeric, dataType)
+		assert.Nil(t, opts)
+	}
+	{
+		// numeric - with scale + precision
+		dataType, opts, err := ParseColumnDataType("numeric", typing.ToPtr(3), typing.ToPtr(uint16(2)), nil)
+		assert.NoError(t, err)
+		assert.Equal(t, Numeric, dataType)
+		assert.Equal(t, &Opts{Scale: 2, Precision: 3}, opts)
+	}
+	{
+		// Variable numeric
+		dataType, opts, err := ParseColumnDataType("variable numeric", nil, nil, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, VariableNumeric, dataType)
+		assert.Nil(t, opts)
+	}
+	{
+		// Money
+		dataType, opts, err := ParseColumnDataType("money", nil, nil, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, Money, dataType)
+		assert.Nil(t, opts)
+	}
+	{
+		// hstore
+		dataType, opts, err := ParseColumnDataType("user-defined", nil, nil, typing.ToPtr("hstore"))
+		assert.NoError(t, err)
+		assert.Equal(t, HStore, dataType)
+		assert.Nil(t, opts)
+	}
+	{
+		// geometry
+		dataType, opts, err := ParseColumnDataType("user-defined", nil, nil, typing.ToPtr("geometry"))
+		assert.NoError(t, err)
+		assert.Equal(t, Geometry, dataType)
+		assert.Nil(t, opts)
+	}
+	{
+		// geography
+		dataType, opts, err := ParseColumnDataType("user-defined", nil, nil, typing.ToPtr("geography"))
+		assert.NoError(t, err)
+		assert.Equal(t, Geography, dataType)
+		assert.Nil(t, opts)
+	}
+	{
+		// user-defined text
+		dataType, opts, err := ParseColumnDataType("user-defined", nil, nil, typing.ToPtr("foo"))
+		assert.NoError(t, err)
+		assert.Equal(t, UserDefinedText, dataType)
+		assert.Nil(t, opts)
+	}
+	{
+		// unsupported
+		dataType, opts, err := ParseColumnDataType("foo", nil, nil, nil)
+		assert.ErrorContains(t, err, `unknown data type: "foo"`)
+		assert.Equal(t, -1, int(dataType))
+		assert.Nil(t, opts)
 	}
 }
 
