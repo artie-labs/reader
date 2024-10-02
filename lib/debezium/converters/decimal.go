@@ -2,21 +2,36 @@ package converters
 
 import (
 	"fmt"
+
 	"github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/debezium/converters"
 	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/cockroachdb/apd/v3"
 )
 
-type decimalConverter struct {
+// encodeDecimalWithScale is used to encode a [*apd.Decimal] to `org.apache.kafka.connect.data.Decimal`
+// using a specific scale.
+func encodeDecimalWithScale(decimal *apd.Decimal, scale int32) ([]byte, error) {
+	targetExponent := -scale // Negate scale since [Decimal.Exponent] is negative.
+	if decimal.Exponent != targetExponent {
+		// Return an error if the scales are different, this maintains parity with `org.apache.kafka.connect.data.Decimal`.
+		// https://github.com/a0x8o/kafka/blob/54eff6af115ee647f60129f2ce6a044cb17215d0/connect/api/src/main/java/org/apache/kafka/connect/data/Decimal.java#L69
+		return nil, fmt.Errorf("value scale (%d) is different from schema scale (%d)", -decimal.Exponent, scale)
+	}
+	bytes, _ := converters.EncodeDecimal(decimal)
+	return bytes, nil
+}
+
+type DecimalConverter struct {
 	scale     uint16
 	precision *int
 }
 
-func NewDecimalConverter(scale uint16, precision *int) decimalConverter {
-	return decimalConverter{scale: scale, precision: precision}
+func NewDecimalConverter(scale uint16, precision *int) DecimalConverter {
+	return DecimalConverter{scale: scale, precision: precision}
 }
 
-func (d decimalConverter) ToField(name string) debezium.Field {
+func (d DecimalConverter) ToField(name string) debezium.Field {
 	field := debezium.Field{
 		FieldName:    name,
 		Type:         debezium.Bytes,
@@ -33,7 +48,7 @@ func (d decimalConverter) ToField(name string) debezium.Field {
 	return field
 }
 
-func (d decimalConverter) Convert(value any) (any, error) {
+func (d DecimalConverter) Convert(value any) (any, error) {
 	stringValue, err := typing.AssertType[string](value)
 	if err != nil {
 		return nil, err
@@ -44,7 +59,7 @@ func (d decimalConverter) Convert(value any) (any, error) {
 		return nil, fmt.Errorf(`unable to use %q as a decimal: %w`, stringValue, err)
 	}
 
-	return debezium.EncodeDecimalWithScale(decimal, int32(d.scale)), nil
+	return encodeDecimalWithScale(decimal, int32(d.scale))
 }
 
 type VariableNumericConverter struct{}
@@ -68,9 +83,9 @@ func (VariableNumericConverter) Convert(value any) (any, error) {
 		return nil, fmt.Errorf(`unable to use %q as a decimal: %w`, stringValue, err)
 	}
 
-	bytes, scale := debezium.EncodeDecimal(decimal)
+	bytes, scale := converters.EncodeDecimal(decimal)
 	return map[string]any{
-		"scale": int32(scale),
+		"scale": scale,
 		"value": bytes,
 	}, nil
 }

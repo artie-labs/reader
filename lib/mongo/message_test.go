@@ -3,6 +3,7 @@ package mongo
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/artie-labs/transfer/lib/typing/ext"
 	"testing"
 	"time"
 
@@ -31,7 +32,7 @@ func TestParseMessagePartitionKey(t *testing.T) {
 		assert.NoError(t, err)
 
 		var dbz transferMongo.Debezium
-		pkMap, err := dbz.GetPrimaryKey(rawMsgBytes, &kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt})
+		pkMap, err := dbz.GetPrimaryKey(rawMsgBytes, kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt})
 		assert.NoError(t, err)
 		assert.Equal(t, "507f1f77bcf86cd799439011", pkMap["_id"])
 	}
@@ -88,7 +89,7 @@ func TestParseMessage(t *testing.T) {
 	assert.NoError(t, err)
 
 	var dbz transferMongo.Debezium
-	pkMap, err := dbz.GetPrimaryKey(rawPkBytes, &kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt})
+	pkMap, err := dbz.GetPrimaryKey(rawPkBytes, kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt})
 	assert.NoError(t, err)
 
 	rawMsgBytes, err := json.Marshal(rawMsg.Event())
@@ -105,13 +106,13 @@ func TestParseMessage(t *testing.T) {
 		"decimal":     "1234.5",
 		"subDocument": `{"nestedString":"Nested value"}`,
 		"array":       []any{"apple", "banana", "cherry"},
-		"datetime":    "2024-02-13T20:37:48+00:00",
+		"datetime":    ext.NewExtendedTime(time.Date(2024, time.February, 13, 20, 37, 48, 0, time.UTC), ext.TimestampTzKindType, "2006-01-02T15:04:05.999-07:00"),
 		"trueValue":   true,
 		"falseValue":  false,
 		"nullValue":   nil,
 	}
 
-	actualKVMap, err := kvMap.GetData(pkMap, &kafkalib.TopicConfig{})
+	actualKVMap, err := kvMap.GetData(pkMap, kafkalib.TopicConfig{})
 	assert.NoError(t, err)
 	for expectedKey, expectedVal := range expectedMap {
 		actualVal, isOk := actualKVMap[expectedKey]

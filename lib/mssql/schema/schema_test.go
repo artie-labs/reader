@@ -1,12 +1,9 @@
 package schema
 
 import (
-	"testing"
-
-	ptr2 "github.com/artie-labs/reader/lib/ptr"
-
-	"github.com/artie-labs/transfer/lib/ptr"
+	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestParseColumnDataType(t *testing.T) {
@@ -63,7 +60,7 @@ func TestParseColumnDataType(t *testing.T) {
 		{
 			// valid
 			for _, colKind := range []string{"numeric", "decimal"} {
-				dataType, opts, err := ParseColumnDataType(colKind, ptr.ToInt(1), ptr2.ToUint16(2), nil)
+				dataType, opts, err := ParseColumnDataType(colKind, typing.ToPtr(1), typing.ToPtr(uint16(2)), nil)
 				assert.NoError(t, err, colKind)
 				assert.NotNil(t, opts, colKind)
 				assert.Equal(t, Numeric, dataType, colKind)
@@ -74,7 +71,7 @@ func TestParseColumnDataType(t *testing.T) {
 		{
 			// invalid, precision is missing
 			for _, colKind := range []string{"numeric", "decimal"} {
-				dataType, opts, err := ParseColumnDataType(colKind, nil, ptr2.ToUint16(2), nil)
+				dataType, opts, err := ParseColumnDataType(colKind, nil, typing.ToPtr(uint16(2)), nil)
 				assert.ErrorContains(t, err, "expected precision and scale to be not-nil", colKind)
 				assert.Nil(t, opts, colKind)
 				assert.Equal(t, -1, int(dataType), colKind)
@@ -86,7 +83,7 @@ func TestParseColumnDataType(t *testing.T) {
 		{
 			// Default
 			for i := 0; i <= 3; i++ {
-				dataType, opts, err := ParseColumnDataType("time", nil, nil, ptr.ToInt(i))
+				dataType, opts, err := ParseColumnDataType("time", nil, nil, typing.ToPtr(i))
 				assert.NoError(t, err, i)
 				assert.Nil(t, opts, i)
 				assert.Equal(t, Time, dataType, i)
@@ -95,7 +92,7 @@ func TestParseColumnDataType(t *testing.T) {
 		{
 			// Micro
 			for i := 4; i <= 6; i++ {
-				dataType, opts, err := ParseColumnDataType("time", nil, nil, ptr.ToInt(i))
+				dataType, opts, err := ParseColumnDataType("time", nil, nil, typing.ToPtr(i))
 				assert.NoError(t, err, i)
 				assert.Nil(t, opts, i)
 				assert.Equal(t, TimeMicro, dataType, i)
@@ -103,7 +100,7 @@ func TestParseColumnDataType(t *testing.T) {
 		}
 		{
 			// Nano
-			dataType, opts, err := ParseColumnDataType("time", nil, nil, ptr.ToInt(7))
+			dataType, opts, err := ParseColumnDataType("time", nil, nil, typing.ToPtr(7))
 			assert.NoError(t, err)
 			assert.Nil(t, opts)
 			assert.Equal(t, TimeNano, dataType)
@@ -139,7 +136,7 @@ func TestParseColumnDataType(t *testing.T) {
 		{
 			// Default
 			for i := 0; i <= 3; i++ {
-				dataType, opts, err := ParseColumnDataType("datetime2", nil, nil, ptr.ToInt(i))
+				dataType, opts, err := ParseColumnDataType("datetime2", nil, nil, typing.ToPtr(i))
 				assert.NoError(t, err, i)
 				assert.Nil(t, opts, i)
 				assert.Equal(t, Datetime2, dataType, i)
@@ -148,7 +145,7 @@ func TestParseColumnDataType(t *testing.T) {
 		{
 			// Micro
 			for i := 4; i <= 6; i++ {
-				dataType, opts, err := ParseColumnDataType("datetime2", nil, nil, ptr.ToInt(i))
+				dataType, opts, err := ParseColumnDataType("datetime2", nil, nil, typing.ToPtr(i))
 				assert.NoError(t, err, i)
 				assert.Nil(t, opts, i)
 				assert.Equal(t, Datetime2Micro, dataType, i)
@@ -156,7 +153,7 @@ func TestParseColumnDataType(t *testing.T) {
 		}
 		{
 			// nano
-			dataType, opts, err := ParseColumnDataType("datetime2", nil, nil, ptr.ToInt(7))
+			dataType, opts, err := ParseColumnDataType("datetime2", nil, nil, typing.ToPtr(7))
 			assert.NoError(t, err)
 			assert.Nil(t, opts)
 			assert.Equal(t, Datetime2Nano, dataType)

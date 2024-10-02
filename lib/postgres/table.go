@@ -18,7 +18,7 @@ type Table struct {
 	PrimaryKeys []string
 }
 
-func LoadTable(db *sql.DB, _schema string, name string) (*Table, error) {
+func LoadTable(db *sql.DB, _schema string, name string, primaryKeysOverride []string) (*Table, error) {
 	tbl := &Table{
 		Name:   name,
 		Schema: _schema,
@@ -29,8 +29,12 @@ func LoadTable(db *sql.DB, _schema string, name string) (*Table, error) {
 		return nil, fmt.Errorf("failed to describe table %s.%s: %w", tbl.Schema, tbl.Name, err)
 	}
 
-	if tbl.PrimaryKeys, err = schema.FetchPrimaryKeys(db, tbl.Schema, tbl.Name); err != nil {
-		return nil, fmt.Errorf("failed to retrieve primary keys: %w", err)
+	if len(primaryKeysOverride) > 0 {
+		tbl.PrimaryKeys = primaryKeysOverride
+	} else {
+		if tbl.PrimaryKeys, err = schema.FetchPrimaryKeys(db, tbl.Schema, tbl.Name); err != nil {
+			return nil, fmt.Errorf("failed to retrieve primary keys: %w", err)
+		}
 	}
 
 	return tbl, nil

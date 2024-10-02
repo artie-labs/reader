@@ -56,5 +56,5 @@ func (m MoneyConverter) Convert(value any) (any, error) {
 		return nil, fmt.Errorf(`unable to use %q as a money value: %w`, valString, err)
 	}
 
-	return debezium.EncodeDecimalWithScale(decimal, int32(m.Scale())), nil
+	return encodeDecimalWithScale(decimal, int32(m.Scale()))
 }

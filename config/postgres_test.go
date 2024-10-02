@@ -118,6 +118,26 @@ func TestPostgreSQL_Validate(t *testing.T) {
 		assert.ErrorContains(t, p.Validate(), "schema must be passed in")
 	}
 	{
+		// Filtering and excluding at the same time
+		p := &PostgreSQL{
+			Host:     "host",
+			Port:     1,
+			Username: "username",
+			Password: "password",
+			Database: "database",
+			Tables: []*PostgreSQLTable{
+				{
+					Name:           "name",
+					Schema:         "schema",
+					ExcludeColumns: []string{"a"},
+					IncludeColumns: []string{"b"},
+				},
+			},
+		}
+
+		assert.ErrorContains(t, p.Validate(), "cannot exclude and include columns at the same time")
+	}
+	{
 		// Valid
 		p := &PostgreSQL{
 			Host:     "host",

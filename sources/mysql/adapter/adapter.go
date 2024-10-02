@@ -33,7 +33,14 @@ func NewMySQLAdapter(db *sql.DB, dbName string, tableCfg config.MySQLTable) (MyS
 		return MySQLAdapter{}, fmt.Errorf("failed to load metadata for table %q: %w", tableCfg.Name, err)
 	}
 
+	// Exclude columns (if any) from the table metadata
 	columns, err := column.FilterOutExcludedColumns(table.Columns, tableCfg.ExcludeColumns, table.PrimaryKeys)
+	if err != nil {
+		return MySQLAdapter{}, err
+	}
+
+	// Include columns (if any) from the table metadata
+	columns, err = column.FilterForIncludedColumns(columns, tableCfg.IncludeColumns, table.PrimaryKeys)
 	if err != nil {
 		return MySQLAdapter{}, err
 	}
@@ -83,7 +90,17 @@ func (m MySQLAdapter) PartitionKeys() []string {
 
 func valueConverterForType(d schema.DataType, opts *schema.Opts) (converters.ValueConverter, error) {
 	switch d {
-	case schema.Bit, schema.Boolean:
+	case schema.Bit:
+		if opts == nil || opts.Size == nil {
+			return nil, fmt.Errorf("size is required for bit type")
+		}
+
+		if *opts.Size == 1 {
+			return converters.BooleanPassthrough{}, nil
+		}
+
+		return converters.BytesPassthrough{}, nil
+	case schema.Boolean:
 		return converters.BooleanPassthrough{}, nil
 	case schema.TinyInt, schema.SmallInt:
 		return converters.Int16Passthrough{}, nil

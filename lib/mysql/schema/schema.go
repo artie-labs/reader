@@ -4,16 +4,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	ptr2 "github.com/artie-labs/reader/lib/ptr"
 	"log/slog"
 	"strconv"
 	"strings"
 
-	"github.com/artie-labs/transfer/lib/ptr"
-
 	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/reader/lib/rdbms/column"
 	"github.com/artie-labs/reader/lib/rdbms/primary_key"
+	"github.com/artie-labs/transfer/lib/typing"
 )
 
 type DataType int
@@ -172,13 +170,18 @@ func parseColumnDataType(originalS string) (DataType, *Opts, error) {
 		if err != nil {
 			return -1, nil, fmt.Errorf("failed to parse scale value %q: %w", s, err)
 		}
-		return Decimal, &Opts{Precision: ptr.ToInt(precision), Scale: ptr2.ToUint16(uint16(scale))}, nil
+		return Decimal, &Opts{Precision: typing.ToPtr(precision), Scale: typing.ToPtr(uint16(scale))}, nil
 	case "float":
 		return Float, nil, nil
 	case "double":
 		return Double, nil, nil
 	case "bit":
-		return Bit, nil, nil
+		size, err := strconv.Atoi(metadata)
+		if err != nil {
+			return -1, nil, fmt.Errorf("failed to parse metadata value %q: %w", s, err)
+		}
+
+		return Bit, &Opts{Size: typing.ToPtr(size)}, nil
 	case "date":
 		return Date, nil, nil
 	case "datetime":
@@ -196,12 +199,12 @@ func parseColumnDataType(originalS string) (DataType, *Opts, error) {
 		if err != nil {
 			return -1, nil, fmt.Errorf("failed to parse varchar size: %w", err)
 		}
-		return Varchar, &Opts{Size: ptr.ToInt(size)}, nil
+		return Varchar, &Opts{Size: typing.ToPtr(size)}, nil
 	case "binary":
 		return Binary, nil, nil
 	case "varbinary":
 		return Varbinary, nil, nil
-	case "blob":
+	case "blob", "tinyblob", "mediumblob", "longblob":
 		return Blob, nil, nil
 	case "text":
 		return Text, nil, nil

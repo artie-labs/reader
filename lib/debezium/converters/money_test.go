@@ -1,10 +1,11 @@
 package converters
 
 import (
+	"github.com/artie-labs/transfer/lib/typing"
 	"testing"
 
-	"github.com/artie-labs/reader/lib/ptr"
 	transferDbz "github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/typing/decimal"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +18,7 @@ func TestMoney_Scale(t *testing.T) {
 	{
 		// Specified
 		converter := MoneyConverter{
-			ScaleOverride: ptr.ToUint16(3),
+			ScaleOverride: typing.ToPtr(uint16(3)),
 		}
 		assert.Equal(t, uint16(3), converter.Scale())
 	}
@@ -41,9 +42,12 @@ func TestMoneyConverter_Convert(t *testing.T) {
 	decodeValue := func(value any) string {
 		bytes, ok := value.([]byte)
 		assert.True(t, ok)
-		val, err := decimalField.DecodeDecimal(bytes)
+
+		valueConverter, err := decimalField.ToValueConverter()
 		assert.NoError(t, err)
-		return val.String()
+		val, err := valueConverter.Convert(bytes)
+		assert.NoError(t, err)
+		return val.(*decimal.Decimal).String()
 	}
 	{
 		// Converter where mutateString is true
@@ -66,11 +70,9 @@ func TestMoneyConverter_Convert(t *testing.T) {
 			assert.Equal(t, "1234.56", decodeValue(converted))
 		}
 		{
-			// string with $, comma, and no cents
-			converted, err := converter.Convert("$1000,234")
-			assert.NoError(t, err)
-			assert.Equal(t, []byte{0x5, 0xf6, 0x3c, 0x68}, converted)
-			assert.Equal(t, "1000234.00", decodeValue(converted))
+			// string with missing cents
+			_, err := converter.Convert("$1000,234")
+			assert.ErrorContains(t, err, "value scale (0) is different from schema scale (2)")
 		}
 		{
 			// Malformed string - empty string.

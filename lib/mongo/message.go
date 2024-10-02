@@ -7,12 +7,12 @@ import (
 
 	"github.com/artie-labs/transfer/lib/cdc/mongo"
 	"github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/typing"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
-	"github.com/artie-labs/reader/lib/ptr"
 )
 
 type Message struct {
@@ -97,7 +97,7 @@ func ParseMessage(after bson.M, before *bson.M, op string) (*Message, error) {
 			return nil, fmt.Errorf("failed to marshal document to JSON extended: %w", err)
 		}
 
-		msg.beforeJSONExtendedString = ptr.ToPtr(string(beforeRow))
+		msg.beforeJSONExtendedString = typing.ToPtr(string(beforeRow))
 	}
 
 	return msg, nil

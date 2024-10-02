@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/artie-labs/transfer/lib/jitter"
-	"github.com/artie-labs/transfer/lib/ptr"
+	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 
@@ -77,13 +77,13 @@ func (s *Store) processShard(ctx context.Context, shard types.Shard, writer writ
 	}
 
 	iteratorInput := &dynamodbstreams.GetShardIteratorInput{
-		StreamArn:         ptr.ToString(s.streamArn),
+		StreamArn:         typing.ToPtr(s.streamArn),
 		ShardId:           shard.ShardId,
 		ShardIteratorType: iteratorType,
 	}
 
 	if startingSequenceNumber != "" {
-		iteratorInput.SequenceNumber = ptr.ToString(startingSequenceNumber)
+		iteratorInput.SequenceNumber = typing.ToPtr(startingSequenceNumber)
 	}
 
 	iteratorOutput, err := s.streams.GetShardIterator(ctx, iteratorInput)
@@ -97,7 +97,7 @@ func (s *Store) processShard(ctx context.Context, shard types.Shard, writer writ
 	for shardIterator != nil {
 		getRecordsInput := &dynamodbstreams.GetRecordsInput{
 			ShardIterator: shardIterator,
-			Limit:         ptr.ToInt32(1000),
+			Limit:         typing.ToPtr(int32(1000)),
 		}
 
 		getRecordsOutput, err := s.streams.GetRecords(ctx, getRecordsInput)

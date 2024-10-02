@@ -1,3 +1,7 @@
+.PHONY: vet
+vet:
+	go vet ./...
+
 .PHONY: static
 static:
 	staticcheck ./...
@@ -39,3 +43,9 @@ generate:
 	go get github.com/maxbrunsfeld/counterfeiter/v6
 	go generate ./...
 	go mod tidy
+
+.PHONY: upgrade
+upgrade:
+	go get github.com/artie-labs/transfer
+	go mod tidy
+	echo "Upgrade complete"

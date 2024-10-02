@@ -27,7 +27,7 @@ type Writer struct {
 	cfg         config.Config
 	statsD      mtr.Client
 	inMemDB     *models.DatabaseData
-	tc          *kafkalib.TopicConfig
+	tc          kafkalib.TopicConfig
 	destination destination.Baseline
 
 	primaryKeys []string
@@ -46,7 +46,7 @@ func NewWriter(cfg config.Config, statsD mtr.Client) (*Writer, error) {
 		cfg:     cfg,
 		statsD:  statsD,
 		inMemDB: models.NewMemoryDB(),
-		tc:      cfg.Kafka.TopicConfigs[0],
+		tc:      *cfg.Kafka.TopicConfigs[0],
 	}
 
 	if utils.IsOutputBaseline(cfg) {
@@ -241,7 +241,7 @@ func (w *Writer) OnComplete() error {
 	}
 
 	slog.Info("Running dedupe...", slog.String("table", tableName))
-	tableID := w.destination.IdentifierFor(*w.tc, tableName)
+	tableID := w.destination.IdentifierFor(w.tc, tableName)
 	start := time.Now()
 
 	dwh, isOk := w.destination.(destination.DataWarehouse)

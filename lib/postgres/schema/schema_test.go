@@ -1,12 +1,9 @@
 package schema
 
 import (
-	"testing"
-
-	ptr2 "github.com/artie-labs/reader/lib/ptr"
-
-	"github.com/artie-labs/transfer/lib/ptr"
+	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestParseColumnDataType(t *testing.T) {
@@ -81,8 +78,8 @@ func TestParseColumnDataType(t *testing.T) {
 		{
 			name:             "numeric - with scale + precision",
 			colKind:          "numeric",
-			scale:            ptr2.ToUint16(2),
-			precision:        ptr.ToInt(3),
+			scale:            typing.ToPtr(uint16(2)),
+			precision:        typing.ToPtr(3),
 			expectedDataType: Numeric,
 			expectedOpts: &Opts{
 				Scale:     2,
@@ -102,25 +99,25 @@ func TestParseColumnDataType(t *testing.T) {
 		{
 			name:             "hstore",
 			colKind:          "user-defined",
-			udtName:          ptr.ToString("hstore"),
+			udtName:          typing.ToPtr("hstore"),
 			expectedDataType: HStore,
 		},
 		{
 			name:             "geometry",
 			colKind:          "user-defined",
-			udtName:          ptr.ToString("geometry"),
+			udtName:          typing.ToPtr("geometry"),
 			expectedDataType: Geometry,
 		},
 		{
 			name:             "geography",
 			colKind:          "user-defined",
-			udtName:          ptr.ToString("geography"),
+			udtName:          typing.ToPtr("geography"),
 			expectedDataType: Geography,
 		},
 		{
 			name:             "user-defined text",
 			colKind:          "user-defined",
-			udtName:          ptr.ToString("foo"),
+			udtName:          typing.ToPtr("foo"),
 			expectedDataType: UserDefinedText,
 		},
 		{

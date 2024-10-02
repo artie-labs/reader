@@ -4,6 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
+	"math/rand/v2"
+	"os"
+	"reflect"
+	"time"
+
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/integration_tests/utils"
 	"github.com/artie-labs/reader/lib"
@@ -16,11 +22,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"log/slog"
-	"math/rand/v2"
-	"os"
-	"reflect"
-	"time"
 )
 
 func main() {
@@ -96,25 +97,25 @@ func testTypes(ctx context.Context, db *mongo.Database, mongoCfg config.MongoDB)
 	ts := time.Date(2020, 10, 5, 12, 0, 0, 0, time.UTC)
 
 	_, err = collection.InsertOne(ctx, bson.D{
-		{"_id", objId},
-		{"string", "This is a string"},
-		{"int32", int32(32)},
-		{"int64", int64(64)},
-		{"double", 3.14},
-		{"bool", true},
-		{"datetime", ts},
-		{"embeddedDocument", bson.D{
-			{"field1", "value1"},
-			{"field2", "value2"},
+		{Key: "_id", Value: objId},
+		{Key: "string", Value: "This is a string"},
+		{Key: "int32", Value: int32(32)},
+		{Key: "int64", Value: int64(64)},
+		{Key: "double", Value: 3.14},
+		{Key: "bool", Value: true},
+		{Key: "datetime", Value: ts},
+		{Key: "embeddedDocument", Value: bson.D{
+			{Key: "field1", Value: "value1"},
+			{Key: "field2", Value: "value2"},
 		}},
-		{"embeddedMap", bson.M{"foo": "bar", "hello": "world", "pi": 3.14159}},
-		{"array", bson.A{"item1", 2, true, 3.14}},
-		{"binary", []byte("binary data")},
-		{"objectId", objId},
-		{"null", nil},
-		{"timestamp", primitive.Timestamp{T: uint32(ts.Unix()), I: 1}},
-		{"minKey", primitive.MinKey{}},
-		{"maxKey", primitive.MaxKey{}},
+		{Key: "embeddedMap", Value: bson.M{"foo": "bar", "hello": "world", "pi": 3.14159}},
+		{Key: "array", Value: bson.A{"item1", 2, true, 3.14}},
+		{Key: "binary", Value: []byte("binary data")},
+		{Key: "objectId", Value: objId},
+		{Key: "null", Value: nil},
+		{Key: "timestamp", Value: primitive.Timestamp{T: uint32(ts.Unix()), I: 1}},
+		{Key: "minKey", Value: primitive.MinKey{}},
+		{Key: "maxKey", Value: primitive.MaxKey{}},
 	})
 	if err != nil {
 		return fmt.Errorf("failed to insert row: %w", err)
@@ -169,12 +170,12 @@ func testTypes(ctx context.Context, db *mongo.Database, mongoCfg config.MongoDB)
 		return fmt.Errorf("failed to get event from bytes: %w", err)
 	}
 
-	pkMap, err := dbz.GetPrimaryKey(actualPkBytes, &kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt})
+	pkMap, err := dbz.GetPrimaryKey(actualPkBytes, kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt})
 	if err != nil {
 		return fmt.Errorf("failed to get primary key: %w", err)
 	}
 
-	data, err := evt.GetData(pkMap, &kafkalib.TopicConfig{})
+	data, err := evt.GetData(pkMap, kafkalib.TopicConfig{})
 	if err != nil {
 		return fmt.Errorf("failed to get data: %w", err)
 	}
@@ -182,11 +183,11 @@ func testTypes(ctx context.Context, db *mongo.Database, mongoCfg config.MongoDB)
 	expectedPayload := map[string]any{
 		"objectId":                "66a95fae3776c2f21f0ff568",
 		"array":                   []any{"item1", int32(2), true, 3.14},
-		"datetime":                ts.Format(ext.ISO8601),
+		"datetime":                ext.NewExtendedTime(ts, ext.TimestampTzKindType, "2006-01-02T15:04:05.999-07:00"),
 		"int64":                   int64(64),
 		"__artie_delete":          false,
 		"__artie_only_set_delete": false,
-		"timestamp":               ts.Format(ext.ISO8601),
+		"timestamp":               ext.NewExtendedTime(ts, ext.TimestampTzKindType, "2006-01-02T15:04:05.999-07:00"),
 		"embeddedDocument":        `{"field1":"value1","field2":"value2"}`,
 		"embeddedMap":             `{"foo":"bar","hello":"world","pi":3.14159}`,
 		"binary":                  `{"$binary":{"base64":"YmluYXJ5IGRhdGE=","subType":"00"}}`,

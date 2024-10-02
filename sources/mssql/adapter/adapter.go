@@ -9,9 +9,9 @@ import (
 	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/mssql"
 	"github.com/artie-labs/reader/lib/mssql/schema"
-	ptr2 "github.com/artie-labs/reader/lib/ptr"
 	"github.com/artie-labs/reader/lib/rdbms/column"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
+	"github.com/artie-labs/transfer/lib/typing"
 )
 
 const defaultErrorRetries = 10
@@ -31,7 +31,14 @@ func NewMSSQLAdapter(db *sql.DB, dbName string, tableCfg config.MSSQLTable) (MSS
 		return MSSQLAdapter{}, fmt.Errorf("failed to load metadata for table %s.%s: %w", tableCfg.Schema, tableCfg.Name, err)
 	}
 
+	// Exclude columns (if any) from the table metadata
 	columns, err := column.FilterOutExcludedColumns(table.Columns(), tableCfg.ExcludeColumns, table.PrimaryKeys())
+	if err != nil {
+		return MSSQLAdapter{}, err
+	}
+
+	// Include columns (if any) from the table metadata
+	columns, err = column.FilterForIncludedColumns(columns, tableCfg.IncludeColumns, table.PrimaryKeys())
 	if err != nil {
 		return MSSQLAdapter{}, err
 	}
@@ -94,7 +101,7 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	case schema.Money:
 		return converters.MoneyConverter{
 			// MSSQL uses scale of 4 for money
-			ScaleOverride: ptr2.ToUint16(4),
+			ScaleOverride: typing.ToPtr(uint16(4)),
 		}, nil
 	case schema.String, schema.UniqueIdentifier:
 		return converters.StringPassthrough{}, nil

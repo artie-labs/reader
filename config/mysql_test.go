@@ -96,6 +96,17 @@ func TestMySQL_Validate(t *testing.T) {
 		c.Tables = append(c.Tables, &MySQLTable{})
 		assert.ErrorContains(t, c.Validate(), "table name must be passed in")
 	}
+	{
+		// exclude and include at the same time
+		c := createValidConfig()
+		c.Tables = append(c.Tables, &MySQLTable{
+			Name:           "foo",
+			IncludeColumns: []string{"foo"},
+			ExcludeColumns: []string{"bar"},
+		})
+
+		assert.ErrorContains(t, c.Validate(), "cannot exclude and include columns at the same time")
+	}
 }
 
 func TestMySQL_ToDSN(t *testing.T) {
