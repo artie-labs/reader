@@ -140,7 +140,7 @@ func TestParseColumnDataType(t *testing.T) {
 		// unsupported
 		dataType, opts, err := ParseColumnDataType("foo", nil, nil, nil)
 		assert.ErrorContains(t, err, `unknown data type: "foo"`)
-		assert.Zero(t, dataType)
+		assert.Equal(t, -1, int(dataType))
 		assert.Nil(t, opts)
 	}
 }
