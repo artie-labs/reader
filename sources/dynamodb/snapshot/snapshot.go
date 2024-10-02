@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"path/filepath"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -25,14 +26,50 @@ type Store struct {
 	dynamoDBClient *dynamodb.Client
 }
 
-func NewStore(cfg config.DynamoDB, awsCfg aws.Config) *Store {
-	return &Store{
+func NewStore(ctx context.Context, cfg config.DynamoDB, awsCfg aws.Config) (*Store, error) {
+	bucketName, prefixName, err := s3lib.BucketAndPrefixFromFilePath(cfg.SnapshotSettings.Folder)
+	if err != nil {
+		return nil, err
+	}
+
+	store := &Store{
 		tableName:      cfg.TableName,
 		streamArn:      cfg.StreamArn,
 		cfg:            &cfg,
-		s3Client:       s3lib.NewClient(cfg.SnapshotSettings.S3Bucket, awsCfg),
+		s3Client:       s3lib.NewClient(bucketName, awsCfg),
 		dynamoDBClient: dynamodb.NewFromConfig(awsCfg),
 	}
+
+	if cfg.SnapshotSettings.ShouldInitiateExport {
+		exportARN, manifestFilePath, err := store.findRecentExport(ctx, bucketName, prefixName)
+		if err != nil {
+			return nil, err
+		}
+
+		if manifestFilePath == nil {
+			// This means that the export is not done yet, so let's wait.
+			manifestFilePath, err = store.checkExportStatus(ctx, exportARN)
+			if err != nil {
+				return nil, fmt.Errorf("failed to check export status: %w", err)
+			}
+		}
+
+		if err = store.loadFolderFromManifest(bucketName, *manifestFilePath); err != nil {
+			return nil, err
+		}
+	}
+
+	return store, nil
+}
+
+func (s *Store) loadFolderFromManifest(bucketName string, manifestFilePath string) error {
+	folder, err := dynamo.ParseManifestFile(bucketName, manifestFilePath)
+	if err != nil {
+		return fmt.Errorf("failed to parse manifest: %w", err)
+	}
+
+	s.cfg.SnapshotSettings.Folder = filepath.Join(folder, "data")
+	return nil
 }
 
 func (s *Store) Close() error {
