@@ -19,11 +19,8 @@ import (
 )
 
 type Store struct {
-	tableName    string
-	streamArn    string
-	s3BucketName string
-	s3PrefixName string
-
+	tableName      string
+	streamArn      string
 	cfg            *config.DynamoDB
 	s3Client       *s3lib.S3Client
 	dynamoDBClient *dynamodb.Client
@@ -38,8 +35,6 @@ func NewStore(ctx context.Context, cfg config.DynamoDB, awsCfg aws.Config) (*Sto
 	store := &Store{
 		tableName:      cfg.TableName,
 		streamArn:      cfg.StreamArn,
-		s3BucketName:   bucketName,
-		s3PrefixName:   prefixName,
 		cfg:            &cfg,
 		s3Client:       s3lib.NewClient(bucketName, awsCfg),
 		dynamoDBClient: dynamodb.NewFromConfig(awsCfg),

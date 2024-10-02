@@ -35,7 +35,7 @@ func (s *Store) findRecentExport(ctx context.Context, bucket string, prefix stri
 			return nil, nil, fmt.Errorf("failed to describe export: %w", err)
 		}
 
-		if *exportDescription.ExportDescription.S3Bucket == s.s3BucketName && *exportDescription.ExportDescription.S3Prefix == s.s3PrefixName {
+		if *exportDescription.ExportDescription.S3Bucket == bucket && *exportDescription.ExportDescription.S3Prefix == prefix {
 			if export.ExportStatus == types.ExportStatusCompleted {
 				return export.ExportArn, exportDescription.ExportDescription.ExportManifest, nil
 			}
