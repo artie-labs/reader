@@ -39,5 +39,12 @@ func TestBucketAndPrefixFromFilePath(t *testing.T) {
 			assert.Equal(t, "bucket", bucket)
 			assert.Equal(t, "prefix", prefix)
 		}
+		{
+			// S3 prefix long
+			bucket, prefix, err := BucketAndPrefixFromFilePath("s3://bucket/prefix/long")
+			assert.NoError(t, err)
+			assert.Equal(t, "bucket", bucket)
+			assert.Equal(t, "prefix/long", prefix)
+		}
 	}
 }
