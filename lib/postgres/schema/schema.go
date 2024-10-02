@@ -49,12 +49,13 @@ const (
 type Opts struct {
 	Scale     uint16
 	Precision int
+	Size      *int
 }
 
 type Column = column.Column[DataType, Opts]
 
 const describeTableQuery = `
-SELECT column_name, data_type, numeric_precision, numeric_scale, udt_name
+SELECT column_name, data_type, numeric_precision, numeric_scale, udt_name, character_maximum_length
 FROM information_schema.columns
 WHERE table_schema = $1 AND table_name = $2`
 
@@ -73,12 +74,13 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 		var numericPrecision *int
 		var numericScale *uint16
 		var udtName *string
-		err = rows.Scan(&colName, &colType, &numericPrecision, &numericScale, &udtName)
+		var size *int
+		err = rows.Scan(&colName, &colType, &numericPrecision, &numericScale, &udtName, &size)
 		if err != nil {
 			return nil, err
 		}
 
-		dataType, opts, err := ParseColumnDataType(colType, numericPrecision, numericScale, udtName)
+		dataType, opts, err := ParseColumnDataType(colType, numericPrecision, numericScale, size, udtName)
 		if err != nil {
 			return nil, fmt.Errorf("unable to identify type %q for column %q", colType, colName)
 		}
@@ -92,11 +94,15 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 	return cols, nil
 }
 
-func ParseColumnDataType(colKind string, precision *int, scale *uint16, udtName *string) (DataType, *Opts, error) {
+func ParseColumnDataType(colKind string, precision *int, scale *uint16, size *int, udtName *string) (DataType, *Opts, error) {
 	colKind = strings.ToLower(colKind)
 	switch colKind {
 	case "bit":
-		return Bit, nil, nil
+		if size == nil {
+			return -1, nil, errors.New("expected size to be not nil")
+		}
+
+		return Bit, &Opts{Size: size}, nil
 	case "boolean":
 		return Boolean, nil, nil
 	case "smallint":

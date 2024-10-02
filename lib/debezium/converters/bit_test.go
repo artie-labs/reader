@@ -7,11 +7,11 @@ import (
 )
 
 func TestBitConverter_Convert(t *testing.T) {
-	converter := BitConverter{}
+	converter := BitConverter{size: 1}
 	{
 		// Invalid value - wrong type
 		_, err := converter.Convert(1234)
-		assert.ErrorContains(t, err, "expected type string, got int")
+		assert.ErrorContains(t, err, "value: 1234 not of string type for bit")
 	}
 	{
 		// Valid value - 0

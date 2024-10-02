@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 
@@ -18,11 +19,12 @@ func ParseValue(colKind schema.DataType, value any) (any, error) {
 
 	switch colKind {
 	case schema.Bit:
-		valString, isOk := value.(string)
-		if isOk {
-			return valString, nil
+		castedValue, err := typing.AssertType[string](value)
+		if err != nil {
+			return nil, err
 		}
-		return nil, fmt.Errorf("value: %v not of string type for bit", value)
+
+		return castedValue, nil
 	case schema.Real:
 		float64Value, ok := value.(float64)
 		if !ok {
