@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"path/filepath"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -45,7 +46,7 @@ func NewStore(ctx context.Context, cfg config.DynamoDB, awsCfg aws.Config) (*Sto
 	}
 
 	if cfg.SnapshotSettings.ShouldInitiateExport {
-		exportARN, manifestFilePath, err := store.findRecentExport(ctx, cfg.SnapshotSettings.Folder)
+		exportARN, manifestFilePath, err := store.findRecentExport(ctx, bucketName, prefixName)
 		if err != nil {
 			return nil, err
 		}
@@ -75,7 +76,7 @@ func (s *Store) loadFolderFromManifest(bucketName string, manifestFilePath strin
 		return fmt.Errorf("failed to parse manifest: %w", err)
 	}
 
-	s.cfg.SnapshotSettings.Folder = folder
+	s.cfg.SnapshotSettings.Folder = filepath.Join(folder, "data")
 	return nil
 }
 

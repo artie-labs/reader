@@ -13,7 +13,7 @@ import (
 
 // findRecentExport - This will check against the DynamoDB table to see if there is a recent export for the given S3 file path.
 // It will then return the exportARN, manifestFilePath and error if any.
-func (s *Store) findRecentExport(ctx context.Context, s3FilePath string) (*string, *string, error) {
+func (s *Store) findRecentExport(ctx context.Context, bucket string, prefix string) (*string, *string, error) {
 	tableARN, err := dynamo.GetTableArnFromStreamArn(s.streamArn)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get table ARN from stream ARN: %w", err)
@@ -44,7 +44,19 @@ func (s *Store) findRecentExport(ctx context.Context, s3FilePath string) (*strin
 		}
 	}
 
-	return nil, nil, fmt.Errorf("no recent export found for %s", s3FilePath)
+	// Not found, so let's initiate one
+	result, err := s.dynamoDBClient.ExportTableToPointInTime(ctx, &dynamodb.ExportTableToPointInTimeInput{
+		TableArn:     aws.String(tableARN),
+		S3Bucket:     aws.String(bucket),
+		S3Prefix:     aws.String(prefix),
+		ExportFormat: types.ExportFormatDynamodbJson,
+	})
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return result.ExportDescription.ExportArn, nil, nil
 }
 
 func (s *Store) listExports(ctx context.Context, tableARN string) ([]types.ExportSummary, error) {
