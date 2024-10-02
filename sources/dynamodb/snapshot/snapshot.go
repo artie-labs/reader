@@ -46,15 +46,12 @@ func NewStore(ctx context.Context, cfg config.DynamoDB, awsCfg aws.Config) (*Sto
 			return nil, err
 		}
 
-		if manifestFilePath != nil {
-			if err = store.loadFolderFromManifest(bucketName, *manifestFilePath); err != nil {
-				return nil, err
+		if manifestFilePath == nil {
+			// This means that the export is not done yet, so let's wait.
+			manifestFilePath, err = store.checkExportStatus(ctx, exportARN)
+			if err != nil {
+				return nil, fmt.Errorf("failed to check export status: %w", err)
 			}
-		}
-
-		manifestFilePath, err = store.checkExportStatus(ctx, exportARN)
-		if err != nil {
-			return nil, fmt.Errorf("failed to check export status: %w", err)
 		}
 
 		if err = store.loadFolderFromManifest(bucketName, *manifestFilePath); err != nil {

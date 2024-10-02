@@ -3,16 +3,36 @@ package snapshot
 import (
 	"context"
 	"fmt"
-	"github.com/artie-labs/reader/lib/dynamo"
+	"log/slog"
+	"time"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"log/slog"
-	"time"
+
+	"github.com/artie-labs/reader/lib/dynamo"
 )
 
-// findRecentExport - This will check against the DynamoDB table to see if there is a recent export for the given S3 file path.
-// It will then return the exportARN, manifestFilePath and error if any.
+func (s *Store) listExports(ctx context.Context, tableARN string) ([]types.ExportSummary, error) {
+	var out []types.ExportSummary
+	var nextToken *string
+	for {
+		exports, err := s.dynamoDBClient.ListExports(ctx, &dynamodb.ListExportsInput{TableArn: aws.String(tableARN), NextToken: nextToken})
+		if err != nil {
+			return nil, fmt.Errorf("failed to list exports: %w", err)
+		}
+
+		out = append(out, exports.ExportSummaries...)
+		if exports.NextToken == nil {
+			break
+		}
+
+		nextToken = exports.NextToken
+	}
+
+	return out, nil
+}
+
 func (s *Store) findRecentExport(ctx context.Context, bucket string, prefix string) (*string, *string, error) {
 	tableARN, err := dynamo.GetTableArnFromStreamArn(s.streamArn)
 	if err != nil {
@@ -26,7 +46,7 @@ func (s *Store) findRecentExport(ctx context.Context, bucket string, prefix stri
 
 	for _, export := range exports {
 		if export.ExportStatus == types.ExportStatusFailed {
-			slog.Info("Filtering out failed export", slog.String("exportARN", *export.ExportArn))
+			slog.Info("Filtering out failed exports", slog.String("exportARN", *export.ExportArn))
 			continue
 		}
 
@@ -57,26 +77,6 @@ func (s *Store) findRecentExport(ctx context.Context, bucket string, prefix stri
 	}
 
 	return result.ExportDescription.ExportArn, nil, nil
-}
-
-func (s *Store) listExports(ctx context.Context, tableARN string) ([]types.ExportSummary, error) {
-	var out []types.ExportSummary
-	var nextToken *string
-	for {
-		exports, err := s.dynamoDBClient.ListExports(ctx, &dynamodb.ListExportsInput{TableArn: aws.String(tableARN), NextToken: nextToken})
-		if err != nil {
-			return nil, fmt.Errorf("failed to list exports: %w", err)
-		}
-
-		out = append(out, exports.ExportSummaries...)
-		if exports.NextToken == nil {
-			break
-		}
-
-		nextToken = exports.NextToken
-	}
-
-	return out, nil
 }
 
 func (s *Store) checkExportStatus(ctx context.Context, exportARN *string) (*string, error) {
