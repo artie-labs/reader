@@ -15,7 +15,7 @@ func TestGetTableArnFromStreamArn(t *testing.T) {
 	{
 		// Invalid stream ARN
 		_, err := GetTableArnFromStreamArn("arn:aws:dynamodb:us-west-2:123456789012:table/my-table")
-		assert.ErrorContains(t, err, "invalid stream ARN: arn:aws:dynamodb:us-west-2:123456789012:table/my-table")
+		assert.ErrorContains(t, err, `invalid stream ARN: "arn:aws:dynamodb:us-west-2:123456789012:table/my-table"`)
 	}
 }
 
@@ -29,6 +29,6 @@ func TestParseManifestFile(t *testing.T) {
 	{
 		// Invalid manifest file path
 		_, err := ParseManifestFile("bucket", "artie-ddb-export/AWSDynamoDB/abcdef-8831c8f6/manifest-summary")
-		assert.ErrorContains(t, err, "invalid manifest filepath: artie-ddb-export/AWSDynamoDB/abcdef-8831c8f6/manifest-summary")
+		assert.ErrorContains(t, err, `invalid manifest filepath: "artie-ddb-export/AWSDynamoDB/abcdef-8831c8f6/manifest-summary"`)
 	}
 }
