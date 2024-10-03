@@ -1,6 +1,7 @@
 name: Go tests
-run-name: Running tests
+
 on: [push]
+
 jobs:
   test:
     runs-on: ubuntu-latest
