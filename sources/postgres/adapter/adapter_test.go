@@ -108,6 +108,9 @@ func TestValueConverterForType_ToField(t *testing.T) {
 			name:     "bit",
 			colName:  "bit_col",
 			dataType: schema.Bit,
+			opts: &schema.Opts{
+				CharMaxLength: 1,
+			},
 			expected: debezium.Field{
 				Type:      "boolean",
 				FieldName: "bit_col",
@@ -271,4 +274,28 @@ func TestValueConverterForType_Convert(t *testing.T) {
 			assert.Equal(t, tc.expectedValue, actualValue, tc.name)
 		}
 	}
+
+	{
+		// bit
+		{
+			// bit(1)
+			converter, err := valueConverterForType(schema.Bit, &schema.Opts{CharMaxLength: 1})
+			assert.NoError(t, err)
+
+			actualValue, actualErr := converter.Convert("1")
+			assert.NoError(t, actualErr)
+			assert.True(t, actualValue.(bool))
+		}
+		{
+			// bit(5)
+			converter, err := valueConverterForType(schema.Bit, &schema.Opts{CharMaxLength: 5})
+			assert.NoError(t, err)
+
+			actualValue, actualErr := converter.Convert("10101")
+			assert.NoError(t, actualErr)
+			assert.Equal(t, "10101", actualValue)
+
+		}
+	}
+
 }
