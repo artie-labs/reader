@@ -1,6 +1,7 @@
 name: Integration tests
-run-name: Running integration tests
+
 on: [push]
+
 jobs:
   Postgres:
     runs-on: ubuntu-latest
