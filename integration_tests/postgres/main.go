@@ -300,6 +300,22 @@ const expectedPayloadTemplate = `{
 						"type": "boolean",
 						"optional": false,
 						"default": null,
+						"field": "c_bit1",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"default": null,
+						"field": "c_bit5",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "boolean",
+						"optional": false,
+						"default": null,
 						"field": "c_boolean",
 						"name": "",
 						"parameters": null
@@ -641,6 +657,8 @@ const expectedPayloadTemplate = `{
 			"c_bigint": 9009900990099009000,
 			"c_bigserial": 100000123100000123,
 			"c_bit": true,
+			"c_bit1": true,
+			"c_bit5": "10101",
 			"c_boolean": true,
 			"c_bytea": "YWJjIGtsbSAqqVQ=",
 			"c_character": "X",
