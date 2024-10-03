@@ -278,6 +278,11 @@ func TestValueConverterForType_Convert(t *testing.T) {
 	{
 		// bit
 		{
+			// bit (no options)
+			_, err := valueConverterForType(schema.Bit, nil)
+			assert.ErrorContains(t, err, "missing options for bit data type")
+		}
+		{
 			// bit(1)
 			converter, err := valueConverterForType(schema.Bit, &schema.Opts{CharMaxLength: 1})
 			assert.NoError(t, err)
