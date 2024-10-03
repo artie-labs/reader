@@ -16,10 +16,18 @@ type BitConverter struct {
 	charMaxLength int
 }
 
-func (BitConverter) ToField(name string) debezium.Field {
-	return debezium.Field{
-		FieldName: name,
-		Type:      debezium.Boolean,
+func (b BitConverter) ToField(name string) debezium.Field {
+	switch b.charMaxLength {
+	case 1:
+		return debezium.Field{
+			FieldName: name,
+			Type:      debezium.Boolean,
+		}
+	default:
+		return debezium.Field{
+			FieldName: name,
+			Type:      debezium.String,
+		}
 	}
 }
 

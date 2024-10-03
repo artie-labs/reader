@@ -5,6 +5,27 @@ import (
 	"testing"
 )
 
+func TestBitConverter_ToField(t *testing.T) {
+	{
+		// char size not specified
+		field := NewBitConverter(0).ToField("foo")
+		assert.Equal(t, "foo", field.FieldName)
+		assert.Equal(t, "string", string(field.Type))
+	}
+	{
+		// char max size 1
+		field := NewBitConverter(1).ToField("foo")
+		assert.Equal(t, "foo", field.FieldName)
+		assert.Equal(t, "boolean", string(field.Type))
+	}
+	{
+		// char max size 5
+		field := NewBitConverter(5).ToField("foo")
+		assert.Equal(t, "foo", field.FieldName)
+		assert.Equal(t, "string", string(field.Type))
+	}
+}
+
 func TestBitConverter_Convert(t *testing.T) {
 	{
 		// char size not specified
