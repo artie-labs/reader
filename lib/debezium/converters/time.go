@@ -171,7 +171,7 @@ func (ZonedTimestampConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
 		Type:         debezium.String,
-		DebeziumType: debezium.DateTimeWithTimezone,
+		DebeziumType: debezium.ZonedTimestamp,
 	}
 }
 

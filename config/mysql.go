@@ -39,6 +39,8 @@ type MySQLTable struct {
 	OptionalPrimaryKeyValStart string   `yaml:"optionalPrimaryKeyValStart,omitempty"`
 	OptionalPrimaryKeyValEnd   string   `yaml:"optionalPrimaryKeyValEnd,omitempty"`
 	ExcludeColumns             []string `yaml:"excludeColumns,omitempty"`
+	// IncludeColumns - List of columns that should be included in the change event record.
+	IncludeColumns []string `yaml:"includeColumns,omitempty"`
 }
 
 func (m *MySQLTable) GetBatchSize() uint {
@@ -90,6 +92,11 @@ func (m *MySQL) Validate() error {
 	for _, table := range m.Tables {
 		if table.Name == "" {
 			return fmt.Errorf("table name must be passed in")
+		}
+
+		// You should not be able to filter and exclude columns at the same time
+		if len(table.ExcludeColumns) > 0 && len(table.IncludeColumns) > 0 {
+			return fmt.Errorf("cannot exclude and include columns at the same time")
 		}
 	}
 

@@ -292,7 +292,7 @@ func TestZonedTimestampConverter_Convert(t *testing.T) {
 		assert.Equal(t, "2001-02-03T04:05:00Z", value)
 
 		// Check Transfer to ensure no precision loss
-		ts, err := converters.DateTimeWithTimezone{}.Convert(value)
+		ts, err := converters.ZonedTimestamp{}.Convert(value)
 		assert.NoError(t, err)
 		assert.Equal(t, _ts, ts.(*ext.ExtendedTime).GetTime())
 	}
@@ -304,7 +304,7 @@ func TestZonedTimestampConverter_Convert(t *testing.T) {
 		assert.Equal(t, "2001-02-03T04:05:01.0009Z", value)
 
 		// Check Transfer to ensure no precision loss
-		ts, err := converters.DateTimeWithTimezone{}.Convert(value)
+		ts, err := converters.ZonedTimestamp{}.Convert(value)
 		assert.NoError(t, err)
 		assert.Equal(t, _ts, ts.(*ext.ExtendedTime).GetTime())
 	}
@@ -316,7 +316,7 @@ func TestZonedTimestampConverter_Convert(t *testing.T) {
 		assert.Equal(t, "2001-02-03T04:05:01.000909Z", value)
 
 		// Check Transfer to ensure no precision loss
-		ts, err := converters.DateTimeWithTimezone{}.Convert(value)
+		ts, err := converters.ZonedTimestamp{}.Convert(value)
 		assert.NoError(t, err)
 		assert.Equal(t, _ts, ts.(*ext.ExtendedTime).GetTime())
 	}
@@ -328,7 +328,7 @@ func TestZonedTimestampConverter_Convert(t *testing.T) {
 		assert.Equal(t, "2001-02-03T03:05:00Z", value)
 
 		// Check Transfer to ensure no precision loss
-		ts, err := converters.DateTimeWithTimezone{}.Convert(value)
+		ts, err := converters.ZonedTimestamp{}.Convert(value)
 		assert.NoError(t, err)
 		assert.Equal(t, _ts.UTC(), ts.(*ext.ExtendedTime).GetTime())
 	}

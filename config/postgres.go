@@ -43,6 +43,8 @@ type PostgreSQLTable struct {
 	OptionalPrimaryKeyValStart string   `yaml:"optionalPrimaryKeyValStart,omitempty"`
 	OptionalPrimaryKeyValEnd   string   `yaml:"optionalPrimaryKeyValEnd,omitempty"`
 	ExcludeColumns             []string `yaml:"excludeColumns,omitempty"`
+	// IncludeColumns - List of columns that should be included in the change event record.
+	IncludeColumns []string `yaml:"includeColumns,omitempty"`
 }
 
 func (p *PostgreSQLTable) GetBatchSize() uint {
@@ -98,6 +100,11 @@ func (p *PostgreSQL) Validate() error {
 
 		if table.Schema == "" {
 			return fmt.Errorf("schema must be passed in")
+		}
+
+		// You should not be able to filter and exclude columns at the same time
+		if len(table.ExcludeColumns) > 0 && len(table.IncludeColumns) > 0 {
+			return fmt.Errorf("cannot exclude and include columns at the same time")
 		}
 	}
 

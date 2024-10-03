@@ -39,12 +39,10 @@ func (d *DynamoDB) Validate() error {
 }
 
 type SnapshotSettings struct {
-	S3Bucket string `yaml:"s3Bucket"`
-	Folder   string `yaml:"folder"`
-	// If the files are not specified, that's okay.
-	// We will scan the folder and then load into `specifiedFiles`
-	SpecifiedFiles []s3lib.S3File `yaml:"specifiedFiles"`
-	BatchSize      int32          `yaml:"batchSize"`
+	ShouldInitiateExport bool           `yaml:"shouldInitiateExport"` // Whether Reader should initiate a DDB export or not.
+	Folder               string         `yaml:"folder"`               // The folder where the snapshot files will be stored.
+	SpecifiedFiles       []s3lib.S3File `yaml:"specifiedFiles"`       // If this is passed in, we'll only process these files
+	BatchSize            int32          `yaml:"batchSize"`
 }
 
 func (s *SnapshotSettings) GetBatchSize() int32 {
@@ -58,10 +56,6 @@ func (s *SnapshotSettings) Validate() error {
 
 	if s.Folder == "" {
 		return fmt.Errorf("folder is empty")
-	}
-
-	if s.S3Bucket == "" {
-		return fmt.Errorf("s3Bucket is empty")
 	}
 
 	return nil
