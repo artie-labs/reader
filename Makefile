@@ -38,12 +38,6 @@ release:
 clean:
 	go clean -testcache
 
-.PHONY: generate
-generate:
-	go get github.com/maxbrunsfeld/counterfeiter/v6
-	go generate ./...
-	go mod tidy
-
 .PHONY: upgrade
 upgrade:
 	go get github.com/artie-labs/transfer
