@@ -146,6 +146,10 @@ INSERT INTO %s VALUES (
 		100000123100000123,
 	-- c_bit
 		B'1',
+	-- c_bit1
+		B'1',
+	-- c_bit5
+		B'10101',
 	-- c_boolean
 		true,
 	-- c_box
