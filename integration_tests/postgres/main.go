@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cmp"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -26,13 +27,8 @@ func main() {
 	}
 	slog.SetDefault(slog.New(tint.NewHandler(os.Stderr, &tint.Options{})))
 
-	var pgHost string = os.Getenv("PG_HOST")
-	if pgHost == "" {
-		pgHost = "localhost"
-	}
-
-	var pgConfig = config.PostgreSQL{
-		Host:     pgHost,
+	pgConfig := config.PostgreSQL{
+		Host:     cmp.Or(os.Getenv("PG_HOST"), "localhost"),
 		Port:     5432,
 		Username: "postgres",
 		Password: "postgres",
@@ -80,6 +76,8 @@ CREATE TABLE %s (
 	c_bigint bigint,
 	c_bigserial bigserial,
 	c_bit bit,
+	c_bit1 bit(1),
+	c_bit5 bit(5),
 	c_boolean boolean,
 	-- c_box box,
 	c_bytea bytea,
