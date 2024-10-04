@@ -12,8 +12,8 @@ func TestBitConverter_ToField(t *testing.T) {
 		field := NewBitConverter(0).ToField("foo")
 		assert.Equal(t, "foo", field.FieldName)
 		assert.Equal(t, "bytes", string(field.Type))
-		assert.Equal(t, map[string]interface{}{"length": 0}, field.Parameters)
 		assert.Equal(t, debezium.Bits, field.DebeziumType)
+		assert.Equal(t, map[string]interface{}{"length": "0"}, field.Parameters)
 	}
 	{
 		// char max size 1
@@ -27,6 +27,7 @@ func TestBitConverter_ToField(t *testing.T) {
 		assert.Equal(t, "foo", field.FieldName)
 		assert.Equal(t, "bytes", string(field.Type))
 		assert.Equal(t, debezium.Bits, field.DebeziumType)
+		assert.Equal(t, map[string]interface{}{"length": "5"}, field.Parameters)
 	}
 }
 

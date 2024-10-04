@@ -28,7 +28,7 @@ func (b BitConverter) ToField(name string) debezium.Field {
 			FieldName:    name,
 			DebeziumType: debezium.Bits,
 			Type:         debezium.Bytes,
-			Parameters:   map[string]any{"length": b.charMaxLength},
+			Parameters:   map[string]any{"length": fmt.Sprint(b.charMaxLength)},
 		}
 	}
 }
