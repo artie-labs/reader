@@ -36,7 +36,7 @@ func TestEncodeDecimalWithScale(t *testing.T) {
 	}
 
 	// Scale of 15 that is equal to the amount of decimal places in the value:
-	assert.Equal(t, "145.000000000000000", mustEncodeAndDecodeDecimal("145.000000000000000", 15))
+	assert.Equal(t, "145.183000000000000", mustEncodeAndDecodeDecimal("145.183000000000000", 15))
 	assert.Equal(t, "-145.183000000000000", mustEncodeAndDecodeDecimal("-145.183000000000000", 15))
 	// If scale is smaller than the amount of decimal places then an error should be returned:
 	assert.ErrorContains(t, mustReturnError("145.183000000000000", 14), "value scale (15) is different from schema scale (14)")
