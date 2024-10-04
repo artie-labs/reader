@@ -27,6 +27,7 @@ type StreamingSettings struct {
 }
 
 type MongoDB struct {
+	URI               string            `yaml:"uri"`
 	Host              string            `yaml:"host"`
 	Username          string            `yaml:"username,omitempty"`
 	Password          string            `yaml:"password,omitempty"`
