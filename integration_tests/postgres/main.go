@@ -101,7 +101,9 @@ CREATE TABLE %s (
 	c_macaddr8 macaddr8,
 	c_money money,
 	c_numeric numeric(7, 2),
+	c_numeric_nan numeric(7, 2),
 	c_numeric_variable numeric,
+	c_numeric_variable_nan numeric,
 	-- c_path path,
 	-- c_pg_lsn pg_lsn,
 	-- c_pg_snapshot pg_snapshot,
@@ -196,8 +198,12 @@ INSERT INTO %s VALUES (
 		'52093.89',
 	-- c_numeric
 		'987.654',
+	-- c_numeric_nan
+		'NaN',
 	-- c_numeric_variable,
 		'10987.65401',
+	-- c_numeric_variable_nan,
+		'NaN',
 	-- c_path
 		-- Not supported
 	-- c_pg_lsn
@@ -472,10 +478,29 @@ const expectedPayloadTemplate = `{
 						}
 					},
 					{
+						"type": "bytes",
+						"optional": false,
+						"default": null,
+						"field": "c_numeric_nan",
+						"name": "org.apache.kafka.connect.data.Decimal",
+						"parameters": {
+							"connect.decimal.precision": "7",
+							"scale": "2"
+						}
+					},
+					{
 						"type": "struct",
 						"optional": false,
 						"default": null,
 						"field": "c_numeric_variable",
+						"name": "io.debezium.data.VariableScaleDecimal",
+						"parameters": null
+					},
+					{
+						"type": "struct",
+						"optional": false,
+						"default": null,
+						"field": "c_numeric_variable_nan",
 						"name": "io.debezium.data.VariableScaleDecimal",
 						"parameters": null
 					},
@@ -702,10 +727,12 @@ const expectedPayloadTemplate = `{
 			"c_macaddr8": "12:34:56:78:90:ab:cd:ef",
 			"c_money": "T30t",
 			"c_numeric": "AYHN",
+			"c_numeric_nan": null,
 			"c_numeric_variable": {
 				"scale": 5,
 				"value": "QX3UWQ=="
 			},
+			"c_numeric_variable_nan": null,
 			"c_numrange": "[11.1,22.2)",
 			"c_point": {
 				"x": 12.34,
