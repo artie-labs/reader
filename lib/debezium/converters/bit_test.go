@@ -81,7 +81,14 @@ func TestBitConverter_Convert(t *testing.T) {
 			converter := NewBitConverter(5)
 			value, err := converter.Convert("10101")
 			assert.NoError(t, err)
-			assert.Equal(t, []byte("21"), value)
+			assert.Equal(t, []byte{21}, value)
+		}
+		{
+			// Valid #2
+			converter := NewBitConverter(5)
+			value, err := converter.Convert("10011")
+			assert.NoError(t, err)
+			assert.Equal(t, []byte{19}, value)
 		}
 	}
 }

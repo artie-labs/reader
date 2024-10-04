@@ -53,7 +53,6 @@ func (b BitConverter) Convert(value any) (any, error) {
 		}
 		return nil, fmt.Errorf(`string value %q is not in ["0", "1"]`, value)
 	default:
-		// For bit(m), we will convert bytes to integers and then return them as strings (in bytea)
 		for _, char := range stringValue {
 			if char != '0' && char != '1' {
 				return nil, fmt.Errorf("invalid binary string %q: contains non-binary characters", stringValue)
@@ -62,9 +61,9 @@ func (b BitConverter) Convert(value any) (any, error) {
 
 		intValue, err := strconv.ParseInt(stringValue, 2, 64)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert binary string %q to integer: %v", stringValue, err)
+			return nil, fmt.Errorf("failed to convert binary string %q to integer: %w", stringValue, err)
 		}
 
-		return []byte(strconv.FormatInt(intValue, 10)), nil
+		return []byte{byte(intValue)}, nil
 	}
 }
