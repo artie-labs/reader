@@ -1,14 +1,10 @@
 package converters
 
 import (
-	"bytes"
-	"encoding/binary"
 	"fmt"
-	"math"
-	"strconv"
-
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/artie-labs/transfer/lib/typing"
+	"math/big"
 )
 
 func NewBitConverter(charMaxLength int) BitConverter {
@@ -63,28 +59,26 @@ func (b BitConverter) Convert(value any) (any, error) {
 			}
 		}
 
-		intValue, err := strconv.ParseInt(stringValue, 2, 64)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert binary string %q to integer: %w", stringValue, err)
-		}
-
-		return intToByteA(
-			intValue,
-			// Calculate the number of bytes by dividing the number of bits by 8 and rounding up
-			int(math.Ceil(float64(b.charMaxLength)/8.0)),
-		)
+		return stringToByteA(stringValue)
 	}
 }
 
-// intToByteA - Converts an integer to a byte array of the specified length, using little endian, which mirrors the same logic as java.util.BitSet
+// stringToByteA - Converts an integer to a byte array of the specified length, using little endian, which mirrors the same logic as java.util.BitSet
 // Ref: https://docs.oracle.com/javase/7/docs/api/java/util/BitSet.html
-func intToByteA(intValue int64, byteLength int) ([]byte, error) {
-	buf := new(bytes.Buffer)
-	if err := binary.Write(buf, binary.LittleEndian, intValue); err != nil {
-		return nil, fmt.Errorf("failed to write bytes: %w", err)
+func stringToByteA(stringValue string) ([]byte, error) {
+	var intValue big.Int
+	_, isOk := intValue.SetString(stringValue, 2)
+	if !isOk {
+		return nil, fmt.Errorf("failed to parse binary string: %q", stringValue)
 	}
 
-	// Truncate the buffer to the required length (because binary.Write will write 8 bytes for an int64)
-	result := buf.Bytes()
-	return result[:byteLength], nil
+	// Reverse the byte array to get little-endian order as Go's big.Int uses big-endian
+	return reverseBytes(intValue.Bytes()), nil
+}
+
+func reverseBytes(b []byte) []byte {
+	for i, j := 0, len(b)-1; i < j; i, j = i+1, j-1 {
+		b[i], b[j] = b[j], b[i]
+	}
+	return b
 }
