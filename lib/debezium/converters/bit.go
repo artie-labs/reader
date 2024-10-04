@@ -7,9 +7,7 @@ import (
 )
 
 func NewBitConverter(charMaxLength int) BitConverter {
-	return BitConverter{
-		charMaxLength: charMaxLength,
-	}
+	return BitConverter{charMaxLength: charMaxLength}
 }
 
 type BitConverter struct {
@@ -19,18 +17,13 @@ type BitConverter struct {
 func (b BitConverter) ToField(name string) debezium.Field {
 	switch b.charMaxLength {
 	case 1:
-		return debezium.Field{
-			FieldName: name,
-			Type:      debezium.Boolean,
-		}
+		return debezium.Field{FieldName: name, Type: debezium.Boolean}
 	default:
 		return debezium.Field{
 			FieldName:    name,
 			DebeziumType: debezium.Bits,
 			Type:         debezium.Bytes,
-			Parameters: map[string]any{
-				"length": b.charMaxLength,
-			},
+			Parameters:   map[string]any{"length": b.charMaxLength},
 		}
 	}
 }
