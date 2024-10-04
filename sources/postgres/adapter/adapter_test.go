@@ -298,8 +298,7 @@ func TestValueConverterForType_Convert(t *testing.T) {
 
 			actualValue, actualErr := converter.Convert("10101")
 			assert.NoError(t, actualErr)
-			assert.Equal(t, []byte("10101"), actualValue)
-
+			assert.Equal(t, []byte("21"), actualValue)
 		}
 	}
 

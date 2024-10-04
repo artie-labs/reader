@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/artie-labs/transfer/lib/typing"
+	"strconv"
 )
 
 func NewBitConverter(charMaxLength int) BitConverter {
@@ -44,6 +45,7 @@ func (b BitConverter) Convert(value any) (any, error) {
 
 	switch b.charMaxLength {
 	case 1:
+		// For bit, bit(1) - We will convert these to booleans
 		if stringValue == "0" {
 			return false, nil
 		} else if stringValue == "1" {
@@ -51,6 +53,18 @@ func (b BitConverter) Convert(value any) (any, error) {
 		}
 		return nil, fmt.Errorf(`string value %q is not in ["0", "1"]`, value)
 	default:
-		return []byte(stringValue), nil
+		// For bit(m), we will convert bytes to integers and then return them as strings (in bytea)
+		for _, char := range stringValue {
+			if char != '0' && char != '1' {
+				return nil, fmt.Errorf("invalid binary string %q: contains non-binary characters", stringValue)
+			}
+		}
+
+		intValue, err := strconv.ParseInt(stringValue, 2, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert binary string %q to integer: %v", stringValue, err)
+		}
+
+		return []byte(strconv.FormatInt(intValue, 10)), nil
 	}
 }

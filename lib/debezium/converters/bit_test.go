@@ -63,10 +63,25 @@ func TestBitConverter_Convert(t *testing.T) {
 		}
 	}
 	{
-		// char max size 5
-		converter := NewBitConverter(5)
-		value, err := converter.Convert("hello")
-		assert.NoError(t, err)
-		assert.Equal(t, []byte("hello"), value)
+		// char max size
+		{
+			// Invalid, length not matching
+			converter := NewBitConverter(5)
+			_, err := converter.Convert("101111")
+			assert.ErrorContains(t, err, "bit converter failed: mismatched char max length")
+		}
+		{
+			// Invalid, value contains non 0s and 1s
+			converter := NewBitConverter(5)
+			_, err := converter.Convert("1011a")
+			assert.ErrorContains(t, err, "invalid binary string")
+		}
+		{
+			// Valid
+			converter := NewBitConverter(5)
+			value, err := converter.Convert("10101")
+			assert.NoError(t, err)
+			assert.Equal(t, []byte("21"), value)
+		}
 	}
 }
