@@ -25,8 +25,12 @@ func (b BitConverter) ToField(name string) debezium.Field {
 		}
 	default:
 		return debezium.Field{
-			FieldName: name,
-			Type:      debezium.String,
+			FieldName:    name,
+			DebeziumType: debezium.Bits,
+			Type:         debezium.Bytes,
+			Parameters: map[string]any{
+				"length": b.charMaxLength,
+			},
 		}
 	}
 }
@@ -37,9 +41,15 @@ func (b BitConverter) Convert(value any) (any, error) {
 		return nil, err
 	}
 
-	switch b.charMaxLength {
-	case 0:
+	if b.charMaxLength == 0 {
 		return nil, fmt.Errorf("bit converter failed: invalid char max length")
+	}
+
+	if len(stringValue) != b.charMaxLength {
+		return nil, fmt.Errorf("bit converter failed: mismatched char max length, value: %q, length: %d", stringValue, len(stringValue))
+	}
+
+	switch b.charMaxLength {
 	case 1:
 		if stringValue == "0" {
 			return false, nil
@@ -48,6 +58,6 @@ func (b BitConverter) Convert(value any) (any, error) {
 		}
 		return nil, fmt.Errorf(`string value %q is not in ["0", "1"]`, value)
 	default:
-		return stringValue, nil
+		return []byte(stringValue), nil
 	}
 }

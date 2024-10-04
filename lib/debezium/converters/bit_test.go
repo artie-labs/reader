@@ -1,6 +1,7 @@
 package converters
 
 import (
+	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -10,7 +11,9 @@ func TestBitConverter_ToField(t *testing.T) {
 		// char size not specified
 		field := NewBitConverter(0).ToField("foo")
 		assert.Equal(t, "foo", field.FieldName)
-		assert.Equal(t, "string", string(field.Type))
+		assert.Equal(t, "bytes", string(field.Type))
+		assert.Equal(t, map[string]interface{}{"length": 0}, field.Parameters)
+		assert.Equal(t, debezium.Bits, field.DebeziumType)
 	}
 	{
 		// char max size 1
@@ -22,7 +25,8 @@ func TestBitConverter_ToField(t *testing.T) {
 		// char max size 5
 		field := NewBitConverter(5).ToField("foo")
 		assert.Equal(t, "foo", field.FieldName)
-		assert.Equal(t, "string", string(field.Type))
+		assert.Equal(t, "bytes", string(field.Type))
+		assert.Equal(t, debezium.Bits, field.DebeziumType)
 	}
 }
 
@@ -63,6 +67,6 @@ func TestBitConverter_Convert(t *testing.T) {
 		converter := NewBitConverter(5)
 		value, err := converter.Convert("hello")
 		assert.NoError(t, err)
-		assert.Equal(t, "hello", value.(string))
+		assert.Equal(t, []byte("hello"), value)
 	}
 }
