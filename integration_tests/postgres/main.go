@@ -660,7 +660,7 @@ const expectedPayloadTemplate = `{
 			"c_bigserial": 100000123100000123,
 			"c_bit": true,
 			"c_bit1": true,
-			"c_bit5": "10101",
+			"c_bit5": "FQ==",
 			"c_boolean": true,
 			"c_bytea": "YWJjIGtsbSAqqVQ=",
 			"c_character": "X",
