@@ -305,12 +305,14 @@ const expectedPayloadTemplate = `{
 						"parameters": null
 					},
 					{
-						"type": "string",
+						"type": "bytes",
 						"optional": false,
 						"default": null,
 						"field": "c_bit5",
-						"name": "",
-						"parameters": null
+						"name": "io.debezium.data.Bits",
+						"parameters": {
+							"length": "5"
+						}
 					},
 					{
 						"type": "boolean",
