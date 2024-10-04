@@ -2,9 +2,10 @@ package converters
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/artie-labs/transfer/lib/typing"
-	"strconv"
 )
 
 func NewBitConverter(charMaxLength int) BitConverter {
