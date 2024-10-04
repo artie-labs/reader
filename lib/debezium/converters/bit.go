@@ -1,7 +1,10 @@
 package converters
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
+	"math"
 	"strconv"
 
 	"github.com/artie-labs/transfer/lib/debezium"
@@ -65,6 +68,23 @@ func (b BitConverter) Convert(value any) (any, error) {
 			return nil, fmt.Errorf("failed to convert binary string %q to integer: %w", stringValue, err)
 		}
 
-		return []byte{byte(intValue)}, nil
+		return intToByteA(
+			intValue,
+			// Calculate the number of bytes by dividing the number of bits by 8 and rounding up
+			int(math.Ceil(float64(b.charMaxLength)/8.0)),
+		)
 	}
+}
+
+// intToByteA - Converts an integer to a byte array of the specified length, using little endian, which mirrors the same logic as java.util.BitSet
+// Ref: https://docs.oracle.com/javase/7/docs/api/java/util/BitSet.html
+func intToByteA(intValue int64, byteLength int) ([]byte, error) {
+	buf := new(bytes.Buffer)
+	if err := binary.Write(buf, binary.LittleEndian, intValue); err != nil {
+		return nil, fmt.Errorf("failed to write bytes: %w", err)
+	}
+
+	// Truncate the buffer to the required length (because binary.Write will write 8 bytes for an int64)
+	result := buf.Bytes()
+	return result[:byteLength], nil
 }

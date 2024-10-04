@@ -63,7 +63,7 @@ func TestBitConverter_Convert(t *testing.T) {
 		}
 	}
 	{
-		// char max size
+		// char max size - 5
 		{
 			// Invalid, length not matching
 			converter := NewBitConverter(5)
@@ -90,5 +90,26 @@ func TestBitConverter_Convert(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, []byte{19}, value)
 		}
+	}
+	{
+		// char max size - 10
+		converter := NewBitConverter(10)
+		value, err := converter.Convert("1000000011")
+		assert.NoError(t, err)
+		assert.Equal(t, []byte{3, 2}, value)
+	}
+	{
+		// char max size - 17
+		converter := NewBitConverter(17)
+		value, err := converter.Convert("10000000111111111")
+		assert.NoError(t, err)
+		assert.Equal(t, []byte{255, 1, 1}, value)
+	}
+	{
+		// char max size - 24
+		converter := NewBitConverter(24)
+		value, err := converter.Convert("110110101111000111100101")
+		assert.NoError(t, err)
+		assert.Equal(t, []byte{229, 241, 218}, value)
 	}
 }
