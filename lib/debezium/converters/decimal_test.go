@@ -36,7 +36,7 @@ func TestEncodeDecimalWithScale(t *testing.T) {
 	}
 
 	// Scale of 15 that is equal to the amount of decimal places in the value:
-	assert.Equal(t, "145.183000000000000", mustEncodeAndDecodeDecimal("145.183000000000000", 15))
+	assert.Equal(t, "145.000000000000000", mustEncodeAndDecodeDecimal("145.000000000000000", 15))
 	assert.Equal(t, "-145.183000000000000", mustEncodeAndDecodeDecimal("-145.183000000000000", 15))
 	// If scale is smaller than the amount of decimal places then an error should be returned:
 	assert.ErrorContains(t, mustReturnError("145.183000000000000", 14), "value scale (15) is different from schema scale (14)")
@@ -45,6 +45,11 @@ func TestEncodeDecimalWithScale(t *testing.T) {
 
 	assert.Equal(t, "-9063701308.217222135", mustEncodeAndDecodeDecimal("-9063701308.217222135", 9))
 	assert.Equal(t, "-74961544796695.89960242", mustEncodeAndDecodeDecimal("-74961544796695.89960242", 8))
+
+	// Values that are not finite:
+	assert.ErrorContains(t, mustReturnError("NaN", 5), "decimal (NaN) is not finite")
+	assert.ErrorContains(t, mustReturnError("Infinity", 5), "decimal (Infinity) is not finite")
+	assert.ErrorContains(t, mustReturnError("-Infinity", 5), "decimal (-Infinity) is not finite")
 
 	testCases := []struct {
 		name  string
@@ -189,6 +194,12 @@ func TestDecimalConverter_Convert(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "1.23", actualValue.(*decimal.Decimal).String())
 	}
+	{
+		// NaN:
+		converted, err := converter.Convert("NaN")
+		assert.NoError(t, err)
+		assert.Nil(t, converted)
+	}
 }
 
 func TestVariableNumericConverter_ToField(t *testing.T) {
@@ -227,5 +238,11 @@ func TestVariableNumericConverter_Convert(t *testing.T) {
 		actualValue, err := converters.NewVariableDecimal().Convert(converted)
 		assert.NoError(t, err)
 		assert.Equal(t, "12.34", actualValue.(*decimal.Decimal).String())
+	}
+	{
+		// NaN:
+		converted, err := converter.Convert("NaN")
+		assert.NoError(t, err)
+		assert.Nil(t, converted)
 	}
 }
