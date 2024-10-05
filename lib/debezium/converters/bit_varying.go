@@ -6,6 +6,8 @@ import (
 	"github.com/artie-labs/transfer/lib/typing"
 )
 
+// BitVaryingConverter - Precision here is optional, if it's not specified - then it's infinite.
+// If it's specified, then it's the maximum number of bits that can be stored.
 type BitVaryingConverter struct {
 	optionalCharMaxLength int
 }
