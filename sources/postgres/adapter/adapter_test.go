@@ -301,5 +301,30 @@ func TestValueConverterForType_Convert(t *testing.T) {
 			assert.Equal(t, []byte{21}, actualValue)
 		}
 	}
+	{
+		// bit varying
+		{
+			// no options
+			_, err := valueConverterForType(schema.BitVarying, nil)
+			assert.ErrorContains(t, err, "missing options for bit varying data type")
+		}
+		{
+			// bit varying
+			converter, err := valueConverterForType(schema.BitVarying, &schema.Opts{CharMaxLength: 0})
+			assert.NoError(t, err)
 
+			actualValue, actualErr := converter.Convert("1")
+			assert.NoError(t, actualErr)
+			assert.Equal(t, []byte{1}, actualValue)
+		}
+		{
+			// bit varying (5)
+			converter, err := valueConverterForType(schema.BitVarying, &schema.Opts{CharMaxLength: 5})
+			assert.NoError(t, err)
+
+			actualValue, actualErr := converter.Convert("10101")
+			assert.NoError(t, actualErr)
+			assert.Equal(t, []byte{21}, actualValue)
+		}
+	}
 }
