@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cmp"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -26,13 +27,8 @@ func main() {
 	}
 	slog.SetDefault(slog.New(tint.NewHandler(os.Stderr, &tint.Options{})))
 
-	var pgHost string = os.Getenv("PG_HOST")
-	if pgHost == "" {
-		pgHost = "localhost"
-	}
-
-	var pgConfig = config.PostgreSQL{
-		Host:     pgHost,
+	pgConfig := config.PostgreSQL{
+		Host:     cmp.Or(os.Getenv("PG_HOST"), "localhost"),
 		Port:     5432,
 		Username: "postgres",
 		Password: "postgres",
@@ -80,6 +76,8 @@ CREATE TABLE %s (
 	c_bigint bigint,
 	c_bigserial bigserial,
 	c_bit bit,
+	c_bit1 bit(1),
+	c_bit5 bit(5),
 	c_boolean boolean,
 	-- c_box box,
 	c_bytea bytea,
@@ -150,6 +148,10 @@ INSERT INTO %s VALUES (
 		100000123100000123,
 	-- c_bit
 		B'1',
+	-- c_bit1
+		B'1',
+	-- c_bit5
+		B'10101',
 	-- c_boolean
 		true,
 	-- c_box
@@ -299,6 +301,24 @@ const expectedPayloadTemplate = `{
 						"field": "c_bit",
 						"name": "",
 						"parameters": null
+					},
+					{
+						"type": "boolean",
+						"optional": false,
+						"default": null,
+						"field": "c_bit1",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "bytes",
+						"optional": false,
+						"default": null,
+						"field": "c_bit5",
+						"name": "io.debezium.data.Bits",
+						"parameters": {
+							"length": "5"
+						}
 					},
 					{
 						"type": "boolean",
@@ -664,6 +684,8 @@ const expectedPayloadTemplate = `{
 			"c_bigint": 9009900990099009000,
 			"c_bigserial": 100000123100000123,
 			"c_bit": true,
+			"c_bit1": true,
+			"c_bit5": "FQ==",
 			"c_boolean": true,
 			"c_bytea": "YWJjIGtsbSAqqVQ=",
 			"c_character": "X",
