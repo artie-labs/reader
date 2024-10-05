@@ -14,7 +14,7 @@ func NewBitVaryingConverter(optionalCharMaxLength int) BitVaryingConverter {
 	return BitVaryingConverter{optionalCharMaxLength: optionalCharMaxLength}
 }
 
-func (BitVaryingConverter) ToField(name string) Field {
+func (BitVaryingConverter) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName:    name,
 		DebeziumType: debezium.Bits,
@@ -38,5 +38,5 @@ func (b BitVaryingConverter) Convert(value any) (any, error) {
 		}
 	}
 
-	return stringToByteA(stringValue), nil
+	return stringToByteA(stringValue)
 }
