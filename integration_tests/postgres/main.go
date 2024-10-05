@@ -154,7 +154,7 @@ INSERT INTO %s VALUES (
 	-- c_bit1
 		B'1',
 	-- c_bit5
-		B'10101'
+		B'10101',
 	-- c_bit_varying
 		B'10101',
 	-- c_bit_varying5
