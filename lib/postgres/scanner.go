@@ -139,14 +139,9 @@ func (s scanAdapter) ParsePrimaryKeyValueForOverrides(columnName string, value s
 }
 
 // castColumn will take a colName and return the escaped version of what we should be using to call Postgres.
+// TODO: Remove
 func castColumn(col schema.Column) string {
-	colName := pgx.Identifier{col.Name}.Sanitize()
-	switch col.Type {
-	case schema.Array:
-		return fmt.Sprintf(`ARRAY_TO_JSON(%s)::TEXT as %q`, colName, col.Name)
-	default:
-		return colName
-	}
+	return pgx.Identifier{col.Name}.Sanitize()
 }
 
 func queryPlaceholders(offset, count int) []string {
