@@ -12,6 +12,10 @@ import (
 // encodeDecimalWithScale is used to encode a [*apd.Decimal] to `org.apache.kafka.connect.data.Decimal`
 // using a specific scale.
 func encodeDecimalWithScale(decimal *apd.Decimal, scale int32) ([]byte, error) {
+	if decimal.Form != apd.Finite {
+		return nil, fmt.Errorf("decimal (%v) is not finite", decimal)
+	}
+
 	targetExponent := -scale // Negate scale since [Decimal.Exponent] is negative.
 	if decimal.Exponent != targetExponent {
 		// Return an error if the scales are different, this maintains parity with `org.apache.kafka.connect.data.Decimal`.
@@ -59,6 +63,10 @@ func (d DecimalConverter) Convert(value any) (any, error) {
 		return nil, fmt.Errorf(`unable to use %q as a decimal: %w`, stringValue, err)
 	}
 
+	if decimal.Form == apd.NaN {
+		return nil, nil
+	}
+
 	return encodeDecimalWithScale(decimal, int32(d.scale))
 }
 
@@ -81,6 +89,10 @@ func (VariableNumericConverter) Convert(value any) (any, error) {
 	decimal, _, err := apd.NewFromString(stringValue)
 	if err != nil {
 		return nil, fmt.Errorf(`unable to use %q as a decimal: %w`, stringValue, err)
+	}
+
+	if decimal.Form == apd.NaN {
+		return nil, nil
 	}
 
 	bytes, scale := converters.EncodeDecimal(decimal)

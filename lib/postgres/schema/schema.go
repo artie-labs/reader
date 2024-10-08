@@ -47,14 +47,15 @@ const (
 )
 
 type Opts struct {
-	Scale     uint16
-	Precision int
+	Scale         uint16
+	Precision     int
+	CharMaxLength int
 }
 
 type Column = column.Column[DataType, Opts]
 
 const describeTableQuery = `
-SELECT column_name, data_type, numeric_precision, numeric_scale, udt_name
+SELECT column_name, data_type, numeric_precision, numeric_scale, udt_name, character_maximum_length
 FROM information_schema.columns
 WHERE table_schema = $1 AND table_name = $2`
 
@@ -73,12 +74,13 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 		var numericPrecision *int
 		var numericScale *uint16
 		var udtName *string
-		err = rows.Scan(&colName, &colType, &numericPrecision, &numericScale, &udtName)
+		var charMaxLength *int
+		err = rows.Scan(&colName, &colType, &numericPrecision, &numericScale, &udtName, &charMaxLength)
 		if err != nil {
 			return nil, err
 		}
 
-		dataType, opts, err := ParseColumnDataType(colType, numericPrecision, numericScale, udtName)
+		dataType, opts, err := parseColumnDataType(colType, numericPrecision, numericScale, charMaxLength, udtName)
 		if err != nil {
 			return nil, fmt.Errorf("unable to identify type %q for column %q", colType, colName)
 		}
@@ -92,11 +94,15 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 	return cols, nil
 }
 
-func ParseColumnDataType(colKind string, precision *int, scale *uint16, udtName *string) (DataType, *Opts, error) {
+func parseColumnDataType(colKind string, precision *int, scale *uint16, charMaxLength *int, udtName *string) (DataType, *Opts, error) {
 	colKind = strings.ToLower(colKind)
 	switch colKind {
 	case "bit":
-		return Bit, nil, nil
+		if charMaxLength == nil {
+			return -1, nil, fmt.Errorf("invalid bit column: missing character maximum length")
+		}
+
+		return Bit, &Opts{CharMaxLength: *charMaxLength}, nil
 	case "boolean":
 		return Boolean, nil, nil
 	case "smallint":

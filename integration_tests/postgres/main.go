@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cmp"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -26,13 +27,8 @@ func main() {
 	}
 	slog.SetDefault(slog.New(tint.NewHandler(os.Stderr, &tint.Options{})))
 
-	var pgHost string = os.Getenv("PG_HOST")
-	if pgHost == "" {
-		pgHost = "localhost"
-	}
-
-	var pgConfig = config.PostgreSQL{
-		Host:     pgHost,
+	pgConfig := config.PostgreSQL{
+		Host:     cmp.Or(os.Getenv("PG_HOST"), "localhost"),
 		Port:     5432,
 		Username: "postgres",
 		Password: "postgres",
@@ -80,6 +76,8 @@ CREATE TABLE %s (
 	c_bigint bigint,
 	c_bigserial bigserial,
 	c_bit bit,
+	c_bit1 bit(1),
+	c_bit5 bit(5),
 	c_boolean boolean,
 	-- c_box box,
 	c_bytea bytea,
@@ -103,7 +101,9 @@ CREATE TABLE %s (
 	c_macaddr8 macaddr8,
 	c_money money,
 	c_numeric numeric(7, 2),
+	c_numeric_nan numeric(7, 2),
 	c_numeric_variable numeric,
+	c_numeric_variable_nan numeric,
 	-- c_path path,
 	-- c_pg_lsn pg_lsn,
 	-- c_pg_snapshot pg_snapshot,
@@ -148,6 +148,10 @@ INSERT INTO %s VALUES (
 		100000123100000123,
 	-- c_bit
 		B'1',
+	-- c_bit1
+		B'1',
+	-- c_bit5
+		B'10101',
 	-- c_boolean
 		true,
 	-- c_box
@@ -194,8 +198,12 @@ INSERT INTO %s VALUES (
 		'52093.89',
 	-- c_numeric
 		'987.654',
+	-- c_numeric_nan
+		'NaN',
 	-- c_numeric_variable,
 		'10987.65401',
+	-- c_numeric_variable_nan,
+		'NaN',
 	-- c_path
 		-- Not supported
 	-- c_pg_lsn
@@ -293,6 +301,24 @@ const expectedPayloadTemplate = `{
 						"field": "c_bit",
 						"name": "",
 						"parameters": null
+					},
+					{
+						"type": "boolean",
+						"optional": false,
+						"default": null,
+						"field": "c_bit1",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "bytes",
+						"optional": false,
+						"default": null,
+						"field": "c_bit5",
+						"name": "io.debezium.data.Bits",
+						"parameters": {
+							"length": "5"
+						}
 					},
 					{
 						"type": "boolean",
@@ -452,10 +478,29 @@ const expectedPayloadTemplate = `{
 						}
 					},
 					{
+						"type": "bytes",
+						"optional": false,
+						"default": null,
+						"field": "c_numeric_nan",
+						"name": "org.apache.kafka.connect.data.Decimal",
+						"parameters": {
+							"connect.decimal.precision": "7",
+							"scale": "2"
+						}
+					},
+					{
 						"type": "struct",
 						"optional": false,
 						"default": null,
 						"field": "c_numeric_variable",
+						"name": "io.debezium.data.VariableScaleDecimal",
+						"parameters": null
+					},
+					{
+						"type": "struct",
+						"optional": false,
+						"default": null,
+						"field": "c_numeric_variable_nan",
 						"name": "io.debezium.data.VariableScaleDecimal",
 						"parameters": null
 					},
@@ -639,6 +684,8 @@ const expectedPayloadTemplate = `{
 			"c_bigint": 9009900990099009000,
 			"c_bigserial": 100000123100000123,
 			"c_bit": true,
+			"c_bit1": true,
+			"c_bit5": "FQ==",
 			"c_boolean": true,
 			"c_bytea": "YWJjIGtsbSAqqVQ=",
 			"c_character": "X",
@@ -680,10 +727,12 @@ const expectedPayloadTemplate = `{
 			"c_macaddr8": "12:34:56:78:90:ab:cd:ef",
 			"c_money": "T30t",
 			"c_numeric": "AYHN",
+			"c_numeric_nan": null,
 			"c_numeric_variable": {
 				"scale": 5,
 				"value": "QX3UWQ=="
 			},
+			"c_numeric_variable_nan": null,
 			"c_numrange": "[11.1,22.2)",
 			"c_point": {
 				"x": 12.34,
