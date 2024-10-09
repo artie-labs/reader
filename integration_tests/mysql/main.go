@@ -56,6 +56,8 @@ func main() {
 	if err = testScan(db, mysqlCfg.Database); err != nil {
 		logger.Fatal("Scan test failed", slog.Any("err", err))
 	}
+
+	slog.Info("Test succeeded")
 }
 
 func readTable(db *sql.DB, dbName, tableName string, batchSize int) ([]lib.RawMessage, error) {
