@@ -51,6 +51,8 @@ func main() {
 	if err = testPrimaryKeyTypes(db); err != nil {
 		logger.Fatal("Primary key types test failed", slog.Any("err", err))
 	}
+
+	slog.Info("Test succeeded 😎")
 }
 
 func readTable(db *sql.DB, tableName string, batchSize int) ([]lib.RawMessage, error) {

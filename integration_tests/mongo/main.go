@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -29,25 +30,14 @@ func main() {
 		logger.Fatal("Unable to set TZ env var: %w", err)
 	}
 
-	var mongoHost = os.Getenv("MONGO_HOST")
-	if mongoHost == "" {
-		mongoHost = "mongodb://localhost"
-	}
-
+	var mongoHost = cmp.Or(os.Getenv("MONGO_HOST"), "localhost")
 	mongoCfg := config.MongoDB{
-		Host:     fmt.Sprintf("%s:27017", mongoHost),
-		Username: "root",
-		Password: "example",
+		URI:      fmt.Sprintf("mongodb://root:example@%s:27017", mongoHost),
 		Database: "test",
 	}
 
-	creds := options.Credential{
-		Username: mongoCfg.Username,
-		Password: mongoCfg.Password,
-	}
-
 	// Not using TLS
-	opts := options.Client().ApplyURI(mongoCfg.Host).SetAuth(creds)
+	opts := options.Client().ApplyURI(mongoCfg.URI)
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(5*time.Second))
 	defer cancel()
 
@@ -60,6 +50,8 @@ func main() {
 	if err = testTypes(ctx, db, mongoCfg); err != nil {
 		logger.Fatal("Types test failed", slog.Any("err", err))
 	}
+
+	slog.Info("Test succeeded 😎")
 }
 
 func readTable(db *mongo.Database, collection config.Collection, cfg config.MongoDB) ([]lib.RawMessage, error) {
