@@ -9,12 +9,12 @@ import (
 )
 
 func OptsFromConfig(cfg config.MongoDB) (*options.ClientOptions, error) {
-	var opts *options.ClientOptions
+	opts := options.Client()
 
 	if cfg.URI != "" {
-		opts = options.Client().ApplyURI(cfg.URI)
+		opts = opts.ApplyURI(cfg.URI)
 	} else if cfg.Host != "" {
-		opts = options.Client().ApplyURI(cfg.Host)
+		opts = opts.ApplyURI(cfg.Host)
 		if cfg.Username != "" && cfg.Password != "" {
 			opts = opts.SetAuth(options.Credential{
 				Username: cfg.Username,
