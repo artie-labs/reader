@@ -62,7 +62,7 @@ func (m MongoDB) GetStreamingBatchSize() int32 {
 }
 
 func (m MongoDB) Validate() error {
-	if m.Host == "" || m.URI == "" {
+	if m.Host == "" && m.URI == "" {
 		return fmt.Errorf("either host or URI must be passed in")
 	}
 
