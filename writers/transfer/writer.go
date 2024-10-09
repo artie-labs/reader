@@ -105,7 +105,7 @@ func (w *Writer) messageToEvent(message lib.RawMessage) (event.Event, error) {
 	return memoryEvent, nil
 }
 
-func (w *Writer) Write(_ context.Context, messages []lib.RawMessage) error {
+func (w *Writer) Write(ctx context.Context, messages []lib.RawMessage) error {
 	if len(messages) == 0 {
 		return nil
 	}
@@ -150,7 +150,7 @@ func (w *Writer) Write(_ context.Context, messages []lib.RawMessage) error {
 		}
 
 		if shouldFlush {
-			if err = w.flush(flushReason); err != nil {
+			if err = w.flush(ctx, flushReason); err != nil {
 				return err
 			}
 		}
@@ -170,7 +170,7 @@ func (w *Writer) getTableData() (string, *models.TableData, error) {
 	return "", nil, fmt.Errorf("expected exactly one table")
 }
 
-func (w *Writer) flush(reason string) error {
+func (w *Writer) flush(ctx context.Context, reason string) error {
 	tableName, tableData, err := w.getTableData()
 	if err != nil {
 		return err
@@ -198,7 +198,7 @@ func (w *Writer) flush(reason string) error {
 	tableData.ResetTempTableSuffix()
 	if isMicrosoftSQLServer(w.destination) {
 		// Microsoft SQL Server uses MERGE not append
-		if err = w.destination.Merge(tableData.TableData); err != nil {
+		if err = w.destination.Merge(ctx, tableData.TableData); err != nil {
 			tags["what"] = "merge_fail"
 			tags["retryable"] = fmt.Sprint(w.destination.IsRetryableError(err))
 			return fmt.Errorf("failed to merge data to destination: %w", err)
@@ -210,7 +210,7 @@ func (w *Writer) flush(reason string) error {
 		}
 
 		tableData.InMemoryColumns().DeleteColumn(constants.OnlySetDeleteColumnMarker)
-		if err = w.destination.Append(tableData.TableData, isBigQuery(w.destination)); err != nil {
+		if err = w.destination.Append(ctx, tableData.TableData, isBigQuery(w.destination)); err != nil {
 			tags["what"] = "merge_fail"
 			tags["retryable"] = fmt.Sprint(w.destination.IsRetryableError(err))
 			return fmt.Errorf("failed to append data to destination: %w", err)
@@ -221,12 +221,12 @@ func (w *Writer) flush(reason string) error {
 	return nil
 }
 
-func (w *Writer) OnComplete() error {
+func (w *Writer) OnComplete(ctx context.Context) error {
 	if len(w.primaryKeys) == 0 {
 		return fmt.Errorf("primary keys not set")
 	}
 
-	if err := w.flush("complete"); err != nil {
+	if err := w.flush(ctx, "complete"); err != nil {
 		return fmt.Errorf("failed to flush: %w", err)
 	}
 
