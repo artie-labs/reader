@@ -18,6 +18,7 @@ type DataType int
 
 const (
 	Bit DataType = iota + 1
+	BitVarying
 	Boolean
 	Int16
 	Int32
@@ -103,6 +104,13 @@ func parseColumnDataType(colKind string, precision *int, scale *uint16, charMaxL
 		}
 
 		return Bit, &Opts{CharMaxLength: *charMaxLength}, nil
+	case "bit varying":
+		opts := &Opts{}
+		if charMaxLength != nil {
+			opts.CharMaxLength = *charMaxLength
+		}
+
+		return BitVarying, opts, nil
 	case "boolean":
 		return Boolean, nil, nil
 	case "smallint":

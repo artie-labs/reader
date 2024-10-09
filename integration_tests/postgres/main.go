@@ -78,6 +78,9 @@ CREATE TABLE %s (
 	c_bit bit,
 	c_bit1 bit(1),
 	c_bit5 bit(5),
+	c_bit_varying bit varying,
+	c_bit_varying5 bit varying(5),
+	c_bit_varying10 bit varying(10),
 	c_boolean boolean,
 	-- c_box box,
 	c_bytea bytea,
@@ -151,6 +154,12 @@ INSERT INTO %s VALUES (
 	-- c_bit1
 		B'1',
 	-- c_bit5
+		B'10101',
+	-- c_bit_varying
+		B'10101',
+	-- c_bit_varying5
+		B'10101',
+	-- c_bit_varying10
 		B'10101',
 	-- c_boolean
 		true,
@@ -319,6 +328,30 @@ const expectedPayloadTemplate = `{
 						"parameters": {
 							"length": "5"
 						}
+					},
+					{
+						"type": "bytes",
+						"optional": false,
+						"default": null,
+						"field": "c_bit_varying",
+						"name": "io.debezium.data.Bits",
+						"parameters": null
+					},
+					{
+						"type": "bytes",
+						"optional": false,
+						"default": null,
+						"field": "c_bit_varying5",
+						"name": "io.debezium.data.Bits",
+						"parameters": null
+					},
+					{
+						"type": "bytes",
+						"optional": false,
+						"default": null,
+						"field": "c_bit_varying10",
+						"name": "io.debezium.data.Bits",
+						"parameters": null
 					},
 					{
 						"type": "boolean",
@@ -686,6 +719,9 @@ const expectedPayloadTemplate = `{
 			"c_bit": true,
 			"c_bit1": true,
 			"c_bit5": "FQ==",
+			"c_bit_varying": "FQ==",
+			"c_bit_varying10": "FQ==",
+			"c_bit_varying5": "FQ==",
 			"c_boolean": true,
 			"c_bytea": "YWJjIGtsbSAqqVQ=",
 			"c_character": "X",
