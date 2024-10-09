@@ -32,14 +32,14 @@ type MongoDB struct {
 	StreamingSettings StreamingSettings `yaml:"streamingSettings,omitempty"`
 	DisableTLS        bool              `yaml:"disableTLS,omitempty"`
 
+	// DisableFullDocumentBeforeChange - This is relevant if you're connecting to Document DB.
+	// BSON field '$changeStream.fullDocumentBeforeChange' is an unknown field.
+	DisableFullDocumentBeforeChange bool `yaml:"disableFullDocumentBeforeChange,omitempty"`
+
 	// Deprecated - use [MongoDB.URI] instead
 	Host     string `yaml:"host"`
 	Username string `yaml:"username,omitempty"`
 	Password string `yaml:"password,omitempty"`
-
-	// DisableFullDocumentBeforeChange - This is relevant if you're connecting to Document DB.
-	// BSON field '$changeStream.fullDocumentBeforeChange' is an unknown field.
-	DisableFullDocumentBeforeChange bool `yaml:"disableFullDocumentBeforeChange,omitempty"`
 }
 
 type Collection struct {
