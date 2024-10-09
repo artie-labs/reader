@@ -51,7 +51,7 @@ func main() {
 		logger.Fatal("Types test failed", slog.Any("err", err))
 	}
 
-	slog.Info("✅ Test succeeded")
+	slog.Info("Test succeeded 😎")
 }
 
 func readTable(db *mongo.Database, collection config.Collection, cfg config.MongoDB) ([]lib.RawMessage, error) {
