@@ -20,7 +20,15 @@ type Source struct {
 }
 
 func Load(ctx context.Context, cfg config.MongoDB) (*Source, bool, error) {
-	client, err := mongo.Connect(ctx, mongoLib.OptsFromConfig(cfg))
+	opts, err := mongoLib.OptsFromConfig(cfg)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to build options for MongoDB: %w", err)
+	}
+	if err := opts.Validate(); err != nil {
+		return nil, false, fmt.Errorf("validation failed for MongoDB options: %w", err)
+	}
+
+	client, err := mongo.Connect(ctx, opts)
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to connect to MongoDB: %w", err)
 	}

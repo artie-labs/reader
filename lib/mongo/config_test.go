@@ -1,9 +1,10 @@
 package mongo
 
 import (
+	"testing"
+
 	"github.com/artie-labs/reader/config"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestOptsFromConfig(t *testing.T) {
@@ -14,7 +15,8 @@ func TestOptsFromConfig(t *testing.T) {
 			Password: "password",
 		}
 
-		opts := OptsFromConfig(cfg)
+		opts, err := OptsFromConfig(cfg)
+		assert.NoError(t, err)
 		assert.NotNil(t, opts.TLSConfig)
 		assert.Equal(t, "user", opts.Auth.Username)
 		assert.Equal(t, "password", opts.Auth.Password)
@@ -25,7 +27,8 @@ func TestOptsFromConfig(t *testing.T) {
 			Host: "localhost",
 		}
 
-		opts := OptsFromConfig(cfg)
+		opts, err := OptsFromConfig(cfg)
+		assert.NoError(t, err)
 		assert.Nil(t, opts.Auth)
 	}
 	{
@@ -35,7 +38,20 @@ func TestOptsFromConfig(t *testing.T) {
 			DisableTLS: true,
 		}
 
-		opts := OptsFromConfig(cfg)
+		opts, err := OptsFromConfig(cfg)
+		assert.NoError(t, err)
 		assert.Nil(t, opts.TLSConfig)
+	}
+	{
+		// Using URI:
+		cfg := config.MongoDB{
+			URI: "mongodb://user:pass@localhost",
+		}
+
+		opts, err := OptsFromConfig(cfg)
+		assert.NoError(t, err)
+		assert.NotNil(t, opts.TLSConfig)
+		assert.Equal(t, "user", opts.Auth.Username)
+		assert.Equal(t, "pass", opts.Auth.Password)
 	}
 }

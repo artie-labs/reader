@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/artie-labs/reader/constants"
-	"github.com/artie-labs/transfer/lib/stringutil"
 )
 
 func (s StreamingSettings) Validate() error {
@@ -27,9 +26,7 @@ type StreamingSettings struct {
 }
 
 type MongoDB struct {
-	Host              string            `yaml:"host"`
-	Username          string            `yaml:"username,omitempty"`
-	Password          string            `yaml:"password,omitempty"`
+	URI               string            `yaml:"uri"`
 	Database          string            `yaml:"database"`
 	Collections       []Collection      `yaml:"collections"`
 	StreamingSettings StreamingSettings `yaml:"streamingSettings,omitempty"`
@@ -38,6 +35,11 @@ type MongoDB struct {
 	// DisableFullDocumentBeforeChange - This is relevant if you're connecting to Document DB.
 	// BSON field '$changeStream.fullDocumentBeforeChange' is an unknown field.
 	DisableFullDocumentBeforeChange bool `yaml:"disableFullDocumentBeforeChange,omitempty"`
+
+	// Deprecated - use [MongoDB.URI] instead.
+	Host     string `yaml:"host"`
+	Username string `yaml:"username,omitempty"`
+	Password string `yaml:"password,omitempty"`
 }
 
 type Collection struct {
@@ -60,8 +62,12 @@ func (m MongoDB) GetStreamingBatchSize() int32 {
 }
 
 func (m MongoDB) Validate() error {
-	if stringutil.Empty(m.Host, m.Database) {
-		return fmt.Errorf("one of the MongoDB settings is empty: host or database")
+	if m.Host == "" && m.URI == "" {
+		return fmt.Errorf("either host or URI must be passed in")
+	}
+
+	if m.Database == "" {
+		return fmt.Errorf("database is empty")
 	}
 
 	if len(m.Collections) == 0 {
