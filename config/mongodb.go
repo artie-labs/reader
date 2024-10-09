@@ -27,13 +27,15 @@ type StreamingSettings struct {
 
 type MongoDB struct {
 	URI               string            `yaml:"uri"`
-	Host              string            `yaml:"host"`
-	Username          string            `yaml:"username,omitempty"`
-	Password          string            `yaml:"password,omitempty"`
 	Database          string            `yaml:"database"`
 	Collections       []Collection      `yaml:"collections"`
 	StreamingSettings StreamingSettings `yaml:"streamingSettings,omitempty"`
 	DisableTLS        bool              `yaml:"disableTLS,omitempty"`
+
+	// Deprecated - use [MongoDB.URI] instead
+	Host     string `yaml:"host"`
+	Username string `yaml:"username,omitempty"`
+	Password string `yaml:"password,omitempty"`
 
 	// DisableFullDocumentBeforeChange - This is relevant if you're connecting to Document DB.
 	// BSON field '$changeStream.fullDocumentBeforeChange' is an unknown field.
