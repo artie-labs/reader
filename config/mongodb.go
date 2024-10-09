@@ -37,7 +37,7 @@ type MongoDB struct {
 	// BSON field '$changeStream.fullDocumentBeforeChange' is an unknown field.
 	DisableFullDocumentBeforeChange bool `yaml:"disableFullDocumentBeforeChange,omitempty"`
 
-	// Deprecated - use [MongoDB.URI] instead
+	// Deprecated - use [MongoDB.URI] instead.
 	Host     string `yaml:"host"`
 	Username string `yaml:"username,omitempty"`
 	Password string `yaml:"password,omitempty"`
