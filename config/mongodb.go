@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/artie-labs/reader/constants"
-	"github.com/artie-labs/transfer/lib/stringutil"
 )
 
 func (s StreamingSettings) Validate() error {
@@ -63,12 +62,12 @@ func (m MongoDB) GetStreamingBatchSize() int32 {
 }
 
 func (m MongoDB) Validate() error {
-	if stringutil.Empty(m.Host, m.URI) {
-		return fmt.Errorf("one of the MongoDB settings is empty: host or URI")
+	if m.Host == "" || m.URI == "" {
+		return fmt.Errorf("either host or URI must be passed in")
 	}
 
 	if m.Database == "" {
-		return fmt.Errorf("one of the MongoDB settings is empty: database")
+		return fmt.Errorf("database is empty")
 	}
 
 	if len(m.Collections) == 0 {
