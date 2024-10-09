@@ -22,7 +22,7 @@ type Source struct {
 func Load(ctx context.Context, cfg config.MongoDB) (*Source, bool, error) {
 	opts, err := mongoLib.OptsFromConfig(cfg)
 	if err != nil {
-		return nil, false, fmt.Errorf("options for MongoDB are invalid: %w", err)
+		return nil, false, fmt.Errorf("failed to build options for MongoDB: %w", err)
 	}
 	if err := opts.Validate(); err != nil {
 		return nil, false, fmt.Errorf("validation failed for MongoDB options: %w", err)
