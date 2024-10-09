@@ -15,7 +15,7 @@ type mockDestination struct {
 	emitError bool
 }
 
-func (m *mockDestination) Write(ctx context.Context, msgs []lib.RawMessage) error {
+func (m *mockDestination) Write(_ context.Context, msgs []lib.RawMessage) error {
 	if m.emitError {
 		return fmt.Errorf("test write-raw-messages error")
 	}
@@ -23,7 +23,7 @@ func (m *mockDestination) Write(ctx context.Context, msgs []lib.RawMessage) erro
 	return nil
 }
 
-func (m *mockDestination) OnComplete() error {
+func (m *mockDestination) OnComplete(_ context.Context) error {
 	return nil
 }
 
