@@ -147,7 +147,7 @@ func (b *BatchWriter) Write(ctx context.Context, rawMsgs []lib.RawMessage) error
 	return nil
 }
 
-func (b *BatchWriter) OnComplete() error {
+func (b *BatchWriter) OnComplete(_ context.Context) error {
 	return nil
 }
 

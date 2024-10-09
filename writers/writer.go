@@ -12,7 +12,7 @@ import (
 
 type DestinationWriter interface {
 	Write(ctx context.Context, rawMsgs []lib.RawMessage) error
-	OnComplete() error
+	OnComplete(ctx context.Context) error
 }
 
 type Writer struct {
@@ -57,7 +57,7 @@ func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMess
 
 	// Only run [OnComplete] if we wrote messages out. Otherwise, primary keys may not be loaded.
 	if count > 0 {
-		if err := w.destinationWriter.OnComplete(); err != nil {
+		if err := w.destinationWriter.OnComplete(ctx); err != nil {
 			return 0, fmt.Errorf("failed running destination OnComplete: %w", err)
 		}
 	}
@@ -65,8 +65,8 @@ func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMess
 	return count, nil
 }
 
-func (w *Writer) OnComplete() error {
-	if err := w.destinationWriter.OnComplete(); err != nil {
+func (w *Writer) OnComplete(ctx context.Context) error {
+	if err := w.destinationWriter.OnComplete(ctx); err != nil {
 		return fmt.Errorf("failed running destination OnComplete: %w", err)
 	}
 

@@ -89,6 +89,12 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 		}
 
 		return converters.NewBitConverter(opts.CharMaxLength), nil
+	case schema.BitVarying:
+		if opts == nil {
+			return nil, fmt.Errorf("missing options for bit varying data type")
+		}
+
+		return converters.NewBitVaryingConverter(opts.CharMaxLength), nil
 	case schema.Boolean:
 		return converters.BooleanPassthrough{}, nil
 	case schema.Int16:
