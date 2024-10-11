@@ -9,21 +9,11 @@ import (
 )
 
 func OptsFromConfig(cfg config.MongoDB) (*options.ClientOptions, error) {
-	opts := options.Client()
-
-	if cfg.URI != "" {
-		opts = opts.ApplyURI(cfg.URI)
-	} else if cfg.Host != "" {
-		opts = opts.ApplyURI(cfg.Host)
-		if cfg.Username != "" && cfg.Password != "" {
-			opts = opts.SetAuth(options.Credential{
-				Username: cfg.Username,
-				Password: cfg.Password,
-			})
-		}
-	} else {
-		return nil, fmt.Errorf("mongoDB requires a URI or host")
+	if cfg.URI == "" {
+		return nil, fmt.Errorf("mongoDB requires a URI")
 	}
+
+	opts := options.Client().ApplyURI(cfg.URI)
 
 	if !cfg.DisableTLS {
 		opts = opts.SetTLSConfig(&tls.Config{})
