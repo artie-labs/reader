@@ -35,11 +35,6 @@ type MongoDB struct {
 	// DisableFullDocumentBeforeChange - This is relevant if you're connecting to Document DB.
 	// BSON field '$changeStream.fullDocumentBeforeChange' is an unknown field.
 	DisableFullDocumentBeforeChange bool `yaml:"disableFullDocumentBeforeChange,omitempty"`
-
-	// Deprecated - use [MongoDB.URI] instead.
-	Host     string `yaml:"host"`
-	Username string `yaml:"username,omitempty"`
-	Password string `yaml:"password,omitempty"`
 }
 
 type Collection struct {
@@ -62,8 +57,8 @@ func (m MongoDB) GetStreamingBatchSize() int32 {
 }
 
 func (m MongoDB) Validate() error {
-	if m.Host == "" && m.URI == "" {
-		return fmt.Errorf("either host or URI must be passed in")
+	if m.URI == "" {
+		return fmt.Errorf("URI is empty")
 	}
 
 	if m.Database == "" {
