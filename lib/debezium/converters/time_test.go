@@ -246,7 +246,7 @@ func TestMicroTimestampConverter_Convert(t *testing.T) {
 		transferValue, err := parseUsingTransfer(converter, value.(int64))
 		assert.NoError(t, err)
 		assert.Equal(t, timeValue, transferValue.GetTime())
-		assert.Equal(t, ext.TimestampTzKindType, transferValue.GetNestedKind().Type)
+		assert.Equal(t, ext.TimestampNTZKindType, transferValue.GetNestedKind().Type)
 	}
 }
 
