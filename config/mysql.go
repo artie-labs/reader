@@ -20,6 +20,8 @@ type MySQL struct {
 	Password string        `yaml:"password"`
 	Database string        `yaml:"database"`
 	Tables   []*MySQLTable `yaml:"tables"`
+
+	Streaming bool `yaml:"streaming"`
 }
 
 func (m *MySQL) ToDSN() string {

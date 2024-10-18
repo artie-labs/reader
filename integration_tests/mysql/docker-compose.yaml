@@ -6,3 +6,4 @@ services:
       MYSQL_ROOT_PASSWORD: mysql
     ports:
       - 3306:3306
+    command: --binlog-row-metadata=FULL
