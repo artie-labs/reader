@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"slices"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/jitter"
@@ -99,7 +100,7 @@ func (b *BatchWriter) Write(ctx context.Context, rawMsgs []lib.RawMessage) error
 		msgs = append(msgs, kafkaMsg)
 	}
 
-	for _, batch := range batched(msgs, int(b.cfg.GetPublishSize())) {
+	for batch := range slices.Chunk(msgs, int(b.cfg.GetPublishSize())) {
 		tags := map[string]string{
 			"what": "error",
 		}
