@@ -2,6 +2,7 @@ package converters
 
 import (
 	"fmt"
+
 	"github.com/artie-labs/transfer/lib/typing"
 
 	"github.com/artie-labs/transfer/lib/debezium"
