@@ -178,7 +178,7 @@ func (ZonedTimestampConverter) ToField(name string) debezium.Field {
 func (ZonedTimestampConverter) Convert(value any) (any, error) {
 	timeValue, ok := value.(time.Time)
 	if !ok {
-		return nil, fmt.Errorf("expected time.Time got %T with value: %v", value, value)
+		return nil, fmt.Errorf("expected time.Time got %T with value: '%v'", value, value)
 	}
 
 	if timeValue.Year() > 9999 || timeValue.Year() < 0 {
@@ -188,10 +188,7 @@ func (ZonedTimestampConverter) Convert(value any) (any, error) {
 		return nil, nil
 	}
 
-	// A string representation of a timestamp with timezone information, where the timezone is GMT.
-	// This layout supports upto microsecond precision.
-	layout := "2006-01-02T15:04:05.999999Z"
-	return timeValue.UTC().Format(layout), nil
+	return timeValue.Format(time.RFC3339Nano), nil
 }
 
 type YearConverter struct{}

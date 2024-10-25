@@ -270,7 +270,7 @@ func TestZonedTimestampConverter_Convert(t *testing.T) {
 	{
 		// Invalid type
 		_, err := converter.Convert(1234)
-		assert.ErrorContains(t, err, "expected time.Time got int with value: 1234")
+		assert.ErrorContains(t, err, "expected time.Time got int with value: '1234'")
 	}
 	{
 		// Date > 9999
@@ -322,15 +322,15 @@ func TestZonedTimestampConverter_Convert(t *testing.T) {
 	}
 	{
 		// Different timezone
-		_ts := time.Date(2001, 2, 3, 4, 5, 0, 0, time.FixedZone("CET", 1*60*60))
+		_ts := time.Date(2001, 2, 3, 4, 5, 0, 0, time.FixedZone("", 1*60*60))
 		value, err := converter.Convert(_ts)
 		assert.NoError(t, err)
-		assert.Equal(t, "2001-02-03T03:05:00Z", value)
+		assert.Equal(t, "2001-02-03T04:05:00+01:00", value)
 
 		// Check Transfer to ensure no precision loss
 		ts, err := converters.ZonedTimestamp{}.Convert(value)
 		assert.NoError(t, err)
-		assert.Equal(t, _ts.UTC(), ts.(*ext.ExtendedTime).GetTime())
+		assert.Equal(t, _ts, ts.(*ext.ExtendedTime).GetTime())
 	}
 }
 
