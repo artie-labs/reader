@@ -122,6 +122,7 @@ CREATE TABLE %s (
 	c_time_with_timezone time WITH TIME ZONE,
 	c_timestamp_without_timezone timestamp WITHOUT TIME ZONE,
 	c_timestamp_with_timezone timestamp WITH TIME ZONE,
+	c_timestamp_with_timezone_utc timestamp WITH TIME ZONE,
 	-- c_tsquery tsquery,
 	-- c_tsvector tsvector,
 	-- c_txid_snapshot txid_snapshot,
@@ -241,6 +242,7 @@ INSERT INTO %s VALUES (
 		'2001-02-16 20:38:40',
 	-- c_timestamp_with_timezone
 		'2001-02-16 20:38:40' AT TIME ZONE 'America/Denver',
+        '2001-02-16 20:38:40' AT TIME ZONE 'UTC',
 	-- c_tsquery
 		-- Not supported
 	-- c_tsvector
@@ -615,6 +617,14 @@ const expectedPayloadTemplate = `{
 						"type": "string",
 						"optional": false,
 						"default": null,
+						"field": "c_timestamp_with_timezone_utc",
+						"name": "io.debezium.time.ZonedTimestamp",
+						"parameters": null
+					},
+					{
+						"type": "string",
+						"optional": false,
+						"default": null,
 						"field": "c_uuid",
 						"name": "io.debezium.data.Uuid",
 						"parameters": null
@@ -783,6 +793,7 @@ const expectedPayloadTemplate = `{
 			"c_time_with_timezone": "10:34:17.746572Z",
 			"c_time_without_timezone": 45296000,
 			"c_timestamp_with_timezone": "2001-02-16T13:38:40Z",
+			"c_timestamp_with_timezone_utc": "2001-02-16T20:38:40Z",
 			"c_timestamp_without_timezone": 982355920000000,
 			"c_tsrange": "[\"2010-01-01 14:30:00\",\"2010-01-01 15:30:00\")",
 			"c_tstzrange": "[\"2001-02-16 08:38:40+00\",\"2001-03-20 08:38:40+00\")",
