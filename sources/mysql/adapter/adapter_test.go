@@ -1,8 +1,9 @@
 package adapter
 
 import (
-	"github.com/artie-labs/transfer/lib/typing"
 	"testing"
+
+	"github.com/artie-labs/transfer/lib/typing"
 
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/stretchr/testify/assert"
@@ -285,7 +286,7 @@ func TestValueConverterForType(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		converter, err := valueConverterForType(tc.dataType, tc.opts)
+		converter, err := ValueConverterForType(tc.dataType, tc.opts)
 		if tc.expectedErr == "" {
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expected, converter.ToField(colName), tc.name)

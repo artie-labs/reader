@@ -46,7 +46,12 @@ func buildSource(ctx context.Context, cfg *config.Settings) (sources.Source, boo
 	case config.SourceMSSQL:
 		source, err = mssql.Load(*cfg.MSSQL)
 	case config.SourceMySQL:
-		source, err = mysql.Load(*cfg.MySQL)
+		isStreamingMode = cfg.MySQL.Streaming
+		if isStreamingMode {
+			source, err = mysql.LoadStreaming(*cfg.MySQL)
+		} else {
+			source, err = mysql.Load(*cfg.MySQL)
+		}
 	case config.SourcePostgreSQL:
 		source, err = postgres.Load(*cfg.PostgreSQL)
 	default:

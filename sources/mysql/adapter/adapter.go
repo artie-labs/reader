@@ -51,7 +51,7 @@ func NewMySQLAdapter(db *sql.DB, dbName string, tableCfg config.MySQLTable) (MyS
 func newMySQLAdapter(db *sql.DB, dbName string, table mysql.Table, columns []schema.Column, scannerCfg scan.ScannerConfig) (MySQLAdapter, error) {
 	fieldConverters := make([]transformer.FieldConverter, len(columns))
 	for i, col := range columns {
-		converter, err := valueConverterForType(col.Type, col.Opts)
+		converter, err := ValueConverterForType(col.Type, col.Opts)
 		if err != nil {
 			return MySQLAdapter{}, fmt.Errorf("failed to build value converter for column %q: %w", col.Name, err)
 		}
@@ -88,7 +88,7 @@ func (m MySQLAdapter) PartitionKeys() []string {
 	return m.table.PrimaryKeys
 }
 
-func valueConverterForType(d schema.DataType, opts *schema.Opts) (converters.ValueConverter, error) {
+func ValueConverterForType(d schema.DataType, opts *schema.Opts) (converters.ValueConverter, error) {
 	switch d {
 	case schema.Bit:
 		if opts == nil || opts.Size == nil {
