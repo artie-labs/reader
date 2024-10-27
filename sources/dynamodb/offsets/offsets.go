@@ -8,7 +8,7 @@ import (
 )
 
 // ShardExpirationAndBuffer - Buffer for when a shard is closed as the records have a TTL of 24h. However, garbage collection is async.
-const ShardExpirationAndBuffer = 2 * 24 * time.Hour
+const ShardExpirationAndBuffer = 3 * 24 * time.Hour
 
 type OffsetStorage struct {
 	ttlMap *ttlmap.TTLMap
