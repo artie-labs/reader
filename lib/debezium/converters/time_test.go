@@ -20,6 +20,15 @@ func parseUsingTransfer(converter ValueConverter, value int64) (*ext.ExtendedTim
 	return typing.AssertType[*ext.ExtendedTime](parsedValue)
 }
 
+func parseUsingTransferNew(converter ValueConverter, value int64) (time.Time, error) {
+	parsedValue, err := converter.ToField("foo").ParseValue(value)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	return typing.AssertType[time.Time](parsedValue)
+}
+
 func TestTimeConverter_Convert(t *testing.T) {
 	converter := TimeConverter{}
 	{
@@ -191,10 +200,9 @@ func TestDateConverter_Convert(t *testing.T) {
 		// Transfer parsing
 		value, err := converter.Convert("2023-05-03")
 		assert.NoError(t, err)
-		transferValue, err := parseUsingTransfer(converter, int64(value.(int32)))
+		transferValue, err := parseUsingTransferNew(converter, int64(value.(int32)))
 		assert.NoError(t, err)
-		assert.Equal(t, time.Date(2023, time.May, 3, 0, 0, 0, 0, time.UTC), transferValue.GetTime())
-		assert.Equal(t, ext.DateKindType, transferValue.GetNestedKind().Type)
+		assert.Equal(t, time.Date(2023, time.May, 3, 0, 0, 0, 0, time.UTC), transferValue)
 	}
 }
 
@@ -243,10 +251,9 @@ func TestMicroTimestampConverter_Convert(t *testing.T) {
 		timeValue := time.Date(2001, 2, 3, 4, 5, 0, 0, time.UTC)
 		value, err := converter.Convert(timeValue)
 		assert.NoError(t, err)
-		transferValue, err := parseUsingTransfer(converter, value.(int64))
+		transferValue, err := parseUsingTransferNew(converter, value.(int64))
 		assert.NoError(t, err)
-		assert.Equal(t, timeValue, transferValue.GetTime())
-		assert.Equal(t, ext.TimestampNTZKindType, transferValue.GetNestedKind().Type)
+		assert.Equal(t, timeValue, transferValue)
 	}
 }
 
