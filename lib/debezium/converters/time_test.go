@@ -301,7 +301,7 @@ func TestZonedTimestampConverter_Convert(t *testing.T) {
 		// Check Transfer to ensure no precision loss
 		ts, err := converters.ZonedTimestamp{}.Convert(value)
 		assert.NoError(t, err)
-		assert.Equal(t, _ts, ts.(*ext.ExtendedTime).GetTime())
+		assert.Equal(t, _ts, ts.(time.Time))
 	}
 	{
 		// time.Time (ms)
@@ -313,7 +313,7 @@ func TestZonedTimestampConverter_Convert(t *testing.T) {
 		// Check Transfer to ensure no precision loss
 		ts, err := converters.ZonedTimestamp{}.Convert(value)
 		assert.NoError(t, err)
-		assert.Equal(t, _ts, ts.(*ext.ExtendedTime).GetTime())
+		assert.Equal(t, _ts, ts.(time.Time))
 	}
 	{
 		// time.Time (microseconds)
@@ -325,7 +325,7 @@ func TestZonedTimestampConverter_Convert(t *testing.T) {
 		// Check Transfer to ensure no precision loss
 		ts, err := converters.ZonedTimestamp{}.Convert(value)
 		assert.NoError(t, err)
-		assert.Equal(t, _ts, ts.(*ext.ExtendedTime).GetTime())
+		assert.Equal(t, _ts, ts.(time.Time))
 	}
 	{
 		// Different timezone
@@ -337,7 +337,7 @@ func TestZonedTimestampConverter_Convert(t *testing.T) {
 		// Check Transfer to ensure no precision loss
 		ts, err := converters.ZonedTimestamp{}.Convert(value)
 		assert.NoError(t, err)
-		assert.Equal(t, _ts.UTC(), ts.(*ext.ExtendedTime).GetTime())
+		assert.Equal(t, _ts.UTC(), ts.(time.Time))
 	}
 }
 
