@@ -4,22 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/artie-labs/transfer/lib/batch"
-	"github.com/artie-labs/transfer/lib/retry"
 	"log/slog"
 	"time"
 
+	"github.com/artie-labs/transfer/lib/batch"
 	"github.com/artie-labs/transfer/lib/kafkalib"
+	"github.com/artie-labs/transfer/lib/retry"
 	"github.com/segmentio/kafka-go"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/mtr"
-)
-
-const (
-	baseJitterMs = 300
-	maxJitterMs  = 5000
 )
 
 func newWriter(ctx context.Context, cfg config.Kafka) (*kafka.Writer, error) {
