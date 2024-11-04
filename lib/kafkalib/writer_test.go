@@ -24,7 +24,7 @@ func TestNewMessage(t *testing.T) {
 		},
 	)
 
-	msg, err := newMessage("topic-prefix", rawMessage)
+	msg, err := buildKafkaMessage("topic-prefix", rawMessage)
 	assert.NoError(t, err)
 	assert.Equal(t, "topic-prefix.topic-suffix", msg.Topic)
 	assert.Equal(t, `{"key":"value"}`, string(msg.Key))
