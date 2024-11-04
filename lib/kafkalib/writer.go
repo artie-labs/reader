@@ -121,10 +121,7 @@ func (b *BatchWriter) write(ctx context.Context, messages []KafkaMessage, sample
 	}
 
 	return batch.BySize[KafkaMessage](messages, int(b.writer.BatchBytes), encoder, func(chunk [][]byte) error {
-		tags := map[string]string{
-			"what": "error",
-		}
-
+		tags := map[string]string{"what": "error"}
 		defer func() {
 			if b.statsD != nil {
 				b.statsD.Count("kafka.publish", int64(len(chunk)), tags)
