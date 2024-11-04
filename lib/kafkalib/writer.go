@@ -146,6 +146,10 @@ func (b *BatchWriter) write(ctx context.Context, messages []KafkaMessage, sample
 				return nil
 			}
 
+			if err = b.reload(ctx); err != nil {
+				return fmt.Errorf("failed to reload kafka writer: %w", err)
+			}
+
 			return publishErr
 		})
 
