@@ -132,7 +132,7 @@ func (b *BatchWriter) write(ctx context.Context, messages []KafkaMessage, sample
 		var kafkaMessages []kafka.Message
 		for _, bytes := range chunk {
 			var msg KafkaMessage
-			if err := json.Unmarshal(bytes, &msg); err != nil {
+			if err = json.Unmarshal(bytes, &msg); err != nil {
 				return fmt.Errorf("failed to unmarshal message: %w", err)
 			}
 
