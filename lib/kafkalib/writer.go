@@ -96,7 +96,7 @@ func buildKafkaMessageWrapper(topicPrefix string, rawMessage lib.RawMessage) (Ka
 	}, nil
 }
 
-// KafkaMessageWrapper is a wrapper around a Kafka message. We did this so that we can marshal and unmarshal the message
+// KafkaMessageWrapper is a wrapper around [kafka.Message]. We did this so that we can marshal and unmarshal the message safely with our encoding function
 type KafkaMessageWrapper struct {
 	Topic        string `json:"topic"`
 	MessageKey   []byte `json:"messageKey"`
