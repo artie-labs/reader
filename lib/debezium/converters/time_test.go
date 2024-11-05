@@ -115,6 +115,12 @@ func TestDateConverter_Convert(t *testing.T) {
 		assert.ErrorContains(t, err, "expected string/time.Time got int with value: 12345")
 	}
 	{
+		// string - 00 month
+		value, err := converter.Convert("2024-00-08")
+		assert.NoError(t, err)
+		assert.Equal(t, nil, value)
+	}
+	{
 		// string - 0000-00-00
 		value, err := converter.Convert("0000-00-00")
 		assert.NoError(t, err)
@@ -123,7 +129,7 @@ func TestDateConverter_Convert(t *testing.T) {
 	{
 		// string - malformed
 		_, err := converter.Convert("aaaa-bb-cc")
-		assert.ErrorContains(t, err, `failed to convert to date: parsing time "aaaa-bb-cc" as "2006-01-02"`)
+		assert.ErrorContains(t, err, `failed to parse date "aaaa-bb-cc": strconv.ParseInt: parsing "aaaa": invalid syntax`)
 	}
 	{
 		// string - 2023-05-03
