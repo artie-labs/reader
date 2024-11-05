@@ -102,7 +102,7 @@ func (DateConverter) Convert(value any) (any, error) {
 				}
 
 				if castedPart <= 0 {
-					slog.Warn("Skipping invalid value: %q", castValue)
+					slog.Warn(fmt.Sprintf("Skipping invalid value: %q", castValue))
 					// MySQL supports '0000-00-00' for date columns if strict mode is not enabled.
 					return nil, nil
 				}
