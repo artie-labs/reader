@@ -34,12 +34,9 @@ jobs:
         env:
           ACCEPT_EULA: Y
           SA_PASSWORD: yourStrong!Password
-        options: >-
-          --health-cmd "/opt/mssql-tools/bin/sqlcmd -U sa -P $SA_PASSWORD -Q 'select 1' -b -o /dev/null"
-          --health-interval 60s
-          --health-timeout 30s
-          --health-start-period 20s
-          --health-retries 3
+# TODO: Add healthcheck for MSSQL
+# I spent a bunch of time and couldn't get it to work for GHA (it works for docker-compose)
+# It also runs fine without it, but we should try to get this added.
     steps:
       - uses: actions/checkout@v4
       - name: Set up Go
