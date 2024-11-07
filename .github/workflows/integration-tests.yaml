@@ -34,11 +34,11 @@ jobs:
         env:
           ACCEPT_EULA: Y
           SA_PASSWORD: yourStrong!Password
-        options: >-
-          --health-cmd "/opt/mssql-tools/bin/sqlcmd -U sa -P yourStrong!Password -Q 'SELECT 1'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+#        options: >-
+#          --health-cmd "/opt/mssql-tools/bin/sqlcmd -U sa -P yourStrong!Password -Q 'SELECT 1'"
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - name: Set up Go
