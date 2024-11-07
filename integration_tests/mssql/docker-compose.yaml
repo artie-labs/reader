@@ -1,3 +1,4 @@
+# If you are running this on M1, make sure docker-compose has Rosetta emulation enabled.
 version: '3.8'
 
 services:
