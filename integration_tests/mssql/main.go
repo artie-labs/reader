@@ -61,6 +61,7 @@ func readTable(db *sql.DB, dbName, tableName string, batchSize int) ([]lib.RawMe
 	return utils.ReadTable(dbzAdapter)
 }
 
+// TODO: Test every data type.
 const testTypesCreateTableQuery = `
 CREATE TABLE %s (
 	pk INTEGER PRIMARY KEY NOT NULL,
