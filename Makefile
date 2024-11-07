@@ -14,6 +14,10 @@ test:
 mongo-itest:
 	go run integration_tests/mongo/main.go
 
+.PHONY: mssql-itest
+mssql-itest:
+	go run integration_tests/mssql/main.go
+
 .PHONY: mysql-itest
 mysql-itest:
 	go run integration_tests/mysql/main.go
