@@ -24,6 +24,7 @@ jobs:
           go-version: 1.23
       - name: Run integration test
         run: PG_HOST=postgres make postgres-itest
+
   MSSQL:
     runs-on: ubuntu-24.04
     container: golang:1.23
@@ -36,7 +37,8 @@ jobs:
         options: >-
           --health-cmd "/opt/mssql-tools/bin/sqlcmd -U sa -P yourStrong!Password -Q 'SELECT 1'"
           --health-interval 10s
-          --health-retries 10
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - name: Set up Go
@@ -45,6 +47,7 @@ jobs:
           go-version: 1.23
       - name: Run integration test
         run: MSSQL_HOST=mssql make mssql-itest
+
   MySQL:
     runs-on: ubuntu-24.04
     container: golang:1.23
