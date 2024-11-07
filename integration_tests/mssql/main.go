@@ -154,11 +154,11 @@ const expectedPayloadTemplate = `{
 	"payload": {
 		"before": null,
 		"after": {
-			"c_bit": true,
-			"c_varbinary": "dQ==",
-			"c_smallint": 123,
-			"c_int": 1234,
 			"c_bigint": 1235,
+			"c_bit": true,
+			"c_int": 1234,
+			"c_smallint": 123,
+			"c_varbinary": "dQ==",
 			"pk": 1
 		},
 		"source": {
