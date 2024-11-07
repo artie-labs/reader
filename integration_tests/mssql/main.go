@@ -105,18 +105,26 @@ const expectedPayloadTemplate = `{
 						"parameters": null
 					},
 					{
-						"type": "int32",
+						"type": "boolean",
 						"optional": false,
 						"default": null,
-						"field": "c_int",
+						"field": "c_bit",
 						"name": "",
 						"parameters": null
 					},
 					{
-						"type": "string",
+						"type": "bytes",
 						"optional": false,
 						"default": null,
-						"field": "c_varchar",
+						"field": "c_bytes",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "int16",
+						"optional": false,
+						"default": null,
+						"field": "c_int16",
 						"name": "",
 						"parameters": null
 					},
@@ -124,8 +132,16 @@ const expectedPayloadTemplate = `{
 						"type": "int32",
 						"optional": false,
 						"default": null,
-						"field": "c_date",
-						"name": "io.debezium.time.Date",
+						"field": "c_int32",
+						"name": "",
+						"parameters": null
+					},
+					{
+						"type": "int64",
+						"optional": false,
+						"default": null,
+						"field": "c_int64",
+						"name": "",
 						"parameters": null
 					}
 				],
@@ -137,10 +153,12 @@ const expectedPayloadTemplate = `{
 	"payload": {
 		"before": null,
 		"after": {
-			"pk": 1,
-			"c_int": 123,
-			"c_varchar": "Test",
-			"c_date": 18262
+			"c_bit": true,
+			"c_bytes": "dQ==",
+			"c_int16": 123,
+			"c_int32": 1234,
+			"c_int64": 1235,
+			"pk": 1
 		},
 		"source": {
 			"connector": "",
@@ -154,8 +172,8 @@ const expectedPayloadTemplate = `{
 }`
 
 func testTypes(db *sql.DB, dbName string) error {
-	tempTableName, _ := utils.CreateTemporaryTable(db, testTypesCreateTableQuery)
-	//defer dropTableFunc()
+	tempTableName, dropTableFunc := utils.CreateTemporaryTable(db, testTypesCreateTableQuery)
+	defer dropTableFunc()
 
 	// Check reading an empty table
 	_, err := readTable(db, dbName, tempTableName, 100)
