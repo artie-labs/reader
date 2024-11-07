@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"strings"
 
-	transferMSSQL "github.com/artie-labs/transfer/clients/mssql"
 	"github.com/artie-labs/transfer/clients/mssql/dialect"
 	mssql "github.com/microsoft/go-mssqldb"
 
@@ -221,7 +220,7 @@ func buildPkValuesQuery(keys []Column, schema string, tableName string, desc boo
 		// SELECT
 		strings.Join(escapedCols, ","),
 		// FROM
-		transferMSSQL.NewTableIdentifier(schema, tableName).FullyQualifiedName(),
+		dialect.NewTableIdentifier(schema, tableName).FullyQualifiedName(),
 		// ORDER
 		strings.Join(fragments, ","),
 	)
