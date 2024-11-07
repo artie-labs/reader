@@ -66,10 +66,10 @@ const testTypesCreateTableQuery = `
 CREATE TABLE %s (
 	pk INTEGER PRIMARY KEY NOT NULL,
 	c_bit BIT,
-	c_bytes VARBINARY,
-	c_int16 SMALLINT,
-	c_int32 INT,
-	c_int64 BIGINT
+	c_varbinary VARBINARY,
+	c_smallint SMALLINT,
+	c_int INT,
+	c_bigint BIGINT
 )
 `
 
@@ -79,13 +79,13 @@ INSERT INTO %s VALUES (
 	1,
 	-- c_bit
 	1,
-	-- c_bytes
+	-- c_varbinary
 	10101,
-	-- c_int16
+	-- c_smallint
 	123,
-	-- c_int32
+	-- c_int
 	1234,
-	-- c_int64
+	-- c_bigint
 	1235
 )
 `
@@ -117,7 +117,7 @@ const expectedPayloadTemplate = `{
 						"type": "bytes",
 						"optional": false,
 						"default": null,
-						"field": "c_bytes",
+						"field": "c_varbinary",
 						"name": "",
 						"parameters": null
 					},
@@ -125,7 +125,7 @@ const expectedPayloadTemplate = `{
 						"type": "int16",
 						"optional": false,
 						"default": null,
-						"field": "c_int16",
+						"field": "c_smallint",
 						"name": "",
 						"parameters": null
 					},
@@ -133,7 +133,7 @@ const expectedPayloadTemplate = `{
 						"type": "int32",
 						"optional": false,
 						"default": null,
-						"field": "c_int32",
+						"field": "c_int",
 						"name": "",
 						"parameters": null
 					},
@@ -141,7 +141,7 @@ const expectedPayloadTemplate = `{
 						"type": "int64",
 						"optional": false,
 						"default": null,
-						"field": "c_int64",
+						"field": "c_bigint",
 						"name": "",
 						"parameters": null
 					}
@@ -155,10 +155,10 @@ const expectedPayloadTemplate = `{
 		"before": null,
 		"after": {
 			"c_bit": true,
-			"c_bytes": "dQ==",
-			"c_int16": 123,
-			"c_int32": 1234,
-			"c_int64": 1235,
+			"c_varbinary": "dQ==",
+			"c_smallint": 123,
+			"c_int": 1234,
+			"c_bigint": 1235,
 			"pk": 1
 		},
 		"source": {
