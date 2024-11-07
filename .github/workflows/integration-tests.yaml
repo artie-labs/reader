@@ -33,9 +33,9 @@ jobs:
         image: mcr.microsoft.com/mssql/server:2019-latest
         env:
           ACCEPT_EULA: Y
-          SA_PASSWORD: yourStrong!Password
+          SA_PASSWORD: yourStrong(!)Password
         options: >-
-          --health-cmd "/opt/mssql-tools/bin/sqlcmd -U sa -P yourStrong!Password -Q 'SELECT 1'"
+          --health-cmd "/opt/mssql-tools/bin/sqlcmd -U sa -P yourStrong(!)Password -Q 'SELECT 1'"
           --health-interval 30s
           --health-timeout 10s
           --health-retries 10
