@@ -81,6 +81,11 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 			return nil, err
 		}
 
+		if colType == "tsvector" {
+			// Skip parsing tsvector columns
+			continue
+		}
+
 		dataType, opts, err := parseColumnDataType(colType, numericPrecision, numericScale, charMaxLength, udtName)
 		if err != nil {
 			return nil, fmt.Errorf("unable to identify type %q for column %q", colType, colName)
