@@ -81,6 +81,13 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 			return nil, err
 		}
 
+		if colType == "tsvector" {
+			// We should skip tsvector data types for now because these are created to support Postgres internal full text search.
+			// Debezium returns a binary blob of this as it's an unrecognized data type
+			// When we fully support Postgres WAL through Reader and there's a use case, we can then revisit the decision to skip this.
+			continue
+		}
+
 		dataType, opts, err := parseColumnDataType(colType, numericPrecision, numericScale, charMaxLength, udtName)
 		if err != nil {
 			return nil, fmt.Errorf("unable to identify type %q for column %q", colType, colName)

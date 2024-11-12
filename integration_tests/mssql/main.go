@@ -34,7 +34,8 @@ func main() {
 		Database: "master",
 	}
 
-	db, err := sql.Open("mssql", mssqlCfg.ToDSN())
+	// Disabling encryption because we were running into panics: failed to parse certificate from server: x509: negative serial number
+	db, err := sql.Open("mssql", fmt.Sprintf("%s&encrypt=disable", mssqlCfg.ToDSN()))
 	if err != nil {
 		logger.Fatal("Could not connect to SQL Server", slog.Any("err", err))
 	}
