@@ -123,7 +123,7 @@ type Settings struct {
 	Reporting *Reporting `yaml:"reporting"`
 	Metrics   *Metrics   `yaml:"metrics"`
 
-	BeforeBackfill `yaml:"beforeBackfill,omitempty"`
+	BeforeBackfill BeforeBackfill `yaml:"beforeBackfill,omitempty"`
 }
 
 func (s *Settings) Validate() error {
