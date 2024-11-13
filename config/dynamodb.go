@@ -3,6 +3,7 @@ package config
 import (
 	"cmp"
 	"fmt"
+
 	"github.com/artie-labs/reader/constants"
 
 	"github.com/artie-labs/transfer/lib/stringutil"
