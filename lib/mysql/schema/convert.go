@@ -55,12 +55,15 @@ func ConvertValue(value any, colType DataType, opts *Opts) (any, error) {
 		Int,
 		BigInt,
 		Year:
-		// Types we expect as int64
-		_, ok := value.(int64)
-		if !ok {
-			return nil, fmt.Errorf("expected int64 got %T for value: %v", value, value)
+		// Types we expect as int32 or int64
+		switch typedValue := value.(type) {
+		case int32:
+			return int32(typedValue), nil
+		case int64:
+			return typedValue, nil
+		default:
+			return nil, fmt.Errorf("expected int32/int64 got %T for value: %v", value, value)
 		}
-		return value, nil
 	case Float:
 		// Types we expect as float32
 		_, ok := value.(float32)
