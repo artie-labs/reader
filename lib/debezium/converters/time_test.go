@@ -7,17 +7,16 @@ import (
 
 	"github.com/artie-labs/transfer/lib/debezium/converters"
 	"github.com/artie-labs/transfer/lib/typing"
-	"github.com/artie-labs/transfer/lib/typing/ext"
 	"github.com/stretchr/testify/assert"
 )
 
-func parseUsingTransfer(converter ValueConverter, value int64) (*ext.ExtendedTime, error) {
+func parseUsingTransfer(converter ValueConverter, value int64) (time.Time, error) {
 	parsedValue, err := converter.ToField("foo").ParseValue(value)
 	if err != nil {
-		return nil, err
+		return time.Time{}, err
 	}
 
-	return typing.AssertType[*ext.ExtendedTime](parsedValue)
+	return typing.AssertType[time.Time](parsedValue)
 }
 
 func TestTimeConverter_Convert(t *testing.T) {
@@ -83,8 +82,7 @@ func TestMicroTimeConverter_Convert(t *testing.T) {
 		assert.NoError(t, err)
 		transferValue, err := parseUsingTransfer(converter, value.(int64))
 		assert.NoError(t, err)
-		assert.Equal(t, time.Date(1970, time.January, 1, 1, 2, 3, 0, time.UTC), transferValue.GetTime())
-		assert.Equal(t, ext.TimeKindType, transferValue.GetNestedKind().Type)
+		assert.Equal(t, time.Date(1970, time.January, 1, 1, 2, 3, 0, time.UTC), transferValue)
 	}
 }
 
@@ -117,6 +115,12 @@ func TestDateConverter_Convert(t *testing.T) {
 		assert.ErrorContains(t, err, "expected string/time.Time got int with value: 12345")
 	}
 	{
+		// string - 00 month
+		value, err := converter.Convert("2024-00-08")
+		assert.NoError(t, err)
+		assert.Equal(t, nil, value)
+	}
+	{
 		// string - 0000-00-00
 		value, err := converter.Convert("0000-00-00")
 		assert.NoError(t, err)
@@ -125,7 +129,7 @@ func TestDateConverter_Convert(t *testing.T) {
 	{
 		// string - malformed
 		_, err := converter.Convert("aaaa-bb-cc")
-		assert.ErrorContains(t, err, `failed to convert to date: parsing time "aaaa-bb-cc" as "2006-01-02"`)
+		assert.ErrorContains(t, err, `failed to parse date "aaaa-bb-cc": strconv.ParseInt: parsing "aaaa": invalid syntax`)
 	}
 	{
 		// string - 2023-05-03
@@ -193,8 +197,7 @@ func TestDateConverter_Convert(t *testing.T) {
 		assert.NoError(t, err)
 		transferValue, err := parseUsingTransfer(converter, int64(value.(int32)))
 		assert.NoError(t, err)
-		assert.Equal(t, time.Date(2023, time.May, 3, 0, 0, 0, 0, time.UTC), transferValue.GetTime())
-		assert.Equal(t, ext.DateKindType, transferValue.GetNestedKind().Type)
+		assert.Equal(t, time.Date(2023, time.May, 3, 0, 0, 0, 0, time.UTC), transferValue)
 	}
 }
 
@@ -245,8 +248,7 @@ func TestMicroTimestampConverter_Convert(t *testing.T) {
 		assert.NoError(t, err)
 		transferValue, err := parseUsingTransfer(converter, value.(int64))
 		assert.NoError(t, err)
-		assert.Equal(t, timeValue, transferValue.GetTime())
-		assert.Equal(t, ext.TimestampNTZKindType, transferValue.GetNestedKind().Type)
+		assert.Equal(t, timeValue, transferValue)
 	}
 }
 
@@ -294,7 +296,7 @@ func TestZonedTimestampConverter_Convert(t *testing.T) {
 		// Check Transfer to ensure no precision loss
 		ts, err := converters.ZonedTimestamp{}.Convert(value)
 		assert.NoError(t, err)
-		assert.Equal(t, _ts, ts.(*ext.ExtendedTime).GetTime())
+		assert.Equal(t, _ts, ts.(time.Time))
 	}
 	{
 		// time.Time (ms)
@@ -306,7 +308,7 @@ func TestZonedTimestampConverter_Convert(t *testing.T) {
 		// Check Transfer to ensure no precision loss
 		ts, err := converters.ZonedTimestamp{}.Convert(value)
 		assert.NoError(t, err)
-		assert.Equal(t, _ts, ts.(*ext.ExtendedTime).GetTime())
+		assert.Equal(t, _ts, ts.(time.Time))
 	}
 	{
 		// time.Time (microseconds)
@@ -318,7 +320,7 @@ func TestZonedTimestampConverter_Convert(t *testing.T) {
 		// Check Transfer to ensure no precision loss
 		ts, err := converters.ZonedTimestamp{}.Convert(value)
 		assert.NoError(t, err)
-		assert.Equal(t, _ts, ts.(*ext.ExtendedTime).GetTime())
+		assert.Equal(t, _ts, ts.(time.Time))
 	}
 	{
 		// Different timezone
@@ -330,7 +332,7 @@ func TestZonedTimestampConverter_Convert(t *testing.T) {
 		// Check Transfer to ensure no precision loss
 		ts, err := converters.ZonedTimestamp{}.Convert(value)
 		assert.NoError(t, err)
-		assert.Equal(t, _ts.UTC(), ts.(*ext.ExtendedTime).GetTime())
+		assert.Equal(t, _ts.UTC(), ts.(time.Time))
 	}
 }
 

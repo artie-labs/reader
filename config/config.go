@@ -100,6 +100,14 @@ const (
 	DestinationTransfer Destination = "transfer"
 )
 
+type BeforeBackfill string
+
+const (
+	BeforeBackfillDoNothing     BeforeBackfill = ""
+	BeforeBackfillTruncateTable BeforeBackfill = "truncate_table"
+	BeforeBackfillDropTable     BeforeBackfill = "drop_table"
+)
+
 type Settings struct {
 	Source     Source      `yaml:"source"`
 	DynamoDB   *DynamoDB   `yaml:"dynamodb,omitempty"`
@@ -114,6 +122,8 @@ type Settings struct {
 
 	Reporting *Reporting `yaml:"reporting"`
 	Metrics   *Metrics   `yaml:"metrics"`
+
+	BeforeBackfill BeforeBackfill `yaml:"beforeBackfill,omitempty"`
 }
 
 func (s *Settings) Validate() error {

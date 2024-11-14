@@ -1,7 +1,14 @@
+<h1 align="center">
+ <img
+      align="center"
+      alt="Artie Reader"
+      src="https://github.com/user-attachments/assets/16b7c697-774c-4124-b5fc-77f2cdb45897"
+      style="width:100%;"
+    />
+</h1>
 <div align="center">
-  <img height="150px" src="https://github.com/artie-labs/transfer/assets/4412200/238df0c7-6087-4ddc-b83b-24638212af6a"/>
   <h3>Artie Reader</h3>
-  <p><b>📚 Perform historical snapshots and read CDC streams from databases 📚</b></p>
+  <p>📚 Perform historical snapshots and read CDC streams from databases 📚</p>
   <a href="https://artie.com/slack"><img src="https://img.shields.io/badge/slack-@artie-blue.svg?logo=slack"/></a>
   <a href="https://github.com/artie-labs/reader/blob/master/LICENSE.txt"><img src="https://user-images.githubusercontent.com/4412200/201544613-a7197bc4-8b61-4fc5-bf09-68ee10133fd7.svg"/></a>
   <img src="https://github.com/artie-labs/reader/actions/workflows/gha-go-test.yaml/badge.svg"/>

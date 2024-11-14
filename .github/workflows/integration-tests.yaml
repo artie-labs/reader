@@ -25,6 +25,27 @@ jobs:
       - name: Run integration test
         run: PG_HOST=postgres make postgres-itest
 
+  MSSQL:
+    runs-on: ubuntu-24.04
+    container: golang:1.23
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: yourStrong!Password
+# TODO: Add healthcheck for MSSQL
+# I spent a bunch of time and couldn't get it to work for GHA (it works for docker-compose)
+# It also runs fine without it, but we should try to get this added.
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.23
+      - name: Run integration test
+        run: MSSQL_HOST=mssql make mssql-itest
+
   MySQL:
     runs-on: ubuntu-24.04
     container: golang:1.23

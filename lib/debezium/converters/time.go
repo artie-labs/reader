@@ -3,6 +3,8 @@ package converters
 import (
 	"fmt"
 	"log/slog"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/debezium"
@@ -91,10 +93,22 @@ func (DateConverter) Convert(value any) (any, error) {
 	case time.Time:
 		timeValue = castValue
 	case string:
-		if castValue == "0000-00-00" {
-			// MySQL supports '0000-00-00' for date columns
-			return nil, nil
+		parts := strings.Split(castValue, "-")
+		if len(parts) == 3 {
+			for _, part := range parts {
+				castedPart, err := strconv.ParseInt(part, 10, 64)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse date %q: %w", castValue, err)
+				}
+
+				if castedPart <= 0 {
+					slog.Warn(fmt.Sprintf("Skipping invalid value: %q", castValue))
+					// MySQL supports '0000-00-00' for date columns if strict mode is not enabled.
+					return nil, nil
+				}
+			}
 		}
+
 		var err error
 		timeValue, err = time.Parse(time.DateOnly, castValue)
 		if err != nil {
