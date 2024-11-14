@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -16,11 +17,16 @@ import (
 	"github.com/artie-labs/reader/writers"
 )
 
-func (s Source) Close() error {
+type Snapshot struct {
+	cfg config.MySQL
+	db  *sql.DB
+}
+
+func (s Snapshot) Close() error {
 	return s.db.Close()
 }
 
-func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
+func (s *Snapshot) Run(ctx context.Context, writer writers.Writer) error {
 	for _, tableCfg := range s.cfg.Tables {
 		if err := s.snapshotTable(ctx, writer, *tableCfg); err != nil {
 			return err
@@ -29,7 +35,7 @@ func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
 	return nil
 }
 
-func (s Source) snapshotTable(ctx context.Context, writer writers.Writer, tableCfg config.MySQLTable) error {
+func (s Snapshot) snapshotTable(ctx context.Context, writer writers.Writer, tableCfg config.MySQLTable) error {
 	logger := slog.With(slog.String("table", tableCfg.Name), slog.String("database", s.cfg.Database))
 	snapshotStartTime := time.Now()
 

@@ -1,12 +1,22 @@
 package mysql
 
 import (
+	"context"
+	"github.com/artie-labs/reader/writers"
 	"github.com/go-mysql-org/go-mysql/replication"
 
 	"github.com/artie-labs/reader/config"
 )
 
-func buildStreamingConfig(cfg config.MySQL) (*StreamingSource, error) {
+type Streaming struct {
+	syncer *replication.BinlogSyncer
+}
+
+func (s Streaming) Close() error {
+	return nil
+}
+
+func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
 	syncerConfig := replication.BinlogSyncerConfig{
 		ServerID: 100,
 		Flavor:   "mysql",
@@ -16,8 +26,9 @@ func buildStreamingConfig(cfg config.MySQL) (*StreamingSource, error) {
 		Password: cfg.Password,
 	}
 
-	return &StreamingSource{
-		cfg:    cfg,
-		syncer: replication.NewBinlogSyncer(syncerConfig),
-	}, nil
+	return Streaming{syncer: replication.NewBinlogSyncer(syncerConfig)}, nil
+}
+
+func (s Streaming) Run(ctx context.Context, writer writers.Writer) error {
+	return nil
 }
