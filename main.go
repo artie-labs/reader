@@ -40,13 +40,13 @@ func buildSource(ctx context.Context, cfg *config.Settings) (sources.Source, boo
 	var err error
 	switch cfg.Source {
 	case config.SourceDynamo:
-		source, isStreamingMode, err = dynamodb.Load(ctx, *cfg.DynamoDB)
+		return dynamodb.Load(ctx, *cfg.DynamoDB)
+	case config.SourceMySQL:
+		return mysql.Load(*cfg.MySQL)
 	case config.SourceMongoDB:
 		return mongo.Load(ctx, *cfg.MongoDB)
 	case config.SourceMSSQL:
 		source, err = mssql.Load(*cfg.MSSQL)
-	case config.SourceMySQL:
-		source, err = mysql.Load(*cfg.MySQL)
 	case config.SourcePostgreSQL:
 		source, err = postgres.Load(*cfg.PostgreSQL)
 	default:
