@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -16,22 +15,6 @@ import (
 	"github.com/artie-labs/reader/sources/mysql/adapter"
 	"github.com/artie-labs/reader/writers"
 )
-
-type Source struct {
-	cfg config.MySQL
-	db  *sql.DB
-}
-
-func Load(cfg config.MySQL) (*Source, error) {
-	db, err := sql.Open("mysql", cfg.ToDSN())
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to MySQL: %w", err)
-	}
-	return &Source{
-		cfg: cfg,
-		db:  db,
-	}, nil
-}
 
 func (s Source) Close() error {
 	return s.db.Close()

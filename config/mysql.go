@@ -14,13 +14,13 @@ import (
 )
 
 type MySQL struct {
-	Host      string        `yaml:"host"`
-	Port      int           `yaml:"port"`
-	Username  string        `yaml:"username"`
-	Password  string        `yaml:"password"`
-	Database  string        `yaml:"database"`
-	Tables    []*MySQLTable `yaml:"tables"`
-	Streaming bool          `yaml:"streaming"`
+	Host              string            `yaml:"host"`
+	Port              int               `yaml:"port"`
+	Username          string            `yaml:"username"`
+	Password          string            `yaml:"password"`
+	Database          string            `yaml:"database"`
+	Tables            []*MySQLTable     `yaml:"tables"`
+	StreamingSettings StreamingSettings `yaml:"streamingSettings,omitempty"`
 }
 
 func (m *MySQL) ToDSN() string {
