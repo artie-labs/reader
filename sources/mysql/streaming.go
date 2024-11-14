@@ -1,6 +1,10 @@
 package mysql
 
-import "github.com/artie-labs/reader/config"
+import (
+	"github.com/go-mysql-org/go-mysql/replication"
+
+	"github.com/artie-labs/reader/config"
+)
 
 func buildStreamingConfig(cfg config.MySQL) (*StreamingSource, error) {
 	syncerConfig := replication.BinlogSyncerConfig{
