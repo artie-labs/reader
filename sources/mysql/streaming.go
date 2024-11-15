@@ -18,7 +18,7 @@ func (s Streaming) Close() error {
 
 func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
 	syncerConfig := replication.BinlogSyncerConfig{
-		ServerID: 100,
+		ServerID: cfg.StreamingSettings.ServerID,
 		Flavor:   "mysql",
 		Host:     cfg.Host,
 		Port:     uint16(cfg.Port),
