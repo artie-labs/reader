@@ -16,8 +16,9 @@ import (
 const offsetKey = "offset"
 
 type Streaming struct {
-	syncer   *replication.BinlogSyncer
-	position streaming.Position
+	syncer            *replication.BinlogSyncer
+	position          streaming.Position
+	includedTablesMap map[string]bool
 }
 
 func (s Streaming) Close() error {
@@ -26,6 +27,11 @@ func (s Streaming) Close() error {
 }
 
 func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
+	includedTablesMap := make(map[string]bool)
+	for _, table := range cfg.Tables {
+		includedTablesMap[table.Name] = true
+	}
+
 	streamer := Streaming{
 		syncer: replication.NewBinlogSyncer(
 			replication.BinlogSyncerConfig{
@@ -37,6 +43,7 @@ func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
 				Password: cfg.Password,
 			},
 		),
+		includedTablesMap: includedTablesMap,
 	}
 
 	storage := persistedmap.NewPersistedMap(cfg.StreamingSettings.OffsetFile)
