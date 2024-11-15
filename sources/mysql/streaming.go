@@ -53,7 +53,7 @@ func (s Streaming) Close() error {
 	return nil
 }
 
-func (s Streaming) ShouldProcessTable(tableName string) bool {
+func (s Streaming) shouldProcessTable(tableName string) bool {
 	_, isOk := s.tablesToIncludeMap[tableName]
 	return isOk
 }
@@ -114,10 +114,10 @@ func (s Streaming) Run(ctx context.Context, _ writers.Writer) error {
 				return fmt.Errorf("unable to cast event to replication.RowsEvent")
 			}
 
-			if !s.ShouldProcessTable(string(rowsEvent.Table.Table)) {
+			if !s.shouldProcessTable(string(rowsEvent.Table.Table)) {
 				continue
 			}
-			
+
 			messages, err := convertEventToMessages(event.Header, rowsEvent)
 			if err != nil {
 				slog.Error("Failed to convert event to messages", slog.Any("err", err))
