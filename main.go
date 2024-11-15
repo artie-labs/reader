@@ -36,7 +36,6 @@ func setUpMetrics(cfg *config.Metrics) (mtr.Client, error) {
 
 func buildSource(ctx context.Context, cfg *config.Settings) (sources.Source, bool, error) {
 	var source sources.Source
-	var isStreamingMode bool
 	var err error
 	switch cfg.Source {
 	case config.SourceDynamo:
@@ -52,7 +51,7 @@ func buildSource(ctx context.Context, cfg *config.Settings) (sources.Source, boo
 	default:
 		panic(fmt.Sprintf("unknown source %q", cfg.Source)) // should never happen
 	}
-	return source, isStreamingMode, err
+	return source, false, err
 }
 
 func buildDestinationWriter(ctx context.Context, cfg *config.Settings, statsD mtr.Client) (writers.DestinationWriter, error) {
