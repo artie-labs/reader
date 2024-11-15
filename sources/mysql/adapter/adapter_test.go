@@ -285,7 +285,7 @@ func TestValueConverterForType(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		converter, err := valueConverterForType(tc.dataType, tc.opts)
+		converter, err := ValueConverterForType(tc.dataType, tc.opts)
 		if tc.expectedErr == "" {
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expected, converter.ToField(colName), tc.name)
