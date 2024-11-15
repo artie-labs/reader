@@ -77,12 +77,44 @@ func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
 }
 
 func (s Streaming) Run(ctx context.Context, _ writers.Writer) error {
-	_, err := s.syncer.StartSync(s.position.buildMySQLPosition())
+	streamer, err := s.syncer.StartSync(s.position.buildMySQLPosition())
 	if err != nil {
 		return err
 	}
 
-	return nil
+	for {
+		event, err := streamer.GetEvent(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get binlog event: %w", err)
+		}
+
+		switch event.Header.EventType {
+		case
+			replication.WRITE_ROWS_EVENTv2,
+			replication.UPDATE_ROWS_EVENTv2,
+			replication.DELETE_ROWS_EVENTv2:
+
+			rowsEvent, ok := event.Event.(*replication.RowsEvent)
+			if !ok {
+				return fmt.Errorf("unable to cast event to replication.RowsEvent")
+			}
+
+			if string(rowsEvent.Table.Table) != "foo" {
+				continue
+			}
+
+			messages, err := convertEventToMessages(event.Header, rowsEvent)
+			if err != nil {
+				slog.Error("Failed to convert event to messages", slog.Any("err", err))
+			} else {
+				for i, message := range messages {
+					slog.Info("messages", slog.Int("index", i), slog.Any("event", message.Event()))
+				}
+			}
+		default:
+			slog.Info("Skipping event", slog.Any("event", event.Header.EventType))
+		}
+	}
 }
 
 func convertHeaderToOperation(evtType replication.EventType) (string, error) {
