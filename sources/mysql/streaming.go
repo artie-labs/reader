@@ -2,6 +2,8 @@ package mysql
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 
 	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/go-mysql-org/go-mysql/mysql"
@@ -17,6 +19,10 @@ const offsetKey = "offset"
 type StreamingPosition struct {
 	File string `yaml:"file"`
 	Pos  uint32 `yaml:"pos"`
+}
+
+func (s StreamingPosition) String() string {
+	return fmt.Sprintf("File: %s, Pos: %d", s.File, s.Pos)
 }
 
 func (s StreamingPosition) buildMySQLPosition() mysql.Position {
@@ -54,6 +60,7 @@ func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
 			return Streaming{}, err
 		}
 
+		slog.Info("Loaded offsets", slog.String("offset", pos.String()))
 		streaming.position = pos
 	}
 
