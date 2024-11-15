@@ -13,6 +13,13 @@ import (
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
+type MySQLStreamingSettings struct {
+	Enabled    bool   `yaml:"enabled,omitempty"`
+	OffsetFile string `yaml:"offsetFile,omitempty"`
+	// ServerID - Unique ID in the cluster.
+	ServerID string `yaml:"serverID,omitempty"`
+}
+
 type MySQL struct {
 	Host              string            `yaml:"host"`
 	Port              int               `yaml:"port"`
