@@ -31,6 +31,7 @@ type Streaming struct {
 }
 
 func (s Streaming) Close() error {
+	s.syncer.Close()
 	return nil
 }
 
@@ -61,9 +62,16 @@ func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
 }
 
 func (s Streaming) Run(ctx context.Context, writer writers.Writer) error {
-	_, err := s.syncer.StartSync(s.position.buildMySQLPosition())
+	streamer, err := s.syncer.StartSync(s.position.buildMySQLPosition())
 	if err != nil {
 		return fmt.Errorf("failed to start sync: %w", err)
+	}
+
+	for {
+		evt, err := streamer.GetEvent(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get event: %w", err)
+		}
 	}
 
 	return nil
