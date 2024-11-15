@@ -2,22 +2,16 @@ package mysql
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/artie-labs/reader/lib"
-	"github.com/artie-labs/reader/lib/debezium/converters"
-	"github.com/artie-labs/reader/lib/mysql/schema"
-	"github.com/artie-labs/reader/sources/mysql/adapter"
-	"github.com/artie-labs/transfer/lib/cdc/util"
-	"github.com/artie-labs/transfer/lib/debezium"
-	"iter"
-	"log/slog"
-	"os"
-	"slices"
-	"time"
-
 	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/go-mysql-org/go-mysql/mysql"
 	"github.com/go-mysql-org/go-mysql/replication"
+	gomysqlschema "github.com/go-mysql-org/go-mysql/schema"
+	"log/slog"
+	"os"
+	"slices"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/storage/persistedmap"
@@ -40,11 +34,13 @@ func (s StreamingPosition) buildMySQLPosition() mysql.Position {
 }
 
 type Streaming struct {
+	db                 *sql.DB
 	syncer             *replication.BinlogSyncer
 	offsets            *persistedmap.PersistedMap
 	position           StreamingPosition
 	tablesToIncludeMap map[string]bool
 
+	// TODO: schema cache
 	// TODO: Support partitioned tables
 	// TODO: Support column exclusion
 	// TODO: Make sure it's supporting GTID
@@ -60,13 +56,14 @@ func (s Streaming) shouldProcessTable(tableName string) bool {
 	return isOk
 }
 
-func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
+func buildStreamingConfig(cfg config.MySQL, db *sql.DB) (Streaming, error) {
 	tablesToIncludeMap := make(map[string]bool)
 	for _, table := range cfg.Tables {
 		tablesToIncludeMap[table.Name] = true
 	}
 
 	streaming := Streaming{
+		db: db,
 		syncer: replication.NewBinlogSyncer(replication.BinlogSyncerConfig{
 			ServerID: cfg.StreamingSettings.ServerID,
 			Flavor:   "mysql",
@@ -106,6 +103,13 @@ func (s Streaming) Run(ctx context.Context, _ writers.Writer) error {
 		}
 
 		switch event.Header.EventType {
+		case replication.QUERY_EVENT:
+			queryEvent, ok := event.Event.(*replication.QueryEvent)
+			if !ok {
+				return fmt.Errorf("unable to cast event to replication.QueryEvent")
+			}
+
+			slog.Info("Query event", slog.String("query", string(queryEvent.Query)))
 		case
 			replication.WRITE_ROWS_EVENTv2,
 			replication.UPDATE_ROWS_EVENTv2,
@@ -120,7 +124,7 @@ func (s Streaming) Run(ctx context.Context, _ writers.Writer) error {
 				continue
 			}
 
-			messages, err := convertEventToMessages(event.Header, rowsEvent)
+			messages, err := s.convertEventToMessages(event.Header, rowsEvent)
 			if err != nil {
 				slog.Error("Failed to convert event to messages", slog.Any("err", err))
 			} else {
@@ -147,11 +151,13 @@ func convertHeaderToOperation(evtType replication.EventType) (string, error) {
 	}
 }
 
-func convertEventToMessages(header *replication.EventHeader, event *replication.RowsEvent) ([]lib.RawMessage, error) {
+func (s Streaming) convertEventToMessages(header *replication.EventHeader, event *replication.RowsEvent) ([]lib.RawMessage, error) {
 	op, err := convertHeaderToOperation(header.EventType)
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("op", op)
 
 	// Column names are only available if `binlog_row_metadata` is set to `FULL`.
 	// They also only work on versions >= MySQL 8.0.1
@@ -161,246 +167,181 @@ func convertEventToMessages(header *replication.EventHeader, event *replication.
 		columnNames[i] = string(name)
 	}
 
+	fmt.Println("row", slices.Clone(event.Rows))
 	fmt.Println("table", string(event.Table.Table))
 	fmt.Println("columns", event.Table.ColumnNameString())
-
-	for _, colType := range event.Table.ColumnType {
-		fmt.Println("colType", string(colType), "colType", colType)
+	for _, colName := range event.Table.ColumnCharset {
+		fmt.Println("colName", string(colName))
 	}
 
-	event.Dump(os.Stdout)
-
-	collationMap := event.Table.CollationMap()
-	dataTypes := make([]schema.DataType, len(event.Table.ColumnType))
-	for i, columnType := range event.Table.ColumnType {
-		var err error
-		dataTypes[i], err = parseDataType(columnType, collationMap[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	slog.Info("data", "types", dataTypes, "columns", event.Table.ColumnType)
-
-	valueConverters := make([]converters.ValueConverter, len(dataTypes))
-	for i := range len(valueConverters) {
-		var err error
-		valueConverters[i], err = adapter.ValueConverterForType(dataTypes[i], &schema.Opts{})
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	fields := make([]debezium.Field, len(columnNames))
-	for i, valueConverter := range valueConverters {
-		fields[i] = valueConverter.ToField(columnNames[i])
-	}
-
-	rows := slices.Clone(event.Rows)
-	for _, row := range rows {
-		if err := convertRow(valueConverters, dataTypes, row); err != nil {
-			return nil, err
-		}
-	}
-
-	beforeAndAfters, err := splitIntoBeforeAndAfter(op, rows)
+	tbl, err := gomysqlschema.NewTableFromSqlDB(s.db, string(event.Table.Schema), string(event.Table.Table))
 	if err != nil {
 		return nil, err
 	}
 
-	out := make([]lib.RawMessage, 0)
-	for before, after := range beforeAndAfters {
-		payload := util.Payload{
-			Source: util.Source{
-				TsMs:   time.Unix(int64(header.Timestamp), 0).UnixMilli(),
-				Schema: string(event.Table.Schema),
-				Table:  string(event.Table.Table),
-			},
-			Operation: op,
-		}
-
-		if len(before) > 0 {
-			payload.Before, err = zipSlicesToMap(columnNames, before)
-			if err != nil {
-				return nil, fmt.Errorf("failed to convert row to map:%w", err)
-			}
-		}
-
-		if len(after) > 0 {
-			payload.After, err = zipSlicesToMap(columnNames, after)
-			if err != nil {
-				return nil, fmt.Errorf("failed to convert row to map:%w", err)
-			}
-		}
-
-		// TODO: Set partition key
-		out = append(out, lib.NewRawMessage("", nil, &util.SchemaEventPayload{
-			Schema: debezium.Schema{
-				FieldsObject: []debezium.FieldsObject{{
-					Fields:     fields,
-					FieldLabel: debezium.After,
-				}},
-			},
-			Payload: payload,
-		}))
+	for _, col := range tbl.Columns {
+		fmt.Println("col", col.Name, "type", col.Collation)
 	}
-	return out, nil
+
+	event.Dump(os.Stdout)
+	return nil, nil
 }
 
-func parseDataType(columnType byte, collation uint64) (schema.DataType, error) {
-	switch columnType {
-	case mysql.MYSQL_TYPE_DECIMAL:
-		return schema.Decimal, nil
-	case mysql.MYSQL_TYPE_TINY:
-		return schema.TinyInt, nil
-	case mysql.MYSQL_TYPE_SHORT:
-		return schema.SmallInt, nil
-	case mysql.MYSQL_TYPE_LONG:
-		return schema.Int, nil
-	case mysql.MYSQL_TYPE_FLOAT:
-		return schema.Float, nil
-	case mysql.MYSQL_TYPE_DOUBLE:
-		return schema.Double, nil
-	case mysql.MYSQL_TYPE_NULL:
-		// pass
-	case mysql.MYSQL_TYPE_TIMESTAMP:
-		return schema.Timestamp, nil
-	case mysql.MYSQL_TYPE_LONGLONG:
-		return schema.BigInt, nil
-	case mysql.MYSQL_TYPE_INT24:
-		return schema.MediumInt, nil
-	case mysql.MYSQL_TYPE_DATE:
-		return schema.Date, nil
-	case mysql.MYSQL_TYPE_TIME:
-		return schema.Time, nil
-	case mysql.MYSQL_TYPE_DATETIME:
-		return schema.DateTime, nil
-	case mysql.MYSQL_TYPE_YEAR:
-		return schema.Year, nil
-	case mysql.MYSQL_TYPE_NEWDATE:
-		return schema.Date, nil
-	case mysql.MYSQL_TYPE_VARCHAR:
-		return schema.Varchar, nil
-	case mysql.MYSQL_TYPE_BIT:
-		return schema.Bit, nil
-	case mysql.MYSQL_TYPE_TIMESTAMP2:
-		return schema.Timestamp, nil
-	case mysql.MYSQL_TYPE_DATETIME2:
-		return schema.DateTime, nil
-	case mysql.MYSQL_TYPE_TIME2:
-		return schema.Time, nil
-	case mysql.MYSQL_TYPE_JSON:
-		return schema.JSON, nil
-	case mysql.MYSQL_TYPE_NEWDECIMAL:
-		return schema.Decimal, nil
-	case mysql.MYSQL_TYPE_ENUM:
-		return schema.Enum, nil
-	case mysql.MYSQL_TYPE_SET:
-		return schema.Set, nil
-	case mysql.MYSQL_TYPE_TINY_BLOB:
-		if collation == 63 {
-			return schema.Blob, nil
-		} else {
-			return schema.TinyText, nil
-		}
-	case mysql.MYSQL_TYPE_MEDIUM_BLOB:
-		if collation == 63 {
-			return schema.Blob, nil
-		} else {
-			return schema.MediumText, nil
-		}
-	case mysql.MYSQL_TYPE_LONG_BLOB:
-		if collation == 63 {
-			return schema.Blob, nil
-		} else {
-			return schema.LongText, nil
-		}
-	case mysql.MYSQL_TYPE_BLOB:
-		if collation == 63 {
-			return schema.Blob, nil
-		} else {
-			return schema.Text, nil
-		}
-	case mysql.MYSQL_TYPE_VAR_STRING,
-		mysql.MYSQL_TYPE_STRING:
-		return schema.Varchar, nil
-	case mysql.MYSQL_TYPE_GEOMETRY:
-		return schema.Geometry, nil
-	}
-
-	return -1, fmt.Errorf("unsupported column type: %d", columnType)
-}
-
-// splitIntoBeforeAndAfter returns a sequence of [before, after] pairs for each row that has been modified.
-func splitIntoBeforeAndAfter(operation string, rows [][]any) (iter.Seq2[[]any, []any], error) {
-	switch operation {
-	case "c":
-		return func(yield func([]any, []any) bool) {
-			for _, row := range rows {
-				if !yield(nil, row) {
-					return
-				}
-			}
-		}, nil
-	case "u":
-		// For updates, every modified row is present in the event rows, first as the row before the change and second,
-		// as the row after the change.
-		// We're assuming that this ordering of rows is consistent.
-		if len(rows)%2 != 0 {
-			return nil, fmt.Errorf("update row count is not divisible by two: %d", len(rows))
-		}
-
-		return func(yield func([]any, []any) bool) {
-			for group := range slices.Chunk(rows, 2) {
-				if !yield(group[0], group[1]) {
-					return
-				}
-			}
-		}, nil
-	case "d":
-		return func(yield func([]any, []any) bool) {
-			for _, row := range rows {
-				if !yield(row, nil) {
-					return
-				}
-			}
-		}, nil
-	default:
-		return nil, fmt.Errorf("unsupported operation: %q", operation)
-	}
-}
-
-func convertRow(valueConverters []converters.ValueConverter, dataTypes []schema.DataType, row []any) error {
-	if len(valueConverters) != len(row) {
-		return fmt.Errorf("converters length (%d) is different from row length (%d)", len(valueConverters), len(row))
-	}
-
-	for i := range len(valueConverters) {
-		value, err := schema.ConvertValue(row[i], dataTypes[i], &schema.Opts{})
-		if err != nil {
-			return err
-		} else if value == nil {
-			row[i] = nil
-			continue
-		}
-
-		row[i], err = valueConverters[i].Convert(value)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func zipSlicesToMap(keys []string, values []any) (map[string]any, error) {
-	if len(values) != len(keys) {
-		return nil, fmt.Errorf("keys length (%d) is different from values length (%d)", len(keys), len(values))
-	}
-
-	out := map[string]any{}
-	for i, value := range values {
-		out[keys[i]] = value
-	}
-	return out, nil
-}
+//
+//func parseDataType(columnType byte, collation uint64) (schema.DataType, error) {
+//	switch columnType {
+//	case mysql.MYSQL_TYPE_DECIMAL:
+//		return schema.Decimal, nil
+//	case mysql.MYSQL_TYPE_TINY:
+//		return schema.TinyInt, nil
+//	case mysql.MYSQL_TYPE_SHORT:
+//		return schema.SmallInt, nil
+//	case mysql.MYSQL_TYPE_LONG:
+//		return schema.Int, nil
+//	case mysql.MYSQL_TYPE_FLOAT:
+//		return schema.Float, nil
+//	case mysql.MYSQL_TYPE_DOUBLE:
+//		return schema.Double, nil
+//	case mysql.MYSQL_TYPE_NULL:
+//		// pass
+//	case mysql.MYSQL_TYPE_TIMESTAMP:
+//		return schema.Timestamp, nil
+//	case mysql.MYSQL_TYPE_LONGLONG:
+//		return schema.BigInt, nil
+//	case mysql.MYSQL_TYPE_INT24:
+//		return schema.MediumInt, nil
+//	case mysql.MYSQL_TYPE_DATE:
+//		return schema.Date, nil
+//	case mysql.MYSQL_TYPE_TIME:
+//		return schema.Time, nil
+//	case mysql.MYSQL_TYPE_DATETIME:
+//		return schema.DateTime, nil
+//	case mysql.MYSQL_TYPE_YEAR:
+//		return schema.Year, nil
+//	case mysql.MYSQL_TYPE_NEWDATE:
+//		return schema.Date, nil
+//	case mysql.MYSQL_TYPE_VARCHAR:
+//		return schema.Varchar, nil
+//	case mysql.MYSQL_TYPE_BIT:
+//		return schema.Bit, nil
+//	case mysql.MYSQL_TYPE_TIMESTAMP2:
+//		return schema.Timestamp, nil
+//	case mysql.MYSQL_TYPE_DATETIME2:
+//		return schema.DateTime, nil
+//	case mysql.MYSQL_TYPE_TIME2:
+//		return schema.Time, nil
+//	case mysql.MYSQL_TYPE_JSON:
+//		return schema.JSON, nil
+//	case mysql.MYSQL_TYPE_NEWDECIMAL:
+//		return schema.Decimal, nil
+//	case mysql.MYSQL_TYPE_ENUM:
+//		return schema.Enum, nil
+//	case mysql.MYSQL_TYPE_SET:
+//		return schema.Set, nil
+//	case mysql.MYSQL_TYPE_TINY_BLOB:
+//		if collation == 63 {
+//			return schema.Blob, nil
+//		} else {
+//			return schema.TinyText, nil
+//		}
+//	case mysql.MYSQL_TYPE_MEDIUM_BLOB:
+//		if collation == 63 {
+//			return schema.Blob, nil
+//		} else {
+//			return schema.MediumText, nil
+//		}
+//	case mysql.MYSQL_TYPE_LONG_BLOB:
+//		if collation == 63 {
+//			return schema.Blob, nil
+//		} else {
+//			return schema.LongText, nil
+//		}
+//	case mysql.MYSQL_TYPE_BLOB:
+//		if collation == 63 {
+//			return schema.Blob, nil
+//		} else {
+//			return schema.Text, nil
+//		}
+//	case mysql.MYSQL_TYPE_VAR_STRING,
+//		mysql.MYSQL_TYPE_STRING:
+//		return schema.Varchar, nil
+//	case mysql.MYSQL_TYPE_GEOMETRY:
+//		return schema.Geometry, nil
+//	}
+//
+//	return -1, fmt.Errorf("unsupported column type: %d", columnType)
+//}
+//
+//// splitIntoBeforeAndAfter returns a sequence of [before, after] pairs for each row that has been modified.
+//func splitIntoBeforeAndAfter(operation string, rows [][]any) (iter.Seq2[[]any, []any], error) {
+//	switch operation {
+//	case "c":
+//		return func(yield func([]any, []any) bool) {
+//			for _, row := range rows {
+//				if !yield(nil, row) {
+//					return
+//				}
+//			}
+//		}, nil
+//	case "u":
+//		// For updates, every modified row is present in the event rows, first as the row before the change and second,
+//		// as the row after the change.
+//		// We're assuming that this ordering of rows is consistent.
+//		if len(rows)%2 != 0 {
+//			return nil, fmt.Errorf("update row count is not divisible by two: %d", len(rows))
+//		}
+//
+//		return func(yield func([]any, []any) bool) {
+//			for group := range slices.Chunk(rows, 2) {
+//				if !yield(group[0], group[1]) {
+//					return
+//				}
+//			}
+//		}, nil
+//	case "d":
+//		return func(yield func([]any, []any) bool) {
+//			for _, row := range rows {
+//				if !yield(row, nil) {
+//					return
+//				}
+//			}
+//		}, nil
+//	default:
+//		return nil, fmt.Errorf("unsupported operation: %q", operation)
+//	}
+//}
+//
+//func convertRow(valueConverters []converters.ValueConverter, dataTypes []schema.DataType, row []any) error {
+//	if len(valueConverters) != len(row) {
+//		return fmt.Errorf("converters length (%d) is different from row length (%d)", len(valueConverters), len(row))
+//	}
+//
+//	for i := range len(valueConverters) {
+//		value, err := schema.ConvertValue(row[i], dataTypes[i], &schema.Opts{})
+//		if err != nil {
+//			return err
+//		} else if value == nil {
+//			row[i] = nil
+//			continue
+//		}
+//
+//		row[i], err = valueConverters[i].Convert(value)
+//		if err != nil {
+//			return err
+//		}
+//	}
+//
+//	return nil
+//}
+//
+//func zipSlicesToMap(keys []string, values []any) (map[string]any, error) {
+//	if len(values) != len(keys) {
+//		return nil, fmt.Errorf("keys length (%d) is different from values length (%d)", len(keys), len(values))
+//	}
+//
+//	out := map[string]any{}
+//	for i, value := range values {
+//		out[keys[i]] = value
+//	}
+//	return out, nil
+//}
