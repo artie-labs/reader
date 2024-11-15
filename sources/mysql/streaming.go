@@ -21,6 +21,11 @@ type Streaming struct {
 	includedTablesMap map[string]bool
 }
 
+func (s Streaming) shouldProcessTable(tableName string) bool {
+	_, isOk := s.includedTablesMap[tableName]
+	return isOk
+}
+
 func (s Streaming) Close() error {
 	s.syncer.Close()
 	return nil
