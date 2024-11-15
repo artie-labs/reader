@@ -2,10 +2,11 @@ package mysql
 
 import (
 	"context"
-	"github.com/artie-labs/reader/writers"
+
 	"github.com/go-mysql-org/go-mysql/replication"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/writers"
 )
 
 type Streaming struct {

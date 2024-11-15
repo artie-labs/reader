@@ -3,6 +3,7 @@ package mysql
 import (
 	"database/sql"
 	"fmt"
+
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/sources"
 )
