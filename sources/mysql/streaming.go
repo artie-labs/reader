@@ -39,9 +39,13 @@ func (s StreamingPosition) buildMySQLPosition() mysql.Position {
 }
 
 type Streaming struct {
-	syncer   *replication.BinlogSyncer
-	offsets  *persistedmap.PersistedMap
-	position StreamingPosition
+	syncer             *replication.BinlogSyncer
+	offsets            *persistedmap.PersistedMap
+	position           StreamingPosition
+	tablesToIncludeMap map[string]bool
+
+	// TODO: Support partitioned tables
+	// TODO: Support column exclusion
 }
 
 func (s Streaming) Close() error {
@@ -49,7 +53,17 @@ func (s Streaming) Close() error {
 	return nil
 }
 
+func (s Streaming) ShouldProcessTable(tableName string) bool {
+	_, isOk := s.tablesToIncludeMap[tableName]
+	return isOk
+}
+
 func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
+	tablesToIncludeMap := make(map[string]bool)
+	for _, table := range cfg.Tables {
+		tablesToIncludeMap[table.Name] = true
+	}
+
 	streaming := Streaming{
 		syncer: replication.NewBinlogSyncer(replication.BinlogSyncerConfig{
 			ServerID: cfg.StreamingSettings.ServerID,
@@ -59,6 +73,7 @@ func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
 			User:     cfg.Username,
 			Password: cfg.Password,
 		}),
+		tablesToIncludeMap: tablesToIncludeMap,
 	}
 
 	storage := persistedmap.NewPersistedMap(cfg.StreamingSettings.OffsetFile)
@@ -99,10 +114,10 @@ func (s Streaming) Run(ctx context.Context, _ writers.Writer) error {
 				return fmt.Errorf("unable to cast event to replication.RowsEvent")
 			}
 
-			if string(rowsEvent.Table.Table) != "foo" {
+			if !s.ShouldProcessTable(string(rowsEvent.Table.Table)) {
 				continue
 			}
-
+			
 			messages, err := convertEventToMessages(event.Header, rowsEvent)
 			if err != nil {
 				slog.Error("Failed to convert event to messages", slog.Any("err", err))
