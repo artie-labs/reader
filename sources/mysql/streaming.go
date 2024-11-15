@@ -2,9 +2,8 @@ package mysql
 
 import (
 	"context"
-	"fmt"
-	"github.com/artie-labs/transfer/lib/typing"
 
+	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/go-mysql-org/go-mysql/mysql"
 	"github.com/go-mysql-org/go-mysql/replication"
 
@@ -61,17 +60,10 @@ func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
 	return streaming, nil
 }
 
-func (s Streaming) Run(ctx context.Context, writer writers.Writer) error {
-	streamer, err := s.syncer.StartSync(s.position.buildMySQLPosition())
+func (s Streaming) Run(ctx context.Context, _ writers.Writer) error {
+	_, err := s.syncer.StartSync(s.position.buildMySQLPosition())
 	if err != nil {
-		return fmt.Errorf("failed to start sync: %w", err)
-	}
-
-	for {
-		evt, err := streamer.GetEvent(ctx)
-		if err != nil {
-			return fmt.Errorf("failed to get event: %w", err)
-		}
+		return err
 	}
 
 	return nil
