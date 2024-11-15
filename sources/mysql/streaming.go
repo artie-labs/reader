@@ -19,11 +19,8 @@ type StreamingPosition struct {
 	Pos  uint32 `yaml:"pos"`
 }
 
-func (s StreamingPosition) toMySQLPosition() mysql.Position {
-	return mysql.Position{
-		Name: s.File,
-		Pos:  s.Pos,
-	}
+func (s StreamingPosition) buildMySQLPosition() mysql.Position {
+	return mysql.Position{Name: s.File, Pos: s.Pos}
 }
 
 type Streaming struct {
@@ -63,7 +60,7 @@ func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
 }
 
 func (s Streaming) Run(ctx context.Context, writer writers.Writer) error {
-	_, err := s.syncer.StartSync(s.position.toMySQLPosition())
+	_, err := s.syncer.StartSync(s.position.buildMySQLPosition())
 	if err != nil {
 		return fmt.Errorf("failed to start sync: %w", err)
 	}
