@@ -11,6 +11,7 @@ import (
 	"github.com/artie-labs/transfer/lib/debezium"
 	"iter"
 	"log/slog"
+	"os"
 	"slices"
 	"time"
 
@@ -46,6 +47,7 @@ type Streaming struct {
 
 	// TODO: Support partitioned tables
 	// TODO: Support column exclusion
+	// TODO: Make sure it's supporting GTID
 }
 
 func (s Streaming) Close() error {
@@ -158,6 +160,15 @@ func convertEventToMessages(header *replication.EventHeader, event *replication.
 	for i, name := range event.Table.ColumnName {
 		columnNames[i] = string(name)
 	}
+
+	fmt.Println("table", string(event.Table.Table))
+	fmt.Println("columns", event.Table.ColumnNameString())
+
+	for _, colType := range event.Table.ColumnType {
+		fmt.Println("colType", string(colType), "colType", colType)
+	}
+
+	event.Dump(os.Stdout)
 
 	collationMap := event.Table.CollationMap()
 	dataTypes := make([]schema.DataType, len(event.Table.ColumnType))
