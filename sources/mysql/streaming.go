@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 	"fmt"
+	"github.com/artie-labs/transfer/lib/typing"
 
 	"github.com/go-mysql-org/go-mysql/mysql"
 	"github.com/go-mysql-org/go-mysql/replication"
@@ -48,12 +49,12 @@ func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
 	storage := persistedmap.NewPersistedMap(cfg.StreamingSettings.OffsetFile)
 	value, isOk := storage.Get(offsetKey)
 	if isOk {
-		position, isOk := value.(StreamingPosition)
-		if !isOk {
-			return Streaming{}, fmt.Errorf("failed to cast value to type StreamingPosition, type: %T", value)
+		pos, err := typing.AssertType[StreamingPosition](value)
+		if err != nil {
+			return Streaming{}, err
 		}
 
-		streaming.position = position
+		streaming.position = pos
 	}
 
 	return streaming, nil
