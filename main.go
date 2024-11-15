@@ -41,10 +41,10 @@ func buildSource(ctx context.Context, cfg *config.Settings) (sources.Source, boo
 	switch cfg.Source {
 	case config.SourceDynamo:
 		return dynamodb.Load(ctx, *cfg.DynamoDB)
-	case config.SourceMySQL:
-		return mysql.Load(*cfg.MySQL)
 	case config.SourceMongoDB:
 		return mongo.Load(ctx, *cfg.MongoDB)
+	case config.SourceMySQL:
+		return mysql.Load(*cfg.MySQL)
 	case config.SourceMSSQL:
 		source, err = mssql.Load(*cfg.MSSQL)
 	case config.SourcePostgreSQL:
