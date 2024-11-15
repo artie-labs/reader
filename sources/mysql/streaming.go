@@ -16,6 +16,7 @@ import (
 const offsetKey = "offset"
 
 type Streaming struct {
+	storage           *persistedmap.PersistedMap
 	syncer            *replication.BinlogSyncer
 	position          streaming.Position
 	includedTablesMap map[string]bool
@@ -38,6 +39,7 @@ func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
 	}
 
 	streamer := Streaming{
+		storage: persistedmap.NewPersistedMap(cfg.StreamingSettings.OffsetFile),
 		syncer: replication.NewBinlogSyncer(
 			replication.BinlogSyncerConfig{
 				ServerID: cfg.StreamingSettings.ServerID,
@@ -51,8 +53,7 @@ func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
 		includedTablesMap: includedTablesMap,
 	}
 
-	storage := persistedmap.NewPersistedMap(cfg.StreamingSettings.OffsetFile)
-	value, isOk := storage.Get(offsetKey)
+	value, isOk := streamer.storage.Get(offsetKey)
 	if isOk {
 		pos, err := typing.AssertType[streaming.Position](value)
 		if err != nil {
