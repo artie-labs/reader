@@ -13,13 +13,21 @@ import (
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
+type MySQLStreamingSettings struct {
+	Enabled    bool   `yaml:"enabled,omitempty"`
+	OffsetFile string `yaml:"offsetFile,omitempty"`
+	// ServerID - Unique ID in the cluster.
+	ServerID uint32 `yaml:"serverID,omitempty"`
+}
+
 type MySQL struct {
-	Host     string        `yaml:"host"`
-	Port     int           `yaml:"port"`
-	Username string        `yaml:"username"`
-	Password string        `yaml:"password"`
-	Database string        `yaml:"database"`
-	Tables   []*MySQLTable `yaml:"tables"`
+	Host              string                 `yaml:"host"`
+	Port              int                    `yaml:"port"`
+	Username          string                 `yaml:"username"`
+	Password          string                 `yaml:"password"`
+	Database          string                 `yaml:"database"`
+	Tables            []*MySQLTable          `yaml:"tables"`
+	StreamingSettings MySQLStreamingSettings `yaml:"streamingSettings,omitempty"`
 }
 
 func (m *MySQL) ToDSN() string {

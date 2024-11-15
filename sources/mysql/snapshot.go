@@ -17,27 +17,16 @@ import (
 	"github.com/artie-labs/reader/writers"
 )
 
-type Source struct {
+type Snapshot struct {
 	cfg config.MySQL
 	db  *sql.DB
 }
 
-func Load(cfg config.MySQL) (*Source, error) {
-	db, err := sql.Open("mysql", cfg.ToDSN())
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to MySQL: %w", err)
-	}
-	return &Source{
-		cfg: cfg,
-		db:  db,
-	}, nil
-}
-
-func (s Source) Close() error {
+func (s Snapshot) Close() error {
 	return s.db.Close()
 }
 
-func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
+func (s *Snapshot) Run(ctx context.Context, writer writers.Writer) error {
 	for _, tableCfg := range s.cfg.Tables {
 		if err := s.snapshotTable(ctx, writer, *tableCfg); err != nil {
 			return err
@@ -46,7 +35,7 @@ func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
 	return nil
 }
 
-func (s Source) snapshotTable(ctx context.Context, writer writers.Writer, tableCfg config.MySQLTable) error {
+func (s Snapshot) snapshotTable(ctx context.Context, writer writers.Writer, tableCfg config.MySQLTable) error {
 	logger := slog.With(slog.String("table", tableCfg.Name), slog.String("database", s.cfg.Database))
 	snapshotStartTime := time.Now()
 
