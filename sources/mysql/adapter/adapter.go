@@ -27,7 +27,7 @@ type MySQLAdapter struct {
 }
 
 func NewMySQLAdapter(db *sql.DB, dbName string, tableCfg config.MySQLTable) (MySQLAdapter, error) {
-	slog.Info("Loading metadata for table")
+	slog.Info("Loading metadata for table", slog.String("name", tableCfg.Name))
 	table, err := mysql.LoadTable(db, tableCfg.Name)
 	if err != nil {
 		return MySQLAdapter{}, fmt.Errorf("failed to load metadata for table %q: %w", tableCfg.Name, err)
