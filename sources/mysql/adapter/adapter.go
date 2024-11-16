@@ -3,6 +3,7 @@ package adapter
 import (
 	"database/sql"
 	"fmt"
+	"github.com/artie-labs/transfer/lib/maputil"
 	"log/slog"
 
 	"github.com/artie-labs/reader/config"
@@ -18,12 +19,12 @@ import (
 const defaultErrorRetries = 10
 
 type MySQLAdapter struct {
-	db              *sql.DB
-	dbName          string
-	table           mysql.Table
-	columns         []schema.Column
-	fieldConverters []transformer.FieldConverter
-	scannerCfg      scan.ScannerConfig
+	db                        *sql.DB
+	dbName                    string
+	table                     mysql.Table
+	columnsOrderedMap         *maputil.OrderedMap[schema.Column]
+	fieldConvertersOrderedMap *maputil.OrderedMap[transformer.FieldConverter]
+	scannerCfg                scan.ScannerConfig
 }
 
 func NewMySQLAdapter(db *sql.DB, dbName string, tableCfg config.MySQLTable) (MySQLAdapter, error) {
@@ -49,22 +50,25 @@ func NewMySQLAdapter(db *sql.DB, dbName string, tableCfg config.MySQLTable) (MyS
 }
 
 func buildMySQLAdapter(db *sql.DB, dbName string, table mysql.Table, columns []schema.Column, scannerCfg scan.ScannerConfig) (MySQLAdapter, error) {
-	fieldConverters := make([]transformer.FieldConverter, len(columns))
-	for i, col := range columns {
+	columnsOrderedMap := maputil.NewOrderedMap[schema.Column](true)
+	fieldConvertersOrderedMap := maputil.NewOrderedMap[transformer.FieldConverter](true)
+	for _, col := range columns {
 		converter, err := valueConverterForType(col.Type, col.Opts)
 		if err != nil {
 			return MySQLAdapter{}, fmt.Errorf("failed to build value converter for column %q: %w", col.Name, err)
 		}
-		fieldConverters[i] = transformer.FieldConverter{Name: col.Name, ValueConverter: converter}
+
+		columnsOrderedMap.Add(col.Name, col)
+		fieldConvertersOrderedMap.Add(col.Name, transformer.FieldConverter{Name: col.Name, ValueConverter: converter})
 	}
 
 	return MySQLAdapter{
-		db:              db,
-		dbName:          dbName,
-		table:           table,
-		columns:         columns,
-		fieldConverters: fieldConverters,
-		scannerCfg:      scannerCfg,
+		db:                        db,
+		dbName:                    dbName,
+		table:                     table,
+		columnsOrderedMap:         columnsOrderedMap,
+		fieldConvertersOrderedMap: fieldConvertersOrderedMap,
+		scannerCfg:                scannerCfg,
 	}, nil
 }
 
@@ -77,11 +81,21 @@ func (m MySQLAdapter) TopicSuffix() string {
 }
 
 func (m MySQLAdapter) FieldConverters() []transformer.FieldConverter {
-	return m.fieldConverters
+	var fieldConverters []transformer.FieldConverter
+	for _, fc := range m.fieldConvertersOrderedMap.All() {
+		fieldConverters = append(fieldConverters, fc)
+	}
+
+	return fieldConverters
 }
 
 func (m MySQLAdapter) NewIterator() (transformer.RowsIterator, error) {
-	return scanner.NewScanner(m.db, m.table, m.columns, m.scannerCfg)
+	var columns []schema.Column
+	for _, col := range m.columnsOrderedMap.All() {
+		columns = append(columns, col)
+	}
+
+	return scanner.NewScanner(m.db, m.table, columns, m.scannerCfg)
 }
 
 func (m MySQLAdapter) PartitionKeys() []string {
