@@ -45,10 +45,10 @@ func NewMySQLAdapter(db *sql.DB, dbName string, tableCfg config.MySQLTable) (MyS
 		return MySQLAdapter{}, err
 	}
 
-	return newMySQLAdapter(db, dbName, table, columns, tableCfg.ToScannerConfig(defaultErrorRetries))
+	return buildMySQLAdapter(db, dbName, table, columns, tableCfg.ToScannerConfig(defaultErrorRetries))
 }
 
-func newMySQLAdapter(db *sql.DB, dbName string, table mysql.Table, columns []schema.Column, scannerCfg scan.ScannerConfig) (MySQLAdapter, error) {
+func buildMySQLAdapter(db *sql.DB, dbName string, table mysql.Table, columns []schema.Column, scannerCfg scan.ScannerConfig) (MySQLAdapter, error) {
 	fieldConverters := make([]transformer.FieldConverter, len(columns))
 	for i, col := range columns {
 		converter, err := valueConverterForType(col.Type, col.Opts)
