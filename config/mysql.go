@@ -26,7 +26,7 @@ type MySQL struct {
 	Username          string                 `yaml:"username"`
 	Password          string                 `yaml:"password"`
 	Database          string                 `yaml:"database"`
-	Tables            []*MySQLTable          `yaml:"tables"`
+	Tables            []MySQLTable           `yaml:"tables,omitempty"`
 	StreamingSettings MySQLStreamingSettings `yaml:"streamingSettings,omitempty"`
 }
 
