@@ -30,7 +30,7 @@ type MySQL struct {
 	StreamingSettings MySQLStreamingSettings `yaml:"streamingSettings,omitempty"`
 }
 
-func (m *MySQL) ToDSN() string {
+func (m MySQL) ToDSN() string {
 	config := mysql.NewConfig()
 	config.User = m.Username
 	config.Passwd = m.Password
@@ -51,25 +51,25 @@ type MySQLTable struct {
 	IncludeColumns []string `yaml:"includeColumns,omitempty"`
 }
 
-func (m *MySQLTable) GetBatchSize() uint {
+func (m MySQLTable) GetBatchSize() uint {
 	return cmp.Or(m.BatchSize, constants.DefaultBatchSize)
 }
 
-func (m *MySQLTable) GetOptionalPrimaryKeyValStart() []string {
+func (m MySQLTable) GetOptionalPrimaryKeyValStart() []string {
 	if m.OptionalPrimaryKeyValStart == "" {
 		return []string{}
 	}
 	return strings.Split(m.OptionalPrimaryKeyValStart, ",")
 }
 
-func (m *MySQLTable) GetOptionalPrimaryKeyValEnd() []string {
+func (m MySQLTable) GetOptionalPrimaryKeyValEnd() []string {
 	if m.OptionalPrimaryKeyValEnd == "" {
 		return []string{}
 	}
 	return strings.Split(m.OptionalPrimaryKeyValEnd, ",")
 }
 
-func (m *MySQLTable) ToScannerConfig(errorRetries int) scan.ScannerConfig {
+func (m MySQLTable) ToScannerConfig(errorRetries int) scan.ScannerConfig {
 	return scan.ScannerConfig{
 		BatchSize:              m.GetBatchSize(),
 		OptionalStartingValues: m.GetOptionalPrimaryKeyValStart(),
@@ -78,11 +78,7 @@ func (m *MySQLTable) ToScannerConfig(errorRetries int) scan.ScannerConfig {
 	}
 }
 
-func (m *MySQL) Validate() error {
-	if m == nil {
-		return fmt.Errorf("MySQL config is nil")
-	}
-
+func (m MySQL) Validate() error {
 	if stringutil.Empty(m.Host, m.Username, m.Password, m.Database) {
 		return fmt.Errorf("one of the MySQL settings is empty: host, username, password, database")
 	}
