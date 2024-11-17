@@ -27,8 +27,8 @@ func (s Snapshot) Close() error {
 }
 
 func (s *Snapshot) Run(ctx context.Context, writer writers.Writer) error {
-	for _, tableCfg := range s.cfg.Tables {
-		if err := s.snapshotTable(ctx, writer, *tableCfg); err != nil {
+	for _, table := range s.cfg.Tables {
+		if err := s.snapshotTable(ctx, writer, table); err != nil {
 			return err
 		}
 	}

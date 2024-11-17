@@ -13,7 +13,7 @@ func createValidConfig() *MySQL {
 		Username: "username",
 		Password: "password",
 		Database: "database",
-		Tables: []*MySQLTable{
+		Tables: []MySQLTable{
 			{
 				Name:                       "table1",
 				BatchSize:                  100,

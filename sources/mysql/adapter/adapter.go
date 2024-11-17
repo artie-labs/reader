@@ -3,7 +3,6 @@ package adapter
 import (
 	"database/sql"
 	"fmt"
-	"github.com/artie-labs/transfer/lib/maputil"
 	"log/slog"
 
 	"github.com/artie-labs/reader/config"
@@ -14,6 +13,7 @@ import (
 	"github.com/artie-labs/reader/lib/mysql/schema"
 	"github.com/artie-labs/reader/lib/rdbms/column"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
+	"github.com/artie-labs/transfer/lib/maputil"
 )
 
 const defaultErrorRetries = 10
