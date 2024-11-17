@@ -13,22 +13,21 @@ import (
 	"github.com/artie-labs/reader/lib/mysql/schema"
 	"github.com/artie-labs/reader/lib/rdbms/column"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
-	"github.com/artie-labs/transfer/lib/maputil"
 )
 
 const defaultErrorRetries = 10
 
 type MySQLAdapter struct {
-	db                        *sql.DB
-	dbName                    string
-	table                     mysql.Table
-	columnsOrderedMap         *maputil.OrderedMap[schema.Column]
-	fieldConvertersOrderedMap *maputil.OrderedMap[transformer.FieldConverter]
-	scannerCfg                scan.ScannerConfig
+	db              *sql.DB
+	dbName          string
+	table           mysql.Table
+	columns         []schema.Column
+	fieldConverters []transformer.FieldConverter
+	scannerCfg      scan.ScannerConfig
 }
 
 func NewMySQLAdapter(db *sql.DB, dbName string, tableCfg config.MySQLTable) (MySQLAdapter, error) {
-	slog.Info("Loading metadata for table", slog.String("name", tableCfg.Name))
+	slog.Info("Loading metadata for table")
 	table, err := mysql.LoadTable(db, tableCfg.Name)
 	if err != nil {
 		return MySQLAdapter{}, fmt.Errorf("failed to load metadata for table %q: %w", tableCfg.Name, err)
@@ -46,29 +45,26 @@ func NewMySQLAdapter(db *sql.DB, dbName string, tableCfg config.MySQLTable) (MyS
 		return MySQLAdapter{}, err
 	}
 
-	return buildMySQLAdapter(db, dbName, table, columns, tableCfg.ToScannerConfig(defaultErrorRetries))
+	return newMySQLAdapter(db, dbName, table, columns, tableCfg.ToScannerConfig(defaultErrorRetries))
 }
 
-func buildMySQLAdapter(db *sql.DB, dbName string, table mysql.Table, columns []schema.Column, scannerCfg scan.ScannerConfig) (MySQLAdapter, error) {
-	columnsOrderedMap := maputil.NewOrderedMap[schema.Column](true)
-	fieldConvertersOrderedMap := maputil.NewOrderedMap[transformer.FieldConverter](true)
-	for _, col := range columns {
+func newMySQLAdapter(db *sql.DB, dbName string, table mysql.Table, columns []schema.Column, scannerCfg scan.ScannerConfig) (MySQLAdapter, error) {
+	fieldConverters := make([]transformer.FieldConverter, len(columns))
+	for i, col := range columns {
 		converter, err := valueConverterForType(col.Type, col.Opts)
 		if err != nil {
 			return MySQLAdapter{}, fmt.Errorf("failed to build value converter for column %q: %w", col.Name, err)
 		}
-
-		columnsOrderedMap.Add(col.Name, col)
-		fieldConvertersOrderedMap.Add(col.Name, transformer.FieldConverter{Name: col.Name, ValueConverter: converter})
+		fieldConverters[i] = transformer.FieldConverter{Name: col.Name, ValueConverter: converter}
 	}
 
 	return MySQLAdapter{
-		db:                        db,
-		dbName:                    dbName,
-		table:                     table,
-		columnsOrderedMap:         columnsOrderedMap,
-		fieldConvertersOrderedMap: fieldConvertersOrderedMap,
-		scannerCfg:                scannerCfg,
+		db:              db,
+		dbName:          dbName,
+		table:           table,
+		columns:         columns,
+		fieldConverters: fieldConverters,
+		scannerCfg:      scannerCfg,
 	}, nil
 }
 
@@ -81,21 +77,11 @@ func (m MySQLAdapter) TopicSuffix() string {
 }
 
 func (m MySQLAdapter) FieldConverters() []transformer.FieldConverter {
-	var fieldConverters []transformer.FieldConverter
-	for _, fc := range m.fieldConvertersOrderedMap.All() {
-		fieldConverters = append(fieldConverters, fc)
-	}
-
-	return fieldConverters
+	return m.fieldConverters
 }
 
 func (m MySQLAdapter) NewIterator() (transformer.RowsIterator, error) {
-	var columns []schema.Column
-	for _, col := range m.columnsOrderedMap.All() {
-		columns = append(columns, col)
-	}
-
-	return scanner.NewScanner(m.db, m.table, columns, m.scannerCfg)
+	return scanner.NewScanner(m.db, m.table, m.columns, m.scannerCfg)
 }
 
 func (m MySQLAdapter) PartitionKeys() []string {
