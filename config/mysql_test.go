@@ -87,19 +87,19 @@ func TestMySQL_Validate(t *testing.T) {
 		c := createValidConfig()
 		c.Tables = nil
 		assert.ErrorContains(t, c.Validate(), "no tables passed in")
-		c.Tables = []*MySQLTable{}
+		c.Tables = []MySQLTable{}
 		assert.ErrorContains(t, c.Validate(), "no tables passed in")
 	}
 	{
 		// missing table name
 		c := createValidConfig()
-		c.Tables = append(c.Tables, &MySQLTable{})
+		c.Tables = append(c.Tables, MySQLTable{})
 		assert.ErrorContains(t, c.Validate(), "table name must be passed in")
 	}
 	{
 		// exclude and include at the same time
 		c := createValidConfig()
-		c.Tables = append(c.Tables, &MySQLTable{
+		c.Tables = append(c.Tables, MySQLTable{
 			Name:           "foo",
 			IncludeColumns: []string{"foo"},
 			ExcludeColumns: []string{"bar"},
@@ -117,44 +117,32 @@ func TestMySQL_ToDSN(t *testing.T) {
 func TestMySQLTable_GetBatchSize(t *testing.T) {
 	{
 		// Batch size is not set
-		table := &MySQLTable{}
-		assert.Equal(t, uint(5_000), table.GetBatchSize())
+		assert.Equal(t, uint(5_000), MySQLTable{}.GetBatchSize())
 	}
 	{
 		// Batch size is set
-		table := &MySQLTable{
-			BatchSize: 1,
-		}
-		assert.Equal(t, uint(1), table.GetBatchSize())
+		assert.Equal(t, uint(1), MySQLTable{BatchSize: 1}.GetBatchSize())
 	}
 }
 
 func TestMySQLTable_GetOptionalPrimaryKeyValStart(t *testing.T) {
 	{
 		// not set
-		p := &MySQLTable{}
-		assert.Len(t, p.GetOptionalPrimaryKeyValStart(), 0)
+		assert.Len(t, MySQLTable{}.GetOptionalPrimaryKeyValStart(), 0)
 	}
 	{
 		// set
-		p := &MySQLTable{
-			OptionalPrimaryKeyValStart: "a,b,c",
-		}
-		assert.Equal(t, []string{"a", "b", "c"}, p.GetOptionalPrimaryKeyValStart())
+		assert.Equal(t, []string{"a", "b", "c"}, MySQLTable{OptionalPrimaryKeyValStart: "a,b,c"}.GetOptionalPrimaryKeyValStart())
 	}
 }
 
 func TestMySQLTable_GetOptionalPrimaryKeyValEnd(t *testing.T) {
 	{
 		// not set
-		p := &MySQLTable{}
-		assert.Len(t, p.GetOptionalPrimaryKeyValEnd(), 0)
+		assert.Len(t, MySQLTable{}.GetOptionalPrimaryKeyValEnd(), 0)
 	}
 	{
 		// set
-		p := &MySQLTable{
-			OptionalPrimaryKeyValEnd: "a,b,c",
-		}
-		assert.Equal(t, []string{"a", "b", "c"}, p.GetOptionalPrimaryKeyValEnd())
+		assert.Equal(t, []string{"a", "b", "c"}, MySQLTable{OptionalPrimaryKeyValEnd: "a,b,c"}.GetOptionalPrimaryKeyValEnd())
 	}
 }
