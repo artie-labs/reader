@@ -1,0 +1,16 @@
+# If you are running this on M1, make sure docker-compose has Rosetta emulation enabled.
+version: '3.8'
+
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: mssql
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=yourStrong!Password
+    ports:
+      - "1433:1433"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -U sa -P yourStrong!Password -Q 'SELECT 1'"]
+      interval: 10s
+      retries: 10

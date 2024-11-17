@@ -67,10 +67,10 @@ func TestParseColumnDataType(t *testing.T) {
 		}
 	}
 	{
-		// tinyint(1) or boolean
+		// tinyint(1) should still be an integer
 		dataType, _, err := parseColumnDataType("tinyint(1)")
 		assert.NoError(t, err)
-		assert.Equal(t, Boolean, dataType)
+		assert.Equal(t, TinyInt, dataType)
 	}
 	{
 		// String

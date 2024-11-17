@@ -125,11 +125,6 @@ func parseColumnDataType(originalS string) (DataType, *Opts, error) {
 
 	switch s {
 	case "tinyint":
-		// Boolean, bool are aliases for tinyint(1)
-		if metadata == "1" {
-			return Boolean, nil, nil
-		}
-
 		if unsigned {
 			return SmallInt, nil, nil
 		}
