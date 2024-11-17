@@ -5,22 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"slices"
 	"time"
 
-	"github.com/artie-labs/transfer/lib/jitter"
+	"github.com/artie-labs/transfer/lib/batch"
 	"github.com/artie-labs/transfer/lib/kafkalib"
-	"github.com/artie-labs/transfer/lib/size"
+	"github.com/artie-labs/transfer/lib/retry"
 	"github.com/segmentio/kafka-go"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/mtr"
-)
-
-const (
-	baseJitterMs = 300
-	maxJitterMs  = 5000
 )
 
 func newWriter(ctx context.Context, cfg config.Kafka) (*kafka.Writer, error) {
@@ -84,88 +78,112 @@ func (b *BatchWriter) reload(ctx context.Context) error {
 	return nil
 }
 
+func buildKafkaMessageWrapper(topicPrefix string, rawMessage lib.RawMessage) (KafkaMessageWrapper, error) {
+	valueBytes, err := json.Marshal(rawMessage.Event())
+	if err != nil {
+		return KafkaMessageWrapper{}, err
+	}
+
+	keyBytes, err := json.Marshal(rawMessage.PartitionKey())
+	if err != nil {
+		return KafkaMessageWrapper{}, err
+	}
+
+	return KafkaMessageWrapper{
+		Topic:        fmt.Sprintf("%s.%s", topicPrefix, rawMessage.TopicSuffix()),
+		MessageKey:   keyBytes,
+		MessageValue: valueBytes,
+	}, nil
+}
+
+// KafkaMessageWrapper is a wrapper around [kafka.Message]. We did this so that we can marshal and unmarshal the message safely with our encoding function
+type KafkaMessageWrapper struct {
+	Topic        string `json:"topic"`
+	MessageKey   []byte `json:"messageKey"`
+	MessageValue []byte `json:"messageValue"`
+}
+
+func (k KafkaMessageWrapper) Key() string {
+	return string(k.MessageKey)
+}
+
+func (k KafkaMessageWrapper) toKafkaMessage() kafka.Message {
+	return kafka.Message{
+		Topic: k.Topic,
+		Key:   k.MessageKey,
+		Value: k.MessageValue,
+	}
+}
+
+var encoder = func(msg KafkaMessageWrapper) ([]byte, error) {
+	return json.Marshal(msg)
+}
+
+func (b *BatchWriter) write(ctx context.Context, messages []KafkaMessageWrapper, sampleExecutionTime time.Time) error {
+	retryCfg, err := retry.NewJitterRetryConfig(100, 5000, 10, retry.AlwaysRetry)
+	if err != nil {
+		return err
+	}
+
+	return batch.BySize[KafkaMessageWrapper](messages, int(b.writer.BatchBytes), false, encoder, func(chunk [][]byte) error {
+		tags := map[string]string{"what": "error"}
+		defer func() {
+			if b.statsD != nil {
+				b.statsD.Count("kafka.publish", int64(len(chunk)), tags)
+				b.statsD.Gauge("kafka.lag_ms", float64(time.Since(sampleExecutionTime).Milliseconds()), tags)
+			}
+		}()
+
+		var kafkaMessages []kafka.Message
+		for _, bytes := range chunk {
+			var msg KafkaMessageWrapper
+			if err = json.Unmarshal(bytes, &msg); err != nil {
+				return fmt.Errorf("failed to unmarshal message: %w", err)
+			}
+
+			kafkaMessages = append(kafkaMessages, msg.toKafkaMessage())
+		}
+
+		err = retry.WithRetries(retryCfg, func(_ int, _ error) error {
+			publishErr := b.writer.WriteMessages(ctx, kafkaMessages...)
+			if isRetryableError(publishErr) {
+				if err = b.reload(ctx); err != nil {
+					return fmt.Errorf("failed to reload kafka writer: %w", err)
+				}
+			}
+
+			return publishErr
+		})
+
+		if err != nil {
+			return fmt.Errorf("failed to write messages: %w", err)
+		}
+
+		tags["what"] = "success"
+		return nil
+	})
+}
+
 func (b *BatchWriter) Write(ctx context.Context, rawMsgs []lib.RawMessage) error {
 	if len(rawMsgs) == 0 {
 		return nil
 	}
 
-	var msgs []kafka.Message
+	var msgs []KafkaMessageWrapper
 	var sampleExecutionTime time.Time
 	for _, rawMsg := range rawMsgs {
 		sampleExecutionTime = rawMsg.Event().GetExecutionTime()
-		kafkaMsg, err := newMessage(b.cfg.TopicPrefix, rawMsg)
+		msg, err := buildKafkaMessageWrapper(b.cfg.TopicPrefix, rawMsg)
 		if err != nil {
-			return fmt.Errorf("failed to encode kafka message: %w", err)
+			return fmt.Errorf("failed to build kafka message: %w", err)
 		}
-		msgs = append(msgs, kafkaMsg)
+
+		msgs = append(msgs, msg)
 	}
 
-	for batch := range slices.Chunk(msgs, int(b.cfg.GetPublishSize())) {
-		tags := map[string]string{
-			"what": "error",
-		}
-
-		var kafkaErr error
-		for attempts := range 10 {
-			if attempts > 0 {
-				sleepDuration := jitter.Jitter(baseJitterMs, maxJitterMs, attempts-1)
-				slog.Info("Failed to publish to kafka",
-					slog.Any("err", kafkaErr),
-					slog.Int("attempts", attempts),
-					slog.Duration("sleep", sleepDuration),
-				)
-				time.Sleep(sleepDuration)
-
-				if isRetryableError(kafkaErr) {
-					if reloadErr := b.reload(ctx); reloadErr != nil {
-						slog.Warn("Failed to reload kafka writer", slog.Any("err", reloadErr))
-					}
-				}
-			}
-
-			kafkaErr = b.writer.WriteMessages(ctx, batch...)
-			if kafkaErr == nil {
-				tags["what"] = "success"
-				break
-			}
-
-			if isExceedMaxMessageBytesErr(kafkaErr) {
-				slog.Info("Skipping this batch since the message size exceeded the server max")
-				kafkaErr = nil
-				break
-			}
-		}
-
-		if b.statsD != nil {
-			b.statsD.Count("kafka.publish", int64(len(batch)), tags)
-			b.statsD.Gauge("kafka.lag_ms", float64(time.Since(sampleExecutionTime).Milliseconds()), tags)
-		}
-
-		if kafkaErr != nil {
-			return fmt.Errorf("failed to write message: %w, approxSize: %d", kafkaErr, size.GetApproxSize(batch))
-		}
-	}
-	return nil
+	return b.write(ctx, msgs, sampleExecutionTime)
 }
 
 func (b *BatchWriter) OnComplete(_ context.Context) error {
 	return nil
-}
-
-func newMessage(topicPrefix string, rawMessage lib.RawMessage) (kafka.Message, error) {
-	valueBytes, err := json.Marshal(rawMessage.Event())
-	if err != nil {
-		return kafka.Message{}, err
-	}
-
-	keyBytes, err := json.Marshal(rawMessage.PartitionKey())
-	if err != nil {
-		return kafka.Message{}, err
-	}
-
-	return kafka.Message{
-		Topic: fmt.Sprintf("%s.%s", topicPrefix, rawMessage.TopicSuffix()),
-		Key:   keyBytes,
-		Value: valueBytes,
-	}, nil
 }

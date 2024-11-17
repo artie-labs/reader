@@ -24,9 +24,9 @@ func TestNewMessage(t *testing.T) {
 		},
 	)
 
-	msg, err := newMessage("topic-prefix", rawMessage)
+	msg, err := buildKafkaMessageWrapper("topic-prefix", rawMessage)
 	assert.NoError(t, err)
 	assert.Equal(t, "topic-prefix.topic-suffix", msg.Topic)
-	assert.Equal(t, `{"key":"value"}`, string(msg.Key))
-	assert.Equal(t, `{"schema":{"type":"","fields":null},"payload":{"before":null,"after":{"a":"b"},"source":{"connector":"","ts_ms":1000,"db":"","schema":"","table":"table"},"op":"c"}}`, string(msg.Value))
+	assert.Equal(t, `{"key":"value"}`, string(msg.MessageKey))
+	assert.Equal(t, `{"schema":{"type":"","fields":null},"payload":{"before":null,"after":{"a":"b"},"source":{"connector":"","ts_ms":1000,"db":"","schema":"","table":"table"},"op":"c"}}`, string(msg.MessageValue))
 }
