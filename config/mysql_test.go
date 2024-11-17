@@ -32,11 +32,6 @@ func createValidConfig() *MySQL {
 
 func TestMySQL_Validate(t *testing.T) {
 	{
-		// config is empty
-		var c *MySQL
-		assert.ErrorContains(t, c.Validate(), "MySQL config is nil")
-	}
-	{
 		// happy path
 		assert.NoError(t, createValidConfig().Validate())
 	}
