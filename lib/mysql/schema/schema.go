@@ -57,9 +57,9 @@ const (
 )
 
 type Opts struct {
-	Scale     *uint16
-	Precision *int
-	Size      *int
+	Scale     *uint16 `yaml:"scale"`
+	Precision *int    `yaml:"precision"`
+	Size      *int    `yaml:"size"`
 }
 
 type Column = column.Column[DataType, Opts]

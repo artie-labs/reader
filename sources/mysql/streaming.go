@@ -2,6 +2,8 @@ package mysql
 
 import (
 	"context"
+	"github.com/artie-labs/reader/lib/maputil"
+	"github.com/artie-labs/reader/sources/mysql/adapter"
 	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/go-mysql-org/go-mysql/replication"
 	"log/slog"
@@ -15,6 +17,7 @@ import (
 const offsetKey = "offset"
 
 type Streaming struct {
+	schemaHistory     map[string]*maputil.MostRecentMap[adapter.Table]
 	storage           *persistedmap.PersistedMap
 	syncer            *replication.BinlogSyncer
 	position          streaming.Position

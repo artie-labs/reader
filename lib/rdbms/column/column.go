@@ -6,9 +6,9 @@ import (
 )
 
 type Column[T ~int, O any] struct {
-	Name string
-	Type T
-	Opts *O
+	Name string `yaml:"name"`
+	Type T      `yaml:"type"`
+	Opts *O     `yaml:"opts"`
 }
 
 func ByName[T ~int, O any](columns []Column[T, O], name string) (*Column[T, O], error) {

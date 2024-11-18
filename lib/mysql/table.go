@@ -10,10 +10,9 @@ import (
 )
 
 type Table struct {
-	Name string
-
-	Columns     []schema.Column
-	PrimaryKeys []string
+	Name        string          `yaml:"name"`
+	Columns     []schema.Column `yaml:"columns"`
+	PrimaryKeys []string        `yaml:"primaryKeys"`
 }
 
 func LoadTable(db *sql.DB, name string) (*Table, error) {

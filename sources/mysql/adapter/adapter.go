@@ -18,8 +18,8 @@ import (
 const defaultErrorRetries = 10
 
 type Table struct {
-	table           mysql.Table
-	columns         []schema.Column
+	table           mysql.Table     `yaml:"table"`
+	columns         []schema.Column `yaml:"columns"`
 	fieldConverters []transformer.FieldConverter
 }
 
