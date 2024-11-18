@@ -88,18 +88,27 @@ func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 			return nil, fmt.Errorf("failed to scan: %w", err)
 		}
 
-		dataType, opts, err := parseColumnDataType(colType)
+		col, err := BuildColumn(colName, colType)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse data type: %w", err)
+			return nil, fmt.Errorf("failed to parse column %q", colName)
 		}
 
-		result = append(result, Column{
-			Name: colName,
-			Type: dataType,
-			Opts: opts,
-		})
+		result = append(result, col)
 	}
 	return result, nil
+}
+
+func BuildColumn(colName string, colType string) (Column, error) {
+	dataType, opts, err := parseColumnDataType(colType)
+	if err != nil {
+		return Column{}, fmt.Errorf("failed to parse data type: %w", err)
+	}
+
+	return Column{
+		Name: colName,
+		Type: dataType,
+		Opts: opts,
+	}, nil
 }
 
 func parseColumnDataType(originalS string) (DataType, *Opts, error) {
