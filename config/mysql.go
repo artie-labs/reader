@@ -14,8 +14,9 @@ import (
 )
 
 type MySQLStreamingSettings struct {
-	Enabled    bool   `yaml:"enabled,omitempty"`
-	OffsetFile string `yaml:"offsetFile,omitempty"`
+	Enabled           bool   `yaml:"enabled,omitempty"`
+	OffsetFile        string `yaml:"offsetFile,omitempty"`
+	SchemaHistoryFile string `yaml:"schemaHistoryFile,omitempty"`
 	// ServerID - Unique ID in the cluster.
 	ServerID uint32 `yaml:"serverID,omitempty"`
 }

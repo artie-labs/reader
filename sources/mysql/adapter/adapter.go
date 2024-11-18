@@ -3,7 +3,6 @@ package adapter
 import (
 	"database/sql"
 	"fmt"
-	"github.com/artie-labs/reader/lib/rdbms/column"
 	"log/slog"
 
 	"github.com/artie-labs/reader/config"
@@ -12,15 +11,16 @@ import (
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/mysql/scanner"
 	"github.com/artie-labs/reader/lib/mysql/schema"
+	"github.com/artie-labs/reader/lib/rdbms/column"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
 const defaultErrorRetries = 10
 
 type Table struct {
-	table           mysql.Table     `yaml:"table"`
-	columns         []schema.Column `yaml:"columns"`
-	fieldConverters []transformer.FieldConverter
+	table           mysql.Table                  `yaml:"table"`
+	columns         []schema.Column              `yaml:"columns"`
+	fieldConverters []transformer.FieldConverter `yaml:"fieldConverters"`
 }
 
 type MySQLAdapter struct {

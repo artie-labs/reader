@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"context"
+	"fmt"
 	"github.com/artie-labs/reader/lib/maputil"
 	"github.com/artie-labs/reader/sources/mysql/adapter"
 	"github.com/artie-labs/transfer/lib/typing"
@@ -17,15 +18,15 @@ import (
 const offsetKey = "offset"
 
 type Streaming struct {
-	schemaHistory     map[string]*maputil.MostRecentMap[adapter.Table]
-	storage           *persistedmap.PersistedMap
-	syncer            *replication.BinlogSyncer
-	position          streaming.Position
-	includedTablesMap map[string]bool
+	schemaHistory                    *persistedmap.PersistedMap
+	storage                          *persistedmap.PersistedMap
+	syncer                           *replication.BinlogSyncer
+	position                         streaming.Position
+	includedTablesToMostRecentSchema map[string]*maputil.MostRecentMap[adapter.Table]
 }
 
 func (s Streaming) shouldProcessTable(tableName string) bool {
-	_, isOk := s.includedTablesMap[tableName]
+	_, isOk := s.includedTablesToMostRecentSchema[tableName]
 	return isOk
 }
 
@@ -35,13 +36,9 @@ func (s Streaming) Close() error {
 }
 
 func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
-	includedTablesMap := make(map[string]bool)
-	for _, table := range cfg.Tables {
-		includedTablesMap[table.Name] = true
-	}
-
 	streamer := Streaming{
-		storage: persistedmap.NewPersistedMap(cfg.StreamingSettings.OffsetFile),
+		schemaHistory: persistedmap.NewPersistedMap(cfg.StreamingSettings.SchemaHistoryFile),
+		storage:       persistedmap.NewPersistedMap(cfg.StreamingSettings.OffsetFile),
 		syncer: replication.NewBinlogSyncer(
 			replication.BinlogSyncerConfig{
 				ServerID: cfg.StreamingSettings.ServerID,
@@ -52,7 +49,6 @@ func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
 				Password: cfg.Password,
 			},
 		),
-		includedTablesMap: includedTablesMap,
 	}
 
 	value, isOk := streamer.storage.Get(offsetKey)
@@ -66,6 +62,12 @@ func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
 		streamer.position = pos
 	}
 
+	includedTablesToMostRecentSchema, err := streaming.BuildSchemaHistory(cfg)
+	if err != nil {
+		return Streaming{}, fmt.Errorf("failed to build schema history: %w", err)
+	}
+
+	streamer.includedTablesToMostRecentSchema = includedTablesToMostRecentSchema
 	return streamer, nil
 }
 
