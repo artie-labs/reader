@@ -14,7 +14,7 @@ type DebeziumIterator struct {
 func NewDebeziumIterator(adapter Adapter) (DebeziumIterator, error) {
 	iter, err := adapter.NewIterator()
 	if err != nil {
-		return DebeziumIterator, fmt.Errorf("failed to create iterator :%w", err)
+		return DebeziumIterator{}, fmt.Errorf("failed to create iterator :%w", err)
 	}
 
 	return newDebeziumIteratorWithIterator(adapter, iter), nil
