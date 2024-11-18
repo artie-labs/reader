@@ -9,7 +9,16 @@ import (
 	"time"
 )
 
-func BuildSchemaHistory(cfg config.MySQL) (map[string]*maputil.MostRecentMap[adapter.Table], error) {
+type SchemaHistoryAdapter struct {
+	cfg           config.MySQL
+	schemaHistory map[string]*maputil.MostRecentMap[adapter.Table]
+}
+
+func (s SchemaHistoryAdapter) connect() (*sql.DB, error) {
+	return sql.Open("mysql", s.cfg.ToDSN())
+}
+
+func BuildTablesAdapter(cfg config.MySQL) (map[string]*maputil.MostRecentMap[adapter.Table], error) {
 	db, err := sql.Open("mysql", cfg.ToDSN())
 	if err != nil {
 		return nil, err

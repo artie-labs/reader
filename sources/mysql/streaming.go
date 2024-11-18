@@ -18,15 +18,15 @@ import (
 const offsetKey = "offset"
 
 type Streaming struct {
-	schemaHistory                    *persistedmap.PersistedMap
-	storage                          *persistedmap.PersistedMap
-	syncer                           *replication.BinlogSyncer
-	position                         streaming.Position
-	includedTablesToMostRecentSchema map[string]*maputil.MostRecentMap[adapter.Table]
+	schemaHistory         *persistedmap.PersistedMap
+	storage               *persistedmap.PersistedMap
+	syncer                *replication.BinlogSyncer
+	position              streaming.Position
+	includedTablesAdapter map[string]*maputil.MostRecentMap[adapter.Table]
 }
 
 func (s Streaming) shouldProcessTable(tableName string) bool {
-	_, isOk := s.includedTablesToMostRecentSchema[tableName]
+	_, isOk := s.includedTablesAdapter[tableName]
 	return isOk
 }
 
@@ -62,12 +62,12 @@ func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
 		streamer.position = pos
 	}
 
-	includedTablesToMostRecentSchema, err := streaming.BuildSchemaHistory(cfg)
+	includedTablesAdapter, err := streaming.BuildTablesAdapter(cfg)
 	if err != nil {
 		return Streaming{}, fmt.Errorf("failed to build schema history: %w", err)
 	}
 
-	streamer.includedTablesToMostRecentSchema = includedTablesToMostRecentSchema
+	streamer.includedTablesAdapter = includedTablesAdapter
 	return streamer, nil
 }
 
