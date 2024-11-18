@@ -59,3 +59,10 @@ func (m *MostRecentMap[T]) AddItem(ts int64, item T) {
 		m.Items = append(m.Items[:idx], append([]ItemWrapper[T]{{ts, item}}, m.Items[idx:]...)...)
 	}
 }
+
+func (m *MostRecentMap[T]) GetItems() []ItemWrapper[T] {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	return m.Items
+}

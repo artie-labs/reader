@@ -62,6 +62,7 @@ func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
 		streamer.position = pos
 	}
 
+	// TODO: Iterate over the schema history file and add tables to [MostRecentMap]
 	includedTablesAdapter, err := streaming.BuildTablesAdapter(cfg)
 	if err != nil {
 		return Streaming{}, fmt.Errorf("failed to build schema history: %w", err)
