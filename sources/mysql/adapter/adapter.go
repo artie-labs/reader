@@ -3,6 +3,7 @@ package adapter
 import (
 	"database/sql"
 	"fmt"
+	"github.com/artie-labs/reader/lib/rdbms/column"
 	"log/slog"
 
 	"github.com/artie-labs/reader/config"
@@ -11,81 +12,95 @@ import (
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/mysql/scanner"
 	"github.com/artie-labs/reader/lib/mysql/schema"
-	"github.com/artie-labs/reader/lib/rdbms/column"
 	"github.com/artie-labs/reader/lib/rdbms/scan"
 )
 
 const defaultErrorRetries = 10
 
-type MySQLAdapter struct {
-	db              *sql.DB
-	dbName          string
+type Table struct {
 	table           mysql.Table
 	columns         []schema.Column
 	fieldConverters []transformer.FieldConverter
-	scannerCfg      scan.ScannerConfig
+}
+
+type MySQLAdapter struct {
+	db           *sql.DB
+	dbName       string
+	scannerCfg   scan.ScannerConfig
+	tableAdapter Table
 }
 
 func NewMySQLAdapter(db *sql.DB, dbName string, tableCfg config.MySQLTable) (MySQLAdapter, error) {
-	slog.Info("Loading metadata for table")
+	slog.Info("Loading metadata for table", slog.String("name", tableCfg.Name))
 	table, err := mysql.LoadTable(db, tableCfg.Name)
 	if err != nil {
 		return MySQLAdapter{}, fmt.Errorf("failed to load metadata for table %q: %w", tableCfg.Name, err)
 	}
 
+	tableAdapter, err := BuildTableAdapter(tableCfg, *table)
+	if err != nil {
+		return MySQLAdapter{}, fmt.Errorf("failed to build table: %w", err)
+	}
+
+	return newMySQLAdapter(db, dbName, tableAdapter, tableCfg.ToScannerConfig(defaultErrorRetries))
+}
+
+func BuildTableAdapter(tableCfg config.MySQLTable, table mysql.Table) (Table, error) {
 	// Exclude columns (if any) from the table metadata
 	columns, err := column.FilterOutExcludedColumns(table.Columns, tableCfg.ExcludeColumns, table.PrimaryKeys)
 	if err != nil {
-		return MySQLAdapter{}, err
+		return Table{}, err
 	}
 
 	// Include columns (if any) from the table metadata
 	columns, err = column.FilterForIncludedColumns(columns, tableCfg.IncludeColumns, table.PrimaryKeys)
 	if err != nil {
-		return MySQLAdapter{}, err
+		return Table{}, err
 	}
 
-	return newMySQLAdapter(db, dbName, *table, columns, tableCfg.ToScannerConfig(defaultErrorRetries))
-}
-
-func newMySQLAdapter(db *sql.DB, dbName string, table mysql.Table, columns []schema.Column, scannerCfg scan.ScannerConfig) (MySQLAdapter, error) {
 	fieldConverters := make([]transformer.FieldConverter, len(columns))
 	for i, col := range columns {
 		converter, err := valueConverterForType(col.Type, col.Opts)
 		if err != nil {
-			return MySQLAdapter{}, fmt.Errorf("failed to build value converter for column %q: %w", col.Name, err)
+			return Table{}, fmt.Errorf("failed to build value converter for column %q: %w", col.Name, err)
 		}
 		fieldConverters[i] = transformer.FieldConverter{Name: col.Name, ValueConverter: converter}
 	}
 
-	return MySQLAdapter{
-		db:              db,
-		dbName:          dbName,
+	return Table{
 		table:           table,
 		columns:         columns,
 		fieldConverters: fieldConverters,
-		scannerCfg:      scannerCfg,
+	}, nil
+}
+
+func newMySQLAdapter(db *sql.DB, dbName string, table Table, scannerCfg scan.ScannerConfig) (MySQLAdapter, error) {
+	return MySQLAdapter{
+		db:           db,
+		dbName:       dbName,
+		scannerCfg:   scannerCfg,
+		tableAdapter: table,
 	}, nil
 }
 
 func (m MySQLAdapter) TableName() string {
-	return m.table.Name
+	return m.tableAdapter.table.Name
 }
 
 func (m MySQLAdapter) TopicSuffix() string {
-	return fmt.Sprintf("%s.%s", m.dbName, m.table.Name)
+	return fmt.Sprintf("%s.%s", m.dbName, m.tableAdapter.table.Name)
 }
 
 func (m MySQLAdapter) FieldConverters() []transformer.FieldConverter {
-	return m.fieldConverters
+	return m.tableAdapter.fieldConverters
 }
 
 func (m MySQLAdapter) NewIterator() (transformer.RowsIterator, error) {
-	return scanner.NewScanner(m.db, m.table, m.columns, m.scannerCfg)
+	return scanner.NewScanner(m.db, m.tableAdapter.table, m.tableAdapter.columns, m.scannerCfg)
 }
 
 func (m MySQLAdapter) PartitionKeys() []string {
-	return m.table.PrimaryKeys
+	return m.tableAdapter.table.PrimaryKeys
 }
 
 func valueConverterForType(d schema.DataType, opts *schema.Opts) (converters.ValueConverter, error) {
