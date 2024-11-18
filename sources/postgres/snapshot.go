@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/artie-labs/transfer/lib/typing"
 	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/artie-labs/reader/config"
@@ -48,7 +49,7 @@ func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
 			return fmt.Errorf("failed to create PostgreSQL adapter: %w", err)
 		}
 
-		dbzTransformer, err := transformer.NewDebeziumTransformer(dbzAdapter)
+		dbzIter, err := transformer.NewDebeziumIterator(dbzAdapter)
 		if err != nil {
 			if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
 				logger.Info("Table does not contain any rows, skipping...")
@@ -59,7 +60,7 @@ func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
 		}
 
 		logger.Info("Scanning table...", slog.Any("batchSize", tableCfg.GetBatchSize()))
-		count, err := writer.Write(ctx, dbzTransformer)
+		count, err := writer.Write(ctx, typing.ToPtr(dbzIter))
 		if err != nil {
 			return fmt.Errorf("failed to snapshot table %q: %w", tableCfg.Name, err)
 		}
