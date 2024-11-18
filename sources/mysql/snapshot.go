@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/artie-labs/transfer/lib/typing"
 	"log/slog"
 	"time"
 
@@ -44,7 +45,7 @@ func (s Snapshot) snapshotTable(ctx context.Context, writer writers.Writer, tabl
 		return fmt.Errorf("failed to create MySQL adapter: %w", err)
 	}
 
-	dbzTransformer, err := transformer.NewDebeziumTransformer(adapter)
+	dbzIterator, err := transformer.NewDebeziumIterator(adapter)
 	if err != nil {
 		if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
 			logger.Info("Table does not contain any rows, skipping...")
@@ -55,7 +56,7 @@ func (s Snapshot) snapshotTable(ctx context.Context, writer writers.Writer, tabl
 	}
 
 	logger.Info("Scanning table...", slog.Any("batchSize", tableCfg.GetBatchSize()))
-	count, err := writer.Write(ctx, dbzTransformer)
+	count, err := writer.Write(ctx, typing.ToPtr(dbzIterator))
 	if err != nil {
 		return fmt.Errorf("failed to snapshot table %q: %w", tableCfg.Name, err)
 	}

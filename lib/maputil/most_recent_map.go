@@ -6,13 +6,13 @@ import (
 )
 
 type ItemWrapper[T any] struct {
-	ts   int64
-	Item T
+	ts   int64 `yaml:"ts"`
+	Item T     `yaml:"item"`
 }
 
 type MostRecentMap[T any] struct {
 	mu    sync.Mutex
-	Items []ItemWrapper[T]
+	Items []ItemWrapper[T] `yaml:"items"`
 }
 
 func NewMostRecentMap[T any]() *MostRecentMap[T] {
