@@ -3,15 +3,17 @@ package streaming
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"time"
+	
+	"github.com/artie-labs/transfer/lib/typing"
+	"github.com/go-mysql-org/go-mysql/replication"
+
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/maputil"
 	"github.com/artie-labs/reader/lib/storage/persistedmap"
 	"github.com/artie-labs/reader/sources/mysql/adapter"
-	"github.com/artie-labs/transfer/lib/typing"
-	"github.com/go-mysql-org/go-mysql/replication"
-	"log/slog"
-	"time"
 )
 
 const offsetKey = "offset"

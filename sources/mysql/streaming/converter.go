@@ -2,8 +2,9 @@ package streaming
 
 import (
 	"fmt"
-	"github.com/go-mysql-org/go-mysql/replication"
 	"time"
+
+	"github.com/go-mysql-org/go-mysql/replication"
 )
 
 func convertHeaderToOperation(evtType replication.EventType) (string, error) {
