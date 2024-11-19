@@ -14,6 +14,6 @@ func convertHeaderToOperation(evtType replication.EventType) (string, error) {
 	case replication.DELETE_ROWS_EVENTv2:
 		return "d", nil
 	default:
-		return "", fmt.Errorf("unexpected event type: %T", evtType)
+		return "", fmt.Errorf("unexpected event type %T", evtType)
 	}
 }
