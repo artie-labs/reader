@@ -1,6 +1,7 @@
 package kafkalib
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -32,10 +33,7 @@ func newWriter(ctx context.Context, cfg config.Kafka) (*kafka.Writer, error) {
 		Compression:            kafka.Gzip,
 		Transport:              transport,
 		WriteTimeout:           5 * time.Second,
-	}
-
-	if cfg.MaxRequestSize > 0 {
-		writer.BatchBytes = int64(cfg.MaxRequestSize)
+		BatchBytes:             cmp.Or(int64(cfg.MaxRequestSize), 1048576),
 	}
 
 	return writer, nil
