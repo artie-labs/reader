@@ -96,7 +96,6 @@ func (s Streaming) Run(ctx context.Context, writer writers.Writer) error {
 			replication.WRITE_ROWS_EVENTv2,
 			replication.UPDATE_ROWS_EVENTv2,
 			replication.DELETE_ROWS_EVENTv2:
-
 			rowsEvent, ok := event.Event.(*replication.RowsEvent)
 			if !ok {
 				return fmt.Errorf("unable to cast event to replication.RowsEvent")
