@@ -32,6 +32,10 @@ type MySQL struct {
 	StreamingSettings MySQLStreamingSettings `yaml:"streamingSettings,omitempty"`
 }
 
+func (m MySQL) GetStreamingBatchSize() int32 {
+	return cmp.Or(m.StreamingSettings.BatchSize, constants.DefaultBatchSize)
+}
+
 func (m *MySQL) ToDSN() string {
 	config := mysql.NewConfig()
 	config.User = m.Username

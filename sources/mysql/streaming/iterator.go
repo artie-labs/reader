@@ -1,7 +1,6 @@
 package streaming
 
 import (
-	"cmp"
 	"context"
 	"fmt"
 	"github.com/artie-labs/reader/config"
@@ -139,7 +138,7 @@ func BuildStreamingIterator(cfg config.MySQL) (*Iterator, error) {
 	}
 
 	return &Iterator{
-		batchSize:             cmp.Or(cfg.StreamingSettings.BatchSize, int32(5_000)),
+		batchSize:             cfg.GetStreamingBatchSize(),
 		position:              pos,
 		streamer:              streamer,
 		includedTablesAdapter: includedTablesAdapter,
