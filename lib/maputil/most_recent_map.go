@@ -1,8 +1,8 @@
 package maputil
 
 import (
+	"cmp"
 	"slices"
-	"sort"
 	"sync"
 )
 
@@ -29,9 +29,13 @@ func (m *MostRecentMap[T]) GetItem(ts int64) (T, bool) {
 		return zero, false
 	}
 
-	idx := sort.Search(len(m.Items), func(i int) bool {
-		return m.Items[i].ts > ts
+	idx, found := slices.BinarySearchFunc(m.Items, ItemWrapper[T]{ts: ts}, func(a, b ItemWrapper[T]) int {
+		return cmp.Compare(a.ts, b.ts)
 	})
+
+	if found {
+		return m.Items[idx].Item, true
+	}
 
 	if idx == 0 {
 		var zero T
@@ -51,13 +55,7 @@ func (m *MostRecentMap[T]) AddItem(ts int64, item T) {
 	}
 
 	idx, found := slices.BinarySearchFunc(m.Items, ItemWrapper[T]{ts: ts}, func(a, b ItemWrapper[T]) int {
-		if a.ts < b.ts {
-			return -1
-		}
-		if a.ts > b.ts {
-			return 1
-		}
-		return 0
+		return cmp.Compare(a.ts, b.ts)
 	})
 
 	if !found {
