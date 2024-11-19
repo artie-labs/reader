@@ -3,6 +3,7 @@ package streaming
 import (
 	"fmt"
 	"github.com/go-mysql-org/go-mysql/replication"
+	"time"
 )
 
 func convertHeaderToOperation(evtType replication.EventType) (string, error) {
@@ -16,4 +17,8 @@ func convertHeaderToOperation(evtType replication.EventType) (string, error) {
 	default:
 		return "", fmt.Errorf("unexpected event type %T", evtType)
 	}
+}
+
+func getTimeFromEvent(evt *replication.BinlogEvent) time.Time {
+	return time.Unix(int64(evt.Header.Timestamp), 0)
 }
