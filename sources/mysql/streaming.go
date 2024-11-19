@@ -25,8 +25,8 @@ type Streaming struct {
 	includedTablesAdapter map[string]*maputil.MostRecentMap[adapter.Table]
 }
 
-func (s Streaming) shouldProcessTable(tableName string) bool {
-	_, isOk := s.includedTablesAdapter[tableName]
+func (s Streaming) shouldProcessTable(tableName []byte) bool {
+	_, isOk := s.includedTablesAdapter[string(tableName)]
 	return isOk
 }
 
@@ -73,10 +73,42 @@ func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
 }
 
 func (s Streaming) Run(ctx context.Context, writer writers.Writer) error {
-	_, err := s.syncer.StartSync(s.position.ToMySQLPosition())
+	streamer, err := s.syncer.StartSync(s.position.ToMySQLPosition())
 	if err != nil {
 		return err
 	}
+	for {
+		event, err := streamer.GetEvent(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get binlog event: %w", err)
+		}
 
-	return nil
+		switch event.Header.EventType {
+		case replication.QUERY_EVENT:
+			query, err := typing.AssertType[*replication.QueryEvent](event.Event)
+			if err != nil {
+				return err
+			}
+
+			//  TODO: Process the DDL event
+			fmt.Println("query", query)
+		case
+			replication.WRITE_ROWS_EVENTv2,
+			replication.UPDATE_ROWS_EVENTv2,
+			replication.DELETE_ROWS_EVENTv2:
+
+			rowsEvent, ok := event.Event.(*replication.RowsEvent)
+			if !ok {
+				return fmt.Errorf("unable to cast event to replication.RowsEvent")
+			}
+
+			if !s.shouldProcessTable(rowsEvent.Table.Table) {
+				continue
+			}
+
+			// TODO: Process the event
+		default:
+			slog.Info("Skipping event", slog.Any("event", event.Header.EventType))
+		}
+	}
 }
