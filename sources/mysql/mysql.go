@@ -20,7 +20,7 @@ func Load(cfg config.MySQL) (sources.Source, bool, error) {
 			return nil, false, fmt.Errorf("failed to build streaming config: %w", err)
 		}
 
-		return stream, true, nil
+		return &stream, true, nil
 	}
 
 	return &Snapshot{cfg: cfg, db: db}, false, nil
