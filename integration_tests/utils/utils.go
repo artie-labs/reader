@@ -28,14 +28,14 @@ func CreateTemporaryTable(db *sql.DB, query string) (string, func()) {
 }
 
 func ReadTable(dbzAdapter transformer.Adapter) ([]lib.RawMessage, error) {
-	dbzIterator, err := transformer.NewDebeziumIterator(dbzAdapter)
+	dbzTransformer, err := transformer.NewDebeziumTransformer(dbzAdapter)
 	if err != nil {
 		return nil, err
 	}
 
 	var rows []lib.RawMessage
-	for dbzIterator.HasNext() {
-		batch, err := dbzIterator.Next()
+	for dbzTransformer.HasNext() {
+		batch, err := dbzTransformer.Next()
 		if err != nil {
 			return nil, err
 		}
