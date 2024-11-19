@@ -18,7 +18,8 @@ type MySQLStreamingSettings struct {
 	OffsetFile        string `yaml:"offsetFile,omitempty"`
 	SchemaHistoryFile string `yaml:"schemaHistoryFile,omitempty"`
 	// ServerID - Unique ID in the cluster.
-	ServerID uint32 `yaml:"serverID,omitempty"`
+	ServerID  uint32 `yaml:"serverID,omitempty"`
+	BatchSize int32  `yaml:"batchSize,omitempty"`
 }
 
 type MySQL struct {
