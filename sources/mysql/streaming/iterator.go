@@ -46,26 +46,25 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 
 			// Update the position
 			i.position.Pos = event.Header.LogPos
-
 			switch event.Header.EventType {
 			case replication.ROTATE_EVENT:
 				rotate, err := typing.AssertType[*replication.RotateEvent](event.Event)
 				if err != nil {
-					return nil, fmt.Errorf("failed to assert rotate event: %w", err)
+					return nil, fmt.Errorf("failed to assert a rotate event: %w", err)
 				}
 				i.position = Position{File: string(rotate.NextLogName)}
 			case replication.QUERY_EVENT:
 				query, err := typing.AssertType[*replication.QueryEvent](event.Event)
 				if err != nil {
-					return nil, fmt.Errorf("failed to assert query event: %w", err)
+					return nil, fmt.Errorf("failed to assert a query event: %w", err)
 				}
 
 				fmt.Println("query", query)
 				// TODO: Process the DDL event
 			case replication.WRITE_ROWS_EVENTv2, replication.UPDATE_ROWS_EVENTv2, replication.DELETE_ROWS_EVENTv2:
-				rowsEvent, ok := event.Event.(*replication.RowsEvent)
-				if !ok {
-					return nil, fmt.Errorf("unable to cast event to replication.RowsEvent")
+				rowsEvent, err := typing.AssertType[*replication.RowsEvent](event.Event)
+				if err != nil {
+					return nil, fmt.Errorf("failed to assert a rows event: %w", err)
 				}
 
 				if !i.shouldProcessTable(rowsEvent.Table.Table) {
