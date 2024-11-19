@@ -19,9 +19,7 @@ func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
 		return Streaming{}, err
 	}
 
-	return Streaming{
-		iterator: iter,
-	}, nil
+	return Streaming{iterator: iter}, nil
 }
 
 func (s Streaming) Run(ctx context.Context, writer writers.Writer) error {
