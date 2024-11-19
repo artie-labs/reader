@@ -14,10 +14,12 @@ import (
 )
 
 type MySQLStreamingSettings struct {
-	Enabled    bool   `yaml:"enabled,omitempty"`
-	OffsetFile string `yaml:"offsetFile,omitempty"`
+	Enabled           bool   `yaml:"enabled,omitempty"`
+	OffsetFile        string `yaml:"offsetFile,omitempty"`
+	SchemaHistoryFile string `yaml:"schemaHistoryFile,omitempty"`
 	// ServerID - Unique ID in the cluster.
-	ServerID uint32 `yaml:"serverID,omitempty"`
+	ServerID  uint32 `yaml:"serverID,omitempty"`
+	BatchSize int32  `yaml:"batchSize,omitempty"`
 }
 
 type MySQL struct {
@@ -28,6 +30,10 @@ type MySQL struct {
 	Database          string                 `yaml:"database"`
 	Tables            []*MySQLTable          `yaml:"tables"`
 	StreamingSettings MySQLStreamingSettings `yaml:"streamingSettings,omitempty"`
+}
+
+func (m MySQL) GetStreamingBatchSize() int32 {
+	return cmp.Or(m.StreamingSettings.BatchSize, constants.DefaultBatchSize)
 }
 
 func (m *MySQL) ToDSN() string {
