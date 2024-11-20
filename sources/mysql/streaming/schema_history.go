@@ -38,7 +38,7 @@ func BuildTablesAdapter(cfg config.MySQL) (map[string]*maputil.MostRecentMap[ada
 		}
 
 		val := maputil.NewMostRecentMap[adapter.Table]()
-		val.AddItem(0, tableAdapter)
+		val.AddItem(time.Now().UnixMilli(), tableAdapter)
 		retMap[tableCfg.Name] = val
 
 		slog.Info("Loaded table",
