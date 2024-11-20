@@ -46,6 +46,9 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 				return nil, fmt.Errorf("failed to get binlog event: %w", err)
 			}
 
+			ts := getTimeFromEvent(event)
+			fmt.Println("ts", ts)
+
 			// Update the position
 			i.position.Pos = event.Header.LogPos
 			switch event.Header.EventType {
