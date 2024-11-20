@@ -12,21 +12,21 @@ import (
 	"github.com/artie-labs/reader/lib/logger"
 )
 
-type PersistedMap struct {
+type PersistedMap[T any] struct {
 	filePath    string
 	shouldSave  bool
 	mu          sync.RWMutex
-	data        map[string]any
+	data        map[string]T
 	flushTicker *time.Ticker
 }
 
-func NewPersistedMap(filePath string) *PersistedMap {
-	persistedMap := &PersistedMap{
+func NewPersistedMap[T any](filePath string) *PersistedMap[T] {
+	persistedMap := &PersistedMap[T]{
 		filePath: filePath,
-		data:     make(map[string]any),
+		data:     make(map[string]T),
 	}
 
-	data, err := loadFromFile(filePath)
+	data, err := loadFromFile[T](filePath)
 	if err != nil {
 		logger.Panic("Failed to load persisted map from filepath", slog.Any("err", err))
 	}
@@ -41,7 +41,7 @@ func NewPersistedMap(filePath string) *PersistedMap {
 	return persistedMap
 }
 
-func (p *PersistedMap) Set(key string, value any) {
+func (p *PersistedMap[T]) Set(key string, value T) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -49,7 +49,7 @@ func (p *PersistedMap) Set(key string, value any) {
 	p.shouldSave = true
 }
 
-func (p *PersistedMap) Get(key string) (any, bool) {
+func (p *PersistedMap[T]) Get(key string) (T, bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
@@ -57,7 +57,7 @@ func (p *PersistedMap) Get(key string) (any, bool) {
 	return value, isOk
 }
 
-func (p *PersistedMap) flushRoutine() {
+func (p *PersistedMap[T]) flushRoutine() {
 	for range p.flushTicker.C {
 		if err := p.flush(); err != nil {
 			logger.Panic("Failed to flush data", slog.Any("err", err))
@@ -65,7 +65,7 @@ func (p *PersistedMap) flushRoutine() {
 	}
 }
 
-func (p *PersistedMap) flush() error {
+func (p *PersistedMap[T]) flush() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -93,7 +93,7 @@ func (p *PersistedMap) flush() error {
 	return nil
 }
 
-func loadFromFile(filePath string) (map[string]any, error) {
+func loadFromFile[T any](filePath string) (map[string]T, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -109,7 +109,7 @@ func loadFromFile(filePath string) (map[string]any, error) {
 		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
 
-	var data map[string]any
+	var data map[string]T
 	if err = yaml.Unmarshal(readBytes, &data); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal data: %w", err)
 	}

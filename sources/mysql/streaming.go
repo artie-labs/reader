@@ -4,7 +4,6 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/go-mysql-org/go-mysql/replication"
 
 	"github.com/artie-labs/reader/config"
@@ -16,7 +15,7 @@ import (
 const offsetKey = "offset"
 
 type Streaming struct {
-	storage           *persistedmap.PersistedMap
+	offsets           *persistedmap.PersistedMap[streaming.Position]
 	syncer            *replication.BinlogSyncer
 	position          streaming.Position
 	includedTablesMap map[string]bool
@@ -39,7 +38,7 @@ func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
 	}
 
 	streamer := Streaming{
-		storage: persistedmap.NewPersistedMap(cfg.StreamingSettings.OffsetFile),
+		offsets: persistedmap.NewPersistedMap[streaming.Position](cfg.StreamingSettings.OffsetFile),
 		syncer: replication.NewBinlogSyncer(
 			replication.BinlogSyncerConfig{
 				ServerID: cfg.StreamingSettings.ServerID,
@@ -53,15 +52,10 @@ func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
 		includedTablesMap: includedTablesMap,
 	}
 
-	value, isOk := streamer.storage.Get(offsetKey)
+	position, isOk := streamer.offsets.Get(offsetKey)
 	if isOk {
-		pos, err := typing.AssertType[streaming.Position](value)
-		if err != nil {
-			return Streaming{}, err
-		}
-
-		slog.Info("Loaded offsets", slog.String("offset", pos.String()))
-		streamer.position = pos
+		slog.Info("Loaded offsets", slog.String("offset", position.String()))
+		streamer.position = position
 	}
 
 	return streamer, nil
