@@ -2,6 +2,7 @@ package streaming
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"log/slog"
@@ -31,7 +32,7 @@ type Iterator struct {
 }
 
 func (i *Iterator) Next() ([]lib.RawMessage, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	var rawMsgs []lib.RawMessage
@@ -43,6 +44,10 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 		default:
 			event, err := i.streamer.GetEvent(ctx)
 			if err != nil {
+				if errors.Is(err, context.DeadlineExceeded) {
+					return rawMsgs, nil
+				}
+
 				return nil, fmt.Errorf("failed to get binlog event: %w", err)
 			}
 
@@ -65,7 +70,8 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 					return nil, fmt.Errorf("failed to assert a query event: %w", err)
 				}
 
-				fmt.Println("query", query)
+				// TODO: Ensure DDL status
+				fmt.Println("query", string(query.Query), "errorCode", query.ErrorCode)
 				// TODO: Process the DDL event
 			case replication.WRITE_ROWS_EVENTv2, replication.UPDATE_ROWS_EVENTv2, replication.DELETE_ROWS_EVENTv2:
 				rowsEvent, err := typing.AssertType[*replication.RowsEvent](event.Event)
@@ -128,6 +134,8 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 					}
 
 					rawMsgs = append(rawMsgs, lib.NewRawMessage(tableAdapter.TopicSuffix(), pk, &dbzMessage))
+
+					fmt.Println("rawMsgs", rawMsgs)
 				}
 			default:
 				slog.Info("Skipping event", slog.Any("event", event.Header.EventType))

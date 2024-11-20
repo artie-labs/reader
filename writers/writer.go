@@ -31,6 +31,8 @@ func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMess
 	for iter.HasNext() {
 		iterStart := time.Now()
 		msgs, err := iter.Next()
+
+		fmt.Println("msgs", msgs, "err", err)
 		if err != nil {
 			return 0, fmt.Errorf("failed to iterate over messages: %w", err)
 		} else if len(msgs) > 0 {
