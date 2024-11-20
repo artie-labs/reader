@@ -26,7 +26,7 @@ type streaming struct {
 	changeStream          *mongo.ChangeStream
 	ctx                   context.Context
 	collectionsToWatchMap map[string]config.Collection
-	offsets               *persistedmap.PersistedMap[any]
+	offsets               *persistedmap.PersistedMap[string]
 	batchSize             int32
 }
 
@@ -55,14 +55,9 @@ func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.Mo
 		opts = opts.SetFullDocumentBeforeChange(options.WhenAvailable)
 	}
 
-	storage := persistedmap.NewPersistedMap[any](filePath)
+	storage := persistedmap.NewPersistedMap[string](filePath)
 	if encodedResumeToken, exists := storage.Get(offsetKey); exists {
-		castedEncodedResumeToken, isOk := encodedResumeToken.(string)
-		if !isOk {
-			return nil, fmt.Errorf("expected resume token to be string, got: %T", encodedResumeToken)
-		}
-
-		decodedBytes, err := base64.StdEncoding.DecodeString(castedEncodedResumeToken)
+		decodedBytes, err := base64.StdEncoding.DecodeString(encodedResumeToken)
 		if err != nil {
 			return nil, fmt.Errorf("failed to decode resume token: %w", err)
 		}

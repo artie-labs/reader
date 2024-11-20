@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"context"
+
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/iterator"
