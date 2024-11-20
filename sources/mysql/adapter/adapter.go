@@ -23,6 +23,19 @@ type Table struct {
 	fieldConverters []transformer.FieldConverter `yaml:"-"`
 }
 
+func (t Table) GetFieldConverters() ([]transformer.FieldConverter, error) {
+	fieldConverters := make([]transformer.FieldConverter, len(t.columns))
+	for i, col := range t.columns {
+		converter, err := valueConverterForType(col.Type, col.Opts)
+		if err != nil {
+			return nil, fmt.Errorf("failed to build value converter for column %q: %w", col.Name, err)
+		}
+		fieldConverters[i] = transformer.FieldConverter{Name: col.Name, ValueConverter: converter}
+	}
+
+	return fieldConverters, nil
+}
+
 type MySQLAdapter struct {
 	db           *sql.DB
 	dbName       string

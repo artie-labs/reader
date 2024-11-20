@@ -3,6 +3,7 @@ package streaming
 import (
 	"context"
 	"fmt"
+	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"log/slog"
 	"time"
 
@@ -30,7 +31,6 @@ type Iterator struct {
 }
 
 func (i *Iterator) Next() ([]lib.RawMessage, error) {
-	fmt.Println("next here")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -57,6 +57,7 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 				if err != nil {
 					return nil, fmt.Errorf("failed to assert a rotate event: %w", err)
 				}
+
 				i.position = Position{File: string(rotate.NextLogName)}
 			case replication.QUERY_EVENT:
 				query, err := typing.AssertType[*replication.QueryEvent](event.Event)
@@ -72,9 +73,24 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 					return nil, fmt.Errorf("failed to assert a rows event: %w", err)
 				}
 
-				if !i.shouldProcessTable(rowsEvent.Table.Table) {
+				mrm, isOk := i.shouldProcessTable(rowsEvent.Table.Table)
+				if !isOk {
 					continue
 				}
+
+				tableAdapter, isOk := mrm.GetItem(ts.UnixMilli())
+				if !isOk {
+					return nil, fmt.Errorf("failed to get table adapter %q for timestamp %d", string(rowsEvent.Table.Table), ts.UnixMilli())
+				}
+
+				fieldConverters, err := tableAdapter.GetFieldConverters()
+				if err != nil {
+					return nil, fmt.Errorf("failed to get field converters: %w", err)
+				}
+
+				dbz := transformer.NewLightDebeziumTransformer(string(rowsEvent.Table.Table), fieldConverters)
+
+				fmt.Println("dbz things", dbz)
 
 				// TODO: Process the event and convert it to lib.RawMessage
 				// rawMessage := processRowsEvent(rowsEvent)
@@ -92,9 +108,9 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 
 	return rawMsgs, nil
 }
-func (i *Iterator) shouldProcessTable(tableName []byte) bool {
-	_, isOk := i.includedTablesAdapter[string(tableName)]
-	return isOk
+func (i *Iterator) shouldProcessTable(tableName []byte) (*maputil.MostRecentMap[adapter.Table], bool) {
+	mrm, isOk := i.includedTablesAdapter[string(tableName)]
+	return mrm, isOk
 }
 
 func (i *Iterator) HasNext() bool {
