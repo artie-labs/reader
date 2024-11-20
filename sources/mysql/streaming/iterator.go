@@ -121,7 +121,13 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 						return nil, fmt.Errorf("failed to build event payload: %w", err)
 					}
 
-					rawMsgs = append(rawMsgs, lib.NewRawMessage(tableAdapter.TopicSuffix(), nil, &dbzMessage))
+					// TODO: Check afterRow exists for a deleted row.
+					pk, err := dbz.BuildPartitionKey(afterRow)
+					if err != nil {
+						return nil, fmt.Errorf("failed to build partition key: %w", err)
+					}
+
+					rawMsgs = append(rawMsgs, lib.NewRawMessage(tableAdapter.TopicSuffix(), pk, &dbzMessage))
 				}
 			default:
 				slog.Info("Skipping event", slog.Any("event", event.Header.EventType))
