@@ -22,13 +22,13 @@ const offsetKey = "offset"
 
 type Iterator struct {
 	batchSize             int32
-	offsets               *persistedmap.PersistedMap
+	offsets               *persistedmap.PersistedMap[Position]
 	streamer              *replication.BinlogStreamer
 	position              Position
 	includedTablesAdapter map[string]*maputil.MostRecentMap[adapter.Table]
 
 	// TODO
-	schemaHistory *persistedmap.PersistedMap
+	schemaHistory *persistedmap.PersistedMap[any]
 }
 
 func (i *Iterator) Next() ([]lib.RawMessage, error) {
@@ -166,7 +166,7 @@ func (i *Iterator) CommitOffset() {
 
 func BuildStreamingIterator(cfg config.MySQL) (*Iterator, error) {
 	var pos Position
-	offsets := persistedmap.NewPersistedMap(cfg.StreamingSettings.OffsetFile)
+	offsets := persistedmap.NewPersistedMap[Position](cfg.StreamingSettings.OffsetFile)
 	value, isOk := offsets.Get(offsetKey)
 	if isOk {
 		_pos, err := typing.AssertType[Position](value)
