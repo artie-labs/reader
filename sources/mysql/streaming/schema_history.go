@@ -6,6 +6,7 @@ import (
 	"github.com/artie-labs/reader/lib/maputil"
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/sources/mysql/adapter"
+	"log/slog"
 	"time"
 )
 
@@ -39,6 +40,11 @@ func BuildTablesAdapter(cfg config.MySQL) (map[string]*maputil.MostRecentMap[ada
 		val := maputil.NewMostRecentMap[adapter.Table]()
 		val.AddItem(time.Now().UnixMilli(), tableAdapter)
 		retMap[tableCfg.Name] = val
+
+		slog.Info("Loaded table",
+			slog.String("name", tableCfg.Name),
+			slog.Int64("timestamp", time.Now().UnixMilli()),
+		)
 	}
 
 	return retMap, nil
