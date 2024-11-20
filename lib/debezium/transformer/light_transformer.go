@@ -10,11 +10,13 @@ import (
 
 type LightDebeziumTransformer struct {
 	tableName       string
-	fields          []debezium.Field
+	partitionKeys   []string
 	valueConverters map[string]converters.ValueConverter
+	// Generated
+	fields []debezium.Field
 }
 
-func NewLightDebeziumTransformer(tableName string, fieldConverters []FieldConverter) *LightDebeziumTransformer {
+func NewLightDebeziumTransformer(tableName string, partitionKeys []string, fieldConverters []FieldConverter) LightDebeziumTransformer {
 	fields := make([]debezium.Field, len(fieldConverters))
 	valueConverters := make(map[string]converters.ValueConverter)
 	for i, fieldConverter := range fieldConverters {
@@ -22,11 +24,16 @@ func NewLightDebeziumTransformer(tableName string, fieldConverters []FieldConver
 		valueConverters[fieldConverter.Name] = fieldConverter.ValueConverter
 	}
 
-	return &LightDebeziumTransformer{
+	return LightDebeziumTransformer{
 		tableName:       tableName,
-		fields:          fields,
+		partitionKeys:   partitionKeys,
 		valueConverters: valueConverters,
+		fields:          fields,
 	}
+}
+
+func (l LightDebeziumTransformer) BuildPartitionKey(row Row) (map[string]any, error) {
+	return convertPartitionKey(l.valueConverters, l.partitionKeys, row)
 }
 
 func (l LightDebeziumTransformer) BuildEventPayload(beforeRow Row, afterRow Row, op string, ts time.Time) (util.SchemaEventPayload, error) {

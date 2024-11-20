@@ -18,9 +18,27 @@ import (
 const defaultErrorRetries = 10
 
 type Table struct {
+	dbName          string                       `yaml:"dbName"`
 	table           mysql.Table                  `yaml:"table"`
 	columns         []schema.Column              `yaml:"columns"`
 	fieldConverters []transformer.FieldConverter `yaml:"-"`
+}
+
+func (t Table) TopicSuffix() string {
+	return fmt.Sprintf("%s.%s", t.dbName, t.table.Name)
+}
+
+func (t Table) GetPrimaryKeys() []string {
+	return t.table.PrimaryKeys
+}
+
+func (t Table) GetTableColumnNames() []string {
+	var colNames []string
+	for _, col := range t.table.Columns {
+		colNames = append(colNames, col.Name)
+	}
+
+	return colNames
 }
 
 func (t Table) GetFieldConverters() ([]transformer.FieldConverter, error) {

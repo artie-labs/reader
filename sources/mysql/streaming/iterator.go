@@ -73,9 +73,19 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 					return nil, fmt.Errorf("failed to assert a rows event: %w", err)
 				}
 
+				operation, err := convertHeaderToOperation(event.Header.EventType)
+				if err != nil {
+					return nil, fmt.Errorf("failed to convert header to operation: %w", err)
+				}
+
 				mrm, isOk := i.shouldProcessTable(rowsEvent.Table.Table)
 				if !isOk {
 					continue
+				}
+
+				beforeAndAfters, err := splitIntoBeforeAndAfter(operation, rowsEvent.Rows)
+				if err != nil {
+					return nil, err
 				}
 
 				tableAdapter, isOk := mrm.GetItem(ts.UnixMilli())
@@ -88,13 +98,31 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 					return nil, fmt.Errorf("failed to get field converters: %w", err)
 				}
 
-				dbz := transformer.NewLightDebeziumTransformer(string(rowsEvent.Table.Table), fieldConverters)
+				dbz := transformer.NewLightDebeziumTransformer(string(rowsEvent.Table.Table), tableAdapter.GetPrimaryKeys(), fieldConverters)
+				for before, after := range beforeAndAfters {
+					var beforeRow map[string]any
+					if len(before) > 0 {
+						beforeRow, err = zipSlicesToMap(tableAdapter.GetTableColumnNames(), before)
+						if err != nil {
+							return nil, fmt.Errorf("failed to convert row to map:%w", err)
+						}
+					}
 
-				fmt.Println("dbz things", dbz)
+					var afterRow map[string]any
+					if len(after) > 0 {
+						afterRow, err = zipSlicesToMap(tableAdapter.GetTableColumnNames(), after)
+						if err != nil {
+							return nil, fmt.Errorf("failed to convert row to map:%w", err)
+						}
+					}
 
-				// TODO: Process the event and convert it to lib.RawMessage
-				// rawMessage := processRowsEvent(rowsEvent)
-				// rawMsgs = append(rawMsgs, rawMessage)
+					dbzMessage, err := dbz.BuildEventPayload(beforeRow, afterRow, operation, ts)
+					if err != nil {
+						return nil, fmt.Errorf("failed to build event payload: %w", err)
+					}
+
+					rawMsgs = append(rawMsgs, lib.NewRawMessage(tableAdapter.TopicSuffix(), nil, &dbzMessage))
+				}
 			default:
 				slog.Info("Skipping event", slog.Any("event", event.Header.EventType))
 			}

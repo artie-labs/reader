@@ -125,6 +125,31 @@ func (d *DebeziumTransformer) createPayload(row Row) (util.SchemaEventPayload, e
 	}, nil
 }
 
+func convertPartitionKey(valueConverters map[string]converters.ValueConverter, partitionKeys []string, row Row) (map[string]any, error) {
+	result := make(map[string]any, len(partitionKeys))
+	for _, key := range partitionKeys {
+		valueConverter, isOk := valueConverters[key]
+		if !isOk {
+			return nil, fmt.Errorf("failed to get ValueConverter for key %q", key)
+		}
+
+		// Key must exist in row
+		value, isOk := row[key]
+		if !isOk {
+			return nil, fmt.Errorf("failed to get partition key value for key %q", key)
+		}
+
+		convertedValue, err := valueConverter.Convert(value)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert partition key value for key %q: %w", key, err)
+		}
+
+		result[key] = convertedValue
+	}
+
+	return result, nil
+}
+
 func convertRow(valueConverters map[string]converters.ValueConverter, row Row) (Row, error) {
 	result := make(map[string]any)
 	for key, value := range row {
