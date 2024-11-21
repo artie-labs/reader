@@ -4,6 +4,7 @@ import (
 	"github.com/go-mysql-org/go-mysql/replication"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func TestConvertHeaderToOperation(t *testing.T) {
@@ -30,5 +31,22 @@ func TestConvertHeaderToOperation(t *testing.T) {
 		// Random
 		_, err := convertHeaderToOperation(replication.UNKNOWN_EVENT)
 		assert.ErrorContains(t, err, "unexpected event type")
+	}
+}
+
+func TestGetTimeFromEvent(t *testing.T) {
+	{
+		// nil event
+		assert.Equal(t, time.Time{}, getTimeFromEvent(nil))
+	}
+	{
+		// Event is set
+		evt := &replication.BinlogEvent{
+			Header: &replication.EventHeader{
+				Timestamp: uint32(time.Now().Unix()),
+			},
+		}
+
+		assert.Equal(t, time.Unix(int64(evt.Header.Timestamp), 0), getTimeFromEvent(evt))
 	}
 }
