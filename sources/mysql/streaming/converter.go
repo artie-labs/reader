@@ -28,6 +28,7 @@ func getTimeFromEvent(evt *replication.BinlogEvent) time.Time {
 	return time.Unix(int64(evt.Header.Timestamp), 0)
 }
 
+// zipSlicesToMap creates a map from two slices, one of keys and one of values.
 func zipSlicesToMap(keys []string, values []any) (map[string]any, error) {
 	if len(values) != len(keys) {
 		return nil, fmt.Errorf("keys length (%d) is different from values length (%d)", len(keys), len(values))
