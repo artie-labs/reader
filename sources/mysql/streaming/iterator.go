@@ -96,7 +96,8 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 
 				tableAdapter, isOk := mrm.GetItem(ts.UnixMilli())
 				if !isOk {
-					return nil, fmt.Errorf("failed to get table adapter %q for timestamp %d", string(rowsEvent.Table.Table), ts.UnixMilli())
+					slog.Info("Skipping event as table adapter not found", slog.Any("timestamp", ts.UnixMilli()))
+					continue
 				}
 
 				fieldConverters, err := tableAdapter.GetFieldConverters()
