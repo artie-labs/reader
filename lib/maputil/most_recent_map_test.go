@@ -71,7 +71,5 @@ func TestMostRecentMap(t *testing.T) {
 			assert.True(t, found)
 			assert.Equal(t, "artie", item)
 		}
-
 	}
-
 }
