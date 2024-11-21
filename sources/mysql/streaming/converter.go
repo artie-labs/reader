@@ -27,3 +27,15 @@ func getTimeFromEvent(evt *replication.BinlogEvent) time.Time {
 	// MySQL binlog only has second precision.
 	return time.Unix(int64(evt.Header.Timestamp), 0)
 }
+
+func zipSlicesToMap(keys []string, values []any) (map[string]any, error) {
+	if len(values) != len(keys) {
+		return nil, fmt.Errorf("keys length (%d) is different from values length (%d)", len(keys), len(values))
+	}
+
+	out := map[string]any{}
+	for i, value := range values {
+		out[keys[i]] = value
+	}
+	return out, nil
+}

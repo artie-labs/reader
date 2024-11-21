@@ -50,3 +50,33 @@ func TestGetTimeFromEvent(t *testing.T) {
 		assert.Equal(t, time.Unix(int64(evt.Header.Timestamp), 0), getTimeFromEvent(evt))
 	}
 }
+
+func TestZipSlicesToMap(t *testing.T) {
+	{
+		// Invalid
+		{
+			// More keys than values
+			_, err := zipSlicesToMap([]string{"a", "b"}, []any{"c"})
+			assert.ErrorContains(t, err, "keys length (2) is different from values length (1)")
+		}
+		{
+			// More values than keys
+			_, err := zipSlicesToMap([]string{"a"}, []any{"c", "d"})
+			assert.ErrorContains(t, err, "keys length (1) is different from values length (2)")
+		}
+	}
+	{
+		// Valid
+		{
+			// Empty
+			out, err := zipSlicesToMap([]string{}, []any{})
+			assert.NoError(t, err)
+			assert.Equal(t, map[string]any{}, out)
+		}
+		{
+			out, err := zipSlicesToMap([]string{"keyA", "keyB"}, []any{"valueA", "valueB"})
+			assert.NoError(t, err)
+			assert.Equal(t, map[string]any{"keyA": "valueA", "keyB": "valueB"}, out)
+		}
+	}
+}
