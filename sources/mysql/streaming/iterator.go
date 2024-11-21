@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"log/slog"
 	"time"
 
@@ -13,6 +12,7 @@ import (
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
+	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/maputil"
 	"github.com/artie-labs/reader/lib/storage/persistedmap"
 	"github.com/artie-labs/reader/sources/mysql/adapter"
