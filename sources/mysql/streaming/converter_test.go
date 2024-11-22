@@ -4,6 +4,7 @@ import (
 	"github.com/go-mysql-org/go-mysql/replication"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func TestConvertHeaderToOperation(t *testing.T) {
@@ -30,5 +31,52 @@ func TestConvertHeaderToOperation(t *testing.T) {
 		// Random
 		_, err := convertHeaderToOperation(replication.UNKNOWN_EVENT)
 		assert.ErrorContains(t, err, "unexpected event type")
+	}
+}
+
+func TestGetTimeFromEvent(t *testing.T) {
+	{
+		// nil event
+		assert.Equal(t, time.Time{}, getTimeFromEvent(nil))
+	}
+	{
+		// Event is set
+		evt := &replication.BinlogEvent{
+			Header: &replication.EventHeader{
+				Timestamp: uint32(time.Now().Unix()),
+			},
+		}
+
+		assert.Equal(t, time.Unix(int64(evt.Header.Timestamp), 0), getTimeFromEvent(evt))
+	}
+}
+
+func TestZipSlicesToMap(t *testing.T) {
+	{
+		// Invalid
+		{
+			// More keys than values
+			_, err := zipSlicesToMap([]string{"a", "b"}, []any{"c"})
+			assert.ErrorContains(t, err, "keys length (2) is different from values length (1)")
+		}
+		{
+			// More values than keys
+			_, err := zipSlicesToMap([]string{"a"}, []any{"c", "d"})
+			assert.ErrorContains(t, err, "keys length (1) is different from values length (2)")
+		}
+	}
+	{
+		// Valid
+		{
+			// Empty
+			out, err := zipSlicesToMap([]string{}, []any{})
+			assert.NoError(t, err)
+			assert.Equal(t, map[string]any{}, out)
+		}
+		{
+			out, err := zipSlicesToMap([]string{"keyA", "keyB"}, []any{"valueA", "valueB"})
+			assert.NoError(t, err)
+			assert.Equal(t, map[string]any{"keyA": "valueA", "keyB": "valueB"}, out)
+		}
 	}
 }
