@@ -23,6 +23,11 @@ func convertHeaderToOperation(evtType replication.EventType) (string, error) {
 }
 
 func getTimeFromEvent(evt *replication.BinlogEvent) time.Time {
+	if evt == nil {
+		return time.Time{}
+	}
+
+	// MySQL binlog only has second precision.
 	return time.Unix(int64(evt.Header.Timestamp), 0)
 }
 
@@ -64,12 +69,13 @@ func splitIntoBeforeAndAfter(operation string, rows [][]any) (iter.Seq2[[]any, [
 	}
 }
 
-func zipSlicesToMap(keys []string, values []any) (map[string]any, error) {
+// zipSlicesToMap creates a map from two slices, one of keys and one of values.
+func zipSlicesToMap[K comparable, V any](keys []K, values []V) (map[K]V, error) {
 	if len(values) != len(keys) {
 		return nil, fmt.Errorf("keys length (%d) is different from values length (%d)", len(keys), len(values))
 	}
 
-	out := map[string]any{}
+	out := map[K]V{}
 	for i, value := range values {
 		out[keys[i]] = value
 	}
