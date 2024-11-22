@@ -29,5 +29,5 @@ func (s Streaming) Run(ctx context.Context, writer writers.Writer) error {
 }
 
 func (s Streaming) Close() error {
-	return nil
+	return s.iterator.Close()
 }

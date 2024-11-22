@@ -19,6 +19,7 @@ func (s SchemaHistoryAdapter) connect() (*sql.DB, error) {
 	return sql.Open("mysql", s.cfg.ToDSN())
 }
 
+// TODO: Figure out when to call BuildTablesAdapter given the binlog event ts.
 func BuildTablesAdapter(cfg config.MySQL) (map[string]*maputil.MostRecentMap[adapter.Table], error) {
 	db, err := sql.Open("mysql", cfg.ToDSN())
 	if err != nil {

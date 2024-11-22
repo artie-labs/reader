@@ -70,6 +70,8 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 					return nil, fmt.Errorf("failed to assert a query event: %w", err)
 				}
 
+				query.ErrorCode
+
 				// TODO: Ensure DDL status
 				fmt.Println("query", string(query.Query), "errorCode", query.ErrorCode)
 				// TODO: Process the DDL event
@@ -163,6 +165,11 @@ func (i *Iterator) HasNext() bool {
 func (i *Iterator) CommitOffset() {
 	slog.Info("Committing offset", slog.String("offset", i.position.String()))
 	i.offsets.Set(offsetKey, i.position)
+}
+
+func (i *Iterator) Close() {
+	// TODO: call i.syncer.Close()
+	i.streamer.
 }
 
 func BuildStreamingIterator(cfg config.MySQL) (*Iterator, error) {
