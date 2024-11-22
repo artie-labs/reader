@@ -161,21 +161,15 @@ func (i *Iterator) HasNext() bool {
 }
 
 func (i *Iterator) CommitOffset() {
+	slog.Info("Committing offset", slog.String("offset", i.position.String()))
 	i.offsets.Set(offsetKey, i.position)
-	slog.Info("Committing offset", slog.Any("position", i.position))
 }
 
 func BuildStreamingIterator(cfg config.MySQL) (*Iterator, error) {
 	var pos Position
 	offsets := persistedmap.NewPersistedMap[Position](cfg.StreamingSettings.OffsetFile)
-	value, isOk := offsets.Get(offsetKey)
-	if isOk {
-		_pos, err := typing.AssertType[Position](value)
-		if err != nil {
-			return nil, err
-		}
-
-		slog.Info("Found offsets", slog.String("offset", pos.String()))
+	if _pos, isOk := offsets.Get(offsetKey); isOk {
+		slog.Info("Found offsets", slog.String("offset", _pos.String()))
 		pos = _pos
 	}
 
