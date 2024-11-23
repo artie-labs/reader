@@ -4,14 +4,12 @@ import (
 	"context"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib"
-	"github.com/artie-labs/reader/lib/iterator"
 	"github.com/artie-labs/reader/sources/mysql/streaming"
 	"github.com/artie-labs/reader/writers"
 )
 
 type Streaming struct {
-	iterator iterator.StreamingIterator[[]lib.RawMessage]
+	iterator *streaming.Iterator
 }
 
 func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {

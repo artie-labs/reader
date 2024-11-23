@@ -23,12 +23,18 @@ const offsetKey = "offset"
 type Iterator struct {
 	batchSize             int32
 	offsets               *persistedmap.PersistedMap[Position]
-	streamer              *replication.BinlogStreamer
 	position              Position
 	includedTablesAdapter map[string]*maputil.MostRecentMap[adapter.Table]
+	streamer              *replication.BinlogStreamer
+	syncer                *replication.BinlogSyncer
 
 	// TODO
 	schemaHistory *persistedmap.PersistedMap[any]
+}
+
+func (i *Iterator) Close() error {
+	i.syncer.Close()
+	return nil
 }
 
 func (i *Iterator) Next() ([]lib.RawMessage, error) {
@@ -39,7 +45,6 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 	for i.batchSize > int32(len(rawMsgs)) {
 		select {
 		case <-ctx.Done():
-			fmt.Println("returning")
 			return rawMsgs, nil
 		default:
 			event, err := i.streamer.GetEvent(ctx)
@@ -70,9 +75,6 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 					return nil, fmt.Errorf("failed to assert a query event: %w", err)
 				}
 
-				query.ErrorCode
-
-				// TODO: Ensure DDL status
 				fmt.Println("query", string(query.Query), "errorCode", query.ErrorCode)
 				// TODO: Process the DDL event
 			case replication.WRITE_ROWS_EVENTv2, replication.UPDATE_ROWS_EVENTv2, replication.DELETE_ROWS_EVENTv2:
@@ -167,11 +169,6 @@ func (i *Iterator) CommitOffset() {
 	i.offsets.Set(offsetKey, i.position)
 }
 
-func (i *Iterator) Close() {
-	// TODO: call i.syncer.Close()
-	i.streamer.
-}
-
 func BuildStreamingIterator(cfg config.MySQL) (*Iterator, error) {
 	var pos Position
 	offsets := persistedmap.NewPersistedMap[Position](cfg.StreamingSettings.OffsetFile)
@@ -204,6 +201,7 @@ func BuildStreamingIterator(cfg config.MySQL) (*Iterator, error) {
 	return &Iterator{
 		batchSize:             cfg.GetStreamingBatchSize(),
 		position:              pos,
+		syncer:                syncer,
 		streamer:              streamer,
 		includedTablesAdapter: includedTablesAdapter,
 		offsets:               offsets,
