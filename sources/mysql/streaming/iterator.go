@@ -162,7 +162,7 @@ func (i *Iterator) HasNext() bool {
 }
 
 func (i *Iterator) CommitOffset() {
-	slog.Info("Committing offset", slog.String("offset", i.position.String()))
+	slog.Info("Committing offset", slog.String("position", i.position.String()))
 	i.offsets.Set(offsetKey, i.position)
 }
 
