@@ -59,8 +59,6 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 			}
 
 			ts := getTimeFromEvent(event)
-
-			// Update position
 			if err = i.position.UpdatePosition(event); err != nil {
 				return nil, fmt.Errorf("failed to update position: %w", err)
 			}
