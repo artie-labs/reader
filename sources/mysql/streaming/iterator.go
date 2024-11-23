@@ -57,9 +57,8 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 			}
 
 			ts := getTimeFromEvent(event)
-			fmt.Println("ts", ts)
 
-			// Update the position
+			// Update position
 			i.position.Pos = event.Header.LogPos
 			switch event.Header.EventType {
 			case replication.ROTATE_EVENT:
@@ -139,8 +138,6 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 					}
 
 					rawMsgs = append(rawMsgs, lib.NewRawMessage(tableAdapter.TopicSuffix(), pk, &dbzMessage))
-
-					fmt.Println("rawMsgs", rawMsgs)
 				}
 			default:
 				slog.Info("Skipping event", slog.Any("event", event.Header.EventType))
