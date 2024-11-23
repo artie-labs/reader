@@ -18,6 +18,22 @@ import (
 
 const offsetKey = "offset"
 
+func (p *Position) UpdatePosition(evt *replication.BinlogEvent) error {
+	// We should always update the log position
+	p.Pos = evt.Header.LogPos
+	if evt.Header.EventType == replication.ROTATE_EVENT {
+		// When we encounter a rotate event, we'll then update the log file
+		rotate, err := typing.AssertType[*replication.RotateEvent](evt.Event)
+		if err != nil {
+			return err
+		}
+
+		p.File = string(rotate.NextLogName)
+	}
+
+	return nil
+}
+
 func (i *Iterator) Close() error {
 	i.syncer.Close()
 	return nil
@@ -45,15 +61,10 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 			ts := getTimeFromEvent(event)
 
 			// Update position
-			i.position.Pos = event.Header.LogPos
+			if err = i.position.UpdatePosition(event); err != nil {
+				return nil, fmt.Errorf("failed to update position: %w", err)
+			}
 			switch event.Header.EventType {
-			case replication.ROTATE_EVENT:
-				rotate, err := typing.AssertType[*replication.RotateEvent](event.Event)
-				if err != nil {
-					return nil, fmt.Errorf("failed to assert a rotate event: %w", err)
-				}
-
-				i.position = Position{File: string(rotate.NextLogName)}
 			case replication.QUERY_EVENT:
 				query, err := typing.AssertType[*replication.QueryEvent](event.Event)
 				if err != nil {
