@@ -2,17 +2,9 @@ package antlr
 
 import (
 	"fmt"
-	"github.com/antlr/antlr4/runtime/Go/antlr"
+	"github.com/antlr4-go/antlr/v4"
 	"github.com/artie-labs/reader/lib/antlr/parser"
 )
-
-type sqlListener struct {
-	*parser.BaseMySqlParserListener
-}
-
-func (l *sqlListener) EnterEveryRule(ctx antlr.ParserRuleContext) {
-	fmt.Println("Entering rule:", ctx.GetText())
-}
 
 func main() {
 	// Sample SQL input
@@ -28,11 +20,10 @@ func main() {
 	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
 
 	// Create a parser instance
-	p := parser.NewMySqlParser(stream)
+	sqlParser := parser.NewMySqlParser(stream)
 
-	// Create a listener
-	listener := &sqlListener{}
+	tree := sqlParser.Root() // Replace `Root` with your grammar's root rule
 
-	// Walk the parse tree
-	antlr.ParseTreeWalkerDefault.Walk(listener, p.Root())
+	// Print the parse tree (or process it as needed)
+	fmt.Println(tree.ToStringTree(nil, sqlParser))
 }
