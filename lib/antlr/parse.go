@@ -1,4 +1,4 @@
-package antlr
+package main
 
 import (
 	"fmt"
