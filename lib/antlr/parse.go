@@ -183,7 +183,9 @@ func (v *SQLVisitor) visitDropTable(ctx *parser.DropTableContext) (Event, error)
 	// Extract table names from the DropTableContext
 	for _, child := range ctx.GetChildren() {
 		if tableCtx, ok := child.(*parser.TablesContext); ok {
-			tableNames = append(tableNames, tableCtx.GetText())
+			for _, tblName := range tableCtx.AllTableName() {
+				tableNames = append(tableNames, tblName.GetText())
+			}
 		}
 	}
 
