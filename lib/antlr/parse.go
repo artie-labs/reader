@@ -4,22 +4,38 @@ import (
 	"fmt"
 	"github.com/antlr4-go/antlr/v4"
 	"github.com/artie-labs/reader/lib/antlr/parser"
+	"strings"
 )
 
+var MySQLUnescapeFunction = func(s string) string {
+	if strings.HasPrefix(s, "`") && strings.HasSuffix(s, "`") {
+		return s[1 : len(s)-1]
+	}
+
+	return s
+}
+
+type UnescapeFunction func(string) string
+
 type Event interface {
-	GetTables() []string
-	GetColumns() []Column
+	GetTables(unescape UnescapeFunction) []string
+	GetColumns(unescape UnescapeFunction) []Column
 }
 
 type DropTableEvent struct {
 	TableNames []string
 }
 
-func (d DropTableEvent) GetTables() []string {
-	return d.TableNames
+func (d DropTableEvent) GetTables(unescape UnescapeFunction) []string {
+	var tables []string
+	for _, table := range d.TableNames {
+		tables = append(tables, unescape(table))
+	}
+
+	return tables
 }
 
-func (d DropTableEvent) GetColumns() []Column {
+func (d DropTableEvent) GetColumns(_ UnescapeFunction) []Column {
 	return nil
 }
 
@@ -33,12 +49,20 @@ type CreateTableEvent struct {
 	Columns   []Column
 }
 
-func (c CreateTableEvent) GetTables() []string {
-	return []string{c.TableName}
+func (c CreateTableEvent) GetTables(unescape UnescapeFunction) []string {
+	return []string{unescape(c.TableName)}
 }
 
-func (c CreateTableEvent) GetColumns() []Column {
-	return c.Columns
+func (c CreateTableEvent) GetColumns(unescape UnescapeFunction) []Column {
+	var cols []Column
+	for _, col := range c.Columns {
+		cols = append(cols, Column{
+			Name:     unescape(col.Name),
+			DataType: col.DataType,
+		})
+	}
+
+	return cols
 }
 
 type DropColumnsEvent struct {
@@ -46,12 +70,17 @@ type DropColumnsEvent struct {
 	Columns   []Column
 }
 
-func (d DropColumnsEvent) GetTables() []string {
-	return []string{d.TableName}
+func (d DropColumnsEvent) GetTables(unescape UnescapeFunction) []string {
+	return []string{unescape(d.TableName)}
 }
 
-func (d DropColumnsEvent) GetColumns() []Column {
-	return d.Columns
+func (d DropColumnsEvent) GetColumns(unescape UnescapeFunction) []Column {
+	var cols []Column
+	for _, col := range d.Columns {
+		cols = append(cols, Column{Name: unescape(col.Name)})
+	}
+
+	return cols
 }
 
 type AddColumnsEvent struct {
@@ -59,17 +88,23 @@ type AddColumnsEvent struct {
 	Columns   []Column
 }
 
-func (a AddColumnsEvent) GetTables() []string {
-	return []string{a.TableName}
+func (a AddColumnsEvent) GetTables(unescape UnescapeFunction) []string {
+	return []string{unescape(a.TableName)}
 }
 
-func (a AddColumnsEvent) GetColumns() []Column {
-	return a.Columns
+func (a AddColumnsEvent) GetColumns(unescape UnescapeFunction) []Column {
+	var cols []Column
+	for _, col := range a.Columns {
+		cols = append(cols, Column{
+			Name:     unescape(col.Name),
+			DataType: col.DataType,
+		})
+	}
+
+	return cols
 }
 
 func Parse(sqlCmd string) ([]Event, error) {
-	// TODO - Take unescape function
-
 	lexer := parser.NewMySqlLexer(antlr.NewInputStream(sqlCmd))
 	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
 
