@@ -6312,6 +6312,16 @@ func (s *RootContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *RootContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRoot(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) Root() (localctx IRootContext) {
 	localctx = NewRootContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 0, MySqlParserRULE_root)
@@ -6548,6 +6558,16 @@ func (s *SqlStatementsContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *SqlStatementsContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSqlStatements(s)
+	}
+}
+
+func (s *SqlStatementsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSqlStatements(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -6910,6 +6930,16 @@ func (s *SqlStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *SqlStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSqlStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) SqlStatement() (localctx ISqlStatementContext) {
 	localctx = NewSqlStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 4, MySqlParserRULE_sqlStatement)
@@ -7053,6 +7083,16 @@ func (s *EmptyStatement_Context) EnterRule(listener antlr.ParseTreeListener) {
 func (s *EmptyStatement_Context) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitEmptyStatement_(s)
+	}
+}
+
+func (s *EmptyStatement_Context) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitEmptyStatement_(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -7793,6 +7833,16 @@ func (s *DdlStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *DdlStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDdlStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) DdlStatement() (localctx IDdlStatementContext) {
 	localctx = NewDdlStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 8, MySqlParserRULE_ddlStatement)
@@ -8372,6 +8422,16 @@ func (s *DmlStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *DmlStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDmlStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) DmlStatement() (localctx IDmlStatementContext) {
 	localctx = NewDmlStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 10, MySqlParserRULE_dmlStatement)
@@ -8705,6 +8765,16 @@ func (s *TransactionStatementContext) EnterRule(listener antlr.ParseTreeListener
 func (s *TransactionStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTransactionStatement(s)
+	}
+}
+
+func (s *TransactionStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTransactionStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -9118,6 +9188,16 @@ func (s *ReplicationStatementContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *ReplicationStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitReplicationStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) ReplicationStatement() (localctx IReplicationStatementContext) {
 	localctx = NewReplicationStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 14, MySqlParserRULE_replicationStatement)
@@ -9363,6 +9443,16 @@ func (s *PreparedStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *PreparedStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitPreparedStatement(s)
+	}
+}
+
+func (s *PreparedStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPreparedStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -9681,6 +9771,16 @@ func (s *CompoundStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *CompoundStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitCompoundStatement(s)
+	}
+}
+
+func (s *CompoundStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCompoundStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -10282,6 +10382,16 @@ func (s *AdministrationStatementContext) ExitRule(listener antlr.ParseTreeListen
 	}
 }
 
+func (s *AdministrationStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAdministrationStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) AdministrationStatement() (localctx IAdministrationStatementContext) {
 	localctx = NewAdministrationStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 20, MySqlParserRULE_administrationStatement)
@@ -10668,6 +10778,16 @@ func (s *UtilityStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *UtilityStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUtilityStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) UtilityStatement() (localctx IUtilityStatementContext) {
 	localctx = NewUtilityStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 22, MySqlParserRULE_utilityStatement)
@@ -10909,6 +11029,16 @@ func (s *CreateDatabaseContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *CreateDatabaseContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitCreateDatabase(s)
+	}
+}
+
+func (s *CreateDatabaseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCreateDatabase(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -11213,6 +11343,16 @@ func (s *CreateEventContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *CreateEventContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitCreateEvent(s)
+	}
+}
+
+func (s *CreateEventContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCreateEvent(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -11753,6 +11893,16 @@ func (s *CreateIndexContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *CreateIndexContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitCreateIndex(s)
+	}
+}
+
+func (s *CreateIndexContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCreateIndex(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -12340,6 +12490,16 @@ func (s *CreateLogfileGroupContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *CreateLogfileGroupContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCreateLogfileGroup(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) CreateLogfileGroup() (localctx ICreateLogfileGroupContext) {
 	localctx = NewCreateLogfileGroupContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 30, MySqlParserRULE_createLogfileGroup)
@@ -12911,6 +13071,16 @@ func (s *CreateProcedureContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *CreateProcedureContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCreateProcedure(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) CreateProcedure() (localctx ICreateProcedureContext) {
 	localctx = NewCreateProcedureContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 32, MySqlParserRULE_createProcedure)
@@ -13349,6 +13519,16 @@ func (s *CreateFunctionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *CreateFunctionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCreateFunction(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) CreateFunction() (localctx ICreateFunctionContext) {
 	localctx = NewCreateFunctionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 34, MySqlParserRULE_createFunction)
@@ -13700,6 +13880,16 @@ func (s *CreateRoleContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *CreateRoleContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCreateRole(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) CreateRole() (localctx ICreateRoleContext) {
 	localctx = NewCreateRoleContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 36, MySqlParserRULE_createRole)
@@ -13973,6 +14163,16 @@ func (s *CreateServerContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *CreateServerContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitCreateServer(s)
+	}
+}
+
+func (s *CreateServerContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCreateServer(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -14284,6 +14484,16 @@ func (s *CopyCreateTableContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *CopyCreateTableContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCopyCreateTable(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type ColumnCreateTableContext struct {
 	CreateTableContext
 }
@@ -14436,6 +14646,16 @@ func (s *ColumnCreateTableContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ColumnCreateTableContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitColumnCreateTable(s)
+	}
+}
+
+func (s *ColumnCreateTableContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitColumnCreateTable(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -14624,6 +14844,16 @@ func (s *QueryCreateTableContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *QueryCreateTableContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitQueryCreateTable(s)
+	}
+}
+
+func (s *QueryCreateTableContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitQueryCreateTable(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -15268,6 +15498,16 @@ func (s *CreateTablespaceInnodbContext) ExitRule(listener antlr.ParseTreeListene
 	}
 }
 
+func (s *CreateTablespaceInnodbContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCreateTablespaceInnodb(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) CreateTablespaceInnodb() (localctx ICreateTablespaceInnodbContext) {
 	localctx = NewCreateTablespaceInnodbContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 42, MySqlParserRULE_createTablespaceInnodb)
@@ -15738,6 +15978,16 @@ func (s *CreateTablespaceNdbContext) EnterRule(listener antlr.ParseTreeListener)
 func (s *CreateTablespaceNdbContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitCreateTablespaceNdb(s)
+	}
+}
+
+func (s *CreateTablespaceNdbContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCreateTablespaceNdb(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -16439,6 +16689,16 @@ func (s *CreateTriggerContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *CreateTriggerContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCreateTrigger(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) CreateTrigger() (localctx ICreateTriggerContext) {
 	localctx = NewCreateTriggerContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 46, MySqlParserRULE_createTrigger)
@@ -16709,6 +16969,16 @@ func (s *WithClauseContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *WithClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitWithClause(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) WithClause() (localctx IWithClauseContext) {
 	localctx = NewWithClauseContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 48, MySqlParserRULE_withClause)
@@ -16949,6 +17219,16 @@ func (s *CommonTableExpressionsContext) ExitRule(listener antlr.ParseTreeListene
 	}
 }
 
+func (s *CommonTableExpressionsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCommonTableExpressions(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) CommonTableExpressions() (localctx ICommonTableExpressionsContext) {
 	localctx = NewCommonTableExpressionsContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 50, MySqlParserRULE_commonTableExpressions)
@@ -17161,6 +17441,16 @@ func (s *CteNameContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *CteNameContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCteName(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) CteName() (localctx ICteNameContext) {
 	localctx = NewCteNameContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 52, MySqlParserRULE_cteName)
@@ -17262,6 +17552,16 @@ func (s *CteColumnNameContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *CteColumnNameContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitCteColumnName(s)
+	}
+}
+
+func (s *CteColumnNameContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCteColumnName(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -17589,6 +17889,16 @@ func (s *CreateViewContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *CreateViewContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitCreateView(s)
+	}
+}
+
+func (s *CreateViewContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCreateView(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -18078,6 +18388,16 @@ func (s *CreateDatabaseOptionContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *CreateDatabaseOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCreateDatabaseOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) CreateDatabaseOption() (localctx ICreateDatabaseOptionContext) {
 	localctx = NewCreateDatabaseOptionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 58, MySqlParserRULE_createDatabaseOption)
@@ -18416,6 +18736,16 @@ func (s *CharSetContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *CharSetContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCharSet(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) CharSet() (localctx ICharSetContext) {
 	localctx = NewCharSetContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 60, MySqlParserRULE_charSet)
@@ -18570,6 +18900,16 @@ func (s *CurrentUserExpressionContext) EnterRule(listener antlr.ParseTreeListene
 func (s *CurrentUserExpressionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitCurrentUserExpression(s)
+	}
+}
+
+func (s *CurrentUserExpressionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCurrentUserExpression(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -18729,6 +19069,16 @@ func (s *OwnerStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *OwnerStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitOwnerStatement(s)
+	}
+}
+
+func (s *OwnerStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitOwnerStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -18933,6 +19283,16 @@ func (s *PreciseScheduleContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *PreciseScheduleContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPreciseSchedule(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type IntervalScheduleContext struct {
 	ScheduleExpressionContext
 	startTimestamp ITimestampValueContext
@@ -19127,6 +19487,16 @@ func (s *IntervalScheduleContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *IntervalScheduleContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitIntervalSchedule(s)
+	}
+}
+
+func (s *IntervalScheduleContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitIntervalSchedule(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -19453,6 +19823,16 @@ func (s *TimestampValueContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *TimestampValueContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTimestampValue(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) TimestampValue() (localctx ITimestampValueContext) {
 	localctx = NewTimestampValueContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 68, MySqlParserRULE_timestampValue)
@@ -19635,6 +20015,16 @@ func (s *IntervalExprContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *IntervalExprContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitIntervalExpr(s)
+	}
+}
+
+func (s *IntervalExprContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitIntervalExpr(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -19837,6 +20227,16 @@ func (s *IntervalTypeContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *IntervalTypeContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitIntervalType(s)
+	}
+}
+
+func (s *IntervalTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitIntervalType(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -20092,6 +20492,16 @@ func (s *EnableTypeContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *EnableTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitEnableType(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) EnableType() (localctx IEnableTypeContext) {
 	localctx = NewEnableTypeContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 74, MySqlParserRULE_enableType)
@@ -20245,6 +20655,16 @@ func (s *IndexTypeContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *IndexTypeContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitIndexType(s)
+	}
+}
+
+func (s *IndexTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitIndexType(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -20450,6 +20870,16 @@ func (s *IndexOptionContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *IndexOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitIndexOption(s)
+	}
+}
+
+func (s *IndexOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitIndexOption(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -20778,6 +21208,16 @@ func (s *ProcedureParameterContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *ProcedureParameterContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitProcedureParameter(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) ProcedureParameter() (localctx IProcedureParameterContext) {
 	localctx = NewProcedureParameterContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 80, MySqlParserRULE_procedureParameter)
@@ -20933,6 +21373,16 @@ func (s *FunctionParameterContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *FunctionParameterContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFunctionParameter(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) FunctionParameter() (localctx IFunctionParameterContext) {
 	localctx = NewFunctionParameterContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 82, MySqlParserRULE_functionParameter)
@@ -21051,6 +21501,16 @@ func (s *RoutineBehaviorContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *RoutineBehaviorContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRoutineBehavior(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type RoutineLanguageContext struct {
 	RoutineOptionContext
 }
@@ -21089,6 +21549,16 @@ func (s *RoutineLanguageContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *RoutineLanguageContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRoutineLanguage(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type RoutineCommentContext struct {
 	RoutineOptionContext
 }
@@ -21124,6 +21594,16 @@ func (s *RoutineCommentContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *RoutineCommentContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitRoutineComment(s)
+	}
+}
+
+func (s *RoutineCommentContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRoutineComment(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -21178,6 +21658,16 @@ func (s *RoutineSecurityContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *RoutineSecurityContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRoutineSecurity(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type RoutineDataContext struct {
 	RoutineOptionContext
 }
@@ -21229,6 +21719,16 @@ func (s *RoutineDataContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *RoutineDataContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitRoutineData(s)
+	}
+}
+
+func (s *RoutineDataContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRoutineData(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -21595,6 +22095,16 @@ func (s *ServerOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *ServerOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitServerOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) ServerOption() (localctx IServerOptionContext) {
 	localctx = NewServerOptionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 86, MySqlParserRULE_serverOption)
@@ -21880,6 +22390,16 @@ func (s *CreateDefinitionsContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *CreateDefinitionsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCreateDefinitions(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) CreateDefinitions() (localctx ICreateDefinitionsContext) {
 	localctx = NewCreateDefinitionsContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 88, MySqlParserRULE_createDefinitions)
@@ -22064,6 +22584,16 @@ func (s *ColumnDeclarationContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *ColumnDeclarationContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitColumnDeclaration(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type ConstraintDeclarationContext struct {
 	CreateDefinitionContext
 }
@@ -22118,6 +22648,16 @@ func (s *ConstraintDeclarationContext) ExitRule(listener antlr.ParseTreeListener
 	}
 }
 
+func (s *ConstraintDeclarationContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitConstraintDeclaration(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type IndexDeclarationContext struct {
 	CreateDefinitionContext
 }
@@ -22161,6 +22701,16 @@ func (s *IndexDeclarationContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *IndexDeclarationContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitIndexDeclaration(s)
+	}
+}
+
+func (s *IndexDeclarationContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitIndexDeclaration(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -22392,6 +22942,16 @@ func (s *ColumnDefinitionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *ColumnDefinitionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitColumnDefinition(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) ColumnDefinition() (localctx IColumnDefinitionContext) {
 	localctx = NewColumnDefinitionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 92, MySqlParserRULE_columnDefinition)
@@ -22586,6 +23146,16 @@ func (s *StorageColumnConstraintContext) ExitRule(listener antlr.ParseTreeListen
 	}
 }
 
+func (s *StorageColumnConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitStorageColumnConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type VisibilityColumnConstraintContext struct {
 	ColumnConstraintContext
 }
@@ -22617,6 +23187,16 @@ func (s *VisibilityColumnConstraintContext) EnterRule(listener antlr.ParseTreeLi
 func (s *VisibilityColumnConstraintContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitVisibilityColumnConstraint(s)
+	}
+}
+
+func (s *VisibilityColumnConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitVisibilityColumnConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -22678,6 +23258,16 @@ func (s *AutoIncrementColumnConstraintContext) ExitRule(listener antlr.ParseTree
 	}
 }
 
+func (s *AutoIncrementColumnConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAutoIncrementColumnConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type CommentColumnConstraintContext struct {
 	ColumnConstraintContext
 }
@@ -22716,6 +23306,16 @@ func (s *CommentColumnConstraintContext) ExitRule(listener antlr.ParseTreeListen
 	}
 }
 
+func (s *CommentColumnConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCommentColumnConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type UniqueKeyColumnConstraintContext struct {
 	ColumnConstraintContext
 }
@@ -22751,6 +23351,16 @@ func (s *UniqueKeyColumnConstraintContext) EnterRule(listener antlr.ParseTreeLis
 func (s *UniqueKeyColumnConstraintContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitUniqueKeyColumnConstraint(s)
+	}
+}
+
+func (s *UniqueKeyColumnConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUniqueKeyColumnConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -22793,6 +23403,16 @@ func (s *SerialDefaultColumnConstraintContext) EnterRule(listener antlr.ParseTre
 func (s *SerialDefaultColumnConstraintContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSerialDefaultColumnConstraint(s)
+	}
+}
+
+func (s *SerialDefaultColumnConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSerialDefaultColumnConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -22870,6 +23490,16 @@ func (s *GeneratedColumnConstraintContext) ExitRule(listener antlr.ParseTreeList
 	}
 }
 
+func (s *GeneratedColumnConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitGeneratedColumnConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type FormatColumnConstraintContext struct {
 	ColumnConstraintContext
 	colformat antlr.Token
@@ -22918,6 +23548,16 @@ func (s *FormatColumnConstraintContext) EnterRule(listener antlr.ParseTreeListen
 func (s *FormatColumnConstraintContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitFormatColumnConstraint(s)
+	}
+}
+
+func (s *FormatColumnConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFormatColumnConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -22971,6 +23611,16 @@ func (s *CollateColumnConstraintContext) ExitRule(listener antlr.ParseTreeListen
 	}
 }
 
+func (s *CollateColumnConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCollateColumnConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type PrimaryKeyColumnConstraintContext struct {
 	ColumnConstraintContext
 }
@@ -23006,6 +23656,16 @@ func (s *PrimaryKeyColumnConstraintContext) EnterRule(listener antlr.ParseTreeLi
 func (s *PrimaryKeyColumnConstraintContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitPrimaryKeyColumnConstraint(s)
+	}
+}
+
+func (s *PrimaryKeyColumnConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPrimaryKeyColumnConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -23092,6 +23752,16 @@ func (s *CheckColumnConstraintContext) ExitRule(listener antlr.ParseTreeListener
 	}
 }
 
+func (s *CheckColumnConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCheckColumnConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type NullColumnConstraintContext struct {
 	ColumnConstraintContext
 }
@@ -23135,6 +23805,16 @@ func (s *NullColumnConstraintContext) EnterRule(listener antlr.ParseTreeListener
 func (s *NullColumnConstraintContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitNullColumnConstraint(s)
+	}
+}
+
+func (s *NullColumnConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitNullColumnConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -23188,6 +23868,16 @@ func (s *DefaultColumnConstraintContext) ExitRule(listener antlr.ParseTreeListen
 	}
 }
 
+func (s *DefaultColumnConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDefaultColumnConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type ReferenceColumnConstraintContext struct {
 	ColumnConstraintContext
 }
@@ -23234,6 +23924,16 @@ func (s *ReferenceColumnConstraintContext) ExitRule(listener antlr.ParseTreeList
 	}
 }
 
+func (s *ReferenceColumnConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitReferenceColumnConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type InvisibilityColumnConstraintContext struct {
 	ColumnConstraintContext
 }
@@ -23265,6 +23965,16 @@ func (s *InvisibilityColumnConstraintContext) EnterRule(listener antlr.ParseTree
 func (s *InvisibilityColumnConstraintContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitInvisibilityColumnConstraint(s)
+	}
+}
+
+func (s *InvisibilityColumnConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitInvisibilityColumnConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -23958,6 +24668,16 @@ func (s *UniqueKeyTableConstraintContext) ExitRule(listener antlr.ParseTreeListe
 	}
 }
 
+func (s *UniqueKeyTableConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUniqueKeyTableConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type CheckTableConstraintContext struct {
 	TableConstraintContext
 	name IUidContext
@@ -24038,6 +24758,16 @@ func (s *CheckTableConstraintContext) EnterRule(listener antlr.ParseTreeListener
 func (s *CheckTableConstraintContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitCheckTableConstraint(s)
+	}
+}
+
+func (s *CheckTableConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCheckTableConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -24207,6 +24937,16 @@ func (s *PrimaryKeyTableConstraintContext) ExitRule(listener antlr.ParseTreeList
 	}
 }
 
+func (s *PrimaryKeyTableConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPrimaryKeyTableConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type ForeignKeyTableConstraintContext struct {
 	TableConstraintContext
 	name  IUidContext
@@ -24329,6 +25069,16 @@ func (s *ForeignKeyTableConstraintContext) EnterRule(listener antlr.ParseTreeLis
 func (s *ForeignKeyTableConstraintContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitForeignKeyTableConstraint(s)
+	}
+}
+
+func (s *ForeignKeyTableConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitForeignKeyTableConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -24898,6 +25648,16 @@ func (s *ReferenceDefinitionContext) ExitRule(listener antlr.ParseTreeListener) 
 	}
 }
 
+func (s *ReferenceDefinitionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitReferenceDefinition(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) ReferenceDefinition() (localctx IReferenceDefinitionContext) {
 	localctx = NewReferenceDefinitionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 98, MySqlParserRULE_referenceDefinition)
@@ -25140,6 +25900,16 @@ func (s *ReferenceActionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *ReferenceActionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitReferenceAction(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) ReferenceAction() (localctx IReferenceActionContext) {
 	localctx = NewReferenceActionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 100, MySqlParserRULE_referenceAction)
@@ -25378,6 +26148,16 @@ func (s *ReferenceControlTypeContext) EnterRule(listener antlr.ParseTreeListener
 func (s *ReferenceControlTypeContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitReferenceControlType(s)
+	}
+}
+
+func (s *ReferenceControlTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitReferenceControlType(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -25665,6 +26445,16 @@ func (s *SpecialIndexDeclarationContext) ExitRule(listener antlr.ParseTreeListen
 	}
 }
 
+func (s *SpecialIndexDeclarationContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSpecialIndexDeclaration(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type SimpleIndexDeclarationContext struct {
 	IndexColumnDefinitionContext
 	indexFormat antlr.Token
@@ -25794,6 +26584,16 @@ func (s *SimpleIndexDeclarationContext) EnterRule(listener antlr.ParseTreeListen
 func (s *SimpleIndexDeclarationContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSimpleIndexDeclaration(s)
+	}
+}
+
+func (s *SimpleIndexDeclarationContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSimpleIndexDeclaration(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -26090,6 +26890,16 @@ func (s *TableOptionEngineContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *TableOptionEngineContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionEngine(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableOptionMaxRowsContext struct {
 	TableOptionContext
 }
@@ -26141,6 +26951,16 @@ func (s *TableOptionMaxRowsContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *TableOptionMaxRowsContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTableOptionMaxRows(s)
+	}
+}
+
+func (s *TableOptionMaxRowsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionMaxRows(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -26202,6 +27022,16 @@ func (s *TableOptionCollateContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *TableOptionCollateContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionCollate(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableOptionPersistentContext struct {
 	TableOptionContext
 	extBoolValue antlr.Token
@@ -26254,6 +27084,16 @@ func (s *TableOptionPersistentContext) EnterRule(listener antlr.ParseTreeListene
 func (s *TableOptionPersistentContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTableOptionPersistent(s)
+	}
+}
+
+func (s *TableOptionPersistentContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionPersistent(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -26323,6 +27163,16 @@ func (s *TableOptionTablespaceContext) ExitRule(listener antlr.ParseTreeListener
 	}
 }
 
+func (s *TableOptionTablespaceContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionTablespace(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableOptionAutoextendSizeContext struct {
 	TableOptionContext
 }
@@ -26377,6 +27227,16 @@ func (s *TableOptionAutoextendSizeContext) ExitRule(listener antlr.ParseTreeList
 	}
 }
 
+func (s *TableOptionAutoextendSizeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionAutoextendSize(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableOptionPageCompressedContext struct {
 	TableOptionContext
 }
@@ -26427,6 +27287,16 @@ func (s *TableOptionPageCompressedContext) ExitRule(listener antlr.ParseTreeList
 	}
 }
 
+func (s *TableOptionPageCompressedContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionPageCompressed(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableOptionStartTransactionContext struct {
 	TableOptionContext
 }
@@ -26462,6 +27332,16 @@ func (s *TableOptionStartTransactionContext) EnterRule(listener antlr.ParseTreeL
 func (s *TableOptionStartTransactionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTableOptionStartTransaction(s)
+	}
+}
+
+func (s *TableOptionStartTransactionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionStartTransaction(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -26520,6 +27400,16 @@ func (s *TableOptionPackKeysContext) ExitRule(listener antlr.ParseTreeListener) 
 	}
 }
 
+func (s *TableOptionPackKeysContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionPackKeys(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableOptionPasswordContext struct {
 	TableOptionContext
 }
@@ -26559,6 +27449,16 @@ func (s *TableOptionPasswordContext) EnterRule(listener antlr.ParseTreeListener)
 func (s *TableOptionPasswordContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTableOptionPassword(s)
+	}
+}
+
+func (s *TableOptionPasswordContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionPassword(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -26624,6 +27524,16 @@ func (s *TableOptionUnionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *TableOptionUnionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionUnion(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableOptionSamplePageContext struct {
 	TableOptionContext
 }
@@ -26679,6 +27589,16 @@ func (s *TableOptionSamplePageContext) EnterRule(listener antlr.ParseTreeListene
 func (s *TableOptionSamplePageContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTableOptionSamplePage(s)
+	}
+}
+
+func (s *TableOptionSamplePageContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionSamplePage(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -26756,6 +27676,16 @@ func (s *TableOptionCharsetContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *TableOptionCharsetContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionCharset(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableOptionIndexDirectoryContext struct {
 	TableOptionContext
 }
@@ -26799,6 +27729,16 @@ func (s *TableOptionIndexDirectoryContext) EnterRule(listener antlr.ParseTreeLis
 func (s *TableOptionIndexDirectoryContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTableOptionIndexDirectory(s)
+	}
+}
+
+func (s *TableOptionIndexDirectoryContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionIndexDirectory(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -26856,6 +27796,16 @@ func (s *TableOptionTableTypeContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *TableOptionTableTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionTableType(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableOptionKeyBlockSizeContext struct {
 	TableOptionContext
 }
@@ -26910,6 +27860,16 @@ func (s *TableOptionKeyBlockSizeContext) ExitRule(listener antlr.ParseTreeListen
 	}
 }
 
+func (s *TableOptionKeyBlockSizeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionKeyBlockSize(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableOptionEncryptionContext struct {
 	TableOptionContext
 }
@@ -26949,6 +27909,16 @@ func (s *TableOptionEncryptionContext) EnterRule(listener antlr.ParseTreeListene
 func (s *TableOptionEncryptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTableOptionEncryption(s)
+	}
+}
+
+func (s *TableOptionEncryptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionEncryption(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -26999,6 +27969,16 @@ func (s *TableOptionDataDirectoryContext) EnterRule(listener antlr.ParseTreeList
 func (s *TableOptionDataDirectoryContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTableOptionDataDirectory(s)
+	}
+}
+
+func (s *TableOptionDataDirectoryContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionDataDirectory(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -27057,6 +28037,16 @@ func (s *TableOptionRecalculationContext) ExitRule(listener antlr.ParseTreeListe
 	}
 }
 
+func (s *TableOptionRecalculationContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionRecalculation(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableOptionAutoIncrementContext struct {
 	TableOptionContext
 }
@@ -27111,6 +28101,16 @@ func (s *TableOptionAutoIncrementContext) ExitRule(listener antlr.ParseTreeListe
 	}
 }
 
+func (s *TableOptionAutoIncrementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionAutoIncrement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableOptionEncryptionKeyIdContext struct {
 	TableOptionContext
 }
@@ -27162,6 +28162,16 @@ func (s *TableOptionEncryptionKeyIdContext) EnterRule(listener antlr.ParseTreeLi
 func (s *TableOptionEncryptionKeyIdContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTableOptionEncryptionKeyId(s)
+	}
+}
+
+func (s *TableOptionEncryptionKeyIdContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionEncryptionKeyId(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -27220,6 +28230,16 @@ func (s *TableOptionChecksumContext) ExitRule(listener antlr.ParseTreeListener) 
 	}
 }
 
+func (s *TableOptionChecksumContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionChecksum(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableOptionDelayContext struct {
 	TableOptionContext
 	boolValue antlr.Token
@@ -27271,6 +28291,16 @@ func (s *TableOptionDelayContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *TableOptionDelayContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionDelay(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableOptionConnectionContext struct {
 	TableOptionContext
 }
@@ -27310,6 +28340,16 @@ func (s *TableOptionConnectionContext) EnterRule(listener antlr.ParseTreeListene
 func (s *TableOptionConnectionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTableOptionConnection(s)
+	}
+}
+
+func (s *TableOptionConnectionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionConnection(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -27356,6 +28396,16 @@ func (s *TableOptionTransactionalContext) EnterRule(listener antlr.ParseTreeList
 func (s *TableOptionTransactionalContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTableOptionTransactional(s)
+	}
+}
+
+func (s *TableOptionTransactionalContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionTransactional(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -27417,6 +28467,16 @@ func (s *TableOptionPageCompressionLevelContext) ExitRule(listener antlr.ParseTr
 	}
 }
 
+func (s *TableOptionPageCompressionLevelContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionPageCompressionLevel(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableOptionSecondaryEngineAttributeContext struct {
 	TableOptionContext
 }
@@ -27459,6 +28519,16 @@ func (s *TableOptionSecondaryEngineAttributeContext) ExitRule(listener antlr.Par
 	}
 }
 
+func (s *TableOptionSecondaryEngineAttributeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionSecondaryEngineAttribute(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableOptionCommentContext struct {
 	TableOptionContext
 }
@@ -27498,6 +28568,16 @@ func (s *TableOptionCommentContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *TableOptionCommentContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTableOptionComment(s)
+	}
+}
+
+func (s *TableOptionCommentContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionComment(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -27552,6 +28632,16 @@ func (s *TableOptionAverageContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *TableOptionAverageContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTableOptionAverage(s)
+	}
+}
+
+func (s *TableOptionAverageContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionAverage(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -27626,6 +28716,16 @@ func (s *TableOptionRowFormatContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *TableOptionRowFormatContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionRowFormat(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableOptionCompressionContext struct {
 	TableOptionContext
 }
@@ -27669,6 +28769,16 @@ func (s *TableOptionCompressionContext) EnterRule(listener antlr.ParseTreeListen
 func (s *TableOptionCompressionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTableOptionCompression(s)
+	}
+}
+
+func (s *TableOptionCompressionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionCompression(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -27727,6 +28837,16 @@ func (s *TableOptionInsertMethodContext) ExitRule(listener antlr.ParseTreeListen
 	}
 }
 
+func (s *TableOptionInsertMethodContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionInsertMethod(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableOptionEngineAttributeContext struct {
 	TableOptionContext
 }
@@ -27766,6 +28886,16 @@ func (s *TableOptionEngineAttributeContext) EnterRule(listener antlr.ParseTreeLi
 func (s *TableOptionEngineAttributeContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTableOptionEngineAttribute(s)
+	}
+}
+
+func (s *TableOptionEngineAttributeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionEngineAttribute(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -27820,6 +28950,16 @@ func (s *TableOptionMinRowsContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *TableOptionMinRowsContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTableOptionMinRows(s)
+	}
+}
+
+func (s *TableOptionMinRowsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableOptionMinRows(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -29342,6 +30482,16 @@ func (s *TableTypeContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *TableTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableType(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) TableType() (localctx ITableTypeContext) {
 	localctx = NewTableTypeContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 108, MySqlParserRULE_tableType)
@@ -29455,6 +30605,16 @@ func (s *TablespaceStorageContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *TablespaceStorageContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTablespaceStorage(s)
+	}
+}
+
+func (s *TablespaceStorageContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTablespaceStorage(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -29751,6 +30911,16 @@ func (s *PartitionDefinitionsContext) EnterRule(listener antlr.ParseTreeListener
 func (s *PartitionDefinitionsContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitPartitionDefinitions(s)
+	}
+}
+
+func (s *PartitionDefinitionsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPartitionDefinitions(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -30067,6 +31237,16 @@ func (s *PartitionFunctionKeyContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *PartitionFunctionKeyContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPartitionFunctionKey(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type PartitionFunctionHashContext struct {
 	PartitionFunctionDefinitionContext
 }
@@ -30126,6 +31306,16 @@ func (s *PartitionFunctionHashContext) EnterRule(listener antlr.ParseTreeListene
 func (s *PartitionFunctionHashContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitPartitionFunctionHash(s)
+	}
+}
+
+func (s *PartitionFunctionHashContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPartitionFunctionHash(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -30207,6 +31397,16 @@ func (s *PartitionFunctionListContext) ExitRule(listener antlr.ParseTreeListener
 	}
 }
 
+func (s *PartitionFunctionListContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPartitionFunctionList(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type PartitionFunctionRangeContext struct {
 	PartitionFunctionDefinitionContext
 }
@@ -30282,6 +31482,16 @@ func (s *PartitionFunctionRangeContext) EnterRule(listener antlr.ParseTreeListen
 func (s *PartitionFunctionRangeContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitPartitionFunctionRange(s)
+	}
+}
+
+func (s *PartitionFunctionRangeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPartitionFunctionRange(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -30734,6 +31944,16 @@ func (s *SubPartitionFunctionHashContext) ExitRule(listener antlr.ParseTreeListe
 	}
 }
 
+func (s *SubPartitionFunctionHashContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSubPartitionFunctionHash(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type SubPartitionFunctionKeyContext struct {
 	SubpartitionFunctionDefinitionContext
 	algType antlr.Token
@@ -30814,6 +32034,16 @@ func (s *SubPartitionFunctionKeyContext) EnterRule(listener antlr.ParseTreeListe
 func (s *SubPartitionFunctionKeyContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSubPartitionFunctionKey(s)
+	}
+}
+
+func (s *SubPartitionFunctionKeyContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSubPartitionFunctionKey(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -31253,6 +32483,16 @@ func (s *PartitionComparisonContext) ExitRule(listener antlr.ParseTreeListener) 
 	}
 }
 
+func (s *PartitionComparisonContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPartitionComparison(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type PartitionListAtomContext struct {
 	PartitionDefinitionContext
 }
@@ -31455,6 +32695,16 @@ func (s *PartitionListAtomContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *PartitionListAtomContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitPartitionListAtom(s)
+	}
+}
+
+func (s *PartitionListAtomContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPartitionListAtom(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -31663,6 +32913,16 @@ func (s *PartitionListVectorContext) ExitRule(listener antlr.ParseTreeListener) 
 	}
 }
 
+func (s *PartitionListVectorContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPartitionListVector(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type PartitionSimpleContext struct {
 	PartitionDefinitionContext
 }
@@ -31808,6 +33068,16 @@ func (s *PartitionSimpleContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *PartitionSimpleContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitPartitionSimple(s)
+	}
+}
+
+func (s *PartitionSimpleContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPartitionSimple(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -32642,6 +33912,16 @@ func (s *PartitionDefinerAtomContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *PartitionDefinerAtomContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPartitionDefinerAtom(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) PartitionDefinerAtom() (localctx IPartitionDefinerAtomContext) {
 	localctx = NewPartitionDefinerAtomContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 120, MySqlParserRULE_partitionDefinerAtom)
@@ -32819,6 +34099,16 @@ func (s *PartitionDefinerVectorContext) EnterRule(listener antlr.ParseTreeListen
 func (s *PartitionDefinerVectorContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitPartitionDefinerVector(s)
+	}
+}
+
+func (s *PartitionDefinerVectorContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPartitionDefinerVector(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -33020,6 +34310,16 @@ func (s *SubpartitionDefinitionContext) ExitRule(listener antlr.ParseTreeListene
 	}
 }
 
+func (s *SubpartitionDefinitionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSubpartitionDefinition(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) SubpartitionDefinition() (localctx ISubpartitionDefinitionContext) {
 	localctx = NewSubpartitionDefinitionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 124, MySqlParserRULE_subpartitionDefinition)
@@ -33173,6 +34473,16 @@ func (s *PartitionOptionCommentContext) ExitRule(listener antlr.ParseTreeListene
 	}
 }
 
+func (s *PartitionOptionCommentContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPartitionOptionComment(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type PartitionOptionNodeGroupContext struct {
 	PartitionOptionContext
 	nodegroup IUidContext
@@ -33232,6 +34542,16 @@ func (s *PartitionOptionNodeGroupContext) ExitRule(listener antlr.ParseTreeListe
 	}
 }
 
+func (s *PartitionOptionNodeGroupContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPartitionOptionNodeGroup(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type PartitionOptionIndexDirectoryContext struct {
 	PartitionOptionContext
 	indexDirectory antlr.Token
@@ -33282,6 +34602,16 @@ func (s *PartitionOptionIndexDirectoryContext) EnterRule(listener antlr.ParseTre
 func (s *PartitionOptionIndexDirectoryContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitPartitionOptionIndexDirectory(s)
+	}
+}
+
+func (s *PartitionOptionIndexDirectoryContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPartitionOptionIndexDirectory(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -33344,6 +34674,16 @@ func (s *PartitionOptionMaxRowsContext) ExitRule(listener antlr.ParseTreeListene
 	}
 }
 
+func (s *PartitionOptionMaxRowsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPartitionOptionMaxRows(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type PartitionOptionTablespaceContext struct {
 	PartitionOptionContext
 	tablespace IUidContext
@@ -33400,6 +34740,16 @@ func (s *PartitionOptionTablespaceContext) EnterRule(listener antlr.ParseTreeLis
 func (s *PartitionOptionTablespaceContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitPartitionOptionTablespace(s)
+	}
+}
+
+func (s *PartitionOptionTablespaceContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPartitionOptionTablespace(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -33465,6 +34815,16 @@ func (s *PartitionOptionEngineContext) ExitRule(listener antlr.ParseTreeListener
 	}
 }
 
+func (s *PartitionOptionEngineContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPartitionOptionEngine(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type PartitionOptionMinRowsContext struct {
 	PartitionOptionContext
 	minRows IDecimalLiteralContext
@@ -33524,6 +34884,16 @@ func (s *PartitionOptionMinRowsContext) ExitRule(listener antlr.ParseTreeListene
 	}
 }
 
+func (s *PartitionOptionMinRowsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPartitionOptionMinRows(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type PartitionOptionDataDirectoryContext struct {
 	PartitionOptionContext
 	dataDirectory antlr.Token
@@ -33572,6 +34942,16 @@ func (s *PartitionOptionDataDirectoryContext) EnterRule(listener antlr.ParseTree
 func (s *PartitionOptionDataDirectoryContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitPartitionOptionDataDirectory(s)
+	}
+}
+
+func (s *PartitionOptionDataDirectoryContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPartitionOptionDataDirectory(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -34095,6 +35475,16 @@ func (s *AlterUpgradeNameContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *AlterUpgradeNameContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterUpgradeName(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterSimpleDatabaseContext struct {
 	AlterDatabaseContext
 	dbFormat antlr.Token
@@ -34196,6 +35586,16 @@ func (s *AlterSimpleDatabaseContext) EnterRule(listener antlr.ParseTreeListener)
 func (s *AlterSimpleDatabaseContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterSimpleDatabase(s)
+	}
+}
+
+func (s *AlterSimpleDatabaseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterSimpleDatabase(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -34597,6 +35997,16 @@ func (s *AlterEventContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *AlterEventContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterEvent(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) AlterEvent() (localctx IAlterEventContext) {
 	localctx = NewAlterEventContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 130, MySqlParserRULE_alterEvent)
@@ -34954,6 +36364,16 @@ func (s *AlterFunctionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *AlterFunctionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterFunction(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) AlterFunction() (localctx IAlterFunctionContext) {
 	localctx = NewAlterFunctionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 132, MySqlParserRULE_alterFunction)
@@ -35106,6 +36526,16 @@ func (s *AlterInstanceContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *AlterInstanceContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterInstance(s)
+	}
+}
+
+func (s *AlterInstanceContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterInstance(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -35343,6 +36773,16 @@ func (s *AlterLogfileGroupContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *AlterLogfileGroupContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterLogfileGroup(s)
+	}
+}
+
+func (s *AlterLogfileGroupContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterLogfileGroup(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -35641,6 +37081,16 @@ func (s *AlterProcedureContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *AlterProcedureContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterProcedure(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) AlterProcedure() (localctx IAlterProcedureContext) {
 	localctx = NewAlterProcedureContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 138, MySqlParserRULE_alterProcedure)
@@ -35858,6 +37308,16 @@ func (s *AlterServerContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *AlterServerContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterServer(s)
+	}
+}
+
+func (s *AlterServerContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterServer(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -36159,6 +37619,16 @@ func (s *AlterTableContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *AlterTableContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterTable(s)
+	}
+}
+
+func (s *AlterTableContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterTable(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -36495,6 +37965,16 @@ func (s *AlterTablespaceContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *AlterTablespaceContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterTablespace(s)
+	}
+}
+
+func (s *AlterTablespaceContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterTablespace(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -36911,6 +38391,16 @@ func (s *AlterViewContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *AlterViewContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterView(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) AlterView() (localctx IAlterViewContext) {
 	localctx = NewAlterViewContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 146, MySqlParserRULE_alterView)
@@ -37323,6 +38813,16 @@ func (s *AlterByAlterColumnDefaultContext) ExitRule(listener antlr.ParseTreeList
 	}
 }
 
+func (s *AlterByAlterColumnDefaultContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByAlterColumnDefault(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByDisableKeysContext struct {
 	AlterSpecificationContext
 }
@@ -37358,6 +38858,16 @@ func (s *AlterByDisableKeysContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *AlterByDisableKeysContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByDisableKeys(s)
+	}
+}
+
+func (s *AlterByDisableKeysContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByDisableKeys(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -37444,6 +38954,16 @@ func (s *AlterByDefaultCharsetContext) EnterRule(listener antlr.ParseTreeListene
 func (s *AlterByDefaultCharsetContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByDefaultCharset(s)
+	}
+}
+
+func (s *AlterByDefaultCharsetContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByDefaultCharset(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -37540,6 +39060,16 @@ func (s *AlterByRenameColumnContext) ExitRule(listener antlr.ParseTreeListener) 
 	}
 }
 
+func (s *AlterByRenameColumnContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByRenameColumn(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByConvertCharsetContext struct {
 	AlterSpecificationContext
 }
@@ -37623,6 +39153,16 @@ func (s *AlterByConvertCharsetContext) EnterRule(listener antlr.ParseTreeListene
 func (s *AlterByConvertCharsetContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByConvertCharset(s)
+	}
+}
+
+func (s *AlterByConvertCharsetContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByConvertCharset(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -37755,6 +39295,16 @@ func (s *AlterByAddForeignKeyContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *AlterByAddForeignKeyContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByAddForeignKey(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByRenameIndexContext struct {
 	AlterSpecificationContext
 	indexFormat antlr.Token
@@ -37847,6 +39397,16 @@ func (s *AlterByRenameIndexContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *AlterByRenameIndexContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByRenameIndex(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByRenameContext struct {
 	AlterSpecificationContext
 	renameFormat antlr.Token
@@ -37926,6 +39486,16 @@ func (s *AlterByRenameContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *AlterByRenameContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByRename(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByImportTablespaceContext struct {
 	AlterSpecificationContext
 }
@@ -37961,6 +39531,16 @@ func (s *AlterByImportTablespaceContext) EnterRule(listener antlr.ParseTreeListe
 func (s *AlterByImportTablespaceContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByImportTablespace(s)
+	}
+}
+
+func (s *AlterByImportTablespaceContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByImportTablespace(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -38056,6 +39636,16 @@ func (s *AlterByAddDefinitionsContext) EnterRule(listener antlr.ParseTreeListene
 func (s *AlterByAddDefinitionsContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByAddDefinitions(s)
+	}
+}
+
+func (s *AlterByAddDefinitionsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByAddDefinitions(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -38195,6 +39785,16 @@ func (s *AlterByAlterCheckTableConstraintContext) ExitRule(listener antlr.ParseT
 	}
 }
 
+func (s *AlterByAlterCheckTableConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByAlterCheckTableConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByDropConstraintCheckContext struct {
 	AlterSpecificationContext
 }
@@ -38250,6 +39850,16 @@ func (s *AlterByDropConstraintCheckContext) EnterRule(listener antlr.ParseTreeLi
 func (s *AlterByDropConstraintCheckContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByDropConstraintCheck(s)
+	}
+}
+
+func (s *AlterByDropConstraintCheckContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByDropConstraintCheck(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -38389,6 +39999,16 @@ func (s *AlterByAddColumnsContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *AlterByAddColumnsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByAddColumns(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByAlterIndexVisibilityContext struct {
 	AlterSpecificationContext
 }
@@ -38451,6 +40071,16 @@ func (s *AlterByAlterIndexVisibilityContext) ExitRule(listener antlr.ParseTreeLi
 	}
 }
 
+func (s *AlterByAlterIndexVisibilityContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByAlterIndexVisibility(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByDropForeignKeyContext struct {
 	AlterSpecificationContext
 }
@@ -38506,6 +40136,16 @@ func (s *AlterByDropForeignKeyContext) EnterRule(listener antlr.ParseTreeListene
 func (s *AlterByDropForeignKeyContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByDropForeignKey(s)
+	}
+}
+
+func (s *AlterByDropForeignKeyContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByDropForeignKey(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -38645,6 +40285,16 @@ func (s *AlterByAddCheckTableConstraintContext) ExitRule(listener antlr.ParseTre
 	}
 }
 
+func (s *AlterByAddCheckTableConstraintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByAddCheckTableConstraint(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterPartitionContext struct {
 	AlterSpecificationContext
 }
@@ -38688,6 +40338,16 @@ func (s *AlterPartitionContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *AlterPartitionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterPartition(s)
+	}
+}
+
+func (s *AlterPartitionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterPartition(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -38827,6 +40487,16 @@ func (s *AlterByAddIndexContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *AlterByAddIndexContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByAddIndex(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByDropColumnContext struct {
 	AlterSpecificationContext
 }
@@ -38882,6 +40552,16 @@ func (s *AlterByDropColumnContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *AlterByDropColumnContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByDropColumn(s)
+	}
+}
+
+func (s *AlterByDropColumnContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByDropColumn(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -38967,6 +40647,16 @@ func (s *AlterByChangeDefaultContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *AlterByChangeDefaultContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByChangeDefault(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByForceContext struct {
 	AlterSpecificationContext
 }
@@ -38998,6 +40688,16 @@ func (s *AlterByForceContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *AlterByForceContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByForce(s)
+	}
+}
+
+func (s *AlterByForceContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByForce(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -39134,6 +40834,16 @@ func (s *AlterByAddSpecialIndexContext) ExitRule(listener antlr.ParseTreeListene
 	}
 }
 
+func (s *AlterByAddSpecialIndexContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByAddSpecialIndex(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByModifyColumnContext struct {
 	AlterSpecificationContext
 }
@@ -39237,6 +40947,16 @@ func (s *AlterByModifyColumnContext) ExitRule(listener antlr.ParseTreeListener) 
 	}
 }
 
+func (s *AlterByModifyColumnContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByModifyColumn(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByTableOptionContext struct {
 	AlterSpecificationContext
 }
@@ -39316,6 +41036,16 @@ func (s *AlterByTableOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *AlterByTableOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByTableOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByDropPrimaryKeyContext struct {
 	AlterSpecificationContext
 }
@@ -39355,6 +41085,16 @@ func (s *AlterByDropPrimaryKeyContext) EnterRule(listener antlr.ParseTreeListene
 func (s *AlterByDropPrimaryKeyContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByDropPrimaryKey(s)
+	}
+}
+
+func (s *AlterByDropPrimaryKeyContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByDropPrimaryKey(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -39417,6 +41157,16 @@ func (s *AlterByLockContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *AlterByLockContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByLock(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByDiscardTablespaceContext struct {
 	AlterSpecificationContext
 }
@@ -39452,6 +41202,16 @@ func (s *AlterByDiscardTablespaceContext) EnterRule(listener antlr.ParseTreeList
 func (s *AlterByDiscardTablespaceContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByDiscardTablespace(s)
+	}
+}
+
+func (s *AlterByDiscardTablespaceContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByDiscardTablespace(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -39499,6 +41259,16 @@ func (s *AlterByValidateContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *AlterByValidateContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByValidate(s)
+	}
+}
+
+func (s *AlterByValidateContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByValidate(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -39672,6 +41442,16 @@ func (s *AlterByAddPrimaryKeyContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *AlterByAddPrimaryKeyContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByAddPrimaryKey(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByEnableKeysContext struct {
 	AlterSpecificationContext
 }
@@ -39707,6 +41487,16 @@ func (s *AlterByEnableKeysContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *AlterByEnableKeysContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByEnableKeys(s)
+	}
+}
+
+func (s *AlterByEnableKeysContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByEnableKeys(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -39766,6 +41556,16 @@ func (s *AlterBySetAlgorithmContext) EnterRule(listener antlr.ParseTreeListener)
 func (s *AlterBySetAlgorithmContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterBySetAlgorithm(s)
+	}
+}
+
+func (s *AlterBySetAlgorithmContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterBySetAlgorithm(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -39884,6 +41684,16 @@ func (s *AlterByChangeColumnContext) EnterRule(listener antlr.ParseTreeListener)
 func (s *AlterByChangeColumnContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByChangeColumn(s)
+	}
+}
+
+func (s *AlterByChangeColumnContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByChangeColumn(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -40066,6 +41876,16 @@ func (s *AlterByAddUniqueKeyContext) ExitRule(listener antlr.ParseTreeListener) 
 	}
 }
 
+func (s *AlterByAddUniqueKeyContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByAddUniqueKey(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByDropIndexContext struct {
 	AlterSpecificationContext
 	indexFormat antlr.Token
@@ -40126,6 +41946,16 @@ func (s *AlterByDropIndexContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *AlterByDropIndexContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByDropIndex(s)
+	}
+}
+
+func (s *AlterByDropIndexContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByDropIndex(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -40232,6 +42062,16 @@ func (s *AlterByAddColumnContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *AlterByAddColumnContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByAddColumn(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByOrderContext struct {
 	AlterSpecificationContext
 }
@@ -40283,6 +42123,16 @@ func (s *AlterByOrderContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *AlterByOrderContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByOrder(s)
+	}
+}
+
+func (s *AlterByOrderContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByOrder(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -42770,6 +44620,16 @@ func (s *AlterByImportPartitionContext) ExitRule(listener antlr.ParseTreeListene
 	}
 }
 
+func (s *AlterByImportPartitionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByImportPartition(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByDropPartitionContext struct {
 	AlterPartitionSpecificationContext
 }
@@ -42821,6 +44681,16 @@ func (s *AlterByDropPartitionContext) EnterRule(listener antlr.ParseTreeListener
 func (s *AlterByDropPartitionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByDropPartition(s)
+	}
+}
+
+func (s *AlterByDropPartitionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByDropPartition(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -42883,6 +44753,16 @@ func (s *AlterByDiscardPartitionContext) EnterRule(listener antlr.ParseTreeListe
 func (s *AlterByDiscardPartitionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByDiscardPartition(s)
+	}
+}
+
+func (s *AlterByDiscardPartitionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByDiscardPartition(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -42981,6 +44861,16 @@ func (s *AlterByAddPartitionContext) ExitRule(listener antlr.ParseTreeListener) 
 	}
 }
 
+func (s *AlterByAddPartitionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByAddPartition(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByRemovePartitioningContext struct {
 	AlterPartitionSpecificationContext
 }
@@ -43016,6 +44906,16 @@ func (s *AlterByRemovePartitioningContext) EnterRule(listener antlr.ParseTreeLis
 func (s *AlterByRemovePartitioningContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByRemovePartitioning(s)
+	}
+}
+
+func (s *AlterByRemovePartitioningContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByRemovePartitioning(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -43077,6 +44977,16 @@ func (s *AlterByOptimizePartitionContext) ExitRule(listener antlr.ParseTreeListe
 	}
 }
 
+func (s *AlterByOptimizePartitionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByOptimizePartition(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByCheckPartitionContext struct {
 	AlterPartitionSpecificationContext
 }
@@ -43135,6 +45045,16 @@ func (s *AlterByCheckPartitionContext) ExitRule(listener antlr.ParseTreeListener
 	}
 }
 
+func (s *AlterByCheckPartitionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByCheckPartition(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByCoalescePartitionContext struct {
 	AlterPartitionSpecificationContext
 }
@@ -43186,6 +45106,16 @@ func (s *AlterByCoalescePartitionContext) EnterRule(listener antlr.ParseTreeList
 func (s *AlterByCoalescePartitionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByCoalescePartition(s)
+	}
+}
+
+func (s *AlterByCoalescePartitionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByCoalescePartition(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -43304,6 +45234,16 @@ func (s *AlterByReorganizePartitionContext) ExitRule(listener antlr.ParseTreeLis
 	}
 }
 
+func (s *AlterByReorganizePartitionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByReorganizePartition(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByAnalyzePartitionContext struct {
 	AlterPartitionSpecificationContext
 }
@@ -43359,6 +45299,16 @@ func (s *AlterByAnalyzePartitionContext) EnterRule(listener antlr.ParseTreeListe
 func (s *AlterByAnalyzePartitionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByAnalyzePartition(s)
+	}
+}
+
+func (s *AlterByAnalyzePartitionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByAnalyzePartition(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -43420,6 +45370,16 @@ func (s *AlterByRebuildPartitionContext) ExitRule(listener antlr.ParseTreeListen
 	}
 }
 
+func (s *AlterByRebuildPartitionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByRebuildPartition(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByUpgradePartitioningContext struct {
 	AlterPartitionSpecificationContext
 }
@@ -43455,6 +45415,16 @@ func (s *AlterByUpgradePartitioningContext) EnterRule(listener antlr.ParseTreeLi
 func (s *AlterByUpgradePartitioningContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByUpgradePartitioning(s)
+	}
+}
+
+func (s *AlterByUpgradePartitioningContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByUpgradePartitioning(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -43516,6 +45486,16 @@ func (s *AlterByTruncatePartitionContext) ExitRule(listener antlr.ParseTreeListe
 	}
 }
 
+func (s *AlterByTruncatePartitionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByTruncatePartition(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterByRepairPartitionContext struct {
 	AlterPartitionSpecificationContext
 }
@@ -43571,6 +45551,16 @@ func (s *AlterByRepairPartitionContext) EnterRule(listener antlr.ParseTreeListen
 func (s *AlterByRepairPartitionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByRepairPartition(s)
+	}
+}
+
+func (s *AlterByRepairPartitionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByRepairPartition(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -43668,6 +45658,16 @@ func (s *AlterByExchangePartitionContext) EnterRule(listener antlr.ParseTreeList
 func (s *AlterByExchangePartitionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterByExchangePartition(s)
+	}
+}
+
+func (s *AlterByExchangePartitionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterByExchangePartition(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -44532,6 +46532,16 @@ func (s *DropDatabaseContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *DropDatabaseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDropDatabase(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) DropDatabase() (localctx IDropDatabaseContext) {
 	localctx = NewDropDatabaseContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 152, MySqlParserRULE_dropDatabase)
@@ -44700,6 +46710,16 @@ func (s *DropEventContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *DropEventContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitDropEvent(s)
+	}
+}
+
+func (s *DropEventContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDropEvent(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -44997,6 +47017,16 @@ func (s *DropIndexContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *DropIndexContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitDropIndex(s)
+	}
+}
+
+func (s *DropIndexContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDropIndex(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -45330,6 +47360,16 @@ func (s *DropLogfileGroupContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *DropLogfileGroupContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDropLogfileGroup(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) DropLogfileGroup() (localctx IDropLogfileGroupContext) {
 	localctx = NewDropLogfileGroupContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 158, MySqlParserRULE_dropLogfileGroup)
@@ -45505,6 +47545,16 @@ func (s *DropProcedureContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *DropProcedureContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDropProcedure(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) DropProcedure() (localctx IDropProcedureContext) {
 	localctx = NewDropProcedureContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 160, MySqlParserRULE_dropProcedure)
@@ -45664,6 +47714,16 @@ func (s *DropFunctionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *DropFunctionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDropFunction(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) DropFunction() (localctx IDropFunctionContext) {
 	localctx = NewDropFunctionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 162, MySqlParserRULE_dropFunction)
@@ -45820,6 +47880,16 @@ func (s *DropServerContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *DropServerContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitDropServer(s)
+	}
+}
+
+func (s *DropServerContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDropServer(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -46005,6 +48075,16 @@ func (s *DropTableContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *DropTableContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitDropTable(s)
+	}
+}
+
+func (s *DropTableContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDropTable(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -46225,6 +48305,16 @@ func (s *DropTablespaceContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *DropTablespaceContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDropTablespace(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) DropTablespace() (localctx IDropTablespaceContext) {
 	localctx = NewDropTablespaceContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 168, MySqlParserRULE_dropTablespace)
@@ -46411,6 +48501,16 @@ func (s *DropTriggerContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *DropTriggerContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitDropTrigger(s)
+	}
+}
+
+func (s *DropTriggerContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDropTrigger(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -46627,6 +48727,16 @@ func (s *DropViewContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *DropViewContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitDropView(s)
+	}
+}
+
+func (s *DropViewContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDropView(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -46880,6 +48990,16 @@ func (s *DropRoleContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *DropRoleContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitDropRole(s)
+	}
+}
+
+func (s *DropRoleContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDropRole(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -47211,6 +49331,16 @@ func (s *SetRoleContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *SetRoleContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSetRole(s)
+	}
+}
+
+func (s *SetRoleContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSetRole(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -47561,6 +49691,16 @@ func (s *RenameTableContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *RenameTableContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRenameTable(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) RenameTable() (localctx IRenameTableContext) {
 	localctx = NewRenameTableContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 178, MySqlParserRULE_renameTable)
@@ -47742,6 +49882,16 @@ func (s *RenameTableClauseContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *RenameTableClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRenameTableClause(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) RenameTableClause() (localctx IRenameTableClauseContext) {
 	localctx = NewRenameTableClauseContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 180, MySqlParserRULE_renameTableClause)
@@ -47865,6 +50015,16 @@ func (s *TruncateTableContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *TruncateTableContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTruncateTable(s)
+	}
+}
+
+func (s *TruncateTableContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTruncateTable(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -48049,6 +50209,16 @@ func (s *CallStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *CallStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCallStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) CallStatement() (localctx ICallStatementContext) {
 	localctx = NewCallStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 184, MySqlParserRULE_callStatement)
@@ -48222,6 +50392,16 @@ func (s *DeleteStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *DeleteStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDeleteStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) DeleteStatement() (localctx IDeleteStatementContext) {
 	localctx = NewDeleteStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 186, MySqlParserRULE_deleteStatement)
@@ -48347,6 +50527,16 @@ func (s *DoStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *DoStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitDoStatement(s)
+	}
+}
+
+func (s *DoStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDoStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -48510,6 +50700,16 @@ func (s *HandlerStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *HandlerStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitHandlerStatement(s)
+	}
+}
+
+func (s *HandlerStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitHandlerStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -48949,6 +51149,16 @@ func (s *InsertStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *InsertStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitInsertStatement(s)
+	}
+}
+
+func (s *InsertStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitInsertStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -49821,6 +52031,16 @@ func (s *LoadDataStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *LoadDataStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLoadDataStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) LoadDataStatement() (localctx ILoadDataStatementContext) {
 	localctx = NewLoadDataStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 194, MySqlParserRULE_loadDataStatement)
@@ -50674,6 +52894,16 @@ func (s *LoadXmlStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *LoadXmlStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLoadXmlStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) LoadXmlStatement() (localctx ILoadXmlStatementContext) {
 	localctx = NewLoadXmlStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 196, MySqlParserRULE_loadXmlStatement)
@@ -51374,6 +53604,16 @@ func (s *ReplaceStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *ReplaceStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitReplaceStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) ReplaceStatement() (localctx IReplaceStatementContext) {
 	localctx = NewReplaceStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 198, MySqlParserRULE_replaceStatement)
@@ -51844,6 +54084,16 @@ func (s *UnionSelectContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *UnionSelectContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUnionSelect(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type UnionParenthesisSelectContext struct {
 	SelectStatementContext
 	unionType antlr.Token
@@ -52012,6 +54262,16 @@ func (s *UnionParenthesisSelectContext) ExitRule(listener antlr.ParseTreeListene
 	}
 }
 
+func (s *UnionParenthesisSelectContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUnionParenthesisSelect(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type SimpleSelectContext struct {
 	SelectStatementContext
 }
@@ -52074,6 +54334,16 @@ func (s *SimpleSelectContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *SimpleSelectContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSimpleSelect(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type ParenthesisSelectContext struct {
 	SelectStatementContext
 }
@@ -52133,6 +54403,16 @@ func (s *ParenthesisSelectContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ParenthesisSelectContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitParenthesisSelect(s)
+	}
+}
+
+func (s *ParenthesisSelectContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitParenthesisSelect(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -52228,6 +54508,16 @@ func (s *WithLateralStatementContext) EnterRule(listener antlr.ParseTreeListener
 func (s *WithLateralStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitWithLateralStatement(s)
+	}
+}
+
+func (s *WithLateralStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitWithLateralStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -52719,6 +55009,16 @@ func (s *UpdateStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *UpdateStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUpdateStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) UpdateStatement() (localctx IUpdateStatementContext) {
 	localctx = NewUpdateStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 202, MySqlParserRULE_updateStatement)
@@ -52900,6 +55200,16 @@ func (s *ValuesStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ValuesStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitValuesStatement(s)
+	}
+}
+
+func (s *ValuesStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitValuesStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -53187,6 +55497,16 @@ func (s *InsertStatementValueContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *InsertStatementValueContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitInsertStatementValue(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) InsertStatementValue() (localctx IInsertStatementValueContext) {
 	localctx = NewInsertStatementValueContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 206, MySqlParserRULE_insertStatementValue)
@@ -53434,6 +55754,16 @@ func (s *UpdatedElementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *UpdatedElementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUpdatedElement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) UpdatedElement() (localctx IUpdatedElementContext) {
 	localctx = NewUpdatedElementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 208, MySqlParserRULE_updatedElement)
@@ -53577,6 +55907,16 @@ func (s *AssignmentFieldContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *AssignmentFieldContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAssignmentField(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) AssignmentField() (localctx IAssignmentFieldContext) {
 	localctx = NewAssignmentFieldContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 210, MySqlParserRULE_assignmentField)
@@ -53715,6 +56055,16 @@ func (s *LockClauseContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *LockClauseContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitLockClause(s)
+	}
+}
+
+func (s *LockClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLockClause(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -54030,6 +56380,16 @@ func (s *SingleDeleteStatementContext) EnterRule(listener antlr.ParseTreeListene
 func (s *SingleDeleteStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSingleDeleteStatement(s)
+	}
+}
+
+func (s *SingleDeleteStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSingleDeleteStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -54474,6 +56834,16 @@ func (s *MultipleDeleteStatementContext) ExitRule(listener antlr.ParseTreeListen
 	}
 }
 
+func (s *MultipleDeleteStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitMultipleDeleteStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) MultipleDeleteStatement() (localctx IMultipleDeleteStatementContext) {
 	localctx = NewMultipleDeleteStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 216, MySqlParserRULE_multipleDeleteStatement)
@@ -54908,6 +57278,16 @@ func (s *HandlerOpenStatementContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *HandlerOpenStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitHandlerOpenStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) HandlerOpenStatement() (localctx IHandlerOpenStatementContext) {
 	localctx = NewHandlerOpenStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 218, MySqlParserRULE_handlerOpenStatement)
@@ -55217,6 +57597,16 @@ func (s *HandlerReadIndexStatementContext) ExitRule(listener antlr.ParseTreeList
 	}
 }
 
+func (s *HandlerReadIndexStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitHandlerReadIndexStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) HandlerReadIndexStatement() (localctx IHandlerReadIndexStatementContext) {
 	localctx = NewHandlerReadIndexStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 220, MySqlParserRULE_handlerReadIndexStatement)
@@ -55522,6 +57912,16 @@ func (s *HandlerReadStatementContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *HandlerReadStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitHandlerReadStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) HandlerReadStatement() (localctx IHandlerReadStatementContext) {
 	localctx = NewHandlerReadStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 222, MySqlParserRULE_handlerReadStatement)
@@ -55713,6 +58113,16 @@ func (s *HandlerCloseStatementContext) EnterRule(listener antlr.ParseTreeListene
 func (s *HandlerCloseStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitHandlerCloseStatement(s)
+	}
+}
+
+func (s *HandlerCloseStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitHandlerCloseStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -55995,6 +58405,16 @@ func (s *SingleUpdateStatementContext) EnterRule(listener antlr.ParseTreeListene
 func (s *SingleUpdateStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSingleUpdateStatement(s)
+	}
+}
+
+func (s *SingleUpdateStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSingleUpdateStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -56379,6 +58799,16 @@ func (s *MultipleUpdateStatementContext) ExitRule(listener antlr.ParseTreeListen
 	}
 }
 
+func (s *MultipleUpdateStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitMultipleUpdateStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) MultipleUpdateStatement() (localctx IMultipleUpdateStatementContext) {
 	localctx = NewMultipleUpdateStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 228, MySqlParserRULE_multipleUpdateStatement)
@@ -56640,6 +59070,16 @@ func (s *OrderByClauseContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *OrderByClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitOrderByClause(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) OrderByClause() (localctx IOrderByClauseContext) {
 	localctx = NewOrderByClauseContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 230, MySqlParserRULE_orderByClause)
@@ -56818,6 +59258,16 @@ func (s *OrderByExpressionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *OrderByExpressionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitOrderByExpression(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) OrderByExpression() (localctx IOrderByExpressionContext) {
 	localctx = NewOrderByExpressionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 232, MySqlParserRULE_orderByExpression)
@@ -56986,6 +59436,16 @@ func (s *TableSourcesContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *TableSourcesContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableSources(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) TableSources() (localctx ITableSourcesContext) {
 	localctx = NewTableSourcesContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 234, MySqlParserRULE_tableSources)
@@ -57145,6 +59605,16 @@ func (s *TableJsonContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *TableJsonContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableJson(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableSourceNestedContext struct {
 	TableSourceContext
 }
@@ -57240,6 +59710,16 @@ func (s *TableSourceNestedContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *TableSourceNestedContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableSourceNested(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableSourceBaseContext struct {
 	TableSourceContext
 }
@@ -57324,6 +59804,16 @@ func (s *TableSourceBaseContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *TableSourceBaseContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTableSourceBase(s)
+	}
+}
+
+func (s *TableSourceBaseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableSourceBase(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -57587,6 +60077,16 @@ func (s *SubqueryTableItemContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *SubqueryTableItemContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSubqueryTableItem(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AtomTableItemContext struct {
 	TableSourceItemContext
 	alias IUidContext
@@ -57735,6 +60235,16 @@ func (s *AtomTableItemContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *AtomTableItemContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAtomTableItem(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TableSourcesItemContext struct {
 	TableSourceItemContext
 }
@@ -57786,6 +60296,16 @@ func (s *TableSourcesItemContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *TableSourcesItemContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTableSourcesItem(s)
+	}
+}
+
+func (s *TableSourcesItemContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableSourcesItem(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -58201,6 +60721,16 @@ func (s *IndexHintContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *IndexHintContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitIndexHint(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) IndexHint() (localctx IIndexHintContext) {
 	localctx = NewIndexHintContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 240, MySqlParserRULE_indexHint)
@@ -58381,6 +60911,16 @@ func (s *IndexHintTypeContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *IndexHintTypeContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitIndexHintType(s)
+	}
+}
+
+func (s *IndexHintTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitIndexHintType(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -58618,6 +61158,16 @@ func (s *InnerJoinContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *InnerJoinContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitInnerJoin(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type NaturalJoinContext struct {
 	JoinPartContext
 }
@@ -58681,6 +61231,16 @@ func (s *NaturalJoinContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *NaturalJoinContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitNaturalJoin(s)
+	}
+}
+
+func (s *NaturalJoinContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitNaturalJoin(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -58791,6 +61351,16 @@ func (s *OuterJoinContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *OuterJoinContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitOuterJoin(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type StraightJoinContext struct {
 	JoinPartContext
 }
@@ -58887,6 +61457,16 @@ func (s *StraightJoinContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *StraightJoinContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitStraightJoin(s)
+	}
+}
+
+func (s *StraightJoinContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitStraightJoin(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -59323,6 +61903,16 @@ func (s *JoinSpecContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *JoinSpecContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitJoinSpec(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) JoinSpec() (localctx IJoinSpecContext) {
 	localctx = NewJoinSpecContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 246, MySqlParserRULE_joinSpec)
@@ -59506,6 +62096,16 @@ func (s *QueryExpressionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *QueryExpressionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitQueryExpression(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) QueryExpression() (localctx IQueryExpressionContext) {
 	localctx = NewQueryExpressionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 248, MySqlParserRULE_queryExpression)
@@ -59685,6 +62285,16 @@ func (s *QueryExpressionNointoContext) EnterRule(listener antlr.ParseTreeListene
 func (s *QueryExpressionNointoContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitQueryExpressionNointo(s)
+	}
+}
+
+func (s *QueryExpressionNointoContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitQueryExpressionNointo(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -60007,6 +62617,16 @@ func (s *QuerySpecificationContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *QuerySpecificationContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitQuerySpecification(s)
+	}
+}
+
+func (s *QuerySpecificationContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitQuerySpecification(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -60538,6 +63158,16 @@ func (s *QuerySpecificationNointoContext) ExitRule(listener antlr.ParseTreeListe
 	}
 }
 
+func (s *QuerySpecificationNointoContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitQuerySpecificationNointo(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) QuerySpecificationNointo() (localctx IQuerySpecificationNointoContext) {
 	localctx = NewQuerySpecificationNointoContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 254, MySqlParserRULE_querySpecificationNointo)
@@ -60787,6 +63417,16 @@ func (s *UnionParenthesisContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *UnionParenthesisContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUnionParenthesis(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) UnionParenthesis() (localctx IUnionParenthesisContext) {
 	localctx = NewUnionParenthesisContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 256, MySqlParserRULE_unionParenthesis)
@@ -60969,6 +63609,16 @@ func (s *UnionStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *UnionStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitUnionStatement(s)
+	}
+}
+
+func (s *UnionStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUnionStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -61184,6 +63834,16 @@ func (s *LateralStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *LateralStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitLateralStatement(s)
+	}
+}
+
+func (s *LateralStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLateralStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -61457,6 +64117,16 @@ func (s *JsonTableContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *JsonTableContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitJsonTable(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) JsonTable() (localctx IJsonTableContext) {
 	localctx = NewJsonTableContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 262, MySqlParserRULE_jsonTable)
@@ -61698,6 +64368,16 @@ func (s *JsonColumnListContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *JsonColumnListContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitJsonColumnList(s)
+	}
+}
+
+func (s *JsonColumnListContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitJsonColumnList(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -61945,6 +64625,16 @@ func (s *JsonColumnContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *JsonColumnContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitJsonColumn(s)
+	}
+}
+
+func (s *JsonColumnContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitJsonColumn(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -62272,6 +64962,16 @@ func (s *JsonOnEmptyContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *JsonOnEmptyContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitJsonOnEmpty(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) JsonOnEmpty() (localctx IJsonOnEmptyContext) {
 	localctx = NewJsonOnEmptyContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 268, MySqlParserRULE_jsonOnEmpty)
@@ -62455,6 +65155,16 @@ func (s *JsonOnErrorContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *JsonOnErrorContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitJsonOnError(s)
+	}
+}
+
+func (s *JsonOnErrorContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitJsonOnError(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -62654,6 +65364,16 @@ func (s *SelectSpecContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *SelectSpecContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSelectSpec(s)
+	}
+}
+
+func (s *SelectSpecContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSelectSpec(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -62915,6 +65635,16 @@ func (s *SelectElementsContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *SelectElementsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSelectElements(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) SelectElements() (localctx ISelectElementsContext) {
 	localctx = NewSelectElementsContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 274, MySqlParserRULE_selectElements)
@@ -63127,6 +65857,16 @@ func (s *SelectExpressionElementContext) ExitRule(listener antlr.ParseTreeListen
 	}
 }
 
+func (s *SelectExpressionElementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSelectExpressionElement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type SelectFunctionElementContext struct {
 	SelectElementContext
 }
@@ -63193,6 +65933,16 @@ func (s *SelectFunctionElementContext) ExitRule(listener antlr.ParseTreeListener
 	}
 }
 
+func (s *SelectFunctionElementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSelectFunctionElement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type SelectStarElementContext struct {
 	SelectElementContext
 }
@@ -63244,6 +65994,16 @@ func (s *SelectStarElementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *SelectStarElementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSelectStarElement(s)
+	}
+}
+
+func (s *SelectStarElementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSelectStarElement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -63310,6 +66070,16 @@ func (s *SelectColumnElementContext) EnterRule(listener antlr.ParseTreeListener)
 func (s *SelectColumnElementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSelectColumnElement(s)
+	}
+}
+
+func (s *SelectColumnElementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSelectColumnElement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -63641,6 +66411,16 @@ func (s *SelectIntoVariablesContext) ExitRule(listener antlr.ParseTreeListener) 
 	}
 }
 
+func (s *SelectIntoVariablesContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSelectIntoVariables(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type SelectIntoTextFileContext struct {
 	SelectIntoExpressionContext
 	filename     antlr.Token
@@ -63816,6 +66596,16 @@ func (s *SelectIntoTextFileContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *SelectIntoTextFileContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSelectIntoTextFile(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type SelectIntoDumpFileContext struct {
 	SelectIntoExpressionContext
 }
@@ -63855,6 +66645,16 @@ func (s *SelectIntoDumpFileContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *SelectIntoDumpFileContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSelectIntoDumpFile(s)
+	}
+}
+
+func (s *SelectIntoDumpFileContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSelectIntoDumpFile(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -64235,6 +67035,16 @@ func (s *SelectFieldsIntoContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *SelectFieldsIntoContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSelectFieldsInto(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) SelectFieldsInto() (localctx ISelectFieldsIntoContext) {
 	localctx = NewSelectFieldsIntoContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 280, MySqlParserRULE_selectFieldsInto)
@@ -64480,6 +67290,16 @@ func (s *SelectLinesIntoContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *SelectLinesIntoContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSelectLinesInto(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) SelectLinesInto() (localctx ISelectLinesIntoContext) {
 	localctx = NewSelectLinesIntoContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 282, MySqlParserRULE_selectLinesInto)
@@ -64688,6 +67508,16 @@ func (s *FromClauseContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *FromClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFromClause(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) FromClause() (localctx IFromClauseContext) {
 	localctx = NewFromClauseContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 284, MySqlParserRULE_fromClause)
@@ -64893,6 +67723,16 @@ func (s *GroupByClauseContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *GroupByClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitGroupByClause(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) GroupByClause() (localctx IGroupByClauseContext) {
 	localctx = NewGroupByClauseContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 286, MySqlParserRULE_groupByClause)
@@ -65087,6 +67927,16 @@ func (s *HavingClauseContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *HavingClauseContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitHavingClause(s)
+	}
+}
+
+func (s *HavingClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitHavingClause(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -65319,6 +68169,16 @@ func (s *WindowClauseContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *WindowClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitWindowClause(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) WindowClause() (localctx IWindowClauseContext) {
 	localctx = NewWindowClauseContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 290, MySqlParserRULE_windowClause)
@@ -65545,6 +68405,16 @@ func (s *GroupByItemContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *GroupByItemContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitGroupByItem(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) GroupByItem() (localctx IGroupByItemContext) {
 	localctx = NewGroupByItemContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 292, MySqlParserRULE_groupByItem)
@@ -65737,6 +68607,16 @@ func (s *LimitClauseContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *LimitClauseContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitLimitClause(s)
+	}
+}
+
+func (s *LimitClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLimitClause(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -65948,6 +68828,16 @@ func (s *LimitClauseAtomContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *LimitClauseAtomContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLimitClauseAtom(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) LimitClauseAtom() (localctx ILimitClauseAtomContext) {
 	localctx = NewLimitClauseAtomContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 296, MySqlParserRULE_limitClauseAtom)
@@ -66125,6 +69015,16 @@ func (s *StartTransactionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *StartTransactionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitStartTransaction(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) StartTransaction() (localctx IStartTransactionContext) {
 	localctx = NewStartTransactionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 298, MySqlParserRULE_startTransaction)
@@ -66273,6 +69173,16 @@ func (s *BeginWorkContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *BeginWorkContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitBeginWork(s)
+	}
+}
+
+func (s *BeginWorkContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitBeginWork(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -66441,6 +69351,16 @@ func (s *CommitWorkContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *CommitWorkContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitCommitWork(s)
+	}
+}
+
+func (s *CommitWorkContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCommitWork(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -66696,6 +69616,16 @@ func (s *RollbackWorkContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *RollbackWorkContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRollbackWork(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) RollbackWork() (localctx IRollbackWorkContext) {
 	localctx = NewRollbackWorkContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 304, MySqlParserRULE_rollbackWork)
@@ -66913,6 +69843,16 @@ func (s *SavepointStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *SavepointStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSavepointStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) SavepointStatement() (localctx ISavepointStatementContext) {
 	localctx = NewSavepointStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 306, MySqlParserRULE_savepointStatement)
@@ -67042,6 +69982,16 @@ func (s *RollbackStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *RollbackStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitRollbackStatement(s)
+	}
+}
+
+func (s *RollbackStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRollbackStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -67208,6 +70158,16 @@ func (s *ReleaseStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ReleaseStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitReleaseStatement(s)
+	}
+}
+
+func (s *ReleaseStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitReleaseStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -67399,6 +70359,16 @@ func (s *LockTablesContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *LockTablesContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLockTables(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) LockTables() (localctx ILockTablesContext) {
 	localctx = NewLockTablesContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 312, MySqlParserRULE_lockTables)
@@ -67559,6 +70529,16 @@ func (s *UnlockTablesContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *UnlockTablesContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUnlockTables(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) UnlockTables() (localctx IUnlockTablesContext) {
 	localctx = NewUnlockTablesContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 314, MySqlParserRULE_unlockTables)
@@ -67691,6 +70671,16 @@ func (s *SetAutocommitStatementContext) EnterRule(listener antlr.ParseTreeListen
 func (s *SetAutocommitStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSetAutocommitStatement(s)
+	}
+}
+
+func (s *SetAutocommitStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSetAutocommitStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -67909,6 +70899,16 @@ func (s *SetTransactionStatementContext) ExitRule(listener antlr.ParseTreeListen
 	}
 }
 
+func (s *SetTransactionStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSetTransactionStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) SetTransactionStatement() (localctx ISetTransactionStatementContext) {
 	localctx = NewSetTransactionStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 318, MySqlParserRULE_setTransactionStatement)
@@ -68097,6 +71097,16 @@ func (s *TransactionModeContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *TransactionModeContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTransactionMode(s)
+	}
+}
+
+func (s *TransactionModeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTransactionMode(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -68313,6 +71323,16 @@ func (s *LockTableElementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *LockTableElementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLockTableElement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) LockTableElement() (localctx ILockTableElementContext) {
 	localctx = NewLockTableElementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 322, MySqlParserRULE_lockTableElement)
@@ -68455,6 +71475,16 @@ func (s *LockActionContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *LockActionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitLockAction(s)
+	}
+}
+
+func (s *LockActionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLockAction(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -68653,6 +71683,16 @@ func (s *TransactionOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *TransactionOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTransactionOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) TransactionOption() (localctx ITransactionOptionContext) {
 	localctx = NewTransactionOptionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 326, MySqlParserRULE_transactionOption)
@@ -68828,6 +71868,16 @@ func (s *TransactionLevelContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *TransactionLevelContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTransactionLevel(s)
+	}
+}
+
+func (s *TransactionLevelContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTransactionLevel(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -69076,6 +72126,16 @@ func (s *ChangeMasterContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *ChangeMasterContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitChangeMaster(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) ChangeMaster() (localctx IChangeMasterContext) {
 	localctx = NewChangeMasterContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 330, MySqlParserRULE_changeMaster)
@@ -69299,6 +72359,16 @@ func (s *ChangeReplicationFilterContext) ExitRule(listener antlr.ParseTreeListen
 	}
 }
 
+func (s *ChangeReplicationFilterContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitChangeReplicationFilter(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) ChangeReplicationFilter() (localctx IChangeReplicationFilterContext) {
 	localctx = NewChangeReplicationFilterContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 332, MySqlParserRULE_changeReplicationFilter)
@@ -69508,6 +72578,16 @@ func (s *PurgeBinaryLogsContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *PurgeBinaryLogsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPurgeBinaryLogs(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) PurgeBinaryLogs() (localctx IPurgeBinaryLogsContext) {
 	localctx = NewPurgeBinaryLogsContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 334, MySqlParserRULE_purgeBinaryLogs)
@@ -69690,6 +72770,16 @@ func (s *ResetMasterContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *ResetMasterContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitResetMaster(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) ResetMaster() (localctx IResetMasterContext) {
 	localctx = NewResetMasterContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 336, MySqlParserRULE_resetMaster)
@@ -69818,6 +72908,16 @@ func (s *ResetSlaveContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ResetSlaveContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitResetSlave(s)
+	}
+}
+
+func (s *ResetSlaveContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitResetSlave(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -70099,6 +73199,16 @@ func (s *StartSlaveContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *StartSlaveContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitStartSlave(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) StartSlave() (localctx IStartSlaveContext) {
 	localctx = NewStartSlaveContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 340, MySqlParserRULE_startSlave)
@@ -70361,6 +73471,16 @@ func (s *StopSlaveContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *StopSlaveContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitStopSlave(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) StopSlave() (localctx IStopSlaveContext) {
 	localctx = NewStopSlaveContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 342, MySqlParserRULE_stopSlave)
@@ -70514,6 +73634,16 @@ func (s *StartGroupReplicationContext) ExitRule(listener antlr.ParseTreeListener
 	}
 }
 
+func (s *StartGroupReplicationContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitStartGroupReplication(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) StartGroupReplication() (localctx IStartGroupReplicationContext) {
 	localctx = NewStartGroupReplicationContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 344, MySqlParserRULE_startGroupReplication)
@@ -70620,6 +73750,16 @@ func (s *StopGroupReplicationContext) EnterRule(listener antlr.ParseTreeListener
 func (s *StopGroupReplicationContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitStopGroupReplication(s)
+	}
+}
+
+func (s *StopGroupReplicationContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitStopGroupReplication(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -70765,6 +73905,16 @@ func (s *MasterStringOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *MasterStringOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitMasterStringOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type MasterRealOptionContext struct {
 	MasterOptionContext
 }
@@ -70804,6 +73954,16 @@ func (s *MasterRealOptionContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *MasterRealOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitMasterRealOption(s)
+	}
+}
+
+func (s *MasterRealOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitMasterRealOption(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -70867,6 +74027,16 @@ func (s *MasterBoolOptionContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *MasterBoolOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitMasterBoolOption(s)
+	}
+}
+
+func (s *MasterBoolOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitMasterBoolOption(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -70965,6 +74135,16 @@ func (s *MasterUidListOptionContext) ExitRule(listener antlr.ParseTreeListener) 
 	}
 }
 
+func (s *MasterUidListOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitMasterUidListOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type MasterDecimalOptionContext struct {
 	MasterOptionContext
 }
@@ -71028,6 +74208,16 @@ func (s *MasterDecimalOptionContext) EnterRule(listener antlr.ParseTreeListener)
 func (s *MasterDecimalOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitMasterDecimalOption(s)
+	}
+}
+
+func (s *MasterDecimalOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitMasterDecimalOption(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -71380,6 +74570,16 @@ func (s *StringMasterOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *StringMasterOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitStringMasterOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) StringMasterOption() (localctx IStringMasterOptionContext) {
 	localctx = NewStringMasterOptionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 350, MySqlParserRULE_stringMasterOption)
@@ -71506,6 +74706,16 @@ func (s *DecimalMasterOptionContext) ExitRule(listener antlr.ParseTreeListener) 
 	}
 }
 
+func (s *DecimalMasterOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDecimalMasterOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) DecimalMasterOption() (localctx IDecimalMasterOptionContext) {
 	localctx = NewDecimalMasterOptionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 352, MySqlParserRULE_decimalMasterOption)
@@ -71617,6 +74827,16 @@ func (s *BoolMasterOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *BoolMasterOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitBoolMasterOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) BoolMasterOption() (localctx IBoolMasterOptionContext) {
 	localctx = NewBoolMasterOptionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 354, MySqlParserRULE_boolMasterOption)
@@ -71725,6 +74945,16 @@ func (s *ChannelOptionContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ChannelOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitChannelOption(s)
+	}
+}
+
+func (s *ChannelOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitChannelOption(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -71886,6 +75116,16 @@ func (s *WildIgnoreTableReplicationContext) ExitRule(listener antlr.ParseTreeLis
 	}
 }
 
+func (s *WildIgnoreTableReplicationContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitWildIgnoreTableReplication(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type DoTableReplicationContext struct {
 	ReplicationFilterContext
 }
@@ -71948,6 +75188,16 @@ func (s *DoTableReplicationContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *DoTableReplicationContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDoTableReplication(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type IgnoreTableReplicationContext struct {
 	ReplicationFilterContext
 }
@@ -72007,6 +75257,16 @@ func (s *IgnoreTableReplicationContext) EnterRule(listener antlr.ParseTreeListen
 func (s *IgnoreTableReplicationContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitIgnoreTableReplication(s)
+	}
+}
+
+func (s *IgnoreTableReplicationContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitIgnoreTableReplication(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -72105,6 +75365,16 @@ func (s *RewriteDbReplicationContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *RewriteDbReplicationContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRewriteDbReplication(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type DoDbReplicationContext struct {
 	ReplicationFilterContext
 }
@@ -72164,6 +75434,16 @@ func (s *DoDbReplicationContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *DoDbReplicationContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitDoDbReplication(s)
+	}
+}
+
+func (s *DoDbReplicationContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDoDbReplication(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -72229,6 +75509,16 @@ func (s *IgnoreDbReplicationContext) ExitRule(listener antlr.ParseTreeListener) 
 	}
 }
 
+func (s *IgnoreDbReplicationContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitIgnoreDbReplication(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type WildDoTableReplicationContext struct {
 	ReplicationFilterContext
 }
@@ -72288,6 +75578,16 @@ func (s *WildDoTableReplicationContext) EnterRule(listener antlr.ParseTreeListen
 func (s *WildDoTableReplicationContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitWildDoTableReplication(s)
+	}
+}
+
+func (s *WildDoTableReplicationContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitWildDoTableReplication(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -72774,6 +76074,16 @@ func (s *TablePairContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *TablePairContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTablePair(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) TablePair() (localctx ITablePairContext) {
 	localctx = NewTablePairContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 360, MySqlParserRULE_tablePair)
@@ -72902,6 +76212,16 @@ func (s *ThreadTypeContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ThreadTypeContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitThreadType(s)
+	}
+}
+
+func (s *ThreadTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitThreadType(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -73053,6 +76373,16 @@ func (s *GtidsUntilOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *GtidsUntilOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitGtidsUntilOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type SqlGapsUntilOptionContext struct {
 	UntilOptionContext
 }
@@ -73084,6 +76414,16 @@ func (s *SqlGapsUntilOptionContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *SqlGapsUntilOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSqlGapsUntilOption(s)
+	}
+}
+
+func (s *SqlGapsUntilOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSqlGapsUntilOption(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -73157,6 +76497,16 @@ func (s *MasterLogUntilOptionContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *MasterLogUntilOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitMasterLogUntilOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type RelayLogUntilOptionContext struct {
 	UntilOptionContext
 }
@@ -73224,6 +76574,16 @@ func (s *RelayLogUntilOptionContext) EnterRule(listener antlr.ParseTreeListener)
 func (s *RelayLogUntilOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitRelayLogUntilOption(s)
+	}
+}
+
+func (s *RelayLogUntilOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRelayLogUntilOption(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -73516,6 +76876,16 @@ func (s *PluginDirConnectionOptionContext) ExitRule(listener antlr.ParseTreeList
 	}
 }
 
+func (s *PluginDirConnectionOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPluginDirConnectionOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type UserConnectionOptionContext struct {
 	ConnectionOptionContext
 	conOptUser antlr.Token
@@ -73560,6 +76930,16 @@ func (s *UserConnectionOptionContext) EnterRule(listener antlr.ParseTreeListener
 func (s *UserConnectionOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitUserConnectionOption(s)
+	}
+}
+
+func (s *UserConnectionOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUserConnectionOption(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -73610,6 +76990,16 @@ func (s *DefaultAuthConnectionOptionContext) ExitRule(listener antlr.ParseTreeLi
 	}
 }
 
+func (s *DefaultAuthConnectionOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDefaultAuthConnectionOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type PasswordConnectionOptionContext struct {
 	ConnectionOptionContext
 	conOptPassword antlr.Token
@@ -73654,6 +77044,16 @@ func (s *PasswordConnectionOptionContext) EnterRule(listener antlr.ParseTreeList
 func (s *PasswordConnectionOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitPasswordConnectionOption(s)
+	}
+}
+
+func (s *PasswordConnectionOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPasswordConnectionOption(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -73932,6 +77332,16 @@ func (s *GtuidSetContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *GtuidSetContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitGtuidSet(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) GtuidSet() (localctx IGtuidSetContext) {
 	localctx = NewGtuidSetContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 368, MySqlParserRULE_gtuidSet)
@@ -74137,6 +77547,16 @@ func (s *XaStartTransactionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *XaStartTransactionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitXaStartTransaction(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) XaStartTransaction() (localctx IXaStartTransactionContext) {
 	localctx = NewXaStartTransactionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 370, MySqlParserRULE_xaStartTransaction)
@@ -74322,6 +77742,16 @@ func (s *XaEndTransactionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *XaEndTransactionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitXaEndTransaction(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) XaEndTransaction() (localctx IXaEndTransactionContext) {
 	localctx = NewXaEndTransactionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 372, MySqlParserRULE_xaEndTransaction)
@@ -74498,6 +77928,16 @@ func (s *XaPrepareStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *XaPrepareStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitXaPrepareStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) XaPrepareStatement() (localctx IXaPrepareStatementContext) {
 	localctx = NewXaPrepareStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 374, MySqlParserRULE_xaPrepareStatement)
@@ -74635,6 +78075,16 @@ func (s *XaCommitWorkContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *XaCommitWorkContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitXaCommitWork(s)
+	}
+}
+
+func (s *XaCommitWorkContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitXaCommitWork(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -74796,6 +78246,16 @@ func (s *XaRollbackWorkContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *XaRollbackWorkContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitXaRollbackWork(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) XaRollbackWork() (localctx IXaRollbackWorkContext) {
 	localctx = NewXaRollbackWorkContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 378, MySqlParserRULE_xaRollbackWork)
@@ -74928,6 +78388,16 @@ func (s *XaRecoverWorkContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *XaRecoverWorkContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitXaRecoverWork(s)
+	}
+}
+
+func (s *XaRecoverWorkContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitXaRecoverWork(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -75110,6 +78580,16 @@ func (s *PrepareStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *PrepareStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitPrepareStatement(s)
+	}
+}
+
+func (s *PrepareStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPrepareStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -75297,6 +78777,16 @@ func (s *ExecuteStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *ExecuteStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitExecuteStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) ExecuteStatement() (localctx IExecuteStatementContext) {
 	localctx = NewExecuteStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 384, MySqlParserRULE_executeStatement)
@@ -75459,6 +78949,16 @@ func (s *DeallocatePrepareContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *DeallocatePrepareContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDeallocatePrepare(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) DeallocatePrepare() (localctx IDeallocatePrepareContext) {
 	localctx = NewDeallocatePrepareContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 386, MySqlParserRULE_deallocatePrepare)
@@ -75605,6 +79105,16 @@ func (s *RoutineBodyContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *RoutineBodyContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitRoutineBody(s)
+	}
+}
+
+func (s *RoutineBodyContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRoutineBody(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -75994,6 +79504,16 @@ func (s *BlockStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *BlockStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitBlockStatement(s)
+	}
+}
+
+func (s *BlockStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitBlockStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -76432,6 +79952,16 @@ func (s *CaseStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *CaseStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCaseStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) CaseStatement() (localctx ICaseStatementContext) {
 	localctx = NewCaseStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 392, MySqlParserRULE_caseStatement)
@@ -76800,6 +80330,16 @@ func (s *IfStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *IfStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitIfStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) IfStatement() (localctx IIfStatementContext) {
 	localctx = NewIfStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 394, MySqlParserRULE_ifStatement)
@@ -77043,6 +80583,16 @@ func (s *IterateStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *IterateStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitIterateStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) IterateStatement() (localctx IIterateStatementContext) {
 	localctx = NewIterateStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 396, MySqlParserRULE_iterateStatement)
@@ -77157,6 +80707,16 @@ func (s *LeaveStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *LeaveStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitLeaveStatement(s)
+	}
+}
+
+func (s *LeaveStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLeaveStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -77358,6 +80918,16 @@ func (s *LoopStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *LoopStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitLoopStatement(s)
+	}
+}
+
+func (s *LoopStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLoopStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -77662,6 +81232,16 @@ func (s *RepeatStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *RepeatStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRepeatStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) RepeatStatement() (localctx IRepeatStatementContext) {
 	localctx = NewRepeatStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 402, MySqlParserRULE_repeatStatement)
@@ -77864,6 +81444,16 @@ func (s *ReturnStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ReturnStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitReturnStatement(s)
+	}
+}
+
+func (s *ReturnStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitReturnStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -78087,6 +81677,16 @@ func (s *WhileStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *WhileStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitWhileStatement(s)
+	}
+}
+
+func (s *WhileStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitWhileStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -78314,6 +81914,16 @@ func (s *CloseCursorContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *CloseCursorContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCloseCursor(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type OpenCursorContext struct {
 	CursorStatementContext
 }
@@ -78361,6 +81971,16 @@ func (s *OpenCursorContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *OpenCursorContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitOpenCursor(s)
+	}
+}
+
+func (s *OpenCursorContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitOpenCursor(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -78439,6 +82059,16 @@ func (s *FetchCursorContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *FetchCursorContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitFetchCursor(s)
+	}
+}
+
+func (s *FetchCursorContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFetchCursor(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -78692,6 +82322,16 @@ func (s *DeclareVariableContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *DeclareVariableContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDeclareVariable(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) DeclareVariable() (localctx IDeclareVariableContext) {
 	localctx = NewDeclareVariableContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 410, MySqlParserRULE_declareVariable)
@@ -78876,6 +82516,16 @@ func (s *DeclareConditionContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *DeclareConditionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitDeclareCondition(s)
+	}
+}
+
+func (s *DeclareConditionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDeclareCondition(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -79091,6 +82741,16 @@ func (s *DeclareCursorContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *DeclareCursorContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitDeclareCursor(s)
+	}
+}
+
+func (s *DeclareCursorContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDeclareCursor(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -79320,6 +82980,16 @@ func (s *DeclareHandlerContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *DeclareHandlerContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDeclareHandler(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) DeclareHandler() (localctx IDeclareHandlerContext) {
 	localctx = NewDeclareHandlerContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 416, MySqlParserRULE_declareHandler)
@@ -79506,6 +83176,16 @@ func (s *HandlerConditionWarningContext) ExitRule(listener antlr.ParseTreeListen
 	}
 }
 
+func (s *HandlerConditionWarningContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitHandlerConditionWarning(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type HandlerConditionCodeContext struct {
 	HandlerConditionValueContext
 }
@@ -79552,6 +83232,16 @@ func (s *HandlerConditionCodeContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *HandlerConditionCodeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitHandlerConditionCode(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type HandlerConditionNotfoundContext struct {
 	HandlerConditionValueContext
 }
@@ -79587,6 +83277,16 @@ func (s *HandlerConditionNotfoundContext) EnterRule(listener antlr.ParseTreeList
 func (s *HandlerConditionNotfoundContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitHandlerConditionNotfound(s)
+	}
+}
+
+func (s *HandlerConditionNotfoundContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitHandlerConditionNotfound(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -79632,6 +83332,16 @@ func (s *HandlerConditionStateContext) ExitRule(listener antlr.ParseTreeListener
 	}
 }
 
+func (s *HandlerConditionStateContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitHandlerConditionState(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type HandlerConditionExceptionContext struct {
 	HandlerConditionValueContext
 }
@@ -79663,6 +83373,16 @@ func (s *HandlerConditionExceptionContext) EnterRule(listener antlr.ParseTreeLis
 func (s *HandlerConditionExceptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitHandlerConditionException(s)
+	}
+}
+
+func (s *HandlerConditionExceptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitHandlerConditionException(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -79709,6 +83429,16 @@ func (s *HandlerConditionNameContext) EnterRule(listener antlr.ParseTreeListener
 func (s *HandlerConditionNameContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitHandlerConditionName(s)
+	}
+}
+
+func (s *HandlerConditionNameContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitHandlerConditionName(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -79944,6 +83674,16 @@ func (s *ProcedureSqlStatementContext) ExitRule(listener antlr.ParseTreeListener
 	}
 }
 
+func (s *ProcedureSqlStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitProcedureSqlStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) ProcedureSqlStatement() (localctx IProcedureSqlStatementContext) {
 	localctx = NewProcedureSqlStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 420, MySqlParserRULE_procedureSqlStatement)
@@ -80141,6 +83881,16 @@ func (s *CaseAlternativeContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *CaseAlternativeContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitCaseAlternative(s)
+	}
+}
+
+func (s *CaseAlternativeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCaseAlternative(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -80360,6 +84110,16 @@ func (s *ElifAlternativeContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ElifAlternativeContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitElifAlternative(s)
+	}
+}
+
+func (s *ElifAlternativeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitElifAlternative(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -80843,6 +84603,16 @@ func (s *AlterUserMysqlV80Context) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *AlterUserMysqlV80Context) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterUserMysqlV80(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AlterUserMysqlV56Context struct {
 	AlterUserContext
 }
@@ -80927,6 +84697,16 @@ func (s *AlterUserMysqlV56Context) EnterRule(listener antlr.ParseTreeListener) {
 func (s *AlterUserMysqlV56Context) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAlterUserMysqlV56(s)
+	}
+}
+
+func (s *AlterUserMysqlV56Context) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAlterUserMysqlV56(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -81499,6 +85279,16 @@ func (s *CreateUserMysqlV56Context) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *CreateUserMysqlV56Context) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCreateUserMysqlV56(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type CreateUserMysqlV80Context struct {
 	CreateUserContext
 	tlsNone antlr.Token
@@ -81824,6 +85614,16 @@ func (s *CreateUserMysqlV80Context) EnterRule(listener antlr.ParseTreeListener) 
 func (s *CreateUserMysqlV80Context) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitCreateUserMysqlV80(s)
+	}
+}
+
+func (s *CreateUserMysqlV80Context) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCreateUserMysqlV80(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -82353,6 +86153,16 @@ func (s *DropUserContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *DropUserContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitDropUser(s)
+	}
+}
+
+func (s *DropUserContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDropUser(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -82914,6 +86724,16 @@ func (s *GrantStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *GrantStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitGrantStatement(s)
+	}
+}
+
+func (s *GrantStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitGrantStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -83596,6 +87416,16 @@ func (s *RoleOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *RoleOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRoleOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) RoleOption() (localctx IRoleOptionContext) {
 	localctx = NewRoleOptionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 434, MySqlParserRULE_roleOption)
@@ -83940,6 +87770,16 @@ func (s *GrantProxyContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *GrantProxyContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitGrantProxy(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) GrantProxy() (localctx IGrantProxyContext) {
 	localctx = NewGrantProxyContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 436, MySqlParserRULE_grantProxy)
@@ -84195,6 +88035,16 @@ func (s *RenameUserContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *RenameUserContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitRenameUser(s)
+	}
+}
+
+func (s *RenameUserContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRenameUser(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -84554,6 +88404,16 @@ func (s *DetailRevokeContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *DetailRevokeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDetailRevoke(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type RoleRevokeContext struct {
 	RevokeStatementContext
 }
@@ -84710,6 +88570,16 @@ func (s *RoleRevokeContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *RoleRevokeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRoleRevoke(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type ShortRevokeContext struct {
 	RevokeStatementContext
 }
@@ -84838,6 +88708,16 @@ func (s *ShortRevokeContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ShortRevokeContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitShortRevoke(s)
+	}
+}
+
+func (s *ShortRevokeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShortRevoke(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -85609,6 +89489,16 @@ func (s *RevokeProxyContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *RevokeProxyContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRevokeProxy(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) RevokeProxy() (localctx IRevokeProxyContext) {
 	localctx = NewRevokeProxyContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 442, MySqlParserRULE_revokeProxy)
@@ -85831,6 +89721,16 @@ func (s *SetPasswordStatementContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *SetPasswordStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSetPasswordStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) SetPasswordStatement() (localctx ISetPasswordStatementContext) {
 	localctx = NewSetPasswordStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 444, MySqlParserRULE_setPasswordStatement)
@@ -86023,6 +89923,16 @@ func (s *UserSpecificationContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *UserSpecificationContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUserSpecification(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) UserSpecification() (localctx IUserSpecificationContext) {
 	localctx = NewUserSpecificationContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 446, MySqlParserRULE_userSpecification)
@@ -86149,6 +90059,16 @@ func (s *SimpleAuthOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *SimpleAuthOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSimpleAuthOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type ModuleAuthOptionContext struct {
 	UserAuthOptionContext
 }
@@ -86216,6 +90136,16 @@ func (s *ModuleAuthOptionContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ModuleAuthOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitModuleAuthOption(s)
+	}
+}
+
+func (s *ModuleAuthOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitModuleAuthOption(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -86297,6 +90227,16 @@ func (s *RandomAuthOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *RandomAuthOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRandomAuthOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type StringAuthOptionContext struct {
 	UserAuthOptionContext
 }
@@ -86371,6 +90311,16 @@ func (s *StringAuthOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *StringAuthOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitStringAuthOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type HashAuthOptionContext struct {
 	UserAuthOptionContext
 	hashed antlr.Token
@@ -86435,6 +90385,16 @@ func (s *HashAuthOptionContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *HashAuthOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitHashAuthOption(s)
+	}
+}
+
+func (s *HashAuthOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitHashAuthOption(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -86714,6 +90674,16 @@ func (s *AuthOptionClauseContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *AuthOptionClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAuthOptionClause(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) AuthOptionClause() (localctx IAuthOptionClauseContext) {
 	localctx = NewAuthOptionClauseContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 450, MySqlParserRULE_authOptionClause)
@@ -86912,6 +90882,16 @@ func (s *PasswordModuleOptionContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *PasswordModuleOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPasswordModuleOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type ModuleContext struct {
 	AuthenticationRuleContext
 }
@@ -86995,6 +90975,16 @@ func (s *ModuleContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ModuleContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitModule(s)
+	}
+}
+
+func (s *ModuleContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitModule(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -87212,6 +91202,16 @@ func (s *TlsOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *TlsOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTlsOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) TlsOption() (localctx ITlsOptionContext) {
 	localctx = NewTlsOptionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 454, MySqlParserRULE_tlsOption)
@@ -87418,6 +91418,16 @@ func (s *UserResourceOptionContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *UserResourceOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitUserResourceOption(s)
+	}
+}
+
+func (s *UserResourceOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUserResourceOption(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -87669,6 +91679,16 @@ func (s *UserPasswordOptionContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *UserPasswordOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitUserPasswordOption(s)
+	}
+}
+
+func (s *UserPasswordOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUserPasswordOption(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -88081,6 +92101,16 @@ func (s *UserLockOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *UserLockOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUserLockOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) UserLockOption() (localctx IUserLockOptionContext) {
 	localctx = NewUserLockOptionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 460, MySqlParserRULE_userLockOption)
@@ -88233,6 +92263,16 @@ func (s *PrivelegeClauseContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *PrivelegeClauseContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitPrivelegeClause(s)
+	}
+}
+
+func (s *PrivelegeClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPrivelegeClause(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -88757,6 +92797,16 @@ func (s *PrivilegeContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *PrivilegeContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitPrivilege(s)
+	}
+}
+
+func (s *PrivilegeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPrivilege(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -89833,6 +93883,16 @@ func (s *DefiniteSchemaPrivLevelContext) ExitRule(listener antlr.ParseTreeListen
 	}
 }
 
+func (s *DefiniteSchemaPrivLevelContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDefiniteSchemaPrivLevel(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type DefiniteFullTablePrivLevel2Context struct {
 	PrivilegeLevelContext
 }
@@ -89892,6 +93952,16 @@ func (s *DefiniteFullTablePrivLevel2Context) EnterRule(listener antlr.ParseTreeL
 func (s *DefiniteFullTablePrivLevel2Context) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitDefiniteFullTablePrivLevel2(s)
+	}
+}
+
+func (s *DefiniteFullTablePrivLevel2Context) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDefiniteFullTablePrivLevel2(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -89970,6 +94040,16 @@ func (s *DefiniteFullTablePrivLevelContext) ExitRule(listener antlr.ParseTreeLis
 	}
 }
 
+func (s *DefiniteFullTablePrivLevelContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDefiniteFullTablePrivLevel(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type GlobalPrivLevelContext struct {
 	PrivilegeLevelContext
 }
@@ -90009,6 +94089,16 @@ func (s *GlobalPrivLevelContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *GlobalPrivLevelContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitGlobalPrivLevel(s)
+	}
+}
+
+func (s *GlobalPrivLevelContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitGlobalPrivLevel(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -90058,6 +94148,16 @@ func (s *DefiniteTablePrivLevelContext) ExitRule(listener antlr.ParseTreeListene
 	}
 }
 
+func (s *DefiniteTablePrivLevelContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDefiniteTablePrivLevel(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type CurrentSchemaPriviLevelContext struct {
 	PrivilegeLevelContext
 }
@@ -90089,6 +94189,16 @@ func (s *CurrentSchemaPriviLevelContext) EnterRule(listener antlr.ParseTreeListe
 func (s *CurrentSchemaPriviLevelContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitCurrentSchemaPriviLevel(s)
+	}
+}
+
+func (s *CurrentSchemaPriviLevelContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCurrentSchemaPriviLevel(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -90358,6 +94468,16 @@ func (s *RenameUserClauseContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *RenameUserClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRenameUserClause(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) RenameUserClause() (localctx IRenameUserClauseContext) {
 	localctx = NewRenameUserClauseContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 468, MySqlParserRULE_renameUserClause)
@@ -90623,6 +94743,16 @@ func (s *AnalyzeTableContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *AnalyzeTableContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAnalyzeTable(s)
+	}
+}
+
+func (s *AnalyzeTableContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAnalyzeTable(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -90988,6 +95118,16 @@ func (s *CheckTableContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *CheckTableContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCheckTable(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) CheckTable() (localctx ICheckTableContext) {
 	localctx = NewCheckTableContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 472, MySqlParserRULE_checkTable)
@@ -91158,6 +95298,16 @@ func (s *ChecksumTableContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ChecksumTableContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitChecksumTable(s)
+	}
+}
+
+func (s *ChecksumTableContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitChecksumTable(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -91344,6 +95494,16 @@ func (s *OptimizeTableContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *OptimizeTableContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitOptimizeTable(s)
+	}
+}
+
+func (s *OptimizeTableContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitOptimizeTable(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -91543,6 +95703,16 @@ func (s *RepairTableContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *RepairTableContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitRepairTable(s)
+	}
+}
+
+func (s *RepairTableContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRepairTable(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -91765,6 +95935,16 @@ func (s *CheckTableOptionContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *CheckTableOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitCheckTableOption(s)
+	}
+}
+
+func (s *CheckTableOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCheckTableOption(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -92030,6 +96210,16 @@ func (s *CreateUdfunctionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *CreateUdfunctionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCreateUdfunction(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) CreateUdfunction() (localctx ICreateUdfunctionContext) {
 	localctx = NewCreateUdfunctionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 482, MySqlParserRULE_createUdfunction)
@@ -92244,6 +96434,16 @@ func (s *InstallPluginContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *InstallPluginContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitInstallPlugin(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) InstallPlugin() (localctx IInstallPluginContext) {
 	localctx = NewInstallPluginContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 484, MySqlParserRULE_installPlugin)
@@ -92390,6 +96590,16 @@ func (s *UninstallPluginContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *UninstallPluginContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUninstallPlugin(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) UninstallPlugin() (localctx IUninstallPluginContext) {
 	localctx = NewUninstallPluginContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 486, MySqlParserRULE_uninstallPlugin)
@@ -92528,6 +96738,16 @@ func (s *SetTransactionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *SetTransactionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSetTransaction(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type SetCharsetContext struct {
 	SetStatementContext
 }
@@ -92595,6 +96815,16 @@ func (s *SetCharsetContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *SetCharsetContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSetCharset(s)
+	}
+}
+
+func (s *SetCharsetContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSetCharset(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -92676,6 +96906,16 @@ func (s *SetNamesContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *SetNamesContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSetNames(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type SetPasswordContext struct {
 	SetStatementContext
 }
@@ -92722,6 +96962,16 @@ func (s *SetPasswordContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *SetPasswordContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSetPassword(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type SetAutocommitContext struct {
 	SetStatementContext
 }
@@ -92765,6 +97015,16 @@ func (s *SetAutocommitContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *SetAutocommitContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSetAutocommit(s)
+	}
+}
+
+func (s *SetAutocommitContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSetAutocommit(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -92905,6 +97165,16 @@ func (s *SetNewValueInsideTriggerContext) EnterRule(listener antlr.ParseTreeList
 func (s *SetNewValueInsideTriggerContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSetNewValueInsideTrigger(s)
+	}
+}
+
+func (s *SetNewValueInsideTriggerContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSetNewValueInsideTrigger(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -93053,6 +97323,16 @@ func (s *SetVariableContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *SetVariableContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSetVariable(s)
+	}
+}
+
+func (s *SetVariableContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSetVariable(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -93554,6 +97834,16 @@ func (s *ShowOpenTablesContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *ShowOpenTablesContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowOpenTables(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type ShowGlobalInfoContext struct {
 	ShowStatementContext
 }
@@ -93601,6 +97891,16 @@ func (s *ShowGlobalInfoContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ShowGlobalInfoContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitShowGlobalInfo(s)
+	}
+}
+
+func (s *ShowGlobalInfoContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowGlobalInfo(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -93687,6 +97987,16 @@ func (s *ShowCreateFullIdObjectContext) ExitRule(listener antlr.ParseTreeListene
 	}
 }
 
+func (s *ShowCreateFullIdObjectContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowCreateFullIdObject(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type ShowCreateUserContext struct {
 	ShowStatementContext
 }
@@ -93742,6 +98052,16 @@ func (s *ShowCreateUserContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ShowCreateUserContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitShowCreateUser(s)
+	}
+}
+
+func (s *ShowCreateUserContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowCreateUser(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -93851,6 +98171,16 @@ func (s *ShowErrorsContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *ShowErrorsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowErrors(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type ShowCountErrorsContext struct {
 	ShowStatementContext
 	errorFormat antlr.Token
@@ -93911,6 +98241,16 @@ func (s *ShowCountErrorsContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ShowCountErrorsContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitShowCountErrors(s)
+	}
+}
+
+func (s *ShowCountErrorsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowCountErrors(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -93977,6 +98317,16 @@ func (s *ShowObjectFilterContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ShowObjectFilterContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitShowObjectFilter(s)
+	}
+}
+
+func (s *ShowObjectFilterContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowObjectFilter(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -94063,6 +98413,16 @@ func (s *ShowCreateDbContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *ShowCreateDbContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowCreateDb(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type ShowEngineContext struct {
 	ShowStatementContext
 	engineOption antlr.Token
@@ -94127,6 +98487,16 @@ func (s *ShowEngineContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ShowEngineContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitShowEngine(s)
+	}
+}
+
+func (s *ShowEngineContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowEngine(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -94222,6 +98592,16 @@ func (s *ShowSchemaFilterContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ShowSchemaFilterContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitShowSchemaFilter(s)
+	}
+}
+
+func (s *ShowSchemaFilterContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowSchemaFilter(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -94351,6 +98731,16 @@ func (s *ShowIndexesContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ShowIndexesContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitShowIndexes(s)
+	}
+}
+
+func (s *ShowIndexesContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowIndexes(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -94486,6 +98876,16 @@ func (s *ShowLogEventsContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *ShowLogEventsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowLogEvents(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type ShowMasterLogsContext struct {
 	ShowStatementContext
 	logFormat antlr.Token
@@ -94534,6 +98934,16 @@ func (s *ShowMasterLogsContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ShowMasterLogsContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitShowMasterLogs(s)
+	}
+}
+
+func (s *ShowMasterLogsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowMasterLogs(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -94595,6 +99005,16 @@ func (s *ShowGrantsContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *ShowGrantsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowGrants(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type ShowSlaveStatusContext struct {
 	ShowStatementContext
 }
@@ -94646,6 +99066,16 @@ func (s *ShowSlaveStatusContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ShowSlaveStatusContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitShowSlaveStatus(s)
+	}
+}
+
+func (s *ShowSlaveStatusContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowSlaveStatus(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -94713,6 +99143,16 @@ func (s *ShowRoutineContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ShowRoutineContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitShowRoutine(s)
+	}
+}
+
+func (s *ShowRoutineContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowRoutine(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -94871,6 +99311,16 @@ func (s *ShowProfileContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *ShowProfileContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowProfile(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type ShowColumnsContext struct {
 	ShowStatementContext
 	columnsFormat antlr.Token
@@ -94993,6 +99443,16 @@ func (s *ShowColumnsContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ShowColumnsContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitShowColumns(s)
+	}
+}
+
+func (s *ShowColumnsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowColumns(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -96304,6 +100764,16 @@ func (s *VariableClauseContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *VariableClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitVariableClause(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) VariableClause() (localctx IVariableClauseContext) {
 	localctx = NewVariableClauseContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 492, MySqlParserRULE_variableClause)
@@ -96525,6 +100995,16 @@ func (s *ShowCommonEntityContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ShowCommonEntityContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitShowCommonEntity(s)
+	}
+}
+
+func (s *ShowCommonEntityContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowCommonEntity(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -96780,6 +101260,16 @@ func (s *ShowFilterContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *ShowFilterContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowFilter(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) ShowFilter() (localctx IShowFilterContext) {
 	localctx = NewShowFilterContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 496, MySqlParserRULE_showFilter)
@@ -96969,6 +101459,16 @@ func (s *ShowGlobalInfoClauseContext) EnterRule(listener antlr.ParseTreeListener
 func (s *ShowGlobalInfoClauseContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitShowGlobalInfoClause(s)
+	}
+}
+
+func (s *ShowGlobalInfoClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowGlobalInfoClause(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -97248,6 +101748,16 @@ func (s *ShowSchemaEntityContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *ShowSchemaEntityContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowSchemaEntity(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) ShowSchemaEntity() (localctx IShowSchemaEntityContext) {
 	localctx = NewShowSchemaEntityContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 500, MySqlParserRULE_showSchemaEntity)
@@ -97470,6 +101980,16 @@ func (s *ShowProfileTypeContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ShowProfileTypeContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitShowProfileType(s)
+	}
+}
+
+func (s *ShowProfileTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShowProfileType(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -97696,6 +102216,16 @@ func (s *BinlogStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *BinlogStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitBinlogStatement(s)
+	}
+}
+
+func (s *BinlogStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitBinlogStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -97928,6 +102458,16 @@ func (s *CacheIndexStatementContext) EnterRule(listener antlr.ParseTreeListener)
 func (s *CacheIndexStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitCacheIndexStatement(s)
+	}
+}
+
+func (s *CacheIndexStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCacheIndexStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -98219,6 +102759,16 @@ func (s *FlushStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *FlushStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFlushStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) FlushStatement() (localctx IFlushStatementContext) {
 	localctx = NewFlushStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 508, MySqlParserRULE_flushStatement)
@@ -98412,6 +102962,16 @@ func (s *KillStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *KillStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitKillStatement(s)
+	}
+}
+
+func (s *KillStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitKillStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -98611,6 +103171,16 @@ func (s *LoadIndexIntoCacheContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *LoadIndexIntoCacheContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLoadIndexIntoCache(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) LoadIndexIntoCache() (localctx ILoadIndexIntoCacheContext) {
 	localctx = NewLoadIndexIntoCacheContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 512, MySqlParserRULE_loadIndexIntoCache)
@@ -98775,6 +103345,16 @@ func (s *ResetStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *ResetStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitResetStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) ResetStatement() (localctx IResetStatementContext) {
 	localctx = NewResetStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 514, MySqlParserRULE_resetStatement)
@@ -98884,6 +103464,16 @@ func (s *ShutdownStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ShutdownStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitShutdownStatement(s)
+	}
+}
+
+func (s *ShutdownStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitShutdownStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -99040,6 +103630,16 @@ func (s *TableIndexesContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *TableIndexesContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTableIndexes(s)
+	}
+}
+
+func (s *TableIndexesContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableIndexes(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -99249,6 +103849,16 @@ func (s *TableFlushOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *TableFlushOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableFlushOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type ChannelFlushOptionContext struct {
 	FlushOptionContext
 }
@@ -99300,6 +103910,16 @@ func (s *ChannelFlushOptionContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *ChannelFlushOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitChannelFlushOption(s)
+	}
+}
+
+func (s *ChannelFlushOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitChannelFlushOption(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -99406,6 +104026,16 @@ func (s *SimpleFlushOptionContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *SimpleFlushOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSimpleFlushOption(s)
+	}
+}
+
+func (s *SimpleFlushOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSimpleFlushOption(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -99767,6 +104397,16 @@ func (s *FlushTableOptionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *FlushTableOptionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFlushTableOption(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) FlushTableOption() (localctx IFlushTableOptionContext) {
 	localctx = NewFlushTableOptionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 522, MySqlParserRULE_flushTableOption)
@@ -100046,6 +104686,16 @@ func (s *LoadedTableIndexesContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *LoadedTableIndexesContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitLoadedTableIndexes(s)
+	}
+}
+
+func (s *LoadedTableIndexesContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLoadedTableIndexes(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -100374,6 +105024,16 @@ func (s *SimpleDescribeStatementContext) ExitRule(listener antlr.ParseTreeListen
 	}
 }
 
+func (s *SimpleDescribeStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSimpleDescribeStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) SimpleDescribeStatement() (localctx ISimpleDescribeStatementContext) {
 	localctx = NewSimpleDescribeStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 526, MySqlParserRULE_simpleDescribeStatement)
@@ -100606,6 +105266,16 @@ func (s *FullDescribeStatementContext) ExitRule(listener antlr.ParseTreeListener
 	}
 }
 
+func (s *FullDescribeStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFullDescribeStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) FullDescribeStatement() (localctx IFullDescribeStatementContext) {
 	localctx = NewFullDescribeStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 528, MySqlParserRULE_fullDescribeStatement)
@@ -100777,6 +105447,16 @@ func (s *HelpStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *HelpStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitHelpStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) HelpStatement() (localctx IHelpStatementContext) {
 	localctx = NewHelpStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 530, MySqlParserRULE_helpStatement)
@@ -100895,6 +105575,16 @@ func (s *UseStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *UseStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitUseStatement(s)
+	}
+}
+
+func (s *UseStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUseStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -101090,6 +105780,16 @@ func (s *SignalStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *SignalStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSignalStatement(s)
+	}
+}
+
+func (s *SignalStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSignalStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -101394,6 +106094,16 @@ func (s *ResignalStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ResignalStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitResignalStatement(s)
+	}
+}
+
+func (s *ResignalStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitResignalStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -101721,6 +106431,16 @@ func (s *SignalConditionInformationContext) ExitRule(listener antlr.ParseTreeLis
 	}
 }
 
+func (s *SignalConditionInformationContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSignalConditionInformation(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) SignalConditionInformation() (localctx ISignalConditionInformationContext) {
 	localctx = NewSignalConditionInformationContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 538, MySqlParserRULE_signalConditionInformation)
@@ -101927,6 +106647,16 @@ func (s *WithStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *WithStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitWithStatement(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) WithStatement() (localctx IWithStatementContext) {
 	localctx = NewWithStatementContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 540, MySqlParserRULE_withStatement)
@@ -102121,6 +106851,16 @@ func (s *TableStatementContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *TableStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTableStatement(s)
+	}
+}
+
+func (s *TableStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -102414,6 +107154,16 @@ func (s *DiagnosticsStatementContext) EnterRule(listener antlr.ParseTreeListener
 func (s *DiagnosticsStatementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitDiagnosticsStatement(s)
+	}
+}
+
+func (s *DiagnosticsStatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDiagnosticsStatement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -102775,6 +107525,16 @@ func (s *DiagnosticsConditionInformationNameContext) ExitRule(listener antlr.Par
 	}
 }
 
+func (s *DiagnosticsConditionInformationNameContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDiagnosticsConditionInformationName(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) DiagnosticsConditionInformationName() (localctx IDiagnosticsConditionInformationNameContext) {
 	localctx = NewDiagnosticsConditionInformationNameContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 546, MySqlParserRULE_diagnosticsConditionInformationName)
@@ -102970,6 +107730,16 @@ func (s *DescribeStatementsContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *DescribeStatementsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDescribeStatements(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type DescribeConnectionContext struct {
 	DescribeObjectClauseContext
 }
@@ -103021,6 +107791,16 @@ func (s *DescribeConnectionContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *DescribeConnectionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitDescribeConnection(s)
+	}
+}
+
+func (s *DescribeConnectionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDescribeConnection(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -103239,6 +108019,16 @@ func (s *FullIdContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *FullIdContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFullId(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) FullId() (localctx IFullIdContext) {
 	localctx = NewFullIdContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 550, MySqlParserRULE_fullId)
@@ -103375,6 +108165,16 @@ func (s *TableNameContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *TableNameContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTableName(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) TableName() (localctx ITableNameContext) {
 	localctx = NewTableNameContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 552, MySqlParserRULE_tableName)
@@ -103493,6 +108293,16 @@ func (s *RoleNameContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *RoleNameContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitRoleName(s)
+	}
+}
+
+func (s *RoleNameContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRoleName(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -103659,6 +108469,16 @@ func (s *FullColumnNameContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *FullColumnNameContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitFullColumnName(s)
+	}
+}
+
+func (s *FullColumnNameContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFullColumnName(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -103901,6 +108721,16 @@ func (s *IndexColumnNameContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *IndexColumnNameContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitIndexColumnName(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) IndexColumnName() (localctx IIndexColumnNameContext) {
 	localctx = NewIndexColumnNameContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 558, MySqlParserRULE_indexColumnName)
@@ -104120,6 +108950,16 @@ func (s *SimpleUserNameContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *SimpleUserNameContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSimpleUserName(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) SimpleUserName() (localctx ISimpleUserNameContext) {
 	localctx = NewSimpleUserNameContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 560, MySqlParserRULE_simpleUserName)
@@ -104264,6 +109104,16 @@ func (s *HostNameContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *HostNameContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitHostName(s)
+	}
+}
+
+func (s *HostNameContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitHostName(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -104414,6 +109264,16 @@ func (s *UserNameContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *UserNameContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUserName(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) UserName() (localctx IUserNameContext) {
 	localctx = NewUserNameContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 564, MySqlParserRULE_userName)
@@ -104538,6 +109398,16 @@ func (s *MysqlVariableContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *MysqlVariableContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitMysqlVariable(s)
+	}
+}
+
+func (s *MysqlVariableContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitMysqlVariable(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -104666,6 +109536,16 @@ func (s *CharsetNameContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *CharsetNameContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitCharsetName(s)
+	}
+}
+
+func (s *CharsetNameContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCharsetName(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -104823,6 +109703,16 @@ func (s *CollationNameContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *CollationNameContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCollationName(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) CollationName() (localctx ICollationNameContext) {
 	localctx = NewCollationNameContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 570, MySqlParserRULE_collationName)
@@ -104957,6 +109847,16 @@ func (s *EngineNameContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *EngineNameContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitEngineName(s)
+	}
+}
+
+func (s *EngineNameContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitEngineName(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -105147,6 +110047,16 @@ func (s *EngineNameBaseContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *EngineNameBaseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitEngineNameBase(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) EngineNameBase() (localctx IEngineNameBaseContext) {
 	localctx = NewEngineNameBaseContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 574, MySqlParserRULE_engineNameBase)
@@ -105303,6 +110213,16 @@ func (s *UuidSetContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *UuidSetContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitUuidSet(s)
+	}
+}
+
+func (s *UuidSetContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUuidSet(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -105586,6 +110506,16 @@ func (s *XidContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *XidContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitXid(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) Xid() (localctx IXidContext) {
 	localctx = NewXidContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 578, MySqlParserRULE_xid)
@@ -105745,6 +110675,16 @@ func (s *XuidStringIdContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *XuidStringIdContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitXuidStringId(s)
+	}
+}
+
+func (s *XuidStringIdContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitXuidStringId(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -105914,6 +110854,16 @@ func (s *AuthPluginContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *AuthPluginContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAuthPlugin(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) AuthPlugin() (localctx IAuthPluginContext) {
 	localctx = NewAuthPluginContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 582, MySqlParserRULE_authPlugin)
@@ -106048,6 +110998,16 @@ func (s *UidContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *UidContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitUid(s)
+	}
+}
+
+func (s *UidContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUid(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -106314,6 +111274,16 @@ func (s *SimpleIdContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *SimpleIdContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSimpleId(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) SimpleId() (localctx ISimpleIdContext) {
 	localctx = NewSimpleIdContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 586, MySqlParserRULE_simpleId)
@@ -106500,6 +111470,16 @@ func (s *DottedIdContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *DottedIdContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDottedId(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) DottedId() (localctx IDottedIdContext) {
 	localctx = NewDottedIdContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 588, MySqlParserRULE_dottedId)
@@ -106644,6 +111624,16 @@ func (s *DecimalLiteralContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *DecimalLiteralContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDecimalLiteral(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) DecimalLiteral() (localctx IDecimalLiteralContext) {
 	localctx = NewDecimalLiteralContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 590, MySqlParserRULE_decimalLiteral)
@@ -106759,6 +111749,16 @@ func (s *FileSizeLiteralContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *FileSizeLiteralContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitFileSizeLiteral(s)
+	}
+}
+
+func (s *FileSizeLiteralContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFileSizeLiteral(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -106912,6 +111912,16 @@ func (s *StringLiteralContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *StringLiteralContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitStringLiteral(s)
+	}
+}
+
+func (s *StringLiteralContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitStringLiteral(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -107175,6 +112185,16 @@ func (s *BooleanLiteralContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *BooleanLiteralContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitBooleanLiteral(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) BooleanLiteral() (localctx IBooleanLiteralContext) {
 	localctx = NewBooleanLiteralContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 596, MySqlParserRULE_booleanLiteral)
@@ -107278,6 +112298,16 @@ func (s *HexadecimalLiteralContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *HexadecimalLiteralContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitHexadecimalLiteral(s)
+	}
+}
+
+func (s *HexadecimalLiteralContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitHexadecimalLiteral(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -107404,6 +112434,16 @@ func (s *NullNotnullContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *NullNotnullContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitNullNotnull(s)
+	}
+}
+
+func (s *NullNotnullContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitNullNotnull(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -107627,6 +112667,16 @@ func (s *ConstantContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ConstantContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitConstant(s)
+	}
+}
+
+func (s *ConstantContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitConstant(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -107912,6 +112962,16 @@ func (s *SpatialDataTypeContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *SpatialDataTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSpatialDataType(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type LongVarbinaryDataTypeContext struct {
 	DataTypeContext
 }
@@ -107947,6 +113007,16 @@ func (s *LongVarbinaryDataTypeContext) EnterRule(listener antlr.ParseTreeListene
 func (s *LongVarbinaryDataTypeContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitLongVarbinaryDataType(s)
+	}
+}
+
+func (s *LongVarbinaryDataTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLongVarbinaryDataType(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -108045,6 +113115,16 @@ func (s *CollectionDataTypeContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *CollectionDataTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCollectionDataType(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type NationalVaryingStringDataTypeContext struct {
 	DataTypeContext
 	typeName antlr.Token
@@ -108113,6 +113193,16 @@ func (s *NationalVaryingStringDataTypeContext) EnterRule(listener antlr.ParseTre
 func (s *NationalVaryingStringDataTypeContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitNationalVaryingStringDataType(s)
+	}
+}
+
+func (s *NationalVaryingStringDataTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitNationalVaryingStringDataType(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -108347,6 +113437,16 @@ func (s *DimensionDataTypeContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *DimensionDataTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDimensionDataType(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type StringDataTypeContext struct {
 	DataTypeContext
 	typeName antlr.Token
@@ -108502,6 +113602,16 @@ func (s *StringDataTypeContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *StringDataTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitStringDataType(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type LongVarcharDataTypeContext struct {
 	DataTypeContext
 	typeName antlr.Token
@@ -108601,6 +113711,16 @@ func (s *LongVarcharDataTypeContext) ExitRule(listener antlr.ParseTreeListener) 
 	}
 }
 
+func (s *LongVarcharDataTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLongVarcharDataType(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type NationalStringDataTypeContext struct {
 	DataTypeContext
 	typeName antlr.Token
@@ -108676,6 +113796,16 @@ func (s *NationalStringDataTypeContext) ExitRule(listener antlr.ParseTreeListene
 	}
 }
 
+func (s *NationalStringDataTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitNationalStringDataType(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type SimpleDataTypeContext struct {
 	DataTypeContext
 	typeName antlr.Token
@@ -108736,6 +113866,16 @@ func (s *SimpleDataTypeContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *SimpleDataTypeContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSimpleDataType(s)
+	}
+}
+
+func (s *SimpleDataTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSimpleDataType(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -109693,6 +114833,16 @@ func (s *CollectionOptionsContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *CollectionOptionsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCollectionOptions(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) CollectionOptions() (localctx ICollectionOptionsContext) {
 	localctx = NewCollectionOptionsContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 606, MySqlParserRULE_collectionOptions)
@@ -109995,6 +115145,16 @@ func (s *ConvertedDataTypeContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *ConvertedDataTypeContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitConvertedDataType(s)
+	}
+}
+
+func (s *ConvertedDataTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitConvertedDataType(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -110306,6 +115466,16 @@ func (s *LengthOneDimensionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *LengthOneDimensionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLengthOneDimension(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) LengthOneDimension() (localctx ILengthOneDimensionContext) {
 	localctx = NewLengthOneDimensionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 610, MySqlParserRULE_lengthOneDimension)
@@ -110464,6 +115634,16 @@ func (s *LengthTwoDimensionContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *LengthTwoDimensionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitLengthTwoDimension(s)
+	}
+}
+
+func (s *LengthTwoDimensionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLengthTwoDimension(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -110637,6 +115817,16 @@ func (s *LengthTwoOptionalDimensionContext) EnterRule(listener antlr.ParseTreeLi
 func (s *LengthTwoOptionalDimensionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitLengthTwoOptionalDimension(s)
+	}
+}
+
+func (s *LengthTwoOptionalDimensionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLengthTwoOptionalDimension(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -110820,6 +116010,16 @@ func (s *UidListContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *UidListContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUidList(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) UidList() (localctx IUidListContext) {
 	localctx = NewUidListContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 616, MySqlParserRULE_uidList)
@@ -110997,6 +116197,16 @@ func (s *FullColumnNameListContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *FullColumnNameListContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFullColumnNameList(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) FullColumnNameList() (localctx IFullColumnNameListContext) {
 	localctx = NewFullColumnNameListContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 618, MySqlParserRULE_fullColumnNameList)
@@ -111164,6 +116374,16 @@ func (s *TablesContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *TablesContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTables(s)
+	}
+}
+
+func (s *TablesContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTables(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -111354,6 +116574,16 @@ func (s *IndexColumnNamesContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *IndexColumnNamesContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitIndexColumnNames(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) IndexColumnNames() (localctx IIndexColumnNamesContext) {
 	localctx = NewIndexColumnNamesContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 622, MySqlParserRULE_indexColumnNames)
@@ -111540,6 +116770,16 @@ func (s *ExpressionsContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *ExpressionsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitExpressions(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) Expressions() (localctx IExpressionsContext) {
 	localctx = NewExpressionsContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 624, MySqlParserRULE_expressions)
@@ -111707,6 +116947,16 @@ func (s *ExpressionsWithDefaultsContext) EnterRule(listener antlr.ParseTreeListe
 func (s *ExpressionsWithDefaultsContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitExpressionsWithDefaults(s)
+	}
+}
+
+func (s *ExpressionsWithDefaultsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitExpressionsWithDefaults(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -111880,6 +117130,16 @@ func (s *ConstantsContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *ConstantsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitConstants(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) Constants() (localctx IConstantsContext) {
 	localctx = NewConstantsContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 628, MySqlParserRULE_constants)
@@ -112014,6 +117274,16 @@ func (s *SimpleStringsContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *SimpleStringsContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSimpleStrings(s)
+	}
+}
+
+func (s *SimpleStringsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSimpleStrings(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -112159,6 +117429,16 @@ func (s *UserVariablesContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *UserVariablesContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitUserVariables(s)
+	}
+}
+
+func (s *UserVariablesContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUserVariables(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -112447,6 +117727,16 @@ func (s *DefaultValueContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *DefaultValueContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitDefaultValue(s)
+	}
+}
+
+func (s *DefaultValueContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDefaultValue(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -112743,6 +118033,16 @@ func (s *CurrentTimestampContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *CurrentTimestampContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCurrentTimestamp(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) CurrentTimestamp() (localctx ICurrentTimestampContext) {
 	localctx = NewCurrentTimestampContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 636, MySqlParserRULE_currentTimestamp)
@@ -112952,6 +118252,16 @@ func (s *ExpressionOrDefaultContext) ExitRule(listener antlr.ParseTreeListener) 
 	}
 }
 
+func (s *ExpressionOrDefaultContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitExpressionOrDefault(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) ExpressionOrDefault() (localctx IExpressionOrDefaultContext) {
 	localctx = NewExpressionOrDefaultContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 638, MySqlParserRULE_expressionOrDefault)
@@ -113072,6 +118382,16 @@ func (s *IfExistsContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *IfExistsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitIfExists(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) IfExists() (localctx IIfExistsContext) {
 	localctx = NewIfExistsContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 640, MySqlParserRULE_ifExists)
@@ -113183,6 +118503,16 @@ func (s *IfNotExistsContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *IfNotExistsContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitIfNotExists(s)
+	}
+}
+
+func (s *IfNotExistsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitIfNotExists(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -113300,6 +118630,16 @@ func (s *OrReplaceContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *OrReplaceContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitOrReplace(s)
+	}
+}
+
+func (s *OrReplaceContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitOrReplace(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -113426,6 +118766,16 @@ func (s *WaitNowaitClauseContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *WaitNowaitClauseContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitWaitNowaitClause(s)
+	}
+}
+
+func (s *WaitNowaitClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitWaitNowaitClause(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -113583,6 +118933,16 @@ func (s *SpecificFunctionCallContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *SpecificFunctionCallContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSpecificFunctionCall(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type PasswordFunctionCallContext struct {
 	FunctionCallContext
 }
@@ -113626,6 +118986,16 @@ func (s *PasswordFunctionCallContext) EnterRule(listener antlr.ParseTreeListener
 func (s *PasswordFunctionCallContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitPasswordFunctionCall(s)
+	}
+}
+
+func (s *PasswordFunctionCallContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPasswordFunctionCall(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -113699,6 +119069,16 @@ func (s *UdfFunctionCallContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *UdfFunctionCallContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUdfFunctionCall(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type NonAggregateFunctionCallContext struct {
 	FunctionCallContext
 }
@@ -113745,6 +119125,16 @@ func (s *NonAggregateFunctionCallContext) ExitRule(listener antlr.ParseTreeListe
 	}
 }
 
+func (s *NonAggregateFunctionCallContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitNonAggregateFunctionCall(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type AggregateFunctionCallContext struct {
 	FunctionCallContext
 }
@@ -113788,6 +119178,16 @@ func (s *AggregateFunctionCallContext) EnterRule(listener antlr.ParseTreeListene
 func (s *AggregateFunctionCallContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAggregateFunctionCall(s)
+	}
+}
+
+func (s *AggregateFunctionCallContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAggregateFunctionCall(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -113858,6 +119258,16 @@ func (s *ScalarFunctionCallContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *ScalarFunctionCallContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitScalarFunctionCall(s)
+	}
+}
+
+func (s *ScalarFunctionCallContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitScalarFunctionCall(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -114202,6 +119612,16 @@ func (s *PositionFunctionCallContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *PositionFunctionCallContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPositionFunctionCall(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type TrimFunctionCallContext struct {
 	SpecificFunctionContext
 	positioinForm    antlr.Token
@@ -114367,6 +119787,16 @@ func (s *TrimFunctionCallContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *TrimFunctionCallContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTrimFunctionCall(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type JsonValueFunctionCallContext struct {
 	SpecificFunctionContext
 }
@@ -114506,6 +119936,16 @@ func (s *JsonValueFunctionCallContext) ExitRule(listener antlr.ParseTreeListener
 	}
 }
 
+func (s *JsonValueFunctionCallContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitJsonValueFunctionCall(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type CaseFunctionCallContext struct {
 	SpecificFunctionContext
 	elseArg IFunctionArgContext
@@ -114607,6 +120047,16 @@ func (s *CaseFunctionCallContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *CaseFunctionCallContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitCaseFunctionCall(s)
+	}
+}
+
+func (s *CaseFunctionCallContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCaseFunctionCall(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -114715,6 +120165,16 @@ func (s *ExtractFunctionCallContext) EnterRule(listener antlr.ParseTreeListener)
 func (s *ExtractFunctionCallContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitExtractFunctionCall(s)
+	}
+}
+
+func (s *ExtractFunctionCallContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitExtractFunctionCall(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -114829,6 +120289,16 @@ func (s *DataTypeFunctionCallContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *DataTypeFunctionCallContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDataTypeFunctionCall(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type ValuesFunctionCallContext struct {
 	SpecificFunctionContext
 }
@@ -114884,6 +120354,16 @@ func (s *ValuesFunctionCallContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *ValuesFunctionCallContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitValuesFunctionCall(s)
+	}
+}
+
+func (s *ValuesFunctionCallContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitValuesFunctionCall(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -115007,6 +120487,16 @@ func (s *CaseExpressionFunctionCallContext) ExitRule(listener antlr.ParseTreeLis
 	}
 }
 
+func (s *CaseExpressionFunctionCallContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCaseExpressionFunctionCall(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type CurrentUserContext struct {
 	SpecificFunctionContext
 }
@@ -115050,6 +120540,16 @@ func (s *CurrentUserContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *CurrentUserContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitCurrentUser(s)
+	}
+}
+
+func (s *CurrentUserContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCurrentUser(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -115112,6 +120612,16 @@ func (s *SimpleFunctionCallContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *SimpleFunctionCallContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSimpleFunctionCall(s)
+	}
+}
+
+func (s *SimpleFunctionCallContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSimpleFunctionCall(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -115190,6 +120700,16 @@ func (s *CharFunctionCallContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *CharFunctionCallContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitCharFunctionCall(s)
+	}
+}
+
+func (s *CharFunctionCallContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCharFunctionCall(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -115324,6 +120844,16 @@ func (s *WeightFunctionCallContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *WeightFunctionCallContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitWeightFunctionCall(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type GetFormatFunctionCallContext struct {
 	SpecificFunctionContext
 	datetimeFormat antlr.Token
@@ -115400,6 +120930,16 @@ func (s *GetFormatFunctionCallContext) EnterRule(listener antlr.ParseTreeListene
 func (s *GetFormatFunctionCallContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitGetFormatFunctionCall(s)
+	}
+}
+
+func (s *GetFormatFunctionCallContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitGetFormatFunctionCall(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -115584,6 +121124,16 @@ func (s *SubstrFunctionCallContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *SubstrFunctionCallContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitSubstrFunctionCall(s)
+	}
+}
+
+func (s *SubstrFunctionCallContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSubstrFunctionCall(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -116929,6 +122479,16 @@ func (s *CaseFuncAlternativeContext) ExitRule(listener antlr.ParseTreeListener) 
 	}
 }
 
+func (s *CaseFuncAlternativeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCaseFuncAlternative(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) CaseFuncAlternative() (localctx ICaseFuncAlternativeContext) {
 	localctx = NewCaseFuncAlternativeContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 652, MySqlParserRULE_caseFuncAlternative)
@@ -117120,6 +122680,16 @@ func (s *LevelWeightRangeContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *LevelWeightRangeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLevelWeightRange(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type LevelWeightListContext struct {
 	LevelsInWeightStringContext
 }
@@ -117200,6 +122770,16 @@ func (s *LevelWeightListContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *LevelWeightListContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitLevelWeightList(s)
+	}
+}
+
+func (s *LevelWeightListContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLevelWeightList(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -117415,6 +122995,16 @@ func (s *LevelInWeightListElementContext) EnterRule(listener antlr.ParseTreeList
 func (s *LevelInWeightListElementContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitLevelInWeightListElement(s)
+	}
+}
+
+func (s *LevelInWeightListElementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLevelInWeightListElement(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -117794,6 +123384,16 @@ func (s *AggregateWindowedFunctionContext) EnterRule(listener antlr.ParseTreeLis
 func (s *AggregateWindowedFunctionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAggregateWindowedFunction(s)
+	}
+}
+
+func (s *AggregateWindowedFunctionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAggregateWindowedFunction(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -118422,6 +124022,16 @@ func (s *NonAggregateWindowedFunctionContext) ExitRule(listener antlr.ParseTreeL
 	}
 }
 
+func (s *NonAggregateWindowedFunctionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitNonAggregateWindowedFunction(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) NonAggregateWindowedFunction() (localctx INonAggregateWindowedFunctionContext) {
 	localctx = NewNonAggregateWindowedFunctionContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 660, MySqlParserRULE_nonAggregateWindowedFunction)
@@ -118800,6 +124410,16 @@ func (s *OverClauseContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *OverClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitOverClause(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) OverClause() (localctx IOverClauseContext) {
 	localctx = NewOverClauseContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 662, MySqlParserRULE_overClause)
@@ -118998,6 +124618,16 @@ func (s *WindowSpecContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *WindowSpecContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitWindowSpec(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) WindowSpec() (localctx IWindowSpecContext) {
 	localctx = NewWindowSpecContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 664, MySqlParserRULE_windowSpec)
@@ -119154,6 +124784,16 @@ func (s *WindowNameContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *WindowNameContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitWindowName(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) WindowName() (localctx IWindowNameContext) {
 	localctx = NewWindowNameContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 666, MySqlParserRULE_windowName)
@@ -119275,6 +124915,16 @@ func (s *FrameClauseContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *FrameClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFrameClause(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) FrameClause() (localctx IFrameClauseContext) {
 	localctx = NewFrameClauseContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 668, MySqlParserRULE_frameClause)
@@ -119373,6 +125023,16 @@ func (s *FrameUnitsContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *FrameUnitsContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitFrameUnits(s)
+	}
+}
+
+func (s *FrameUnitsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFrameUnits(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -119503,6 +125163,16 @@ func (s *FrameExtentContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *FrameExtentContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitFrameExtent(s)
+	}
+}
+
+func (s *FrameExtentContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFrameExtent(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -119665,6 +125335,16 @@ func (s *FrameBetweenContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *FrameBetweenContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFrameBetween(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) FrameBetween() (localctx IFrameBetweenContext) {
 	localctx = NewFrameBetweenContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 674, MySqlParserRULE_frameBetween)
@@ -119811,6 +125491,16 @@ func (s *FrameRangeContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *FrameRangeContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitFrameRange(s)
+	}
+}
+
+func (s *FrameRangeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFrameRange(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -120027,6 +125717,16 @@ func (s *PartitionClauseContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *PartitionClauseContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitPartitionClause(s)
+	}
+}
+
+func (s *PartitionClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPartitionClause(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -120292,6 +125992,16 @@ func (s *ScalarFunctionNameContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *ScalarFunctionNameContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitScalarFunctionName(s)
+	}
+}
+
+func (s *ScalarFunctionNameContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitScalarFunctionName(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -120696,6 +126406,16 @@ func (s *PasswordFunctionClauseContext) ExitRule(listener antlr.ParseTreeListene
 	}
 }
 
+func (s *PasswordFunctionClauseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPasswordFunctionClause(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) PasswordFunctionClause() (localctx IPasswordFunctionClauseContext) {
 	localctx = NewPasswordFunctionClauseContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 682, MySqlParserRULE_passwordFunctionClause)
@@ -121001,6 +126721,16 @@ func (s *FunctionArgsContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *FunctionArgsContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFunctionArgs(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) FunctionArgs() (localctx IFunctionArgsContext) {
 	localctx = NewFunctionArgsContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 684, MySqlParserRULE_functionArgs)
@@ -121246,6 +126976,16 @@ func (s *FunctionArgContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *FunctionArgContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFunctionArg(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) FunctionArg() (localctx IFunctionArgContext) {
 	localctx = NewFunctionArgContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 686, MySqlParserRULE_functionArg)
@@ -121426,6 +127166,16 @@ func (s *IsExpressionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *IsExpressionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitIsExpression(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type NotExpressionContext struct {
 	ExpressionContext
 	notOperator antlr.Token
@@ -121482,6 +127232,16 @@ func (s *NotExpressionContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *NotExpressionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitNotExpression(s)
+	}
+}
+
+func (s *NotExpressionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitNotExpression(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -121572,6 +127332,16 @@ func (s *LogicalExpressionContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *LogicalExpressionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLogicalExpression(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type PredicateExpressionContext struct {
 	ExpressionContext
 }
@@ -121615,6 +127385,16 @@ func (s *PredicateExpressionContext) EnterRule(listener antlr.ParseTreeListener)
 func (s *PredicateExpressionContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitPredicateExpression(s)
+	}
+}
+
+func (s *PredicateExpressionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPredicateExpression(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -121927,6 +127707,16 @@ func (s *SoundsLikePredicateContext) ExitRule(listener antlr.ParseTreeListener) 
 	}
 }
 
+func (s *SoundsLikePredicateContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSoundsLikePredicate(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type ExpressionAtomPredicateContext struct {
 	PredicateContext
 }
@@ -121970,6 +127760,16 @@ func (s *ExpressionAtomPredicateContext) EnterRule(listener antlr.ParseTreeListe
 func (s *ExpressionAtomPredicateContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitExpressionAtomPredicate(s)
+	}
+}
+
+func (s *ExpressionAtomPredicateContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitExpressionAtomPredicate(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -122076,6 +127876,16 @@ func (s *SubqueryComparisonPredicateContext) ExitRule(listener antlr.ParseTreeLi
 	}
 }
 
+func (s *SubqueryComparisonPredicateContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSubqueryComparisonPredicate(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type JsonMemberOfPredicateContext struct {
 	PredicateContext
 }
@@ -122160,6 +127970,16 @@ func (s *JsonMemberOfPredicateContext) EnterRule(listener antlr.ParseTreeListene
 func (s *JsonMemberOfPredicateContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitJsonMemberOfPredicate(s)
+	}
+}
+
+func (s *JsonMemberOfPredicateContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitJsonMemberOfPredicate(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -122260,6 +128080,16 @@ func (s *BinaryComparisonPredicateContext) ExitRule(listener antlr.ParseTreeList
 	}
 }
 
+func (s *BinaryComparisonPredicateContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitBinaryComparisonPredicate(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type InPredicateContext struct {
 	PredicateContext
 }
@@ -122354,6 +128184,16 @@ func (s *InPredicateContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *InPredicateContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitInPredicate(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type BetweenPredicateContext struct {
 	PredicateContext
 }
@@ -122437,6 +128277,16 @@ func (s *BetweenPredicateContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *BetweenPredicateContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitBetweenPredicate(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type IsNullPredicateContext struct {
 	PredicateContext
 }
@@ -122500,6 +128350,16 @@ func (s *IsNullPredicateContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *IsNullPredicateContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitIsNullPredicate(s)
+	}
+}
+
+func (s *IsNullPredicateContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitIsNullPredicate(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -122590,6 +128450,16 @@ func (s *LikePredicateContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *LikePredicateContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLikePredicate(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type RegexpPredicateContext struct {
 	PredicateContext
 	regex antlr.Token
@@ -122675,6 +128545,16 @@ func (s *RegexpPredicateContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *RegexpPredicateContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitRegexpPredicate(s)
+	}
+}
+
+func (s *RegexpPredicateContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitRegexpPredicate(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -123286,6 +129166,16 @@ func (s *UnaryExpressionAtomContext) ExitRule(listener antlr.ParseTreeListener) 
 	}
 }
 
+func (s *UnaryExpressionAtomContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUnaryExpressionAtom(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type CollateExpressionAtomContext struct {
 	ExpressionAtomContext
 }
@@ -123352,6 +129242,16 @@ func (s *CollateExpressionAtomContext) ExitRule(listener antlr.ParseTreeListener
 	}
 }
 
+func (s *CollateExpressionAtomContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCollateExpressionAtom(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type VariableAssignExpressionAtomContext struct {
 	ExpressionAtomContext
 }
@@ -123406,6 +129306,16 @@ func (s *VariableAssignExpressionAtomContext) ExitRule(listener antlr.ParseTreeL
 	}
 }
 
+func (s *VariableAssignExpressionAtomContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitVariableAssignExpressionAtom(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type MysqlVariableExpressionAtomContext struct {
 	ExpressionAtomContext
 }
@@ -123449,6 +129359,16 @@ func (s *MysqlVariableExpressionAtomContext) EnterRule(listener antlr.ParseTreeL
 func (s *MysqlVariableExpressionAtomContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitMysqlVariableExpressionAtom(s)
+	}
+}
+
+func (s *MysqlVariableExpressionAtomContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitMysqlVariableExpressionAtom(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -123536,6 +129456,16 @@ func (s *NestedExpressionAtomContext) EnterRule(listener antlr.ParseTreeListener
 func (s *NestedExpressionAtomContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitNestedExpressionAtom(s)
+	}
+}
+
+func (s *NestedExpressionAtomContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitNestedExpressionAtom(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -123627,6 +129557,16 @@ func (s *NestedRowExpressionAtomContext) EnterRule(listener antlr.ParseTreeListe
 func (s *NestedRowExpressionAtomContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitNestedRowExpressionAtom(s)
+	}
+}
+
+func (s *NestedRowExpressionAtomContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitNestedRowExpressionAtom(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -123743,6 +129683,16 @@ func (s *MathExpressionAtomContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *MathExpressionAtomContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitMathExpressionAtom(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type ExistsExpressionAtomContext struct {
 	ExpressionAtomContext
 }
@@ -123798,6 +129748,16 @@ func (s *ExistsExpressionAtomContext) EnterRule(listener antlr.ParseTreeListener
 func (s *ExistsExpressionAtomContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitExistsExpressionAtom(s)
+	}
+}
+
+func (s *ExistsExpressionAtomContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitExistsExpressionAtom(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -123864,6 +129824,16 @@ func (s *IntervalExpressionAtomContext) EnterRule(listener antlr.ParseTreeListen
 func (s *IntervalExpressionAtomContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitIntervalExpressionAtom(s)
+	}
+}
+
+func (s *IntervalExpressionAtomContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitIntervalExpressionAtom(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -123964,6 +129934,16 @@ func (s *JsonExpressionAtomContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *JsonExpressionAtomContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitJsonExpressionAtom(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type SubqueryExpressionAtomContext struct {
 	ExpressionAtomContext
 }
@@ -124018,6 +129998,16 @@ func (s *SubqueryExpressionAtomContext) ExitRule(listener antlr.ParseTreeListene
 	}
 }
 
+func (s *SubqueryExpressionAtomContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitSubqueryExpressionAtom(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type ConstantExpressionAtomContext struct {
 	ExpressionAtomContext
 }
@@ -124064,6 +130054,16 @@ func (s *ConstantExpressionAtomContext) ExitRule(listener antlr.ParseTreeListene
 	}
 }
 
+func (s *ConstantExpressionAtomContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitConstantExpressionAtom(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type FunctionCallExpressionAtomContext struct {
 	ExpressionAtomContext
 }
@@ -124107,6 +130107,16 @@ func (s *FunctionCallExpressionAtomContext) EnterRule(listener antlr.ParseTreeLi
 func (s *FunctionCallExpressionAtomContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitFunctionCallExpressionAtom(s)
+	}
+}
+
+func (s *FunctionCallExpressionAtomContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFunctionCallExpressionAtom(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -124160,6 +130170,16 @@ func (s *BinaryExpressionAtomContext) ExitRule(listener antlr.ParseTreeListener)
 	}
 }
 
+func (s *BinaryExpressionAtomContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitBinaryExpressionAtom(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 type FullColumnNameExpressionAtomContext struct {
 	ExpressionAtomContext
 }
@@ -124203,6 +130223,16 @@ func (s *FullColumnNameExpressionAtomContext) EnterRule(listener antlr.ParseTree
 func (s *FullColumnNameExpressionAtomContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitFullColumnNameExpressionAtom(s)
+	}
+}
+
+func (s *FullColumnNameExpressionAtomContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFullColumnNameExpressionAtom(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -124300,6 +130330,16 @@ func (s *BitExpressionAtomContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *BitExpressionAtomContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitBitExpressionAtom(s)
+	}
+}
+
+func (s *BitExpressionAtomContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitBitExpressionAtom(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -124872,6 +130912,16 @@ func (s *UnaryOperatorContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *UnaryOperatorContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitUnaryOperator(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) UnaryOperator() (localctx IUnaryOperatorContext) {
 	localctx = NewUnaryOperatorContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 694, MySqlParserRULE_unaryOperator)
@@ -124985,6 +131035,16 @@ func (s *ComparisonOperatorContext) EnterRule(listener antlr.ParseTreeListener) 
 func (s *ComparisonOperatorContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitComparisonOperator(s)
+	}
+}
+
+func (s *ComparisonOperatorContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitComparisonOperator(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -125251,6 +131311,16 @@ func (s *LogicalOperatorContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *LogicalOperatorContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitLogicalOperator(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) LogicalOperator() (localctx ILogicalOperatorContext) {
 	localctx = NewLogicalOperatorContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 698, MySqlParserRULE_logicalOperator)
@@ -125450,6 +131520,16 @@ func (s *BitOperatorContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *BitOperatorContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitBitOperator(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) BitOperator() (localctx IBitOperatorContext) {
 	localctx = NewBitOperatorContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 700, MySqlParserRULE_bitOperator)
@@ -125639,6 +131719,16 @@ func (s *MultOperatorContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *MultOperatorContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitMultOperator(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) MultOperator() (localctx IMultOperatorContext) {
 	localctx = NewMultOperatorContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 702, MySqlParserRULE_multOperator)
@@ -125742,6 +131832,16 @@ func (s *AddOperatorContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *AddOperatorContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitAddOperator(s)
+	}
+}
+
+func (s *AddOperatorContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitAddOperator(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -125853,6 +131953,16 @@ func (s *JsonOperatorContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *JsonOperatorContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitJsonOperator(s)
+	}
+}
+
+func (s *JsonOperatorContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitJsonOperator(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -126204,6 +132314,16 @@ func (s *CharsetNameBaseContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *CharsetNameBaseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitCharsetNameBase(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) CharsetNameBase() (localctx ICharsetNameBaseContext) {
 	localctx = NewCharsetNameBaseContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 708, MySqlParserRULE_charsetNameBase)
@@ -126317,6 +132437,16 @@ func (s *TransactionLevelBaseContext) EnterRule(listener antlr.ParseTreeListener
 func (s *TransactionLevelBaseContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitTransactionLevelBase(s)
+	}
+}
+
+func (s *TransactionLevelBaseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitTransactionLevelBase(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -126461,6 +132591,16 @@ func (s *PrivilegesBaseContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *PrivilegesBaseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitPrivilegesBase(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) PrivilegesBase() (localctx IPrivilegesBaseContext) {
 	localctx = NewPrivilegesBaseContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 712, MySqlParserRULE_privilegesBase)
@@ -126597,6 +132737,16 @@ func (s *IntervalTypeBaseContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *IntervalTypeBaseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitIntervalTypeBase(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) IntervalTypeBase() (localctx IIntervalTypeBaseContext) {
 	localctx = NewIntervalTypeBaseContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 714, MySqlParserRULE_intervalTypeBase)
@@ -126725,6 +132875,16 @@ func (s *DataTypeBaseContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *DataTypeBaseContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitDataTypeBase(s)
+	}
+}
+
+func (s *DataTypeBaseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitDataTypeBase(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
@@ -128914,6 +135074,16 @@ func (s *KeywordsCanBeIdContext) ExitRule(listener antlr.ParseTreeListener) {
 	}
 }
 
+func (s *KeywordsCanBeIdContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitKeywordsCanBeId(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
 func (p *MySqlParser) KeywordsCanBeId() (localctx IKeywordsCanBeIdContext) {
 	localctx = NewKeywordsCanBeIdContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 718, MySqlParserRULE_keywordsCanBeId)
@@ -130847,6 +137017,16 @@ func (s *FunctionNameBaseContext) EnterRule(listener antlr.ParseTreeListener) {
 func (s *FunctionNameBaseContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(MySqlParserListener); ok {
 		listenerT.ExitFunctionNameBase(s)
+	}
+}
+
+func (s *FunctionNameBaseContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case MySqlParserVisitor:
+		return t.VisitFunctionNameBase(s)
+
+	default:
+		return t.VisitChildren(s)
 	}
 }
 
