@@ -6,24 +6,44 @@ import (
 	"github.com/artie-labs/reader/lib/antlr/parser"
 )
 
-func main() {
-	// Sample SQL input
-	input := "SELECT * FROM users WHERE id = 1"
+type Event interface {
+	GetTable() string
+	GetColumns() []Column
+}
 
-	// Create an input stream from the SQL input
+type Column struct {
+	Name     string
+	DataType string
+}
+
+type CreateTableEvent struct {
+	TableName string
+	Columns   []Column
+}
+
+type DropColumnsEvent struct {
+	TableName string
+	Columns   []Column
+}
+
+type AddColumnsEvent struct {
+	TableName string
+	Columns   []Column
+}
+
+type ChangedColumnsEvent struct {
+	TableName string
+	Columns   []Column
+}
+
+func Parse(input string) {
 	is := antlr.NewInputStream(input)
-
-	// Create a lexer instance
 	lexer := parser.NewMySqlLexer(is)
-
-	// Create a token stream from the lexer
 	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
 
 	// Create a parser instance
 	sqlParser := parser.NewMySqlParser(stream)
-
 	tree := sqlParser.Root() // Replace `Root` with your grammar's root rule
-
 	// Print the parse tree (or process it as needed)
 	fmt.Println(tree.ToStringTree(nil, sqlParser))
 }
