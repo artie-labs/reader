@@ -1,22 +1,21 @@
 package antlr
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestDropTable(t *testing.T) {
 	{
-		// DROP TABLE `table_name`;
-		events, err := Parse("DROP TABLE `table_name`;")
-		fmt.Println("event", events, "err", err)
+		// Single drop table
+		events, err := Parse("DROP TABLE table_name;")
 		assert.NoError(t, err)
+		assert.Len(t, events, 1)
 
-		for _, evt := range events {
-			fmt.Println("event", evt.GetTables())
-		}
+		dropTableEvent, isOk := events[0].(DropTableEvent)
+		assert.True(t, isOk)
 
-		assert.False(t, true)
+		assert.Len(t, dropTableEvent.GetTables(), 1)
+		assert.Equal(t, "table_name", dropTableEvent.GetTables()[0])
 	}
 }

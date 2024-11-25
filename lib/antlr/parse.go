@@ -68,6 +68,8 @@ func (a AddColumnsEvent) GetColumns() []Column {
 }
 
 func Parse(sqlCmd string) ([]Event, error) {
+	// TODO - Take unescape function
+
 	lexer := parser.NewMySqlLexer(antlr.NewInputStream(sqlCmd))
 	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
 
