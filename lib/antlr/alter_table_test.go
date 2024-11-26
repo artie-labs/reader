@@ -116,7 +116,7 @@ func TestAlterTable(t *testing.T) {
 			assert.NoError(t, err, tblName)
 			assert.Len(t, events, 1, tblName)
 
-			addColEvent, isOk := events[0].(AddColumnEvent)
+			addColEvent, isOk := events[0].(AddColumnsEvent)
 			assert.True(t, isOk, tblName)
 			assert.Equal(t, "table_name", addColEvent.GetTable(), tblName)
 			assertOneElement(t, Column{Name: "id", DataType: "INT", PrimaryKey: false}, addColEvent.GetColumns(), tblName)
@@ -141,12 +141,12 @@ func TestAlterTable(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Len(t, events, 2)
 
-			addColEvent1, isOk := events[0].(AddColumnEvent)
+			addColEvent1, isOk := events[0].(AddColumnsEvent)
 			assert.True(t, isOk)
 			assert.Equal(t, "ship_class", addColEvent1.GetTable())
 			assertOneElement(t, Column{Name: "ship_spec", DataType: "varchar(150)", PrimaryKey: false, Position: FirstPosition{}}, addColEvent1.GetColumns())
 
-			addColEvent2, isOk := events[1].(AddColumnEvent)
+			addColEvent2, isOk := events[1].(AddColumnsEvent)
 			assert.True(t, isOk)
 			assert.Equal(t, "ship_class", addColEvent2.GetTable())
 			assertOneElement(t, Column{Name: "somecol", DataType: "int", PrimaryKey: false, Position: AfterPosition{column: "start_build"}}, addColEvent2.GetColumns())
@@ -158,22 +158,27 @@ func TestAlterTable(t *testing.T) {
 			// Adding a column and index, but we only care about the column
 			events, err := Parse("alter table t3 add column (c2 decimal(10, 2) comment 'comment`' null, c3 enum('abc', 'cba', 'aaa')), ADD COLUMN c4 varchar(255) first, add index t3_i1 using btree (c2) comment 'some index';")
 			assert.NoError(t, err)
-			assert.Len(t, events, 3)
+			assert.Len(t, events, 2)
 
-			addColEvent1, isOk := events[0].(AddColumnEvent)
-			assert.True(t, isOk)
-			assert.Equal(t, "t3", addColEvent1.GetTable())
-			assertOneElement(t, Column{Name: "c2", DataType: "decimal(10,2)", PrimaryKey: false}, addColEvent1.GetColumns())
+			{
+				// First event
+				addColEvent, isOk := events[0].(AddColumnsEvent)
+				assert.True(t, isOk)
+				assert.Equal(t, "t3", addColEvent.GetTable())
+				assert.Len(t, addColEvent.GetColumns(), 2)
 
-			addColEvent2, isOk := events[1].(AddColumnEvent)
-			assert.True(t, isOk)
-			assert.Equal(t, "t3", addColEvent2.GetTable())
-			assertOneElement(t, Column{Name: "c3", DataType: "enum('abc','cba','aaa')", PrimaryKey: false}, addColEvent2.GetColumns())
+				assert.Equal(t, Column{Name: "c2", DataType: "decimal(10,2)", PrimaryKey: false}, addColEvent.GetColumns()[0])
+				assert.Equal(t, Column{Name: "c3", DataType: "enum('abc','cba','aaa')", PrimaryKey: false}, addColEvent.GetColumns()[1])
+			}
+			{
+				// Second event
+				addColEvent, isOk := events[1].(AddColumnsEvent)
+				assert.True(t, isOk)
+				assert.Equal(t, "t3", addColEvent.GetTable())
+				assert.Len(t, addColEvent.GetColumns(), 1)
 
-			addColEvent3, isOk := events[2].(AddColumnEvent)
-			assert.True(t, isOk)
-			assert.Equal(t, "t3", addColEvent3.GetTable())
-			assertOneElement(t, Column{Name: "c4", DataType: "varchar(255)", PrimaryKey: false, Position: FirstPosition{}}, addColEvent3.GetColumns())
+				assert.Equal(t, Column{Name: "c4", DataType: "varchar(255)", PrimaryKey: false, Position: FirstPosition{}}, addColEvent.GetColumns()[0])
+			}
 		}
 		{
 			// Adding a column without specifying "column"
@@ -181,17 +186,17 @@ func TestAlterTable(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Len(t, events, 3)
 
-			addColEvent1, isOk := events[0].(AddColumnEvent)
+			addColEvent1, isOk := events[0].(AddColumnsEvent)
 			assert.True(t, isOk)
 			assert.Equal(t, "order", addColEvent1.GetTable())
 			assertOneElement(t, Column{Name: "cancelled", DataType: "TINYINT(1)", PrimaryKey: false}, addColEvent1.GetColumns())
 
-			addColEvent2, isOk := events[1].(AddColumnEvent)
+			addColEvent2, isOk := events[1].(AddColumnsEvent)
 			assert.True(t, isOk)
 			assert.Equal(t, "order", addColEvent2.GetTable())
 			assertOneElement(t, Column{Name: "delivered", DataType: "TINYINT(1)", PrimaryKey: false}, addColEvent2.GetColumns())
 
-			addColEvent3, isOk := events[2].(AddColumnEvent)
+			addColEvent3, isOk := events[2].(AddColumnsEvent)
 			assert.True(t, isOk)
 			assert.Equal(t, "order", addColEvent3.GetTable())
 			assertOneElement(t, Column{Name: "returning", DataType: "TINYINT(1)", PrimaryKey: false}, addColEvent3.GetColumns())
@@ -202,7 +207,7 @@ func TestAlterTable(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Len(t, events, 1)
 
-			addColEvent, isOk := events[0].(AddColumnEvent)
+			addColEvent, isOk := events[0].(AddColumnsEvent)
 			assert.True(t, isOk)
 			assert.Equal(t, "task", addColEvent.GetTable())
 			assertOneElement(t, Column{Name: "xxxx", DataType: "varchar(200)", PrimaryKey: false}, addColEvent.GetColumns())
@@ -213,7 +218,7 @@ func TestAlterTable(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Len(t, events, 1)
 
-			addColEvent, isOk := events[0].(AddColumnEvent)
+			addColEvent, isOk := events[0].(AddColumnsEvent)
 			assert.True(t, isOk)
 			assert.Equal(t, "goods", addColEvent.GetTable())
 			assertOneElement(t, Column{Name: "id", DataType: "int(10) unsigned", PrimaryKey: true}, addColEvent.GetColumns())
@@ -252,12 +257,12 @@ func TestAlterTable(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Len(t, events, 2)
 
-		addColEvent1, isOk := events[0].(AddColumnEvent)
+		addColEvent1, isOk := events[0].(AddColumnsEvent)
 		assert.True(t, isOk)
 		assert.Equal(t, "table_name", addColEvent1.GetTable())
 		assertOneElement(t, Column{Name: "id", DataType: "INT", PrimaryKey: false}, addColEvent1.GetColumns())
 
-		addColEvent2, isOk := events[1].(AddColumnEvent)
+		addColEvent2, isOk := events[1].(AddColumnsEvent)
 		assert.True(t, isOk)
 		assert.Equal(t, "table_name", addColEvent2.GetTable())
 		assertOneElement(t, Column{Name: "name", DataType: "VARCHAR(255)", PrimaryKey: false}, addColEvent2.GetColumns())
@@ -268,12 +273,12 @@ func TestAlterTable(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Len(t, events, 4)
 
-		addColEvent1, isOk := events[0].(AddColumnEvent)
+		addColEvent1, isOk := events[0].(AddColumnsEvent)
 		assert.True(t, isOk)
 		assert.Equal(t, "table_name", addColEvent1.GetTable())
 		assertOneElement(t, Column{Name: "id", DataType: "INT", PrimaryKey: false}, addColEvent1.GetColumns())
 
-		addColEvent2, isOk := events[1].(AddColumnEvent)
+		addColEvent2, isOk := events[1].(AddColumnsEvent)
 		assert.True(t, isOk)
 		assert.Equal(t, "table_name", addColEvent2.GetTable())
 		assertOneElement(t, Column{Name: "name", DataType: "VARCHAR(255)", PrimaryKey: false}, addColEvent2.GetColumns())
@@ -310,7 +315,7 @@ func TestAlterTable(t *testing.T) {
 		assert.Equal(t, "table_name", dropColEvent.GetTable())
 		assertOneElement(t, Column{Name: "id", DataType: "", PrimaryKey: false}, dropColEvent.GetColumns())
 
-		addColEvent, isOk := events[1].(AddColumnEvent)
+		addColEvent, isOk := events[1].(AddColumnsEvent)
 		assert.True(t, isOk)
 		assert.Equal(t, "table_name", addColEvent.GetTable())
 		assertOneElement(t, Column{Name: "name", DataType: "VARCHAR(255)", PrimaryKey: false}, addColEvent.GetColumns())

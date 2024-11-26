@@ -39,16 +39,14 @@ func processAlterTable(ctx *generated.AlterTableContext) ([]Event, error) {
 				cols[i] = cols[i].buildDataTypePrimaryKey(colDef)
 			}
 
-			for _, col := range cols {
-				events = append(events, AddColumnEvent{TableName: tableName, Column: col})
-			}
+			events = append(events, AddColumnsEvent{TableName: tableName, Columns: cols})
 		case *generated.AlterByAddColumnContext:
 			col, err := processAddOrModifyColumn(spec)
 			if err != nil {
 				return nil, err
 			}
 
-			events = append(events, AddColumnEvent{TableName: tableName, Column: col})
+			events = append(events, AddColumnsEvent{TableName: tableName, Columns: []Column{col}})
 		case *generated.AlterByModifyColumnContext:
 			col, err := processAddOrModifyColumn(spec)
 			if err != nil {

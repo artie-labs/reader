@@ -123,17 +123,22 @@ func (d DropColumnsEvent) GetColumns() []Column {
 	return []Column{d.Column.clean()}
 }
 
-type AddColumnEvent struct {
+type AddColumnsEvent struct {
 	TableName string
-	Column    Column
+	Columns   []Column
 }
 
-func (a AddColumnEvent) GetTable() string {
+func (a AddColumnsEvent) GetTable() string {
 	return unescape(a.TableName)
 }
 
-func (a AddColumnEvent) GetColumns() []Column {
-	return []Column{a.Column.clean()}
+func (a AddColumnsEvent) GetColumns() []Column {
+	var cols []Column
+	for _, col := range a.Columns {
+		cols = append(cols, col.clean())
+	}
+
+	return cols
 }
 
 type DropTableEvent struct {
