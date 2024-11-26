@@ -49,7 +49,7 @@ func (c Column) buildDataTypePrimaryKey(ctx generated.IColumnDefinitionContext) 
 }
 
 func processColumn(ctx *generated.ColumnDeclarationContext) (Column, error) {
-	col := Column{}
+	var col Column
 	for _, colChild := range ctx.GetChildren() {
 		switch t := colChild.(type) {
 		case *generated.FullColumnNameContext:
@@ -70,7 +70,6 @@ func processColumn(ctx *generated.ColumnDeclarationContext) (Column, error) {
 func processCreateTable(ctx *generated.ColumnCreateTableContext) (Event, error) {
 	var tableName string
 	var columns []Column
-
 	tableName, err := getTableNameFromNode(ctx.TableName())
 	if err != nil {
 		return nil, err
