@@ -68,7 +68,7 @@ func NewMySQLAdapter(db *sql.DB, dbName string, tableCfg config.MySQLTable) (MyS
 		return MySQLAdapter{}, fmt.Errorf("failed to load metadata for table %q: %w", tableCfg.Name, err)
 	}
 
-	tableAdapter, err := BuildTableAdapter(tableCfg, *table)
+	tableAdapter, err := BuildTableAdapter(tableCfg, table)
 	if err != nil {
 		return MySQLAdapter{}, fmt.Errorf("failed to build table: %w", err)
 	}

@@ -10,26 +10,23 @@ import (
 )
 
 type Table struct {
-	Name        string          `yaml:"name"`
-	Columns     []schema.Column `yaml:"columns"`
-	PrimaryKeys []string        `yaml:"primaryKeys"`
+	Name        string
+	Columns     []schema.Column
+	PrimaryKeys []string
 }
 
-func LoadTable(db *sql.DB, name string) (*Table, error) {
-	tbl := &Table{
-		Name: name,
+func LoadTable(db *sql.DB, name string) (Table, error) {
+	cols, err := schema.DescribeTable(db, name)
+	if err != nil {
+		return Table{}, fmt.Errorf("failed to describe table %q: %w", name, err)
 	}
 
-	var err error
-	if tbl.Columns, err = schema.DescribeTable(db, tbl.Name); err != nil {
-		return nil, fmt.Errorf("failed to describe table %q: %w", tbl.Name, err)
+	pks, err := schema.FetchPrimaryKeys(db, name)
+	if err != nil {
+		return Table{}, fmt.Errorf("failed to retrieve primary keys: %w", err)
 	}
 
-	if tbl.PrimaryKeys, err = schema.FetchPrimaryKeys(db, tbl.Name); err != nil {
-		return nil, fmt.Errorf("failed to retrieve primary keys: %w", err)
-	}
-
-	return tbl, nil
+	return Table{Name: name, Columns: cols, PrimaryKeys: pks}, nil
 }
 
 func (t *Table) FetchPrimaryKeysBounds(db *sql.DB) ([]primary_key.Key, error) {

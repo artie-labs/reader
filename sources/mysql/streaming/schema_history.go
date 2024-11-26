@@ -33,7 +33,7 @@ func BuildTablesAdapter(cfg config.MySQL) (map[string]*maputil.MostRecentMap[ada
 			return nil, err
 		}
 
-		tableAdapter, err := adapter.BuildTableAdapter(*tableCfg, *tbl)
+		tableAdapter, err := adapter.BuildTableAdapter(*tableCfg, tbl)
 		if err != nil {
 			return nil, err
 		}
