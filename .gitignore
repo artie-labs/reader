@@ -1,3 +1,7 @@
+## Generated ANTLR
+lib/antlr/generated/*
+!lib/antlr/generated/*.g4
+
 ### Terraform ###
 # Local .terraform directories
 **/.terraform/*

@@ -42,8 +42,24 @@ Artie Reader reads from databases to perform historical snapshots and also reads
 
 ## Running
 
+### Antlr
+
+Artie uses [ANTLR](https://github.com/antlr/antlr4) to parse DDL queries. In order to run Reader locally, you'll need the antlr generated files which requires an antlr install. [Install instructions can be seen here](https://www.antlr.org/download.html).
+
+For Macs OS, we can install via brew:
+
+```bash
+brew install antlr
+make antlr
+```
+
+This command will compile the Lexer and Parser grammar files and generate the files in `/lib/antlr/generated`. We are sourcing our Grammar files from [grammars-v4](https://github.com/antlr/grammars-v4/tree/master/sql/mysql/Positive-Technologies).
+
+### Getting started
+
 To get started, you'll need a `config.yaml` file, you can see examples of this in the [examples](https://github.com/artie-labs/reader/tree/master/examples) folder.
 
 ```bash
 go run main.go --config config.yaml
 ```
+
