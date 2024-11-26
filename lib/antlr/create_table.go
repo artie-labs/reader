@@ -68,13 +68,12 @@ func processColumn(ctx *generated.ColumnDeclarationContext) (Column, error) {
 }
 
 func processCreateTable(ctx *generated.ColumnCreateTableContext) (Event, error) {
-	var tableName string
-	var columns []Column
 	tableName, err := getTableNameFromNode(ctx.TableName())
 	if err != nil {
 		return nil, err
 	}
 
+	var columns []Column
 	for _, child := range ctx.GetChildren() {
 		switch castedChild := child.(type) {
 		case *generated.CreateDefinitionsContext:
