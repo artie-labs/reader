@@ -19,18 +19,15 @@ func unescape(s string) string {
 func Parse(sqlCmd string) ([]Event, error) {
 	lexer := generated.NewMySqlLexer(antlr.NewInputStream(sqlCmd))
 	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
-	sqlParser := generated.NewMySqlParser(stream)
-	return mySQLVisitor{}.Visit(sqlParser.SqlStatements())
+	return visit(generated.NewMySqlParser(stream).SqlStatements())
 }
 
-type mySQLVisitor struct{}
-
-func (m mySQLVisitor) Visit(tree antlr.Tree) ([]Event, error) {
+func visit(tree antlr.Tree) ([]Event, error) {
 	switch ctx := tree.(type) {
 	case *generated.SqlStatementsContext, *generated.SqlStatementContext, *generated.DdlStatementContext:
 		var events []Event
 		for _, child := range ctx.GetChildren() {
-			evt, err := m.Visit(child)
+			evt, err := visit(child)
 			if err != nil {
 				return nil, err
 			}

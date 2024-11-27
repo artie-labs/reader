@@ -42,7 +42,7 @@ Artie Reader reads from databases to perform historical snapshots and also reads
 
 ## Running
 
-### Antlr
+### ANTLR
 
 Artie uses [ANTLR](https://github.com/antlr/antlr4) to parse DDL queries. In order to run Reader locally, you'll need the antlr generated files which requires an antlr install. [Install instructions can be seen here](https://www.antlr.org/download.html).
 
