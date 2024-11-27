@@ -17,7 +17,6 @@ func (i *Iterator) HasNext() bool {
 
 func (i *Iterator) CommitOffset() {
 	// TODO
-	return
 }
 
 func (i *Iterator) Close() error {
