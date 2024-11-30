@@ -115,12 +115,7 @@ func (w *Writer) CreateTable(ctx context.Context, tableName string, columns []co
 		return nil
 	}
 
-	tableID, err := w.getTableID(tableName)
-	if err != nil {
-		return fmt.Errorf("failed to get table ID: %w", err)
-	}
-
-	createTableSQL, err := ddl.BuildCreateTableSQL(w.cfg.SharedDestinationSettings.ColumnSettings, dwh.Dialect(), tableID, false, w.cfg.Mode, columns)
+	createTableSQL, err := ddl.BuildCreateTableSQL(w.cfg.SharedDestinationSettings.ColumnSettings, dwh.Dialect(), w.getTableID(tableName), false, w.cfg.Mode, columns)
 	if err != nil {
 		return fmt.Errorf("failed to build create table SQL: %w", err)
 	}
@@ -249,8 +244,8 @@ func (w *Writer) flush(ctx context.Context, reason string) error {
 	return nil
 }
 
-func (w *Writer) getTableID(tableName string) (sql.TableIdentifier, error) {
-	return w.destination.IdentifierFor(w.tc, tableName), nil
+func (w *Writer) getTableID(tableName string) sql.TableIdentifier {
+	return w.destination.IdentifierFor(w.tc, tableName)
 }
 
 func (w *Writer) OnComplete(ctx context.Context) error {
@@ -267,11 +262,7 @@ func (w *Writer) OnComplete(ctx context.Context) error {
 		return err
 	}
 
-	tableID, err := w.getTableID(tableName)
-	if err != nil {
-		return fmt.Errorf("failed to get table ID: %w", err)
-	}
-
+	tableID := w.getTableID(tableName)
 	if isMicrosoftSQLServer(w.destination) {
 		// We don't need to run dedupe because it's just merging.
 		return nil
