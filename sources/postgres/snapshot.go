@@ -8,8 +8,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/artie-labs/transfer/lib/typing"
-	"github.com/artie-labs/transfer/lib/typing/columns"
 	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/artie-labs/reader/config"
@@ -53,27 +51,12 @@ func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
 		dbzTransformer, err := transformer.NewDebeziumTransformer(dbzAdapter)
 		if err != nil {
 			if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
-				var cols columns.Columns
-				for _, fc := range dbzAdapter.FieldConverters() {
-					kd, err := fc.ValueConverter.ToField(fc.Name).ToKindDetails()
-					if err != nil {
-						return fmt.Errorf("failed to convert field %q to kind details: %w", fc.Name, err)
-					}
-
-					cols.AddColumn(columns.NewColumn(fc.Name, kd))
+				cols, err := dbzAdapter.BuildTransferColumns()
+				if err != nil {
+					return fmt.Errorf("failed to build transfer columns: %w", err)
 				}
 
-				for _, pk := range dbzAdapter.PartitionKeys() {
-					err = cols.UpsertColumn(pk, columns.UpsertColumnArg{
-						PrimaryKey: typing.ToPtr(true),
-					})
-
-					if err != nil {
-						return fmt.Errorf("failed to upsert primary key column %q: %w", pk, err)
-					}
-				}
-
-				if err = writer.CreateTable(ctx, dbzAdapter.TableName(), cols.GetColumns()); err != nil {
+				if err = writer.CreateTable(ctx, dbzAdapter.TableName(), cols); err != nil {
 					return fmt.Errorf("failed to create table: %w", err)
 				}
 
