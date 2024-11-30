@@ -188,10 +188,10 @@ func (w *Writer) Write(ctx context.Context, messages []lib.RawMessage) error {
 
 func (w *Writer) getTableData() (string, *models.TableData, error) {
 	tableData := w.inMemDB.TableData()
-	fmt.Println("tableData", tableData)
 	if len(tableData) != 1 {
 		return "", nil, fmt.Errorf("expected exactly one table")
 	}
+	
 	for k, v := range tableData {
 		return k, v, nil
 	}
