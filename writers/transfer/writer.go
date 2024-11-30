@@ -120,7 +120,7 @@ func (w *Writer) CreateTable(ctx context.Context, tableName string, columns []co
 		return fmt.Errorf("failed to get table ID: %w", err)
 	}
 
-	createTableSQL, err := ddl.BuildCreateTableSQL(config.SharedDestinationColumnSettings{}, dwh.Dialect(), tableID, false, w.cfg.Mode, columns)
+	createTableSQL, err := ddl.BuildCreateTableSQL(w.cfg.SharedDestinationSettings.ColumnSettings, dwh.Dialect(), tableID, false, w.cfg.Mode, columns)
 	if err != nil {
 		return fmt.Errorf("failed to build create table SQL: %w", err)
 	}
