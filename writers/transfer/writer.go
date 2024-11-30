@@ -108,14 +108,14 @@ func (w *Writer) messageToEvent(message lib.RawMessage) (event.Event, error) {
 	return memoryEvent, nil
 }
 
-func (w *Writer) CreateTable(ctx context.Context, columns []columns.Column) error {
+func (w *Writer) CreateTable(ctx context.Context, tableName string, columns []columns.Column) error {
 	dwh, ok := w.destination.(destination.DataWarehouse)
 	if !ok {
 		// Don't create the table if it's not a data warehouse.
 		return nil
 	}
 
-	tableID, err := w.getTableID()
+	tableID, err := w.getTableID(tableName)
 	if err != nil {
 		return fmt.Errorf("failed to get table ID: %w", err)
 	}
@@ -188,6 +188,7 @@ func (w *Writer) Write(ctx context.Context, messages []lib.RawMessage) error {
 
 func (w *Writer) getTableData() (string, *models.TableData, error) {
 	tableData := w.inMemDB.TableData()
+	fmt.Println("tableData", tableData)
 	if len(tableData) != 1 {
 		return "", nil, fmt.Errorf("expected exactly one table")
 	}
@@ -248,12 +249,7 @@ func (w *Writer) flush(ctx context.Context, reason string) error {
 	return nil
 }
 
-func (w *Writer) getTableID() (sql.TableIdentifier, error) {
-	tableName, _, err := w.getTableData()
-	if err != nil {
-		return nil, err
-	}
-
+func (w *Writer) getTableID(tableName string) (sql.TableIdentifier, error) {
 	return w.destination.IdentifierFor(w.tc, tableName), nil
 }
 
@@ -266,7 +262,12 @@ func (w *Writer) OnComplete(ctx context.Context) error {
 		return fmt.Errorf("failed to flush: %w", err)
 	}
 
-	tableID, err := w.getTableID()
+	tableName, _, err := w.getTableData()
+	if err != nil {
+		return err
+	}
+
+	tableID, err := w.getTableID(tableName)
 	if err != nil {
 		return fmt.Errorf("failed to get table ID: %w", err)
 	}

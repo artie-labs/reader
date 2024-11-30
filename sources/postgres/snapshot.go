@@ -73,7 +73,7 @@ func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
 					}
 				}
 
-				if err = writer.CreateTable(ctx, cols.GetColumns()); err != nil {
+				if err = writer.CreateTable(ctx, dbzAdapter.TableName(), cols.GetColumns()); err != nil {
 					return fmt.Errorf("failed to create table: %w", err)
 				}
 

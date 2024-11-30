@@ -187,6 +187,6 @@ func (b *BatchWriter) OnComplete(_ context.Context) error {
 	return nil
 }
 
-func (b *BatchWriter) CreateTable(_ context.Context, _ []columns.Column) error {
+func (b *BatchWriter) CreateTable(_ context.Context, _ string, _ []columns.Column) error {
 	return nil
 }

@@ -13,7 +13,7 @@ import (
 )
 
 type DestinationWriter interface {
-	CreateTable(ctx context.Context, columns []columns.Column) error
+	CreateTable(ctx context.Context, tableName string, columns []columns.Column) error
 	Write(ctx context.Context, rawMsgs []lib.RawMessage) error
 	OnComplete(ctx context.Context) error
 }
@@ -76,8 +76,8 @@ func (w *Writer) OnComplete(ctx context.Context) error {
 	return nil
 }
 
-func (w *Writer) CreateTable(ctx context.Context, columns []columns.Column) error {
-	if err := w.destinationWriter.CreateTable(ctx, columns); err != nil {
+func (w *Writer) CreateTable(ctx context.Context, tableName string, columns []columns.Column) error {
+	if err := w.destinationWriter.CreateTable(ctx, tableName, columns); err != nil {
 		return fmt.Errorf("failed to create table: %w", err)
 	}
 
