@@ -75,3 +75,11 @@ func (w *Writer) OnComplete(ctx context.Context) error {
 
 	return nil
 }
+
+func (w *Writer) CreateTable(ctx context.Context, columns []columns.Column) error {
+	if err := w.destinationWriter.CreateTable(ctx, columns); err != nil {
+		return fmt.Errorf("failed to create table: %w", err)
+	}
+
+	return nil
+}
