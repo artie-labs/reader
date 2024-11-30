@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/artie-labs/transfer/lib/destination/ddl"
-	"github.com/artie-labs/transfer/lib/sql"
 	"log/slog"
 	"time"
 
@@ -16,8 +14,10 @@ import (
 	"github.com/artie-labs/transfer/lib/config"
 	"github.com/artie-labs/transfer/lib/config/constants"
 	"github.com/artie-labs/transfer/lib/destination"
+	"github.com/artie-labs/transfer/lib/destination/ddl"
 	"github.com/artie-labs/transfer/lib/destination/utils"
 	"github.com/artie-labs/transfer/lib/kafkalib"
+	"github.com/artie-labs/transfer/lib/sql"
 	"github.com/artie-labs/transfer/lib/typing/columns"
 	"github.com/artie-labs/transfer/models"
 	"github.com/artie-labs/transfer/models/event"
@@ -108,11 +108,16 @@ func (w *Writer) messageToEvent(message lib.RawMessage) (event.Event, error) {
 	return memoryEvent, nil
 }
 
-func (w *Writer) CreateTable(ctx context.Context, tableID sql.TableIdentifier, columns []columns.Column) error {
+func (w *Writer) CreateTable(ctx context.Context, columns []columns.Column) error {
 	dwh, ok := w.destination.(destination.DataWarehouse)
 	if !ok {
 		// Don't create the table if it's not a data warehouse.
 		return nil
+	}
+
+	tableID, err := w.getTableID()
+	if err != nil {
+		return fmt.Errorf("failed to get table ID: %w", err)
 	}
 
 	createTableSQL, err := ddl.BuildCreateTableSQL(config.SharedDestinationColumnSettings{}, dwh.Dialect(), tableID, false, w.cfg.Mode, columns)
@@ -243,6 +248,15 @@ func (w *Writer) flush(ctx context.Context, reason string) error {
 	return nil
 }
 
+func (w *Writer) getTableID() (sql.TableIdentifier, error) {
+	tableName, _, err := w.getTableData()
+	if err != nil {
+		return nil, err
+	}
+
+	return w.destination.IdentifierFor(w.tc, tableName), nil
+}
+
 func (w *Writer) OnComplete(ctx context.Context) error {
 	if len(w.primaryKeys) == 0 {
 		return fmt.Errorf("primary keys not set")
@@ -252,9 +266,9 @@ func (w *Writer) OnComplete(ctx context.Context) error {
 		return fmt.Errorf("failed to flush: %w", err)
 	}
 
-	tableName, _, err := w.getTableData()
+	tableID, err := w.getTableID()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get table ID: %w", err)
 	}
 
 	if isMicrosoftSQLServer(w.destination) {
@@ -262,8 +276,7 @@ func (w *Writer) OnComplete(ctx context.Context) error {
 		return nil
 	}
 
-	slog.Info("Running dedupe...", slog.String("table", tableName))
-	tableID := w.destination.IdentifierFor(w.tc, tableName)
+	slog.Info("Running dedupe...", slog.String("table", tableID.Table()))
 	start := time.Now()
 
 	dwh, isOk := w.destination.(destination.DataWarehouse)
@@ -275,7 +288,10 @@ func (w *Writer) OnComplete(ctx context.Context) error {
 		return err
 	}
 
-	slog.Info("Dedupe complete", slog.String("table", tableName), slog.Duration("duration", time.Since(start)))
+	slog.Info("Dedupe complete",
+		slog.String("table", tableID.Table()),
+		slog.Duration("duration", time.Since(start)),
+	)
 	return nil
 }
 

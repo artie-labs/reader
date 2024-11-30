@@ -11,7 +11,6 @@ import (
 	"github.com/artie-labs/transfer/lib/batch"
 	"github.com/artie-labs/transfer/lib/kafkalib"
 	"github.com/artie-labs/transfer/lib/retry"
-	"github.com/artie-labs/transfer/lib/sql"
 	"github.com/artie-labs/transfer/lib/typing/columns"
 	"github.com/segmentio/kafka-go"
 
@@ -188,6 +187,6 @@ func (b *BatchWriter) OnComplete(_ context.Context) error {
 	return nil
 }
 
-func (b *BatchWriter) CreateTable(_ context.Context, _ sql.TableIdentifier, _ []columns.Column) error {
+func (b *BatchWriter) CreateTable(_ context.Context, _ []columns.Column) error {
 	return nil
 }

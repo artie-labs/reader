@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/artie-labs/transfer/lib/sql"
 	"github.com/artie-labs/transfer/lib/typing/columns"
 	"github.com/stretchr/testify/assert"
 
@@ -18,7 +17,7 @@ type mockDestination struct {
 	emitError bool
 }
 
-func (m *mockDestination) CreateTable(_ context.Context, _ sql.TableIdentifier, _ []columns.Column) error {
+func (m *mockDestination) CreateTable(_ context.Context, _ []columns.Column) error {
 	return nil
 }
 
