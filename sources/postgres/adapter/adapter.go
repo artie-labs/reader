@@ -3,9 +3,10 @@ package adapter
 import (
 	"database/sql"
 	"fmt"
+	"log/slog"
+
 	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/artie-labs/transfer/lib/typing/columns"
-	"log/slog"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium/converters"
