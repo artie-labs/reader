@@ -1,18 +1,18 @@
 package adapter
 
 import (
-	"github.com/artie-labs/reader/lib/debezium/converters"
-	"github.com/artie-labs/reader/lib/debezium/transformer"
-	"github.com/artie-labs/transfer/lib/typing"
 	"testing"
 	"time"
 
+	"github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/typing"
+	"github.com/artie-labs/transfer/lib/typing/decimal"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/artie-labs/reader/lib/debezium/converters"
+	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/postgres/schema"
-	"github.com/artie-labs/transfer/lib/debezium"
-	"github.com/artie-labs/transfer/lib/typing/decimal"
 )
 
 func TestPostgresAdapter_TableName(t *testing.T) {
