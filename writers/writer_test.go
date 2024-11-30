@@ -17,7 +17,7 @@ type mockDestination struct {
 	emitError bool
 }
 
-func (m *mockDestination) CreateTable(_ context.Context, _ []columns.Column) error {
+func (m *mockDestination) CreateTable(_ context.Context, _ string, _ []columns.Column) error {
 	return nil
 }
 

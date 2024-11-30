@@ -191,7 +191,7 @@ func (w *Writer) getTableData() (string, *models.TableData, error) {
 	if len(tableData) != 1 {
 		return "", nil, fmt.Errorf("expected exactly one table")
 	}
-	
+
 	for k, v := range tableData {
 		return k, v, nil
 	}
