@@ -5,14 +5,21 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/artie-labs/transfer/lib/sql"
+	"github.com/artie-labs/transfer/lib/typing/columns"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/iterator"
-	"github.com/stretchr/testify/assert"
 )
 
 type mockDestination struct {
 	messages  []lib.RawMessage
 	emitError bool
+}
+
+func (m *mockDestination) CreateTable(_ context.Context, _ sql.TableIdentifier, _ []columns.Column) error {
+	return nil
 }
 
 func (m *mockDestination) Write(_ context.Context, msgs []lib.RawMessage) error {
