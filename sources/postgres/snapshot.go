@@ -51,6 +51,9 @@ func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
 		dbzTransformer, err := transformer.NewDebeziumTransformer(dbzAdapter)
 		if err != nil {
 			if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
+
+
+
 				logger.Info("Table does not contain any rows, skipping...")
 				continue
 			} else {

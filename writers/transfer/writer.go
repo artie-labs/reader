@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/artie-labs/transfer/lib/destination/ddl"
+	"github.com/artie-labs/transfer/lib/sql"
 	"log/slog"
 	"time"
 
@@ -16,6 +18,7 @@ import (
 	"github.com/artie-labs/transfer/lib/destination"
 	"github.com/artie-labs/transfer/lib/destination/utils"
 	"github.com/artie-labs/transfer/lib/kafkalib"
+	"github.com/artie-labs/transfer/lib/typing/columns"
 	"github.com/artie-labs/transfer/models"
 	"github.com/artie-labs/transfer/models/event"
 
@@ -103,6 +106,25 @@ func (w *Writer) messageToEvent(message lib.RawMessage) (event.Event, error) {
 	// Setting the deleted column flag.
 	memoryEvent.Data[constants.DeleteColumnMarker] = false
 	return memoryEvent, nil
+}
+
+func (w *Writer) CreateTable(ctx context.Context, tableID sql.TableIdentifier, columns []columns.Column) error {
+	dwh, ok := w.destination.(destination.DataWarehouse)
+	if !ok {
+		// Don't create the table if it's not a data warehouse.
+		return nil
+	}
+
+	createTableSQL, err := ddl.BuildCreateTableSQL(config.SharedDestinationColumnSettings{}, dwh.Dialect(), tableID, false, w.cfg.Mode, columns)
+	if err != nil {
+		return fmt.Errorf("failed to build create table SQL: %w", err)
+	}
+
+	if _, err = dwh.ExecContext(ctx, createTableSQL); err != nil {
+		return fmt.Errorf("failed to create table: %w", err)
+	}
+
+	return nil
 }
 
 func (w *Writer) Write(ctx context.Context, messages []lib.RawMessage) error {

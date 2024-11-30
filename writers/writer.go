@@ -6,11 +6,15 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/artie-labs/transfer/lib/sql"
+	"github.com/artie-labs/transfer/lib/typing/columns"
+
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/iterator"
 )
 
 type DestinationWriter interface {
+	CreateTable(ctx context.Context, tableID sql.TableIdentifier, columns []columns.Column) error
 	Write(ctx context.Context, rawMsgs []lib.RawMessage) error
 	OnComplete(ctx context.Context) error
 }
