@@ -6,11 +6,14 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/artie-labs/transfer/lib/typing/columns"
+
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/iterator"
 )
 
 type DestinationWriter interface {
+	CreateTable(ctx context.Context, tableName string, columns []columns.Column) error
 	Write(ctx context.Context, rawMsgs []lib.RawMessage) error
 	OnComplete(ctx context.Context) error
 }
@@ -68,6 +71,14 @@ func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMess
 func (w *Writer) OnComplete(ctx context.Context) error {
 	if err := w.destinationWriter.OnComplete(ctx); err != nil {
 		return fmt.Errorf("failed running destination OnComplete: %w", err)
+	}
+
+	return nil
+}
+
+func (w *Writer) CreateTable(ctx context.Context, tableName string, columns []columns.Column) error {
+	if err := w.destinationWriter.CreateTable(ctx, tableName, columns); err != nil {
+		return fmt.Errorf("failed to create table: %w", err)
 	}
 
 	return nil
