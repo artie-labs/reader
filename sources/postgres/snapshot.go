@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/artie-labs/reader/lib/transfer"
 	"log/slog"
 	"time"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/rdbms"
+	"github.com/artie-labs/reader/lib/transfer"
 	"github.com/artie-labs/reader/sources/postgres/adapter"
 	"github.com/artie-labs/reader/writers"
 )
