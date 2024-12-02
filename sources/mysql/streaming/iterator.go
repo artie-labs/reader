@@ -73,7 +73,7 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 		case <-ctx.Done():
 			return rawMsgs, nil
 		default:
-			_, err := i.streamer.GetEvent(ctx)
+			event, err := i.streamer.GetEvent(ctx)
 			if err != nil {
 				if errors.Is(err, context.DeadlineExceeded) {
 					return rawMsgs, nil
@@ -82,7 +82,18 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 				return nil, fmt.Errorf("failed to get binlog event: %w", err)
 			}
 
-			// TODO
+			if err = i.position.UpdatePosition(event); err != nil {
+				return nil, fmt.Errorf("failed to update position: %w", err)
+			}
+
+			switch event.Header.EventType {
+			case replication.QUERY_EVENT:
+			// TODO: process DDL
+			case replication.WRITE_ROWS_EVENTv2, replication.UPDATE_ROWS_EVENTv2, replication.DELETE_ROWS_EVENTv2:
+			// TODO: process DML
+			default:
+				slog.Info("Skipping event", slog.Any("eventType", event.Header.EventType))
+			}
 		}
 	}
 
