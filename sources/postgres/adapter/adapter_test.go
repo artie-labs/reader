@@ -5,12 +5,9 @@ import (
 	"time"
 
 	"github.com/artie-labs/transfer/lib/debezium"
-	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/artie-labs/transfer/lib/typing/decimal"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/artie-labs/reader/lib/debezium/converters"
-	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/postgres"
 	"github.com/artie-labs/reader/lib/postgres/schema"
 )
@@ -330,34 +327,4 @@ func TestValueConverterForType_Convert(t *testing.T) {
 			assert.Equal(t, []byte{21}, actualValue)
 		}
 	}
-}
-
-func TestPostgresAdapter_BuildTransferColumns(t *testing.T) {
-	adapter := PostgresAdapter{
-		table: postgres.Table{
-			PrimaryKeys: []string{"id"},
-		},
-		fieldConverters: []transformer.FieldConverter{
-			{
-				Name:           "id",
-				ValueConverter: converters.StringPassthrough{},
-			},
-			{
-				Name:           "name",
-				ValueConverter: converters.StringPassthrough{},
-			},
-		},
-	}
-
-	cols, err := adapter.BuildTransferColumns()
-	assert.NoError(t, err)
-
-	assert.Equal(t, 2, len(cols))
-	assert.Equal(t, "id", cols[0].Name())
-	assert.Equal(t, typing.String, cols[0].KindDetails)
-	assert.True(t, cols[0].PrimaryKey())
-
-	assert.Equal(t, "name", cols[1].Name())
-	assert.Equal(t, typing.String, cols[1].KindDetails)
-	assert.False(t, cols[1].PrimaryKey())
 }

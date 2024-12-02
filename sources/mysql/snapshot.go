@@ -13,6 +13,7 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/rdbms"
+	"github.com/artie-labs/reader/lib/transfer"
 	"github.com/artie-labs/reader/sources/mysql/adapter"
 	"github.com/artie-labs/reader/writers"
 )
@@ -39,15 +40,24 @@ func (s Snapshot) snapshotTable(ctx context.Context, writer writers.Writer, tabl
 	logger := slog.With(slog.String("table", tableCfg.Name), slog.String("database", s.cfg.Database))
 	snapshotStartTime := time.Now()
 
-	adapter, err := adapter.NewMySQLAdapter(s.db, s.cfg.Database, tableCfg)
+	dbzAdapter, err := adapter.NewMySQLAdapter(s.db, s.cfg.Database, tableCfg)
 	if err != nil {
 		return fmt.Errorf("failed to create MySQL adapter: %w", err)
 	}
 
-	dbzTransformer, err := transformer.NewDebeziumTransformer(adapter)
+	dbzTransformer, err := transformer.NewDebeziumTransformer(dbzAdapter)
 	if err != nil {
 		if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
-			logger.Info("Table does not contain any rows, skipping...")
+			cols, err := transfer.BuildTransferColumns(dbzAdapter)
+			if err != nil {
+				return fmt.Errorf("failed to build transfer columns: %w", err)
+			}
+
+			if err = writer.CreateTable(ctx, dbzAdapter.TableName(), cols); err != nil {
+				return fmt.Errorf("failed to create table: %w", err)
+			}
+
+			logger.Info("Table has been created, it does not contain any rows")
 			return nil
 		} else {
 			return fmt.Errorf("failed to build Debezium transformer for table %q: %w", tableCfg.Name, err)
