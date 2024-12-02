@@ -14,13 +14,14 @@ func Load(cfg config.MySQL) (sources.Source, bool, error) {
 		return nil, false, fmt.Errorf("failed to connect to MySQL: %w", err)
 	}
 
+	// TODO: Instead of running describe table and parsing the data back out in tabular format, we should run get create table ddl and feed that through our DDL parser.
 	if cfg.StreamingSettings.Enabled {
 		stream, err := buildStreamingConfig(cfg)
 		if err != nil {
 			return nil, false, fmt.Errorf("failed to build streaming config: %w", err)
 		}
 
-		return stream, true, nil
+		return &stream, true, nil
 	}
 
 	return &Snapshot{cfg: cfg, db: db}, false, nil

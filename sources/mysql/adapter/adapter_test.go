@@ -13,37 +13,46 @@ import (
 )
 
 func TestMySQLAdapter_TableName(t *testing.T) {
-	table := mysql.Table{
-		Name: "table1",
+	adapterTable := Table{
+		table: mysql.Table{
+			Name:    "table1",
+			Columns: []schema.Column{},
+		},
+		columns: []schema.Column{},
 	}
-	adapter, err := newMySQLAdapter(nil, "foo", table, []schema.Column{}, scan.ScannerConfig{})
+
+	adapter, err := newMySQLAdapter(nil, "foo", adapterTable, scan.ScannerConfig{})
 	assert.NoError(t, err)
 	assert.Equal(t, "table1", adapter.TableName())
 }
 
 func TestMySQLAdapter_TopicSuffix(t *testing.T) {
 	type _tc struct {
-		table    mysql.Table
+		table    Table
 		expected string
 	}
 
 	tcs := []_tc{
 		{
-			table: mysql.Table{
-				Name: "table1",
+			table: Table{
+				table: mysql.Table{
+					Name: "table1",
+				},
 			},
 			expected: "db.table1",
 		},
 		{
-			table: mysql.Table{
-				Name: "PublicStatus",
+			table: Table{
+				table: mysql.Table{
+					Name: "PublicStatus",
+				},
 			},
 			expected: "db.PublicStatus",
 		},
 	}
 
 	for _, tc := range tcs {
-		adapter, err := newMySQLAdapter(nil, "db", tc.table, []schema.Column{}, scan.ScannerConfig{})
+		adapter, err := newMySQLAdapter(nil, "db", tc.table, scan.ScannerConfig{})
 		assert.NoError(t, err)
 		assert.Equal(t, tc.expected, adapter.TopicSuffix())
 	}
