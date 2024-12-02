@@ -2,10 +2,20 @@ package streaming
 
 import (
 	"fmt"
+
 	"github.com/go-mysql-org/go-mysql/mysql"
+	"github.com/go-mysql-org/go-mysql/replication"
+
+	"github.com/artie-labs/reader/lib/storage/persistedmap"
 )
 
-type Iterator struct{}
+type Iterator struct {
+	batchSize int32
+	position  Position
+	offsets   *persistedmap.PersistedMap[Position]
+	streamer  *replication.BinlogStreamer
+	syncer    *replication.BinlogSyncer
+}
 
 type Position struct {
 	File string `yaml:"file"`
