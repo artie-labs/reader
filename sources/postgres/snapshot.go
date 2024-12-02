@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/artie-labs/reader/lib/transfer"
 	"log/slog"
 	"time"
 
@@ -51,7 +52,7 @@ func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
 		dbzTransformer, err := transformer.NewDebeziumTransformer(dbzAdapter)
 		if err != nil {
 			if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
-				cols, err := dbzAdapter.BuildTransferColumns()
+				cols, err := transfer.BuildTransferColumns(dbzAdapter)
 				if err != nil {
 					return fmt.Errorf("failed to build transfer columns: %w", err)
 				}
