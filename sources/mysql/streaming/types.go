@@ -5,6 +5,8 @@ import (
 	"github.com/go-mysql-org/go-mysql/mysql"
 )
 
+type Iterator struct{}
+
 type Position struct {
 	File string `yaml:"file"`
 	Pos  uint32 `yaml:"pos"`

@@ -5,9 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/artie-labs/transfer/lib/typing"
-	"github.com/artie-labs/transfer/lib/typing/columns"
-
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
@@ -62,30 +59,6 @@ func NewPostgresAdapter(db *sql.DB, tableCfg config.PostgreSQLTable) (PostgresAd
 		fieldConverters: fieldConverters,
 		scannerCfg:      tableCfg.ToScannerConfig(defaultErrorRetries),
 	}, nil
-}
-
-func (p PostgresAdapter) BuildTransferColumns() ([]columns.Column, error) {
-	var cols columns.Columns
-	for _, fc := range p.FieldConverters() {
-		kd, err := fc.ValueConverter.ToField(fc.Name).ToKindDetails()
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert field %q to kind details: %w", fc.Name, err)
-		}
-
-		cols.AddColumn(columns.NewColumn(fc.Name, kd))
-	}
-
-	for _, pk := range p.PartitionKeys() {
-		err := cols.UpsertColumn(pk, columns.UpsertColumnArg{
-			PrimaryKey: typing.ToPtr(true),
-		})
-
-		if err != nil {
-			return nil, fmt.Errorf("failed to upsert primary key column %q: %w", pk, err)
-		}
-	}
-
-	return cols.GetColumns(), nil
 }
 
 func (p PostgresAdapter) TableName() string {
