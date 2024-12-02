@@ -2,10 +2,11 @@ package streaming
 
 import (
 	"fmt"
-	"github.com/artie-labs/reader/lib/storage/persistedmap"
 
 	"github.com/go-mysql-org/go-mysql/mysql"
 	"github.com/go-mysql-org/go-mysql/replication"
+
+	"github.com/artie-labs/reader/lib/storage/persistedmap"
 )
 
 type Iterator struct {
