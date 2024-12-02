@@ -51,7 +51,16 @@ func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
 		dbzTransformer, err := transformer.NewDebeziumTransformer(dbzAdapter)
 		if err != nil {
 			if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
-				logger.Info("Table does not contain any rows, skipping...")
+				cols, err := dbzAdapter.BuildTransferColumns()
+				if err != nil {
+					return fmt.Errorf("failed to build transfer columns: %w", err)
+				}
+
+				if err = writer.CreateTable(ctx, dbzAdapter.TableName(), cols); err != nil {
+					return fmt.Errorf("failed to create table: %w", err)
+				}
+
+				logger.Info("Table has been created, it does not contain any rows")
 				continue
 			} else {
 				return fmt.Errorf("failed to build Debezium transformer for table %q: %w", tableCfg.Name, err)

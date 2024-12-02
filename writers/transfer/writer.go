@@ -14,8 +14,11 @@ import (
 	"github.com/artie-labs/transfer/lib/config"
 	"github.com/artie-labs/transfer/lib/config/constants"
 	"github.com/artie-labs/transfer/lib/destination"
+	"github.com/artie-labs/transfer/lib/destination/ddl"
 	"github.com/artie-labs/transfer/lib/destination/utils"
 	"github.com/artie-labs/transfer/lib/kafkalib"
+	"github.com/artie-labs/transfer/lib/sql"
+	"github.com/artie-labs/transfer/lib/typing/columns"
 	"github.com/artie-labs/transfer/models"
 	"github.com/artie-labs/transfer/models/event"
 
@@ -105,6 +108,25 @@ func (w *Writer) messageToEvent(message lib.RawMessage) (event.Event, error) {
 	return memoryEvent, nil
 }
 
+func (w *Writer) CreateTable(ctx context.Context, tableName string, columns []columns.Column) error {
+	dwh, ok := w.destination.(destination.DataWarehouse)
+	if !ok {
+		// Don't create the table if it's not a data warehouse.
+		return nil
+	}
+
+	createTableSQL, err := ddl.BuildCreateTableSQL(w.cfg.SharedDestinationSettings.ColumnSettings, dwh.Dialect(), w.getTableID(tableName), false, w.cfg.Mode, columns)
+	if err != nil {
+		return fmt.Errorf("failed to build create table SQL: %w", err)
+	}
+
+	if _, err = dwh.ExecContext(ctx, createTableSQL); err != nil {
+		return fmt.Errorf("failed to create table: %w", err)
+	}
+
+	return nil
+}
+
 func (w *Writer) Write(ctx context.Context, messages []lib.RawMessage) error {
 	if len(messages) == 0 {
 		return nil
@@ -164,6 +186,7 @@ func (w *Writer) getTableData() (string, *models.TableData, error) {
 	if len(tableData) != 1 {
 		return "", nil, fmt.Errorf("expected exactly one table")
 	}
+
 	for k, v := range tableData {
 		return k, v, nil
 	}
@@ -221,6 +244,10 @@ func (w *Writer) flush(ctx context.Context, reason string) error {
 	return nil
 }
 
+func (w *Writer) getTableID(tableName string) sql.TableIdentifier {
+	return w.destination.IdentifierFor(w.tc, tableName)
+}
+
 func (w *Writer) OnComplete(ctx context.Context) error {
 	if len(w.primaryKeys) == 0 {
 		return fmt.Errorf("primary keys not set")
@@ -235,13 +262,13 @@ func (w *Writer) OnComplete(ctx context.Context) error {
 		return err
 	}
 
+	tableID := w.getTableID(tableName)
 	if isMicrosoftSQLServer(w.destination) {
 		// We don't need to run dedupe because it's just merging.
 		return nil
 	}
 
-	slog.Info("Running dedupe...", slog.String("table", tableName))
-	tableID := w.destination.IdentifierFor(w.tc, tableName)
+	slog.Info("Running dedupe...", slog.String("table", tableID.Table()))
 	start := time.Now()
 
 	dwh, isOk := w.destination.(destination.DataWarehouse)
@@ -253,7 +280,10 @@ func (w *Writer) OnComplete(ctx context.Context) error {
 		return err
 	}
 
-	slog.Info("Dedupe complete", slog.String("table", tableName), slog.Duration("duration", time.Since(start)))
+	slog.Info("Dedupe complete",
+		slog.String("table", tableID.Table()),
+		slog.Duration("duration", time.Since(start)),
+	)
 	return nil
 }
 
