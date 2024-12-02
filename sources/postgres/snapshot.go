@@ -13,6 +13,7 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/rdbms"
+	"github.com/artie-labs/reader/lib/transfer"
 	"github.com/artie-labs/reader/sources/postgres/adapter"
 	"github.com/artie-labs/reader/writers"
 )
@@ -51,7 +52,7 @@ func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
 		dbzTransformer, err := transformer.NewDebeziumTransformer(dbzAdapter)
 		if err != nil {
 			if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
-				cols, err := dbzAdapter.BuildTransferColumns()
+				cols, err := transfer.BuildTransferColumns(dbzAdapter)
 				if err != nil {
 					return fmt.Errorf("failed to build transfer columns: %w", err)
 				}
