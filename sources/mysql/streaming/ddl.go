@@ -36,7 +36,6 @@ func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Tim
 		Ts:    ts,
 	}
 
-	fmt.Println("Processing DDL", query, "ts", ts)
 	if err := i.schemaHistoryList.Push(schemaHistory); err != nil {
 		return fmt.Errorf("failed to push schema history: %w", err)
 	}

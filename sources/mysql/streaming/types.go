@@ -25,8 +25,8 @@ type Iterator struct {
 }
 
 type SchemaHistory struct {
-	Query string
-	Ts    time.Time
+	Query string    `json:"query"`
+	Ts    time.Time `json:"ts"`
 }
 
 type Position struct {
