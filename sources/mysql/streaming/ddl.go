@@ -38,8 +38,7 @@ func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Tim
 		return fmt.Errorf("failed to push schema history: %w", err)
 	}
 
-	// Then process the DDL
-	return nil
+	return i.schemaAdapter.ApplyDDL(string(evt.Query))
 }
 
 func (s *SchemaAdapter) ApplyDDL(query string) error {
@@ -52,7 +51,6 @@ func (s *SchemaAdapter) ApplyDDL(query string) error {
 		if err = s.applyDDL(result); err != nil {
 			return fmt.Errorf("failed to apply ddl: %w", err)
 		}
-
 	}
 
 	return nil

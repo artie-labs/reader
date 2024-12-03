@@ -19,8 +19,9 @@ type Iterator struct {
 	offsets           *persistedmap.PersistedMap[Position]
 	schemaHistoryList *persistedlist.PersistedList[SchemaHistory]
 
-	streamer *replication.BinlogStreamer
-	syncer   *replication.BinlogSyncer
+	schemaAdapter *SchemaAdapter
+	streamer      *replication.BinlogStreamer
+	syncer        *replication.BinlogSyncer
 }
 
 type SchemaHistory struct {
