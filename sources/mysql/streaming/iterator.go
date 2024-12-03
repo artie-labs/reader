@@ -83,6 +83,8 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 				return nil, fmt.Errorf("failed to get binlog event: %w", err)
 			}
 
+			ts := getTimeFromEvent(event)
+
 			if err = i.position.UpdatePosition(event); err != nil {
 				return nil, fmt.Errorf("failed to update position: %w", err)
 			}
@@ -94,7 +96,7 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 					return nil, fmt.Errorf("failed to assert a query event: %w", err)
 				}
 
-				if err = i.persistAndProcessDDL(query, time.Now()); err != nil {
+				if err = i.persistAndProcessDDL(query, ts); err != nil {
 					return nil, fmt.Errorf("failed to persist DDL: %w", err)
 				}
 			case replication.WRITE_ROWS_EVENTv2, replication.UPDATE_ROWS_EVENTv2, replication.DELETE_ROWS_EVENTv2:
