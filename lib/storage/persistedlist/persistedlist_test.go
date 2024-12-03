@@ -13,7 +13,8 @@ type Dog struct {
 }
 
 func TestPersistedList(t *testing.T) {
-	pl := NewPersistedList[Dog](filepath.Join(t.TempDir(), "dogs.json"))
+	pl, err := NewPersistedList[Dog](filepath.Join(t.TempDir(), "dogs.json"))
+	assert.NoError(t, err)
 	// Now, let's load a bunch of dogs
 	dogs := []Dog{
 		{Name: "Buddy", Breed: "Golden Retriever"},
@@ -31,7 +32,8 @@ func TestPersistedList(t *testing.T) {
 }
 
 func BenchmarkPersistedList(b *testing.B) {
-	pl := NewPersistedList[Dog](filepath.Join(b.TempDir(), "dogs.json"))
+	pl, err := NewPersistedList[Dog](filepath.Join(b.TempDir(), "dogs.json"))
+	assert.NoError(b, err)
 	for n := 0; n < b.N; n++ {
 		assert.NoError(b, pl.Push(Dog{Name: fmt.Sprintf("Buddy #%d", n), Breed: "Golden Retriever"}))
 	}
