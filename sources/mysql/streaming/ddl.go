@@ -10,13 +10,13 @@ import (
 )
 
 type Column struct {
-	Name     string
-	DataType string
+	Name       string
+	DataType   string
+	PrimaryKey bool
 }
 
 type TableAdapter struct {
-	columns     []Column
-	primaryKeys []string
+	columns []Column
 }
 
 type SchemaAdapter struct {
@@ -67,8 +67,9 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 		var cols []Column
 		for _, col := range castedResult.GetColumns() {
 			cols = append(cols, Column{
-				Name:     col.Name,
-				DataType: col.DataType,
+				Name:       col.Name,
+				PrimaryKey: col.PrimaryKey,
+				DataType:   col.DataType,
 			})
 		}
 
@@ -95,7 +96,13 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 		}
 
 		for _, col := range castedResult.GetColumns() {
-			tblAdapter.primaryKeys = append(tblAdapter.primaryKeys, col.Name)
+			columnIdx := slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name })
+			if columnIdx == -1 {
+				return fmt.Errorf("column not found: %q", col.Name)
+			}
+
+			// Update pk
+			tblAdapter.columns[columnIdx].PrimaryKey = true
 		}
 	case antlr.ModifyColumnEvent:
 		tblAdapter, ok := s.adapters[castedResult.GetTable()]
@@ -110,7 +117,6 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 			}
 
 			// TODO: Handle position
-
 			tblAdapter.columns[columnIdx].DataType = col.DataType
 		}
 	case antlr.DropColumnsEvent:
