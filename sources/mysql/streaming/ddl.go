@@ -133,6 +133,8 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 
 			tblAdapter.columns = append(tblAdapter.columns[:columnIdx], tblAdapter.columns[columnIdx+1:]...)
 		}
+
+		s.adapters[castedResult.GetTable()] = tblAdapter
 	case antlr.AddColumnsEvent:
 		tblAdapter, ok := s.adapters[castedResult.GetTable()]
 		if !ok {
@@ -140,12 +142,19 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 		}
 
 		for _, col := range castedResult.GetColumns() {
+			// Make sure column does not already exist
+			if slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name }) != -1 {
+				return fmt.Errorf("column already exists: %q", col.Name)
+			}
+
 			// TODO: Handle position
 			tblAdapter.columns = append(tblAdapter.columns, Column{
 				Name:     col.Name,
 				DataType: col.DataType,
 			})
 		}
+
+		s.adapters[castedResult.GetTable()] = tblAdapter
 	default:
 		slog.Info("Skipping event type", slog.Any("eventType", fmt.Sprintf("%T", result)))
 	}
