@@ -1,17 +1,18 @@
 package persistedlist
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"path/filepath"
 	"testing"
 )
 
-func TestPersistedList(t *testing.T) {
-	type Dog struct {
-		Name  string `json:"name"`
-		Breed string `json:"breed"`
-	}
+type Dog struct {
+	Name  string `json:"name"`
+	Breed string `json:"breed"`
+}
 
+func TestPersistedList(t *testing.T) {
 	pl := NewPersistedList[Dog](filepath.Join(t.TempDir(), "dogs.json"))
 	// Now, let's load a bunch of dogs
 	dogs := []Dog{
@@ -27,4 +28,11 @@ func TestPersistedList(t *testing.T) {
 
 	// Now, let's get the data
 	assert.Equal(t, dogs, pl.GetData())
+}
+
+func BenchmarkPersistedList(b *testing.B) {
+	pl := NewPersistedList[Dog](filepath.Join(b.TempDir(), "dogs.json"))
+	for n := 0; n < b.N; n++ {
+		assert.NoError(b, pl.Push(Dog{Name: fmt.Sprintf("Buddy #%d", n), Breed: "Golden Retriever"}))
+	}
 }
