@@ -2,11 +2,13 @@ package streaming
 
 import (
 	"fmt"
-	"github.com/artie-labs/reader/lib/antlr"
-	"github.com/go-mysql-org/go-mysql/replication"
 	"log/slog"
 	"slices"
 	"time"
+
+	"github.com/go-mysql-org/go-mysql/replication"
+
+	"github.com/artie-labs/reader/lib/antlr"
 )
 
 type Column struct {
