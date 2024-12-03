@@ -2,20 +2,30 @@ package streaming
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/go-mysql-org/go-mysql/mysql"
 	"github.com/go-mysql-org/go-mysql/replication"
 
+	"github.com/artie-labs/reader/lib/storage/persistedlist"
 	"github.com/artie-labs/reader/lib/storage/persistedmap"
 )
 
 type Iterator struct {
 	batchSize int32
 	position  Position
-	offsets   *persistedmap.PersistedMap[Position]
-	streamer  *replication.BinlogStreamer
-	syncer    *replication.BinlogSyncer
+
+	offsets           *persistedmap.PersistedMap[Position]
+	schemaHistoryList *persistedlist.PersistedList[SchemaHistory]
+
+	streamer *replication.BinlogStreamer
+	syncer   *replication.BinlogSyncer
+}
+
+type SchemaHistory struct {
+	Query string
+	Ts    time.Time
 }
 
 type Position struct {

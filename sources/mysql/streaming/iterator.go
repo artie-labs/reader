@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/artie-labs/transfer/lib/typing"
 	"log/slog"
 	"time"
 
@@ -88,7 +89,14 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 
 			switch event.Header.EventType {
 			case replication.QUERY_EVENT:
-			// TODO: process DDL
+				query, err := typing.AssertType[*replication.QueryEvent](event.Event)
+				if err != nil {
+					return nil, fmt.Errorf("failed to assert a query event: %w", err)
+				}
+
+				if err = i.persistAndProcessDDL(query, time.Now()); err != nil {
+					return nil, fmt.Errorf("failed to persist DDL: %w", err)
+				}
 			case replication.WRITE_ROWS_EVENTv2, replication.UPDATE_ROWS_EVENTv2, replication.DELETE_ROWS_EVENTv2:
 			// TODO: process DML
 			default:
