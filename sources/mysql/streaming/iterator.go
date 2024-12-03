@@ -1,8 +1,11 @@
 package streaming
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/go-mysql-org/go-mysql/replication"
 
@@ -61,6 +64,43 @@ func (i *Iterator) Close() error {
 }
 
 func (i *Iterator) Next() ([]lib.RawMessage, error) {
-	// TODO
-	return nil, nil
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var rawMsgs []lib.RawMessage
+	for i.batchSize > int32(len(rawMsgs)) {
+		select {
+		case <-ctx.Done():
+			return rawMsgs, nil
+		default:
+			event, err := i.streamer.GetEvent(ctx)
+			if err != nil {
+				if errors.Is(err, context.DeadlineExceeded) {
+					return rawMsgs, nil
+				}
+
+				return nil, fmt.Errorf("failed to get binlog event: %w", err)
+			}
+
+			if err = i.position.UpdatePosition(event); err != nil {
+				return nil, fmt.Errorf("failed to update position: %w", err)
+			}
+
+			switch event.Header.EventType {
+			case replication.QUERY_EVENT:
+			// TODO: process DDL
+			case replication.WRITE_ROWS_EVENTv2, replication.UPDATE_ROWS_EVENTv2, replication.DELETE_ROWS_EVENTv2:
+			// TODO: process DML
+			default:
+				slog.Info("Skipping event", slog.Any("eventType", event.Header.EventType))
+			}
+		}
+	}
+
+	if len(rawMsgs) == 0 {
+		// If there are no messages, let's sleep a bit before we try again
+		time.Sleep(2 * time.Second)
+	}
+
+	return rawMsgs, nil
 }
