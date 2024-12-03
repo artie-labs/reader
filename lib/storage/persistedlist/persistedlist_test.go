@@ -2,7 +2,6 @@ package persistedlist
 
 import (
 	"github.com/stretchr/testify/assert"
-	"os"
 	"path/filepath"
 	"testing"
 )
@@ -13,10 +12,7 @@ func TestPersistedList(t *testing.T) {
 		Breed string `json:"breed"`
 	}
 
-	fp, err := os.MkdirTemp(os.TempDir(), "*")
-	assert.NoError(t, err)
-
-	pl := NewPersistedList[Dog](filepath.Join(fp, "dogs.json"))
+	pl := NewPersistedList[Dog](filepath.Join(t.TempDir(), "dogs.json"))
 	// Now, let's load a bunch of dogs
 	dogs := []Dog{
 		{Name: "Buddy", Breed: "Golden Retriever"},
