@@ -16,6 +16,11 @@ func TestAlterTable(t *testing.T) {
 	{
 		// Irrelevant
 		{
+			// Truncating a table
+			_, err := Parse("TRUNCATE TABLE foo;")
+			assert.True(t, IsParseError(err))
+		}
+		{
 			// Dropping an index
 			events, err := Parse("ALTER TABLE table_name DROP INDEX index_name;")
 			assert.NoError(t, err)
