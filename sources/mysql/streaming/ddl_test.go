@@ -70,5 +70,44 @@ func TestSchemaAdapter_ApplyDDL(t *testing.T) {
 			err := adapter.ApplyDDL("ALTER TABLE non_existing_table MODIFY COLUMN id VARCHAR(255);")
 			assert.ErrorContains(t, err, `table not found: "non_existing_table"`)
 		}
+		{
+			// Column does not exist
+			err := adapter.ApplyDDL("ALTER TABLE test_table MODIFY COLUMN non_existing_column VARCHAR(255);")
+			assert.ErrorContains(t, err, `column not found: "non_existing_column"`)
+		}
+		{
+			// Applying one column type change
+			assert.NoError(t, adapter.ApplyDDL("ALTER TABLE test_table MODIFY COLUMN id VARCHAR(255);"))
+			assert.Equal(t, 3, len(adapter.adapters["test_table"].columns))
+			assert.Equal(t, Column{Name: "id", DataType: "VARCHAR(255)", PrimaryKey: true}, adapter.adapters["test_table"].columns[0])
+		}
+		{
+			// Applying multiple column type changes
+			assert.NoError(t, adapter.ApplyDDL("ALTER TABLE test_table MODIFY COLUMN id VARCHAR(255), MODIFY COLUMN name INT;"))
+			assert.Equal(t, 3, len(adapter.adapters["test_table"].columns))
+			assert.Equal(t, Column{Name: "id", DataType: "VARCHAR(255)", PrimaryKey: true}, adapter.adapters["test_table"].columns[0])
+			assert.Equal(t, Column{Name: "name", DataType: "INT"}, adapter.adapters["test_table"].columns[1])
+		}
+	}
+	{
+		// Dropping a column
+		adapter := initializeAdapter(t)
+		{
+			// Table does not exist
+			err := adapter.ApplyDDL("ALTER TABLE non_existing_table DROP COLUMN id;")
+			assert.ErrorContains(t, err, `table not found: "non_existing_table"`)
+		}
+		{
+			// Column does not exist
+			err := adapter.ApplyDDL("ALTER TABLE test_table DROP COLUMN non_existing_column;")
+			assert.ErrorContains(t, err, `column not found: "non_existing_column"`)
+		}
+		{
+			// Dropping one column
+			assert.NoError(t, adapter.ApplyDDL("ALTER TABLE test_table DROP COLUMN name;"))
+			assert.Equal(t, 2, len(adapter.adapters["test_table"].columns))
+			assert.Equal(t, Column{Name: "id", DataType: "INT", PrimaryKey: true}, adapter.adapters["test_table"].columns[0])
+			assert.Equal(t, Column{Name: "email", DataType: "VARCHAR(255)"}, adapter.adapters["test_table"].columns[1])
+		}
 	}
 }
