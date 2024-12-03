@@ -47,6 +47,7 @@ func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Tim
 func (s *SchemaAdapter) ApplyDDL(query string) error {
 	results, err := antlr.Parse(query)
 	if err != nil {
+		// TODO: Turn this into a type instead and use errors.Is
 		if strings.Contains(err.Error(), "unsupported context type") {
 			return nil
 		}
