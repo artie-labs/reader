@@ -6,6 +6,7 @@ import (
 	"github.com/go-mysql-org/go-mysql/replication"
 	"log/slog"
 	"slices"
+	"strings"
 	"time"
 )
 
@@ -36,7 +37,6 @@ func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Tim
 	}
 
 	fmt.Println("Processing DDL", query, "ts", ts)
-
 	if err := i.schemaHistoryList.Push(schemaHistory); err != nil {
 		return fmt.Errorf("failed to push schema history: %w", err)
 	}
@@ -47,6 +47,10 @@ func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Tim
 func (s *SchemaAdapter) ApplyDDL(query string) error {
 	results, err := antlr.Parse(query)
 	if err != nil {
+		if strings.Contains(err.Error(), "unsupported context type") {
+			return nil
+		}
+
 		return err
 	}
 

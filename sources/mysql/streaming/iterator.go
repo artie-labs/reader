@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/artie-labs/reader/lib/storage/persistedlist"
 	"github.com/artie-labs/transfer/lib/typing"
 	"log/slog"
 	"time"
@@ -25,6 +26,11 @@ func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
 		pos = _pos
 	}
 
+	schemaHistoryList, err := persistedlist.NewPersistedList[SchemaHistory](cfg.StreamingSettings.SchemaHistoryFile)
+	if err != nil {
+		return Iterator{}, fmt.Errorf("failed to create persisted list: %w", err)
+	}
+
 	syncer := replication.NewBinlogSyncer(
 		replication.BinlogSyncerConfig{
 			ServerID: cfg.StreamingSettings.ServerID,
@@ -42,11 +48,15 @@ func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
 	}
 
 	return Iterator{
-		batchSize: cfg.GetStreamingBatchSize(),
-		position:  pos,
-		syncer:    syncer,
-		streamer:  streamer,
-		offsets:   offsets,
+		batchSize:         cfg.GetStreamingBatchSize(),
+		position:          pos,
+		syncer:            syncer,
+		streamer:          streamer,
+		offsets:           offsets,
+		schemaHistoryList: &schemaHistoryList,
+		schemaAdapter: &SchemaAdapter{
+			adapters: make(map[string]TableAdapter),
+		},
 	}, nil
 }
 
