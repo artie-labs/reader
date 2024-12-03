@@ -51,7 +51,6 @@ func (p PersistedList[T]) GetData() []T {
 }
 
 func loadFromFile[T any](filePath string) ([]T, error) {
-	fmt.Println("fp", filePath)
 	file, err := os.Open(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -68,10 +67,7 @@ func loadFromFile[T any](filePath string) ([]T, error) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		var t T
-		bytes := scanner.Bytes()
-		fmt.Println("bytes", string(bytes))
-		if err = json.Unmarshal(bytes, &t); err != nil {
-			fmt.Println("#### bytes", string(bytes), "err", err)
+		if err = json.Unmarshal(scanner.Bytes(), &t); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal data: %w", err)
 		}
 
