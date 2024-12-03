@@ -104,6 +104,8 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 				return fmt.Errorf("column not found: %q", col.Name)
 			}
 
+			// TODO: Handle position
+
 			tblAdapter.columns[columnIdx].DataType = col.DataType
 		}
 	case antlr.DropColumnsEvent:
@@ -127,6 +129,7 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 		}
 
 		for _, col := range castedResult.GetColumns() {
+			// TODO: Handle position
 			tblAdapter.columns = append(tblAdapter.columns, Column{
 				Name:     col.Name,
 				DataType: col.DataType,
