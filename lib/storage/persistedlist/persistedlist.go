@@ -36,7 +36,7 @@ func (p PersistedList[T]) Push(item T) error {
 		return fmt.Errorf("failed to write to file")
 	}
 
-	return nil
+	return file.Close()
 }
 
 // GetData - This is a separate function since we don't need to keep the entire list in memory
