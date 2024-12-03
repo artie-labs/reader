@@ -86,15 +86,57 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 			tblAdapter.columns[columnIdx].Name = col.Name
 		}
 	case antlr.AddPrimaryKeyEvent:
-		// TODO
+		tblAdapter, ok := s.adapters[castedResult.GetTable()]
+		if !ok {
+			return fmt.Errorf("table not found: %q", castedResult.GetTable())
+		}
+
+		for _, col := range castedResult.GetColumns() {
+			tblAdapter.primaryKeys = append(tblAdapter.primaryKeys, col.Name)
+		}
 	case antlr.ModifyColumnEvent:
-		// TODO
+		tblAdapter, ok := s.adapters[castedResult.GetTable()]
+		if !ok {
+			return fmt.Errorf("table not found: %q", castedResult.GetTable())
+		}
+
+		for _, col := range castedResult.GetColumns() {
+			columnIdx := slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name })
+			if columnIdx == -1 {
+				return fmt.Errorf("column not found: %q", col.Name)
+			}
+
+			tblAdapter.columns[columnIdx].DataType = col.DataType
+		}
 	case antlr.DropColumnsEvent:
-		//	TODO
+		tblAdapter, ok := s.adapters[castedResult.GetTable()]
+		if !ok {
+			return fmt.Errorf("table not found: %q", castedResult.GetTable())
+		}
+
+		for _, col := range castedResult.GetColumns() {
+			columnIdx := slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name })
+			if columnIdx == -1 {
+				return fmt.Errorf("column not found: %q", col.Name)
+			}
+
+			tblAdapter.columns = append(tblAdapter.columns[:columnIdx], tblAdapter.columns[columnIdx+1:]...)
+		}
 	case antlr.AddColumnsEvent:
-		// TODO
+		tblAdapter, ok := s.adapters[castedResult.GetTable()]
+		if !ok {
+			return fmt.Errorf("table not found: %q", castedResult.GetTable())
+		}
+
+		for _, col := range castedResult.GetColumns() {
+			tblAdapter.columns = append(tblAdapter.columns, Column{
+				Name:     col.Name,
+				DataType: col.DataType,
+			})
+		}
 	default:
 		slog.Info("Skipping event type", slog.Any("eventType", fmt.Sprintf("%T", result)))
-		return nil
 	}
+
+	return nil
 }
