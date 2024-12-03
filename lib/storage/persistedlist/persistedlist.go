@@ -2,8 +2,8 @@ package persistedlist
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"log/slog"
 	"os"
 
@@ -27,12 +27,13 @@ func (p PersistedList[T]) Push(item T) error {
 		return fmt.Errorf("failed to open file")
 	}
 
-	bytes, err := yaml.Marshal(item)
+	bytes, err := json.Marshal(item)
 	if err != nil {
 		return fmt.Errorf("failed to marshal data")
 	}
 
-	if _, err := file.Write(bytes); err != nil {
+	bytes = append(bytes, '\n')
+	if _, err = file.Write(bytes); err != nil {
 		return fmt.Errorf("failed to write to file")
 	}
 
@@ -50,6 +51,7 @@ func (p PersistedList[T]) GetData() []T {
 }
 
 func loadFromFile[T any](filePath string) ([]T, error) {
+	fmt.Println("fp", filePath)
 	file, err := os.Open(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -66,7 +68,10 @@ func loadFromFile[T any](filePath string) ([]T, error) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		var t T
-		if err = yaml.Unmarshal(scanner.Bytes(), &t); err != nil {
+		bytes := scanner.Bytes()
+		fmt.Println("bytes", string(bytes))
+		if err = json.Unmarshal(bytes, &t); err != nil {
+			fmt.Println("#### bytes", string(bytes), "err", err)
 			return nil, fmt.Errorf("failed to unmarshal data: %w", err)
 		}
 
