@@ -29,8 +29,9 @@ func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Tim
 		return nil
 	}
 
+	query := string(evt.Query)
 	schemaHistory := SchemaHistory{
-		Query: string(evt.Query),
+		Query: query,
 		Ts:    ts,
 	}
 
@@ -38,7 +39,7 @@ func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Tim
 		return fmt.Errorf("failed to push schema history: %w", err)
 	}
 
-	return i.schemaAdapter.ApplyDDL(string(evt.Query))
+	return i.schemaAdapter.ApplyDDL(query)
 }
 
 func (s *SchemaAdapter) ApplyDDL(query string) error {
