@@ -5,11 +5,17 @@ import (
 	"github.com/artie-labs/reader/lib/antlr"
 	"github.com/go-mysql-org/go-mysql/replication"
 	"log/slog"
+	"slices"
 	"time"
 )
 
+type Column struct {
+	Name     string
+	DataType string
+}
+
 type TableAdapter struct {
-	columns     []string
+	columns     []Column
 	primaryKeys []string
 }
 
@@ -53,11 +59,32 @@ func (s *SchemaAdapter) ApplyDDL(query string) error {
 }
 
 func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
-	switch result.(type) {
+	switch castedResult := result.(type) {
 	case antlr.CreateTableEvent:
-		// TODO
+		var cols []Column
+		for _, col := range castedResult.GetColumns() {
+			cols = append(cols, Column{
+				Name:     col.Name,
+				DataType: col.DataType,
+			})
+		}
+
+		s.adapters[castedResult.TableName] = TableAdapter{columns: cols}
 	case antlr.RenameColumnEvent:
-		// TODO
+		tblAdapter, ok := s.adapters[castedResult.GetTable()]
+		if !ok {
+			return fmt.Errorf("table not found: %q", castedResult.GetTable())
+		}
+
+		for _, col := range castedResult.GetColumns() {
+			columnIdx := slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.PreviousName })
+			if columnIdx == -1 {
+				return fmt.Errorf("column not found: %q", col.PreviousName)
+			}
+
+			// Apply the new name
+			tblAdapter.columns[columnIdx].Name = col.Name
+		}
 	case antlr.AddPrimaryKeyEvent:
 		// TODO
 	case antlr.ModifyColumnEvent:
