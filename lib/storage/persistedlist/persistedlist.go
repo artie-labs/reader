@@ -61,7 +61,6 @@ func loadFromFile[T any](filePath string) ([]T, error) {
 
 	defer file.Close()
 
-	// Read each line, unmarshal it, and append it to the data slice
 	var data []T
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
