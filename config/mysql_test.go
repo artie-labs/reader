@@ -107,6 +107,45 @@ func TestMySQL_Validate(t *testing.T) {
 
 		assert.ErrorContains(t, c.Validate(), "cannot exclude and include columns at the same time")
 	}
+	{
+		// Streaming
+		{
+			// Not enabled
+			c := createValidConfig()
+			c.StreamingSettings.Enabled = false
+			assert.NoError(t, c.Validate())
+		}
+		{
+			// Enabled
+			c := createValidConfig()
+			{
+				// Offset file not set
+				c.StreamingSettings.Enabled = true
+				assert.ErrorContains(t, c.Validate(), "offset file is required")
+			}
+			{
+				// Schema history file not set
+				c.StreamingSettings.Enabled = true
+				c.StreamingSettings.OffsetFile = "/tmp/offset"
+				assert.ErrorContains(t, c.Validate(), "schema history file is required")
+			}
+			{
+				// Server ID not set
+				c.StreamingSettings.Enabled = true
+				c.StreamingSettings.OffsetFile = "/tmp/offset"
+				c.StreamingSettings.SchemaHistoryFile = "/tmp/schema"
+				assert.ErrorContains(t, c.Validate(), "server ID is required")
+			}
+			{
+				// Valid
+				c.StreamingSettings.Enabled = true
+				c.StreamingSettings.OffsetFile = "/tmp/offset"
+				c.StreamingSettings.SchemaHistoryFile = "/tmp/schema"
+				c.StreamingSettings.ServerID = 1
+				assert.NoError(t, c.Validate())
+			}
+		}
+	}
 }
 
 func TestMySQL_ToDSN(t *testing.T) {
