@@ -47,10 +47,6 @@ func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Tim
 func (s *SchemaAdapter) ApplyDDL(query string) error {
 	results, err := antlr.Parse(query)
 	if err != nil {
-		if antlr.IsParseError(err) {
-			return nil
-		}
-
 		return err
 	}
 
