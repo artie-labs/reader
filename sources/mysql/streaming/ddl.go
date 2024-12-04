@@ -99,7 +99,6 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 				return fmt.Errorf("column not found: %q", col.Name)
 			}
 
-			// Update pk
 			tblAdapter.columns[columnIdx].PrimaryKey = true
 		}
 	case antlr.ModifyColumnEvent:
@@ -140,7 +139,6 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 		}
 
 		for _, col := range castedResult.GetColumns() {
-			// Make sure column does not already exist
 			if slices.ContainsFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name }) {
 				return fmt.Errorf("column already exists: %q", col.Name)
 			}
