@@ -68,6 +68,17 @@ func QuoteIdentifier(s string) string {
 	return fmt.Sprintf("`%s`", strings.ReplaceAll(s, "`", "``"))
 }
 
+func GetCreateTableDDL(db *sql.DB, table string) (string, error) {
+	row := db.QueryRow("SHOW CREATE TABLE " + QuoteIdentifier(table))
+	var unused string
+	var createTableDDL string
+	if err := row.Scan(&unused, &createTableDDL); err != nil {
+		return "", fmt.Errorf("failed to get create table DDL: %w", err)
+	}
+
+	return createTableDDL, nil
+}
+
 func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 	r, err := db.Query("DESCRIBE " + QuoteIdentifier(table))
 	if err != nil {
