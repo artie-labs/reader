@@ -80,6 +80,6 @@ func visit(tree antlr.Tree) ([]Event, error) {
 		*antlr.TerminalNodeImpl:
 		return nil, nil
 	default:
-		return nil, newParseError(fmt.Errorf("unsupported context type: %T, value: '%s'", ctx, ctx.(antlr.ParseTree).GetText()))
+		return nil, newParseError(fmt.Errorf("unsupported context type: %T", ctx))
 	}
 }
