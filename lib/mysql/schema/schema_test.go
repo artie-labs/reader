@@ -15,15 +15,15 @@ func TestParseColumnDataType(t *testing.T) {
 	{
 		// Invalid
 		{
-			_, _, err := parseColumnDataType("int(10 unsigned")
+			_, _, err := ParseColumnDataType("int(10 unsigned")
 			assert.ErrorContains(t, err, `malformed data type: "int(10 unsigned"`)
 		}
 		{
-			_, _, err := parseColumnDataType("foo")
+			_, _, err := ParseColumnDataType("foo")
 			assert.ErrorContains(t, err, `unknown data type: "foo"`)
 		}
 		{
-			_, _, err := parseColumnDataType("varchar(")
+			_, _, err := ParseColumnDataType("varchar(")
 			assert.ErrorContains(t, err, `malformed data type: "varchar("`)
 		}
 	}
@@ -31,57 +31,57 @@ func TestParseColumnDataType(t *testing.T) {
 		// Integers
 		{
 			// int
-			dataType, _, err := parseColumnDataType("int")
+			dataType, _, err := ParseColumnDataType("int")
 			assert.NoError(t, err)
 			assert.Equal(t, Int, dataType)
 		}
 		{
 			// int unsigned
-			dataType, _, err := parseColumnDataType("int unsigned")
+			dataType, _, err := ParseColumnDataType("int unsigned")
 			assert.NoError(t, err)
 			assert.Equal(t, BigInt, dataType)
 		}
 		{
 			// int(10) unsigned
-			dataType, _, err := parseColumnDataType("int(10) unsigned")
+			dataType, _, err := ParseColumnDataType("int(10) unsigned")
 			assert.NoError(t, err)
 			assert.Equal(t, BigInt, dataType)
 		}
 		{
 			// tinyint
-			dataType, _, err := parseColumnDataType("tinyint")
+			dataType, _, err := ParseColumnDataType("tinyint")
 			assert.NoError(t, err)
 			assert.Equal(t, TinyInt, dataType)
 		}
 		{
 			// tinyint unsigned
-			dataType, _, err := parseColumnDataType("tinyint unsigned")
+			dataType, _, err := ParseColumnDataType("tinyint unsigned")
 			assert.NoError(t, err)
 			assert.Equal(t, SmallInt, dataType)
 		}
 		{
 			// mediumint unsigned
-			dataType, _, err := parseColumnDataType("mediumint unsigned")
+			dataType, _, err := ParseColumnDataType("mediumint unsigned")
 			assert.NoError(t, err)
 			assert.Equal(t, Int, dataType)
 		}
 	}
 	{
 		// tinyint(1) should still be an integer
-		dataType, _, err := parseColumnDataType("tinyint(1)")
+		dataType, _, err := ParseColumnDataType("tinyint(1)")
 		assert.NoError(t, err)
 		assert.Equal(t, TinyInt, dataType)
 	}
 	{
 		// String
-		dataType, opts, err := parseColumnDataType("varchar(255)")
+		dataType, opts, err := ParseColumnDataType("varchar(255)")
 		assert.NoError(t, err)
 		assert.Equal(t, Varchar, dataType)
 		assert.Equal(t, &Opts{Size: typing.ToPtr(255)}, opts)
 	}
 	{
 		// Decimal
-		dataType, opts, err := parseColumnDataType("decimal(5,2)")
+		dataType, opts, err := ParseColumnDataType("decimal(5,2)")
 		assert.NoError(t, err)
 		assert.Equal(t, Decimal, dataType)
 		assert.Equal(t, &Opts{Precision: typing.ToPtr(5), Scale: typing.ToPtr(uint16(2))}, opts)
@@ -89,7 +89,7 @@ func TestParseColumnDataType(t *testing.T) {
 	{
 		// Blob
 		for _, blob := range []string{"blob", "tinyblob", "mediumblob", "longblob"} {
-			dataType, _, err := parseColumnDataType(blob)
+			dataType, _, err := ParseColumnDataType(blob)
 			assert.NoError(t, err)
 			assert.Equal(t, Blob, dataType, blob)
 		}

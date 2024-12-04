@@ -68,6 +68,17 @@ func QuoteIdentifier(s string) string {
 	return fmt.Sprintf("`%s`", strings.ReplaceAll(s, "`", "``"))
 }
 
+func GetCreateTableDDL(db *sql.DB, table string) (string, error) {
+	row := db.QueryRow("SHOW CREATE TABLE " + QuoteIdentifier(table))
+	var unused string
+	var createTableDDL string
+	if err := row.Scan(&unused, &createTableDDL); err != nil {
+		return "", fmt.Errorf("failed to get create table DDL: %w", err)
+	}
+
+	return createTableDDL, nil
+}
+
 func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 	r, err := db.Query("DESCRIBE " + QuoteIdentifier(table))
 	if err != nil {
@@ -88,7 +99,7 @@ func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 			return nil, fmt.Errorf("failed to scan: %w", err)
 		}
 
-		dataType, opts, err := parseColumnDataType(colType)
+		dataType, opts, err := ParseColumnDataType(colType)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse data type: %w", err)
 		}
@@ -102,7 +113,7 @@ func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 	return result, nil
 }
 
-func parseColumnDataType(originalS string) (DataType, *Opts, error) {
+func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
 	// Preserve the original value, so we can return the error message without the actual value being mutated.
 	s := originalS
 	var metadata string

@@ -22,6 +22,26 @@ type MySQLStreamingSettings struct {
 	BatchSize int32  `yaml:"batchSize,omitempty"`
 }
 
+func (m MySQLStreamingSettings) Validate() error {
+	if !m.Enabled {
+		return nil
+	}
+
+	if m.OffsetFile == "" {
+		return fmt.Errorf("offset file is required")
+	}
+
+	if m.SchemaHistoryFile == "" {
+		return fmt.Errorf("schema history file is required")
+	}
+
+	if m.ServerID == 0 {
+		return fmt.Errorf("server ID is required")
+	}
+
+	return nil
+}
+
 type MySQL struct {
 	Host              string                 `yaml:"host"`
 	Port              int                    `yaml:"port"`
@@ -114,5 +134,5 @@ func (m *MySQL) Validate() error {
 		}
 	}
 
-	return nil
+	return m.StreamingSettings.Validate()
 }
