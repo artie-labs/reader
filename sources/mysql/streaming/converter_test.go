@@ -80,3 +80,26 @@ func TestZipSlicesToMap(t *testing.T) {
 		}
 	}
 }
+
+func TestSplitIntoBeforeAndAfter(t *testing.T) {
+	{
+		// Create
+		event := [][]any{
+			{123, "Dusty", "The Mini Aussie"},
+			{456, "Bella", "The Full Size Aussie"},
+		}
+
+		rows, err := splitIntoBeforeAndAfter("c", event)
+		assert.NoError(t, err)
+
+		var parsedAfters []any
+		for before, after := range rows {
+			assert.Nil(t, before)
+			parsedAfters = append(parsedAfters, after)
+		}
+
+		assert.Len(t, parsedAfters, 2)
+		assert.Equal(t, []any{123, "Dusty", "The Mini Aussie"}, parsedAfters[0])
+		assert.Equal(t, []any{456, "Bella", "The Full Size Aussie"}, parsedAfters[1])
+	}
+}
