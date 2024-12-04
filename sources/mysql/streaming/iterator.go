@@ -109,7 +109,12 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 					return nil, fmt.Errorf("failed to persist DDL: %w", err)
 				}
 			case replication.WRITE_ROWS_EVENTv2, replication.UPDATE_ROWS_EVENTv2, replication.DELETE_ROWS_EVENTv2:
-			// TODO: process DML
+				rows, err := i.processDML(ts, event)
+				if err != nil {
+					return nil, fmt.Errorf("failed to process DML: %w", err)
+				}
+
+				rawMsgs = append(rawMsgs, rows...)
 			default:
 				slog.Info("Skipping event", slog.Any("eventType", event.Header.EventType))
 			}
@@ -122,4 +127,8 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 	}
 
 	return rawMsgs, nil
+}
+
+func (i *Iterator) shouldProcessTable(tableName string) (TableAdapter, bool) {
+	return TableAdapter{}, false
 }
