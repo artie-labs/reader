@@ -1,11 +1,28 @@
 package antlr
 
 import (
+	"errors"
 	"fmt"
 	"github.com/antlr4-go/antlr/v4"
 	"github.com/artie-labs/reader/lib/antlr/generated"
 	"strings"
 )
+
+type ParseError struct {
+	err error
+}
+
+func newParseError(err error) ParseError {
+	return ParseError{err: err}
+}
+
+func (p ParseError) Unwrap() error        { return p.err }
+func (p ParseError) Error() string        { return fmt.Sprintf("ddl parse error: %s", p.err) }
+func (p ParseError) Is(target error) bool { return target == ParseError{} }
+
+func IsParseError(err error) bool {
+	return errors.Is(err, ParseError{})
+}
 
 func unescape(s string) string {
 	if strings.Count(s, "`") == 2 && strings.HasPrefix(s, "`") && strings.HasSuffix(s, "`") {
@@ -24,7 +41,12 @@ func Parse(sqlCmd string) ([]Event, error) {
 
 func visit(tree antlr.Tree) ([]Event, error) {
 	switch ctx := tree.(type) {
-	case *generated.SqlStatementsContext, *generated.SqlStatementContext, *generated.DdlStatementContext:
+	case
+		*generated.SqlStatementsContext,
+		*generated.SqlStatementContext,
+		*generated.DdlStatementContext,
+		*generated.TransactionStatementContext,
+		*generated.BeginWorkContext:
 		var events []Event
 		for _, child := range ctx.GetChildren() {
 			evt, err := visit(child)
@@ -49,10 +71,15 @@ func visit(tree antlr.Tree) ([]Event, error) {
 		return processAlterTable(ctx)
 	case *generated.DropTableContext:
 		return processDropTable(ctx)
-	case *generated.EmptyStatement_Context,
-		*generated.CopyCreateTableContext:
+	case
+		*generated.EmptyStatement_Context,
+		*generated.CopyCreateTableContext,
+		*generated.TruncateTableContext,
+		*generated.AdministrationStatementContext,
+		*generated.CreateDatabaseContext,
+		*antlr.TerminalNodeImpl:
 		return nil, nil
 	default:
-		return nil, fmt.Errorf("unsupported context type: %T", ctx)
+		return nil, newParseError(fmt.Errorf("unsupported context type: %T", ctx))
 	}
 }

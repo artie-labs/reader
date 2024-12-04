@@ -7,10 +7,12 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/go-mysql-org/go-mysql/replication"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
+	"github.com/artie-labs/reader/lib/storage/persistedlist"
 	"github.com/artie-labs/reader/lib/storage/persistedmap"
 )
 
@@ -22,6 +24,11 @@ func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
 	if _pos, isOk := offsets.Get(offsetKey); isOk {
 		slog.Info("Found offsets", slog.String("offset", _pos.String()))
 		pos = _pos
+	}
+
+	schemaHistoryList, err := persistedlist.NewPersistedList[SchemaHistory](cfg.StreamingSettings.SchemaHistoryFile)
+	if err != nil {
+		return Iterator{}, fmt.Errorf("failed to create persisted list: %w", err)
 	}
 
 	syncer := replication.NewBinlogSyncer(
@@ -41,11 +48,15 @@ func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
 	}
 
 	return Iterator{
-		batchSize: cfg.GetStreamingBatchSize(),
-		position:  pos,
-		syncer:    syncer,
-		streamer:  streamer,
-		offsets:   offsets,
+		batchSize:         cfg.GetStreamingBatchSize(),
+		position:          pos,
+		syncer:            syncer,
+		streamer:          streamer,
+		offsets:           offsets,
+		schemaHistoryList: &schemaHistoryList,
+		schemaAdapter: &SchemaAdapter{
+			adapters: make(map[string]TableAdapter),
+		},
 	}, nil
 }
 
@@ -82,13 +93,21 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 				return nil, fmt.Errorf("failed to get binlog event: %w", err)
 			}
 
+			ts := getTimeFromEvent(event)
 			if err = i.position.UpdatePosition(event); err != nil {
 				return nil, fmt.Errorf("failed to update position: %w", err)
 			}
 
 			switch event.Header.EventType {
 			case replication.QUERY_EVENT:
-			// TODO: process DDL
+				query, err := typing.AssertType[*replication.QueryEvent](event.Event)
+				if err != nil {
+					return nil, fmt.Errorf("failed to assert a query event: %w", err)
+				}
+
+				if err = i.persistAndProcessDDL(query, ts); err != nil {
+					return nil, fmt.Errorf("failed to persist DDL: %w", err)
+				}
 			case replication.WRITE_ROWS_EVENTv2, replication.UPDATE_ROWS_EVENTv2, replication.DELETE_ROWS_EVENTv2:
 			// TODO: process DML
 			default:
