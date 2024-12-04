@@ -92,14 +92,37 @@ func TestSplitIntoBeforeAndAfter(t *testing.T) {
 		rows, err := splitIntoBeforeAndAfter("c", event)
 		assert.NoError(t, err)
 
-		var parsedAfters []any
+		var afterList []any
 		for before, after := range rows {
 			assert.Nil(t, before)
-			parsedAfters = append(parsedAfters, after)
+			afterList = append(afterList, after)
 		}
 
-		assert.Len(t, parsedAfters, 2)
-		assert.Equal(t, []any{123, "Dusty", "The Mini Aussie"}, parsedAfters[0])
-		assert.Equal(t, []any{456, "Bella", "The Full Size Aussie"}, parsedAfters[1])
+		assert.Len(t, afterList, 2)
+		assert.Equal(t, []any{123, "Dusty", "The Mini Aussie"}, afterList[0])
+		assert.Equal(t, []any{456, "Bella", "The Full Size Aussie"}, afterList[1])
+	}
+	{
+		// Update
+		event := [][]any{
+			{123, "Old Dusty", "The Mini Aussie"},
+			{123, "New Dusty", "The Mini Aussie"},
+		}
+
+		rows, err := splitIntoBeforeAndAfter("u", event)
+		assert.NoError(t, err)
+
+		var beforeList []any
+		var afterList []any
+		for before, after := range rows {
+			beforeList = append(beforeList, before)
+			afterList = append(afterList, after)
+		}
+
+		assert.Len(t, beforeList, 1)
+		assert.Len(t, afterList, 1)
+
+		assert.Equal(t, []any{123, "Old Dusty", "The Mini Aussie"}, beforeList[0])
+		assert.Equal(t, []any{123, "New Dusty", "The Mini Aussie"}, afterList[0])
 	}
 }
