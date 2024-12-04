@@ -129,7 +129,7 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 				return fmt.Errorf("column not found: %q", col.Name)
 			}
 
-			tblAdapter.columns = append(tblAdapter.columns[:columnIdx], tblAdapter.columns[columnIdx+1:]...)
+			tblAdapter.columns = slices.Delete(tblAdapter.columns, columnIdx, columnIdx+1)
 		}
 
 		s.adapters[castedResult.GetTable()] = tblAdapter
