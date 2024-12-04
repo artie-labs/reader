@@ -104,25 +104,66 @@ func TestSplitIntoBeforeAndAfter(t *testing.T) {
 	}
 	{
 		// Update
+		{
+			// Invalid - Uneven number of rows.
+			event := [][]any{
+				{123, "Old Dusty", "The Mini Aussie"},
+			}
+
+			_, err := splitIntoBeforeAndAfter("u", event)
+			assert.ErrorContains(t, err, "update row count is not divisible by two: 1")
+		}
+		{
+			// Valid
+			event := [][]any{
+				{123, "Old Dusty", "The Mini Aussie"},
+				{123, "New Dusty", "The Mini Aussie"},
+				{456, "Old Bella", "The Full Size Aussie"},
+				{456, "New Bella", "The Full Size Aussie"},
+			}
+
+			rows, err := splitIntoBeforeAndAfter("u", event)
+			assert.NoError(t, err)
+
+			var beforeList []any
+			var afterList []any
+			for before, after := range rows {
+				beforeList = append(beforeList, before)
+				afterList = append(afterList, after)
+			}
+
+			assert.Len(t, beforeList, 2)
+			assert.Len(t, afterList, 2)
+			{
+				// Row 0
+				assert.Equal(t, []any{123, "Old Dusty", "The Mini Aussie"}, beforeList[0])
+				assert.Equal(t, []any{123, "New Dusty", "The Mini Aussie"}, afterList[0])
+			}
+			{
+				// Row 1
+				assert.Equal(t, []any{456, "Old Bella", "The Full Size Aussie"}, beforeList[1])
+				assert.Equal(t, []any{456, "New Bella", "The Full Size Aussie"}, afterList[1])
+			}
+		}
+	}
+	{
+		// Delete
 		event := [][]any{
-			{123, "Old Dusty", "The Mini Aussie"},
-			{123, "New Dusty", "The Mini Aussie"},
+			{123, "Dusty", "The Mini Aussie"},
+			{456, "Bella", "The Full Size Aussie"},
 		}
 
-		rows, err := splitIntoBeforeAndAfter("u", event)
+		rows, err := splitIntoBeforeAndAfter("d", event)
 		assert.NoError(t, err)
 
 		var beforeList []any
-		var afterList []any
 		for before, after := range rows {
 			beforeList = append(beforeList, before)
-			afterList = append(afterList, after)
+			assert.Nil(t, after)
 		}
 
-		assert.Len(t, beforeList, 1)
-		assert.Len(t, afterList, 1)
-
-		assert.Equal(t, []any{123, "Old Dusty", "The Mini Aussie"}, beforeList[0])
-		assert.Equal(t, []any{123, "New Dusty", "The Mini Aussie"}, afterList[0])
+		assert.Len(t, beforeList, 2)
+		assert.Equal(t, []any{123, "Dusty", "The Mini Aussie"}, beforeList[0])
+		assert.Equal(t, []any{456, "Bella", "The Full Size Aussie"}, beforeList[1])
 	}
 }
