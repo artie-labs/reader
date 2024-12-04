@@ -23,6 +23,8 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 		return nil, nil
 	}
 
+	// TODO: We should check that tableAdapter's timestamp is not greater than the event's timestamp.
+
 	operation, err := convertHeaderToOperation(event.Header.EventType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert header to operation: %w", err)
