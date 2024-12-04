@@ -141,7 +141,7 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 
 		for _, col := range castedResult.GetColumns() {
 			// Make sure column does not already exist
-			if slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name }) != -1 {
+			if slices.ContainsFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name }) {
 				return fmt.Errorf("column already exists: %q", col.Name)
 			}
 
