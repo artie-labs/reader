@@ -39,6 +39,7 @@ func (t TableAdapter) PartitionKeys() []string {
 }
 
 func (t TableAdapter) GetFieldConverters(tableCfg config.MySQLTable) ([]transformer.FieldConverter, error) {
+	// TODO: Cache this, so we don't need to run it every time
 	var parsedColumns []schema.Column
 	for _, col := range t.columns {
 		dataType, opts, err := schema.ParseColumnDataType(col.DataType)
