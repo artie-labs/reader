@@ -2,18 +2,18 @@ package streaming
 
 import (
 	"fmt"
-	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib/mysql/converters"
-	"github.com/artie-labs/reader/lib/mysql/schema"
-	"github.com/artie-labs/reader/lib/rdbms/column"
 	"log/slog"
 	"slices"
 	"time"
 
 	"github.com/go-mysql-org/go-mysql/replication"
 
+	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/antlr"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
+	"github.com/artie-labs/reader/lib/mysql/converters"
+	"github.com/artie-labs/reader/lib/mysql/schema"
+	"github.com/artie-labs/reader/lib/rdbms/column"
 )
 
 type Column struct {
