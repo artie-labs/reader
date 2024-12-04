@@ -8,7 +8,12 @@ import (
 
 	"github.com/go-mysql-org/go-mysql/replication"
 
+	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/antlr"
+	"github.com/artie-labs/reader/lib/debezium/transformer"
+	"github.com/artie-labs/reader/lib/mysql/converters"
+	"github.com/artie-labs/reader/lib/mysql/schema"
+	"github.com/artie-labs/reader/lib/rdbms/column"
 )
 
 type Column struct {
@@ -19,6 +24,58 @@ type Column struct {
 
 type TableAdapter struct {
 	columns []Column
+}
+
+func (t TableAdapter) PartitionKeys() []string {
+	var keys []string
+	for _, col := range t.columns {
+		if col.PrimaryKey {
+
+			keys = append(keys, col.Name)
+		}
+	}
+
+	return keys
+}
+
+func (t TableAdapter) GetFieldConverters(tableCfg config.MySQLTable) ([]transformer.FieldConverter, error) {
+	//  TODO: Make this more efficient.
+	var parsedColumns []schema.Column
+	for _, col := range t.columns {
+		dataType, opts, err := schema.ParseColumnDataType(col.DataType)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse column data type: %w", err)
+		}
+
+		parsedColumns = append(parsedColumns, schema.Column{
+			Name: col.Name,
+			Type: dataType,
+			Opts: opts,
+		})
+	}
+
+	// Exclude columns (if any) from the table metadata
+	cols, err := column.FilterOutExcludedColumns(parsedColumns, tableCfg.ExcludeColumns, t.PartitionKeys())
+	if err != nil {
+		return nil, err
+	}
+
+	// Include columns (if any) from the table metadata
+	cols, err = column.FilterForIncludedColumns(cols, tableCfg.IncludeColumns, t.PartitionKeys())
+	if err != nil {
+		return nil, err
+	}
+
+	fieldConverters := make([]transformer.FieldConverter, len(cols))
+	for i, col := range cols {
+		converter, err := converters.ValueConverterForType(col.Type, col.Opts)
+		if err != nil {
+			return nil, fmt.Errorf("failed to build value converter for column %q: %w", col.Name, err)
+		}
+		fieldConverters[i] = transformer.FieldConverter{Name: col.Name, ValueConverter: converter}
+	}
+
+	return fieldConverters, nil
 }
 
 type SchemaAdapter struct {

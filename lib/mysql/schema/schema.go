@@ -99,7 +99,7 @@ func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 			return nil, fmt.Errorf("failed to scan: %w", err)
 		}
 
-		dataType, opts, err := parseColumnDataType(colType)
+		dataType, opts, err := ParseColumnDataType(colType)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse data type: %w", err)
 		}
@@ -113,7 +113,7 @@ func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 	return result, nil
 }
 
-func parseColumnDataType(originalS string) (DataType, *Opts, error) {
+func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
 	// Preserve the original value, so we can return the error message without the actual value being mutated.
 	s := originalS
 	var metadata string
