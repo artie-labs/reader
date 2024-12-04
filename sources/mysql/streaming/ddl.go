@@ -8,12 +8,7 @@ import (
 
 	"github.com/go-mysql-org/go-mysql/replication"
 
-	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/antlr"
-	"github.com/artie-labs/reader/lib/debezium/transformer"
-	"github.com/artie-labs/reader/lib/mysql/converters"
-	"github.com/artie-labs/reader/lib/mysql/schema"
-	"github.com/artie-labs/reader/lib/rdbms/column"
 )
 
 type Column struct {
@@ -24,58 +19,6 @@ type Column struct {
 
 type TableAdapter struct {
 	columns []Column
-}
-
-func (t TableAdapter) PartitionKeys() []string {
-	var keys []string
-	for _, col := range t.columns {
-		if col.PrimaryKey {
-
-			keys = append(keys, col.Name)
-		}
-	}
-
-	return keys
-}
-
-func (t TableAdapter) GetFieldConverters(tableCfg config.MySQLTable) ([]transformer.FieldConverter, error) {
-	// TODO: Cache this, so we don't need to run it every time
-	var parsedColumns []schema.Column
-	for _, col := range t.columns {
-		dataType, opts, err := schema.ParseColumnDataType(col.DataType)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse column data type: %w", err)
-		}
-
-		parsedColumns = append(parsedColumns, schema.Column{
-			Name: col.Name,
-			Type: dataType,
-			Opts: opts,
-		})
-	}
-
-	// Exclude columns (if any) from the table metadata
-	cols, err := column.FilterOutExcludedColumns(parsedColumns, tableCfg.ExcludeColumns, t.PartitionKeys())
-	if err != nil {
-		return nil, err
-	}
-
-	// Include columns (if any) from the table metadata
-	cols, err = column.FilterForIncludedColumns(cols, tableCfg.IncludeColumns, t.PartitionKeys())
-	if err != nil {
-		return nil, err
-	}
-
-	fieldConverters := make([]transformer.FieldConverter, len(cols))
-	for i, col := range cols {
-		converter, err := converters.ValueConverterForType(col.Type, col.Opts)
-		if err != nil {
-			return nil, fmt.Errorf("failed to build value converter for column %q: %w", col.Name, err)
-		}
-		fieldConverters[i] = transformer.FieldConverter{Name: col.Name, ValueConverter: converter}
-	}
-
-	return fieldConverters, nil
 }
 
 type SchemaAdapter struct {
@@ -104,10 +47,6 @@ func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Tim
 func (s *SchemaAdapter) ApplyDDL(query string) error {
 	results, err := antlr.Parse(query)
 	if err != nil {
-		if antlr.IsParseError(err) {
-			return nil
-		}
-
 		return err
 	}
 
@@ -160,7 +99,6 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 				return fmt.Errorf("column not found: %q", col.Name)
 			}
 
-			// Update pk
 			tblAdapter.columns[columnIdx].PrimaryKey = true
 		}
 	case antlr.ModifyColumnEvent:
@@ -190,7 +128,7 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 				return fmt.Errorf("column not found: %q", col.Name)
 			}
 
-			tblAdapter.columns = append(tblAdapter.columns[:columnIdx], tblAdapter.columns[columnIdx+1:]...)
+			tblAdapter.columns = slices.Delete(tblAdapter.columns, columnIdx, columnIdx+1)
 		}
 
 		s.adapters[castedResult.GetTable()] = tblAdapter
@@ -201,8 +139,7 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 		}
 
 		for _, col := range castedResult.GetColumns() {
-			// Make sure column does not already exist
-			if slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name }) != -1 {
+			if slices.ContainsFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name }) {
 				return fmt.Errorf("column already exists: %q", col.Name)
 			}
 

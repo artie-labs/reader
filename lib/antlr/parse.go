@@ -41,7 +41,12 @@ func Parse(sqlCmd string) ([]Event, error) {
 
 func visit(tree antlr.Tree) ([]Event, error) {
 	switch ctx := tree.(type) {
-	case *generated.SqlStatementsContext, *generated.SqlStatementContext, *generated.DdlStatementContext:
+	case
+		*generated.SqlStatementsContext,
+		*generated.SqlStatementContext,
+		*generated.DdlStatementContext,
+		*generated.TransactionStatementContext,
+		*generated.BeginWorkContext:
 		var events []Event
 		for _, child := range ctx.GetChildren() {
 			evt, err := visit(child)
@@ -66,8 +71,13 @@ func visit(tree antlr.Tree) ([]Event, error) {
 		return processAlterTable(ctx)
 	case *generated.DropTableContext:
 		return processDropTable(ctx)
-	case *generated.EmptyStatement_Context,
-		*generated.CopyCreateTableContext:
+	case
+		*generated.EmptyStatement_Context,
+		*generated.CopyCreateTableContext,
+		*generated.TruncateTableContext,
+		*generated.AdministrationStatementContext,
+		*generated.CreateDatabaseContext,
+		*antlr.TerminalNodeImpl:
 		return nil, nil
 	default:
 		return nil, newParseError(fmt.Errorf("unsupported context type: %T", ctx))
