@@ -110,13 +110,10 @@ func (s *SchemaAdapter) ApplyDDL(query string) error {
 		return err
 	}
 
-	modifiedTables := make(map[string]bool)
 	for _, result := range results {
 		if err = s.applyDDL(result); err != nil {
 			return fmt.Errorf("failed to apply ddl: %w", err)
 		}
-
-		modifiedTables[result.GetTable()] = true
 	}
 
 	return nil
