@@ -38,7 +38,7 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 	if err != nil {
 		return nil, fmt.Errorf("failed to get field converters: %w", err)
 	}
-	
+
 	dbz := transformer.NewLightDebeziumTransformer(tableName, tblAdapter.PartitionKeys(), fieldConverters)
 	for before, after := range beforeAndAfters {
 		var beforeRow map[string]any
