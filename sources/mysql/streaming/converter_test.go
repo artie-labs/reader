@@ -3,7 +3,7 @@ package streaming
 import (
 	"testing"
 	"time"
-	
+
 	"github.com/go-mysql-org/go-mysql/replication"
 	"github.com/stretchr/testify/assert"
 )
