@@ -9,7 +9,133 @@ import (
 )
 
 func TestValueConverterForType(t *testing.T) {
-	colName := "the_col"
+	colName := "foo"
+	{
+		// Invalid
+		_, err := ValueConverterForType(-1, nil)
+		assert.ErrorContains(t, err, "unable get value converter for DataType(-1)")
+	}
+	{
+		// bit
+		{
+			// bit(1)
+			converter, err := ValueConverterForType(schema.Bit, &schema.Opts{
+				Size: typing.ToPtr(1),
+			})
+			assert.NoError(t, err)
+			assert.Equal(t, debezium.Field{Type: "boolean", FieldName: colName}, converter.ToField(colName))
+		}
+		{
+			// bit(5)
+			converter, err := ValueConverterForType(schema.Bit, &schema.Opts{
+				Size: typing.ToPtr(5),
+			})
+			assert.NoError(t, err)
+			assert.Equal(t, debezium.Field{Type: "bytes", FieldName: colName}, converter.ToField(colName))
+		}
+	}
+	{
+		// tinyint
+		converter, err := ValueConverterForType(schema.TinyInt, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{Type: "int16", FieldName: colName}, converter.ToField(colName))
+	}
+	{
+		// smallint
+		converter, err := ValueConverterForType(schema.SmallInt, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{Type: "int16", FieldName: colName}, converter.ToField(colName))
+	}
+	{
+		// mediumint
+		converter, err := ValueConverterForType(schema.MediumInt, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{Type: "int32", FieldName: colName}, converter.ToField(colName))
+	}
+	{
+		// int
+		converter, err := ValueConverterForType(schema.Int, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{Type: "int32", FieldName: colName}, converter.ToField(colName))
+	}
+	{
+		// bigint
+		converter, err := ValueConverterForType(schema.BigInt, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{Type: "int64", FieldName: colName}, converter.ToField(colName))
+	}
+	{
+		// float
+		converter, err := ValueConverterForType(schema.Float, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{Type: "float", FieldName: colName}, converter.ToField(colName))
+	}
+	{
+		// double
+		converter, err := ValueConverterForType(schema.Double, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{Type: "double", FieldName: colName}, converter.ToField(colName))
+	}
+	{
+		// decimal
+		converter, err := ValueConverterForType(schema.Decimal, &schema.Opts{Scale: typing.ToPtr(uint16(3)), Precision: typing.ToPtr(5)})
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{
+			Type:         "bytes",
+			DebeziumType: "org.apache.kafka.connect.data.Decimal",
+			FieldName:    colName,
+			Parameters: map[string]any{
+				"scale":                     "3",
+				"connect.decimal.precision": "5",
+			},
+		}, converter.ToField(colName))
+	}
+	{
+		// Char
+		converter, err := ValueConverterForType(schema.Char, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{Type: "string", FieldName: colName}, converter.ToField(colName))
+	}
+	{
+		// Text
+		converter, err := ValueConverterForType(schema.Text, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{Type: "string", FieldName: colName}, converter.ToField(colName))
+	}
+	{
+		// Varchar
+		converter, err := ValueConverterForType(schema.Varchar, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{Type: "string", FieldName: colName}, converter.ToField(colName))
+	}
+	{
+		// Binary
+		converter, err := ValueConverterForType(schema.Binary, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{Type: "bytes", FieldName: colName}, converter.ToField(colName))
+	}
+	{
+		// Varbinary
+		converter, err := ValueConverterForType(schema.Varbinary, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{Type: "bytes", FieldName: colName}, converter.ToField(colName))
+	}
+	{
+		// Blob
+		converter, err := ValueConverterForType(schema.Blob, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{Type: "bytes", FieldName: colName}, converter.ToField(colName))
+	}
+	{
+		// Time
+		converter, err := ValueConverterForType(schema.Time, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{
+			Type:         "int64",
+			DebeziumType: "io.debezium.time.MicroTime",
+			FieldName:    colName,
+		}, converter.ToField(colName))
+	}
 
 	type _tc struct {
 		name     string
@@ -21,163 +147,6 @@ func TestValueConverterForType(t *testing.T) {
 	}
 
 	tcs := []_tc{
-		{
-			name:        "invalid data type",
-			dataType:    -1,
-			expectedErr: "unable get value converter for DataType(-1)",
-		},
-		{
-			name:     "bit(1)",
-			dataType: schema.Bit,
-			opts: &schema.Opts{
-				Size: typing.ToPtr(1),
-			},
-			expected: debezium.Field{
-				Type:      "boolean",
-				FieldName: colName,
-			},
-		},
-		{
-			name:     "bit(5)",
-			dataType: schema.Bit,
-			opts: &schema.Opts{
-				Size: typing.ToPtr(5),
-			},
-			expected: debezium.Field{
-				Type:      "bytes",
-				FieldName: colName,
-			},
-		},
-		{
-			name:     "tinyint",
-			dataType: schema.TinyInt,
-			expected: debezium.Field{
-				Type:      "int16",
-				FieldName: colName,
-			},
-		},
-		{
-			name:     "smallint",
-			dataType: schema.SmallInt,
-			expected: debezium.Field{
-				Type:      "int16",
-				FieldName: colName,
-			},
-		},
-		{
-			name:     "mediumint",
-			dataType: schema.MediumInt,
-			expected: debezium.Field{
-				Type:      "int32",
-				FieldName: colName,
-			},
-		},
-		{
-			name:     "int",
-			dataType: schema.Int,
-			expected: debezium.Field{
-				Type:      "int32",
-				FieldName: colName,
-			},
-		},
-		{
-			name:     "bigint",
-			dataType: schema.BigInt,
-			expected: debezium.Field{
-				Type:      "int64",
-				FieldName: colName,
-			},
-		},
-		{
-			name:     "float",
-			dataType: schema.Float,
-			expected: debezium.Field{
-				Type:      "float",
-				FieldName: colName,
-			},
-		},
-		{
-			name:     "double",
-			dataType: schema.Double,
-			expected: debezium.Field{
-				Type:      "double",
-				FieldName: colName,
-			},
-		},
-		{
-			name:     "decimal",
-			dataType: schema.Decimal,
-			opts: &schema.Opts{
-				Scale:     typing.ToPtr(uint16(3)),
-				Precision: typing.ToPtr(5),
-			},
-			expected: debezium.Field{
-				Type:         "bytes",
-				DebeziumType: "org.apache.kafka.connect.data.Decimal",
-				FieldName:    colName,
-				Parameters: map[string]any{
-					"scale":                     "3",
-					"connect.decimal.precision": "5",
-				},
-			},
-		},
-		{
-			name:     "char",
-			dataType: schema.Char,
-			expected: debezium.Field{
-				Type:      "string",
-				FieldName: colName,
-			},
-		},
-		{
-			name:     "text",
-			dataType: schema.Text,
-			expected: debezium.Field{
-				Type:      "string",
-				FieldName: colName,
-			},
-		},
-		{
-			name:     "varchar",
-			dataType: schema.Varchar,
-			expected: debezium.Field{
-				Type:      "string",
-				FieldName: colName,
-			},
-		},
-		{
-			name:     "binary",
-			dataType: schema.Binary,
-			expected: debezium.Field{
-				Type:      "bytes",
-				FieldName: colName,
-			},
-		},
-		{
-			name:     "varbinary",
-			dataType: schema.Varbinary,
-			expected: debezium.Field{
-				Type:      "bytes",
-				FieldName: colName,
-			},
-		},
-		{
-			name:     "blob",
-			dataType: schema.Blob,
-			expected: debezium.Field{
-				Type:      "bytes",
-				FieldName: colName,
-			},
-		},
-		{
-			name:     "time",
-			dataType: schema.Time,
-			expected: debezium.Field{
-				Type:         "int64",
-				DebeziumType: "io.debezium.time.MicroTime",
-				FieldName:    colName,
-			},
-		},
 		{
 			name:     "date",
 			dataType: schema.Date,
