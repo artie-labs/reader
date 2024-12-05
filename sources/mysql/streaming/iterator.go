@@ -32,6 +32,14 @@ func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
 		return Iterator{}, fmt.Errorf("failed to create persisted list: %w", err)
 	}
 
+	// Apply DDLs
+	schemaAdapter := SchemaAdapter{adapters: make(map[string]TableAdapter)}
+	for _, schemaHistory := range schemaHistoryList.GetData() {
+		if err = schemaAdapter.ApplyDDL(schemaHistory.Query); err != nil {
+			return Iterator{}, fmt.Errorf("failed to apply DDL: %w", err)
+		}
+	}
+
 	syncer := replication.NewBinlogSyncer(
 		replication.BinlogSyncerConfig{
 			ServerID: cfg.StreamingSettings.ServerID,
@@ -56,9 +64,7 @@ func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
 		streamer:          streamer,
 		offsets:           offsets,
 		schemaHistoryList: &schemaHistoryList,
-		schemaAdapter: &SchemaAdapter{
-			adapters: make(map[string]TableAdapter),
-		},
+		schemaAdapter:     &schemaAdapter,
 	}, nil
 }
 

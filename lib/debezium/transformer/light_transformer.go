@@ -33,7 +33,17 @@ func NewLightDebeziumTransformer(tableName string, partitionKeys []string, field
 	}
 }
 
-func (l LightDebeziumTransformer) BuildPartitionKey(row Row) (map[string]any, error) {
+func (l LightDebeziumTransformer) BuildPartitionKey(beforeRow, afterRow Row) (map[string]any, error) {
+	if beforeRow == nil && afterRow == nil {
+		return nil, fmt.Errorf("both before and after rows are nil")
+	}
+
+	row := afterRow
+	if afterRow == nil {
+		// After row may not exist for a delete event.
+		row = beforeRow
+	}
+
 	return convertPartitionKey(l.valueConverters, l.partitionKeys, row)
 }
 

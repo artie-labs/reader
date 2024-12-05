@@ -62,8 +62,7 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 			return nil, fmt.Errorf("failed to build event payload: %w", err)
 		}
 
-		// TODO: Check afterRow exists for a deleted row.
-		pk, err := dbz.BuildPartitionKey(afterRow)
+		pk, err := dbz.BuildPartitionKey(beforeRow, afterRow)
 		if err != nil {
 			return nil, fmt.Errorf("failed to build partition key: %w", err)
 		}
