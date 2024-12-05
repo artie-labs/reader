@@ -136,90 +136,74 @@ func TestValueConverterForType(t *testing.T) {
 			FieldName:    colName,
 		}, converter.ToField(colName))
 	}
-
-	type _tc struct {
-		name     string
-		dataType schema.DataType
-		opts     *schema.Opts
-
-		expected    debezium.Field
-		expectedErr string
+	{
+		// Date
+		converter, err := ValueConverterForType(schema.Date, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{
+			Type:         "int32",
+			DebeziumType: "io.debezium.time.Date",
+			FieldName:    colName,
+		}, converter.ToField(colName))
 	}
-
-	tcs := []_tc{
-		{
-			name:     "date",
-			dataType: schema.Date,
-			expected: debezium.Field{
-				Type:         "int32",
-				DebeziumType: "io.debezium.time.Date",
-				FieldName:    colName,
-			},
-		},
-		{
-			name:     "datetime",
-			dataType: schema.DateTime,
-			expected: debezium.Field{
-				Type:         "int64",
-				DebeziumType: "io.debezium.time.MicroTimestamp",
-				FieldName:    colName,
-			},
-		},
-		{
-			name:     "timestamp",
-			dataType: schema.Timestamp,
-			expected: debezium.Field{
-				Type:         "string",
-				DebeziumType: "io.debezium.time.ZonedTimestamp",
-				FieldName:    colName,
-			},
-		},
-		{
-			name:     "year",
-			dataType: schema.Year,
-			expected: debezium.Field{
-				Type:         "int32",
-				DebeziumType: "io.debezium.time.Year",
-				FieldName:    colName,
-			},
-		},
-		{
-			name:     "enum",
-			dataType: schema.Enum,
-			expected: debezium.Field{
-				Type:         "string",
-				DebeziumType: "io.debezium.data.Enum",
-				FieldName:    colName,
-			},
-		},
-		{
-			name:     "set",
-			dataType: schema.Set,
-			expected: debezium.Field{
-				Type:         "string",
-				DebeziumType: "io.debezium.data.EnumSet",
-				FieldName:    colName,
-			},
-		},
-		{
-			name:     "json",
-			dataType: schema.JSON,
-			expected: debezium.Field{
-				Type:         "string",
-				DebeziumType: "io.debezium.data.Json",
-				FieldName:    colName,
-			},
-		},
+	{
+		// Datetime
+		converter, err := ValueConverterForType(schema.DateTime, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{
+			Type:         "int64",
+			DebeziumType: "io.debezium.time.MicroTimestamp",
+			FieldName:    colName,
+		}, converter.ToField(colName))
 	}
-
-	for _, tc := range tcs {
-		converter, err := ValueConverterForType(tc.dataType, tc.opts)
-		if tc.expectedErr == "" {
-			assert.NoError(t, err)
-			assert.Equal(t, tc.expected, converter.ToField(colName), tc.name)
-		} else {
-			assert.ErrorContains(t, err, tc.expectedErr, tc.name)
-		}
-
+	{
+		// Timestamp
+		converter, err := ValueConverterForType(schema.Timestamp, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{
+			Type:         "string",
+			DebeziumType: "io.debezium.time.ZonedTimestamp",
+			FieldName:    colName,
+		}, converter.ToField(colName))
+	}
+	{
+		// Year
+		converter, err := ValueConverterForType(schema.Year, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{
+			Type:         "int32",
+			DebeziumType: "io.debezium.time.Year",
+			FieldName:    colName,
+		}, converter.ToField(colName))
+	}
+	{
+		// Enum
+		converter, err := ValueConverterForType(schema.Enum, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{
+			Type:         "string",
+			DebeziumType: "io.debezium.data.Enum",
+			FieldName:    colName,
+		}, converter.ToField(colName))
+	}
+	{
+		// Set
+		converter, err := ValueConverterForType(schema.Set, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{
+			Type:         "string",
+			DebeziumType: "io.debezium.data.EnumSet",
+			FieldName:    colName,
+		}, converter.ToField(colName))
+	}
+	{
+		// JSON
+		converter, err := ValueConverterForType(schema.JSON, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, debezium.Field{
+			Type:         "string",
+			DebeziumType: "io.debezium.data.Json",
+			FieldName:    colName,
+		}, converter.ToField(colName))
 	}
 }
