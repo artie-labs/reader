@@ -115,7 +115,7 @@ func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 
 func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
 	// Preserve the original value, so we can return the error message without the actual value being mutated.
-	s := originalS
+	s := strings.ToLower(originalS)
 	var metadata string
 	var unsigned bool
 	if strings.HasSuffix(s, " unsigned") {
@@ -153,7 +153,7 @@ func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
 		}
 
 		return MediumInt, nil, nil
-	case "int":
+	case "int", "integer":
 		if unsigned {
 			return BigInt, nil, nil
 		}

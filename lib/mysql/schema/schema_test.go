@@ -36,6 +36,12 @@ func TestParseColumnDataType(t *testing.T) {
 			assert.Equal(t, Int, dataType)
 		}
 		{
+			// int
+			dataType, _, err := ParseColumnDataType("INTEGER")
+			assert.NoError(t, err)
+			assert.Equal(t, Int, dataType)
+		}
+		{
 			// int unsigned
 			dataType, _, err := ParseColumnDataType("int unsigned")
 			assert.NoError(t, err)
