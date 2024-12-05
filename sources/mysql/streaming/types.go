@@ -2,6 +2,7 @@ package streaming
 
 import (
 	"fmt"
+	"github.com/artie-labs/reader/config"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/typing"
@@ -13,6 +14,7 @@ import (
 )
 
 type Iterator struct {
+	cfg       config.MySQL
 	batchSize int32
 	position  Position
 

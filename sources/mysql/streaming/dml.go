@@ -23,7 +23,6 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 		return nil, nil
 	}
 
-	// TODO: We should check that tableAdapter's timestamp is not greater than the event's timestamp.
 	operation, err := convertHeaderToOperation(event.Header.EventType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert header to operation: %w", err)
@@ -35,8 +34,7 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 	}
 
 	var rawMsgs []lib.RawMessage
-	// TODO: Provide partitionKeys and fieldConverters
-	dbz := transformer.NewLightDebeziumTransformer(tableName, tblAdapter.PartitionKeys(), nil)
+	dbz := transformer.NewLightDebeziumTransformer(tableName, tblAdapter.PartitionKeys(), tblAdapter.GetFieldConverters())
 	for before, after := range beforeAndAfters {
 		var beforeRow map[string]any
 		if len(before) > 0 {
@@ -65,8 +63,7 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 			return nil, fmt.Errorf("failed to build partition key: %w", err)
 		}
 
-		// TODO - Suffix
-		rawMsgs = append(rawMsgs, lib.NewRawMessage("", pk, &dbzMessage))
+		rawMsgs = append(rawMsgs, lib.NewRawMessage(tblAdapter.TopicSuffix(), pk, &dbzMessage))
 	}
 
 	return rawMsgs, nil

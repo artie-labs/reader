@@ -25,10 +25,14 @@ type Column struct {
 type TableAdapter struct {
 	tableName string
 	columns   []Column
+
+	// These are injected when we retrieve tableAdapter.
+	tableCfg config.MySQLTable
+	dbName   string
 }
 
-func (t TableAdapter) TopicSuffix(dbName string) string {
-	return fmt.Sprintf("%s.%s", dbName, t.tableName)
+func (t TableAdapter) TopicSuffix() string {
+	return fmt.Sprintf("%s.%s", t.dbName, t.tableName)
 }
 
 func (t TableAdapter) ColumnNames() []string {
@@ -52,7 +56,7 @@ func (t TableAdapter) PartitionKeys() []string {
 	return keys
 }
 
-func (t TableAdapter) GetFieldConverters(tableCfg config.MySQLTable) ([]transformer.FieldConverter, error) {
+func (t TableAdapter) GetFieldConverters() ([]transformer.FieldConverter, error) {
 	//  TODO: Make this more efficient.
 	var parsedColumns []schema.Column
 	for _, col := range t.columns {
@@ -69,13 +73,13 @@ func (t TableAdapter) GetFieldConverters(tableCfg config.MySQLTable) ([]transfor
 	}
 
 	// Exclude columns (if any) from the table metadata
-	cols, err := column.FilterOutExcludedColumns(parsedColumns, tableCfg.ExcludeColumns, t.PartitionKeys())
+	cols, err := column.FilterOutExcludedColumns(parsedColumns, t.tableCfg.ExcludeColumns, t.PartitionKeys())
 	if err != nil {
 		return nil, err
 	}
 
 	// Include columns (if any) from the table metadata
-	cols, err = column.FilterForIncludedColumns(cols, tableCfg.IncludeColumns, t.PartitionKeys())
+	cols, err = column.FilterForIncludedColumns(cols, t.tableCfg.IncludeColumns, t.PartitionKeys())
 	if err != nil {
 		return nil, err
 	}

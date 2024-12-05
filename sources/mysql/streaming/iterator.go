@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/typing"
@@ -48,6 +49,7 @@ func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
 	}
 
 	return Iterator{
+		cfg:               cfg,
 		batchSize:         cfg.GetStreamingBatchSize(),
 		position:          pos,
 		syncer:            syncer,
@@ -78,6 +80,7 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	// TODO: We should check that tableAdapter's timestamp is not greater than the event's timestamp.
 	var rawMsgs []lib.RawMessage
 	for i.batchSize > int32(len(rawMsgs)) {
 		select {
@@ -131,5 +134,16 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 
 func (i *Iterator) getTableAdapter(tableName string) (TableAdapter, bool) {
 	tblAdapter, ok := i.schemaAdapter.adapters[tableName]
+	if !ok {
+		return TableAdapter{}, ok
+	}
+
+	idx := slices.IndexFunc(i.cfg.Tables, func(tbl *config.MySQLTable) bool { return tbl.Name == tableName })
+	if idx == -1 {
+		return TableAdapter{}, false
+	}
+
+	tblAdapter.tableCfg = *i.cfg.Tables[idx]
+	tblAdapter.dbName = i.cfg.Database
 	return tblAdapter, ok
 }
