@@ -26,6 +26,15 @@ type TableAdapter struct {
 	columns []Column
 }
 
+func (t TableAdapter) ColumnNames() []string {
+	var colNames []string
+	for _, col := range t.columns {
+		colNames = append(colNames, col.Name)
+	}
+
+	return colNames
+}
+
 func (t TableAdapter) PartitionKeys() []string {
 	var keys []string
 	for _, col := range t.columns {

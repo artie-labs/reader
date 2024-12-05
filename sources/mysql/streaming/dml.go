@@ -18,13 +18,12 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 	}
 
 	tableName := string(rowsEvent.Table.Table)
-	_, ok := i.shouldProcessTable(tableName)
+	tblAdapter, ok := i.getTableAdapter(tableName)
 	if !ok {
 		return nil, nil
 	}
 
 	// TODO: We should check that tableAdapter's timestamp is not greater than the event's timestamp.
-
 	operation, err := convertHeaderToOperation(event.Header.EventType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert header to operation: %w", err)
@@ -37,12 +36,11 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 
 	var rawMsgs []lib.RawMessage
 	// TODO: Provide partitionKeys and fieldConverters
-	dbz := transformer.NewLightDebeziumTransformer(tableName, nil, nil)
+	dbz := transformer.NewLightDebeziumTransformer(tableName, tblAdapter.PartitionKeys(), nil)
 	for before, after := range beforeAndAfters {
 		var beforeRow map[string]any
 		if len(before) > 0 {
-			// TODO - Provide columns
-			beforeRow, err = zipSlicesToMap[string](nil, before)
+			beforeRow, err = zipSlicesToMap[string](tblAdapter.ColumnNames(), before)
 			if err != nil {
 				return nil, fmt.Errorf("failed to convert row to map:%w", err)
 			}
@@ -50,8 +48,7 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 
 		var afterRow map[string]any
 		if len(after) > 0 {
-			// TODO - Provide columns
-			afterRow, err = zipSlicesToMap[string](nil, after)
+			afterRow, err = zipSlicesToMap[string](tblAdapter.ColumnNames(), after)
 			if err != nil {
 				return nil, fmt.Errorf("failed to convert row to map:%w", err)
 			}

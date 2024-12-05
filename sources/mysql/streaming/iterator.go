@@ -129,6 +129,7 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 	return rawMsgs, nil
 }
 
-func (i *Iterator) shouldProcessTable(tableName string) (TableAdapter, bool) {
-	return TableAdapter{}, false
+func (i *Iterator) getTableAdapter(tableName string) (TableAdapter, bool) {
+	tblAdapter, ok := i.schemaAdapter.adapters[tableName]
+	return tblAdapter, ok
 }
