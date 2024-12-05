@@ -23,7 +23,12 @@ type Column struct {
 }
 
 type TableAdapter struct {
-	columns []Column
+	tableName string
+	columns   []Column
+}
+
+func (t TableAdapter) TopicSuffix(dbName string) string {
+	return fmt.Sprintf("%s.%s", dbName, t.tableName)
 }
 
 func (t TableAdapter) ColumnNames() []string {
@@ -137,7 +142,7 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 			})
 		}
 
-		s.adapters[castedResult.TableName] = TableAdapter{columns: cols}
+		s.adapters[castedResult.TableName] = TableAdapter{columns: cols, tableName: castedResult.GetTable()}
 	case antlr.RenameColumnEvent:
 		tblAdapter, ok := s.adapters[castedResult.GetTable()]
 		if !ok {
