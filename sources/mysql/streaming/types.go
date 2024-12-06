@@ -27,13 +27,14 @@ type Iterator struct {
 }
 
 type SchemaHistory struct {
-	Query string    `json:"query"`
-	Ts    time.Time `json:"ts"`
+	Query  string `json:"query"`
+	UnixTs int64  `json:"unixTs"`
 }
 
 type Position struct {
-	File string `yaml:"file"`
-	Pos  uint32 `yaml:"pos"`
+	File   string `yaml:"file"`
+	Pos    uint32 `yaml:"pos"`
+	UnixTs int64  `yaml:"unixTs"`
 }
 
 func (p Position) String() string {
@@ -44,8 +45,9 @@ func (p Position) ToMySQLPosition() mysql.Position {
 	return mysql.Position{Name: p.File, Pos: p.Pos}
 }
 
-func (p *Position) UpdatePosition(evt *replication.BinlogEvent) error {
+func (p *Position) UpdatePosition(ts time.Time, evt *replication.BinlogEvent) error {
 	// We should always update the log position
+	p.UnixTs = ts.Unix()
 	p.Pos = evt.Header.LogPos
 	if evt.Header.EventType == replication.ROTATE_EVENT {
 		// When we encounter a rotate event, we'll then update the log file

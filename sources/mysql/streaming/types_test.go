@@ -4,6 +4,7 @@ import (
 	"github.com/go-mysql-org/go-mysql/replication"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func TestPosition_UpdatePosition(t *testing.T) {
@@ -17,7 +18,7 @@ func TestPosition_UpdatePosition(t *testing.T) {
 			},
 		}
 
-		assert.NoError(t, pos.UpdatePosition(event))
+		assert.NoError(t, pos.UpdatePosition(time.Time{}, event))
 		assert.Equal(t, uint32(1234), pos.Pos)
 		assert.Equal(t, "file", pos.File)
 	}
@@ -33,7 +34,7 @@ func TestPosition_UpdatePosition(t *testing.T) {
 			},
 		}
 
-		assert.NoError(t, pos.UpdatePosition(event))
+		assert.NoError(t, pos.UpdatePosition(time.Time{}, event))
 		assert.Equal(t, uint32(888), pos.Pos)
 		assert.Equal(t, "new_file", pos.File)
 	}
