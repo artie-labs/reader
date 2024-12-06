@@ -24,6 +24,7 @@ type Column struct {
 
 type TableAdapter struct {
 	columns []Column
+	unixTs  int64
 
 	// These are injected when we retrieve tableAdapter.
 	tableCfg config.MySQLTable
@@ -115,17 +116,17 @@ func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Tim
 		return fmt.Errorf("failed to push schema history: %w", err)
 	}
 
-	return i.schemaAdapter.ApplyDDL(query)
+	return i.schemaAdapter.ApplyDDL(ts.Unix(), query)
 }
 
-func (s *SchemaAdapter) ApplyDDL(query string) error {
+func (s *SchemaAdapter) ApplyDDL(unixTs int64, query string) error {
 	results, err := antlr.Parse(query)
 	if err != nil {
 		return err
 	}
 
 	for _, result := range results {
-		if err = s.applyDDL(result); err != nil {
+		if err = s.applyDDL(unixTs, result); err != nil {
 			return fmt.Errorf("failed to apply ddl: %w", err)
 		}
 	}
@@ -133,7 +134,7 @@ func (s *SchemaAdapter) ApplyDDL(query string) error {
 	return nil
 }
 
-func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
+func (s *SchemaAdapter) applyDDL(unixTs int64, result antlr.Event) error {
 	if _, ok := result.(antlr.CreateTableEvent); ok {
 		var cols []Column
 		for _, col := range result.GetColumns() {
@@ -144,7 +145,7 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 			})
 		}
 
-		s.adapters[result.GetTable()] = TableAdapter{columns: cols}
+		s.adapters[result.GetTable()] = TableAdapter{columns: cols, unixTs: unixTs}
 		return nil
 	}
 
@@ -248,6 +249,7 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 		}
 	}
 
+	tblAdapter.unixTs = unixTs
 	s.adapters[result.GetTable()] = tblAdapter
 	return nil
 }
