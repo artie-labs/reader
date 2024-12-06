@@ -33,11 +33,19 @@ func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
 	}
 
 	// Apply DDLs
+	var latestSchemaTimestamp time.Time
 	schemaAdapter := SchemaAdapter{adapters: make(map[string]TableAdapter)}
 	for _, schemaHistory := range schemaHistoryList.GetData() {
 		if err = schemaAdapter.ApplyDDL(schemaHistory.Query); err != nil {
 			return Iterator{}, fmt.Errorf("failed to apply DDL: %w", err)
 		}
+
+		latestSchemaTimestamp = schemaHistory.Ts
+	}
+
+	// Check the position's timestamp
+	if latestSchemaTimestamp.After(pos.Ts) {
+		return Iterator{}, fmt.Errorf("latest schema timestamp %q is greater than the current position's timestamp %q", latestSchemaTimestamp, pos.Ts)
 	}
 
 	syncer := replication.NewBinlogSyncer(
@@ -103,7 +111,7 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 			}
 
 			ts := getTimeFromEvent(event)
-			if err = i.position.UpdatePosition(event); err != nil {
+			if err = i.position.UpdatePosition(ts, event); err != nil {
 				return nil, fmt.Errorf("failed to update position: %w", err)
 			}
 
