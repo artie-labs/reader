@@ -156,16 +156,6 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 
 			tblAdapter.columns[columnIdx].PrimaryKey = true
 		}
-	case antlr.ModifyColumnEvent:
-		for _, col := range castedResult.GetColumns() {
-			columnIdx := slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name })
-			if columnIdx == -1 {
-				return fmt.Errorf("column not found: %q", col.Name)
-			}
-
-			// TODO: Handle position
-			tblAdapter.columns[columnIdx].DataType = col.DataType
-		}
 	case antlr.DropColumnsEvent:
 		for _, col := range castedResult.GetColumns() {
 			columnIdx := slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name })
@@ -177,6 +167,16 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 		}
 
 		s.adapters[castedResult.GetTable()] = tblAdapter
+	case antlr.ModifyColumnEvent:
+		for _, col := range castedResult.GetColumns() {
+			columnIdx := slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name })
+			if columnIdx == -1 {
+				return fmt.Errorf("column not found: %q", col.Name)
+			}
+
+			// TODO: Handle position
+			tblAdapter.columns[columnIdx].DataType = col.DataType
+		}
 	case antlr.AddColumnsEvent:
 		for _, col := range castedResult.GetColumns() {
 			if slices.ContainsFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name }) {
