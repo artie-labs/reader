@@ -33,19 +33,19 @@ func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
 	}
 
 	// Apply DDLs
-	var latestSchemaTimestamp time.Time
+	var latestSchemaUnixTs int64
 	schemaAdapter := SchemaAdapter{adapters: make(map[string]TableAdapter)}
 	for _, schemaHistory := range schemaHistoryList.GetData() {
 		if err = schemaAdapter.ApplyDDL(schemaHistory.Query); err != nil {
 			return Iterator{}, fmt.Errorf("failed to apply DDL: %w", err)
 		}
 
-		latestSchemaTimestamp = schemaHistory.Ts
+		latestSchemaUnixTs = schemaHistory.UnixTs
 	}
 
 	// Check the position's timestamp
-	if latestSchemaTimestamp.After(pos.Ts) {
-		return Iterator{}, fmt.Errorf("latest schema timestamp %q is greater than the current position's timestamp %q", latestSchemaTimestamp, pos.Ts)
+	if latestSchemaUnixTs > pos.UnixTs {
+		return Iterator{}, fmt.Errorf("latest schema timestamp %d is greater than the current position's timestamp %d", latestSchemaUnixTs, pos.UnixTs)
 	}
 
 	syncer := replication.NewBinlogSyncer(
@@ -81,7 +81,10 @@ func (i *Iterator) HasNext() bool {
 }
 
 func (i *Iterator) CommitOffset() {
-	slog.Info("Committing offset", slog.String("position", i.position.String()))
+	slog.Info("Committing offset",
+		slog.String("position", i.position.String()),
+		slog.Int64("unixTs", i.position.UnixTs),
+	)
 	i.offsets.Set(offsetKey, i.position)
 }
 

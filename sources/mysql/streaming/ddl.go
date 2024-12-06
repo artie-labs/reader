@@ -108,8 +108,8 @@ func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Tim
 
 	query := string(evt.Query)
 	schemaHistory := SchemaHistory{
-		Query: query,
-		Ts:    ts,
+		Query:  query,
+		UnixTs: ts.Unix(),
 	}
 
 	if err := i.schemaHistoryList.Push(schemaHistory); err != nil {
