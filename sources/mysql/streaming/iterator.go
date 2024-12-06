@@ -46,10 +46,12 @@ func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persiste
 				return SchemaAdapter{}, fmt.Errorf("failed to get columns: %w", err)
 			}
 
+			// Persist the DDL
 			if err = schemaHistoryList.Push(SchemaHistory{Query: ddlQuery, UnixTs: now}); err != nil {
 				return SchemaAdapter{}, fmt.Errorf("failed to push schema history: %w", err)
 			}
 
+			// Apply the DDL
 			if err = schemaAdapter.ApplyDDL(now, ddlQuery); err != nil {
 				return SchemaAdapter{}, fmt.Errorf("failed to apply DDL: %w", err)
 			}
