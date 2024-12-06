@@ -44,6 +44,10 @@ func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persiste
 				return SchemaAdapter{}, fmt.Errorf("failed to get create table DDL: %w", err)
 			}
 
+			if err = schemaHistoryList.Push(SchemaHistory{Query: ddl, UnixTs: time.Now().Unix()}); err != nil {
+				return SchemaAdapter{}, fmt.Errorf("failed to push schema history: %w", err)
+			}
+
 			if err = schemaAdapter.ApplyDDL(ddl, time.Now().Unix()); err != nil {
 				return SchemaAdapter{}, fmt.Errorf("failed to apply DDL: %w", err)
 			}
