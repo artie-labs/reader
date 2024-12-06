@@ -2,8 +2,10 @@ package streaming
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/artie-labs/reader/lib/mysql/schema"
 	"log/slog"
 	"slices"
 	"time"
@@ -19,7 +21,45 @@ import (
 
 const offsetKey = "offset"
 
-func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
+func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persistedlist.PersistedList[SchemaHistory], pos Position) (SchemaAdapter, error) {
+	var latestSchemaUnixTs int64
+	schemaAdapter := SchemaAdapter{adapters: make(map[string]TableAdapter)}
+	for _, schemaHistory := range schemaHistoryList.GetData() {
+		if err := schemaAdapter.ApplyDDL(schemaHistory.UnixTs, schemaHistory.Query); err != nil {
+			return SchemaAdapter{}, fmt.Errorf("failed to apply DDL: %w", err)
+		}
+
+		latestSchemaUnixTs = schemaHistory.UnixTs
+	}
+
+	// Check the position's timestamp
+	if latestSchemaUnixTs > pos.UnixTs {
+		return SchemaAdapter{}, fmt.Errorf("latest schema timestamp %d is greater than the current position's timestamp %d", latestSchemaUnixTs, pos.UnixTs)
+	}
+
+	// Check if there are any additional tables that we should be tracking that don't exist in our schema adapter
+	for _, tbl := range cfg.Tables {
+		if _, ok := schemaAdapter.adapters[tbl.Name]; !ok {
+			now := time.Now().Unix()
+			ddlQuery, err := schema.GetCreateTableDDL(db, tbl.Name)
+			if err != nil {
+				return SchemaAdapter{}, fmt.Errorf("failed to get columns: %w", err)
+			}
+
+			if err = schemaHistoryList.Push(SchemaHistory{Query: ddlQuery, UnixTs: now}); err != nil {
+				return SchemaAdapter{}, fmt.Errorf("failed to push schema history: %w", err)
+			}
+
+			if err = schemaAdapter.ApplyDDL(now, ddlQuery); err != nil {
+				return SchemaAdapter{}, fmt.Errorf("failed to apply DDL: %w", err)
+			}
+		}
+	}
+
+	return schemaAdapter, nil
+}
+
+func BuildStreamingIterator(db *sql.DB, cfg config.MySQL) (Iterator, error) {
 	var pos Position
 	offsets := persistedmap.NewPersistedMap[Position](cfg.StreamingSettings.OffsetFile)
 	if _pos, isOk := offsets.Get(offsetKey); isOk {
@@ -32,20 +72,9 @@ func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
 		return Iterator{}, fmt.Errorf("failed to create persisted list: %w", err)
 	}
 
-	// Apply DDLs
-	var latestSchemaUnixTs int64
-	schemaAdapter := SchemaAdapter{adapters: make(map[string]TableAdapter)}
-	for _, schemaHistory := range schemaHistoryList.GetData() {
-		if err = schemaAdapter.ApplyDDL(schemaHistory.Query); err != nil {
-			return Iterator{}, fmt.Errorf("failed to apply DDL: %w", err)
-		}
-
-		latestSchemaUnixTs = schemaHistory.UnixTs
-	}
-
-	// Check the position's timestamp
-	if latestSchemaUnixTs > pos.UnixTs {
-		return Iterator{}, fmt.Errorf("latest schema timestamp %d is greater than the current position's timestamp %d", latestSchemaUnixTs, pos.UnixTs)
+	schemaAdapter, err := buildSchemaAdapter(db, cfg, schemaHistoryList, pos)
+	if err != nil {
+		return Iterator{}, fmt.Errorf("failed to build schema adapter: %w", err)
 	}
 
 	syncer := replication.NewBinlogSyncer(
