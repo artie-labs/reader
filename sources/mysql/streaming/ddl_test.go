@@ -88,6 +88,22 @@ func TestSchemaAdapter_ApplyDDL(t *testing.T) {
 			assert.Equal(t, Column{Name: "id", DataType: "VARCHAR(255)", PrimaryKey: true}, adapter.adapters["test_table"].columns[0])
 			assert.Equal(t, Column{Name: "name", DataType: "INT"}, adapter.adapters["test_table"].columns[1])
 		}
+		{
+			// Modify column position to be first
+			assert.NoError(t, adapter.ApplyDDL("ALTER TABLE test_table MODIFY COLUMN email VARCHAR(255) FIRST;"))
+			assert.Len(t, adapter.adapters["test_table"].columns, 3)
+			assert.Equal(t, Column{Name: "email", DataType: "VARCHAR(255)"}, adapter.adapters["test_table"].columns[0])
+			assert.Equal(t, Column{Name: "id", DataType: "VARCHAR(255)", PrimaryKey: true}, adapter.adapters["test_table"].columns[1])
+			assert.Equal(t, Column{Name: "name", DataType: "INT"}, adapter.adapters["test_table"].columns[2])
+		}
+		{
+			// Modify two columns to be first
+			assert.NoError(t, adapter.ApplyDDL("ALTER TABLE test_table MODIFY COLUMN id VARCHAR(255) FIRST, MODIFY COLUMN name INT FIRST;"))
+			assert.Len(t, adapter.adapters["test_table"].columns, 3)
+			assert.Equal(t, Column{Name: "name", DataType: "INT"}, adapter.adapters["test_table"].columns[0])
+			assert.Equal(t, Column{Name: "id", DataType: "VARCHAR(255)", PrimaryKey: true}, adapter.adapters["test_table"].columns[1])
+			assert.Equal(t, Column{Name: "email", DataType: "VARCHAR(255)"}, adapter.adapters["test_table"].columns[2])
+		}
 	}
 	{
 		// Dropping columns
