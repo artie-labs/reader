@@ -195,9 +195,36 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 		if col.Position != nil {
 			switch castedPosition := col.Position.(type) {
 			case antlr.FirstPosition:
-			// TODO
+				// Find the current position, delete it and insert it at the first position
+				columnIdx := slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name })
+				if columnIdx == -1 {
+					return fmt.Errorf("column not found: %q", col.Name)
+				}
+
+				_col := tblAdapter.columns[columnIdx]
+				// Delete the column
+				tblAdapter.columns = slices.Delete(tblAdapter.columns, columnIdx, columnIdx+1)
+				// Then insert it at the first position
+				tblAdapter.columns = slices.Insert(tblAdapter.columns, 0, _col)
 			case antlr.AfterPosition:
-			// TODO
+				// Find the current position, delete it and insert it after the specified column
+				columnIdx := slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name })
+				if columnIdx == -1 {
+					return fmt.Errorf("column not found: %q", col.Name)
+				}
+
+				_col := tblAdapter.columns[columnIdx]
+				// Delete the column
+				tblAdapter.columns = slices.Delete(tblAdapter.columns, columnIdx, columnIdx+1)
+
+				// Find the column to insert after
+				afterColumnIdx := slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == castedPosition.Column() })
+				if afterColumnIdx == -1 {
+					return fmt.Errorf("column not found: %q", castedPosition.Column())
+				}
+
+				// Insert the column after the specified column
+				tblAdapter.columns = slices.Insert(tblAdapter.columns, afterColumnIdx+1, _col)
 			default:
 				return fmt.Errorf("unknown position type: %T", castedPosition)
 			}
