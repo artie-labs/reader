@@ -2,6 +2,7 @@ package streaming
 
 import (
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/typing"
@@ -20,6 +21,15 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 	tableName := string(rowsEvent.Table.Table)
 	tblAdapter, ok := i.getTableAdapter(tableName)
 	if !ok {
+		return nil, nil
+	}
+
+	if tblAdapter.unixTs > ts.Unix() {
+		slog.Warn("Skipping event, our table adapter is newer than the event",
+			slog.String("tableName", tableName),
+			slog.Int64("eventTs", ts.Unix()),
+			slog.Int64("tblAdapter unixTs", tblAdapter.unixTs),
+		)
 		return nil, nil
 	}
 
