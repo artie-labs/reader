@@ -23,8 +23,7 @@ type Column struct {
 }
 
 type TableAdapter struct {
-	tableName string
-	columns   []Column
+	columns []Column
 
 	// These are injected when we retrieve tableAdapter.
 	tableCfg config.MySQLTable
@@ -32,7 +31,7 @@ type TableAdapter struct {
 }
 
 func (t TableAdapter) TopicSuffix() string {
-	return fmt.Sprintf("%s.%s", t.dbName, t.tableName)
+	return fmt.Sprintf("%s.%s", t.dbName, t.tableCfg.Name)
 }
 
 func (t TableAdapter) ColumnNames() []string {
@@ -146,7 +145,7 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 			})
 		}
 
-		s.adapters[castedResult.TableName] = TableAdapter{columns: cols, tableName: castedResult.GetTable()}
+		s.adapters[castedResult.TableName] = TableAdapter{columns: cols}
 	case antlr.RenameColumnEvent:
 		tblAdapter, ok := s.adapters[castedResult.GetTable()]
 		if !ok {
