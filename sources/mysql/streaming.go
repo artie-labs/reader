@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/sources/mysql/streaming"
 	"github.com/artie-labs/reader/writers"
