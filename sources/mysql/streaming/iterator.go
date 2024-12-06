@@ -94,7 +94,6 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// TODO: We should check that tableAdapter's timestamp is not greater than the event's timestamp.
 	var rawMsgs []lib.RawMessage
 	for i.batchSize > int32(len(rawMsgs)) {
 		select {
