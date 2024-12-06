@@ -193,6 +193,6 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 		slog.Info("Skipping event type", slog.Any("eventType", fmt.Sprintf("%T", result)))
 	}
 
-	s.adapters[castedResult.GetTable()] = tblAdapter
+	s.adapters[result.GetTable()] = tblAdapter
 	return nil
 }
