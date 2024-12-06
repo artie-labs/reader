@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"context"
+	"database/sql"
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/sources/mysql/streaming"
 	"github.com/artie-labs/reader/writers"
@@ -11,8 +12,8 @@ type Streaming struct {
 	iterator *streaming.Iterator
 }
 
-func buildStreamingConfig(cfg config.MySQL) (Streaming, error) {
-	iter, err := streaming.BuildStreamingIterator(cfg)
+func buildStreamingConfig(db *sql.DB, cfg config.MySQL) (Streaming, error) {
+	iter, err := streaming.BuildStreamingIterator(db, cfg)
 	if err != nil {
 		return Streaming{}, err
 	}

@@ -15,7 +15,7 @@ func Load(cfg config.MySQL) (sources.Source, bool, error) {
 	}
 
 	if cfg.StreamingSettings.Enabled {
-		stream, err := buildStreamingConfig(cfg)
+		stream, err := buildStreamingConfig(db, cfg)
 		if err != nil {
 			return nil, false, fmt.Errorf("failed to build streaming config: %w", err)
 		}
