@@ -26,9 +26,21 @@ type TableAdapter struct {
 	unixTs  int64
 	columns []Column
 
+	// Generated
+	fieldConverters []transformer.FieldConverter
+
 	// These are injected when we retrieve tableAdapter.
 	tableCfg config.MySQLTable
 	dbName   string
+}
+
+func NewTableAdapter(cols []Column, unixTs int64) (TableAdapter, error) {
+	tblAdapter := TableAdapter{columns: cols, unixTs: unixTs}
+	if err := tblAdapter.buildFieldConverters(); err != nil {
+		return TableAdapter{}, fmt.Errorf("failed to build field converters: %w", err)
+	}
+
+	return tblAdapter, nil
 }
 
 func (t TableAdapter) TopicSuffix() string {
@@ -56,13 +68,16 @@ func (t TableAdapter) PartitionKeys() []string {
 	return keys
 }
 
-func (t TableAdapter) GetFieldConverters() ([]transformer.FieldConverter, error) {
-	//  TODO: Make this more efficient.
+func (t TableAdapter) GetFieldConverters() []transformer.FieldConverter {
+	return t.fieldConverters
+}
+
+func (t TableAdapter) buildFieldConverters() error {
 	var parsedColumns []schema.Column
 	for _, col := range t.columns {
 		dataType, opts, err := schema.ParseColumnDataType(col.DataType)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse column data type: %w", err)
+			return fmt.Errorf("failed to parse column data type: %w", err)
 		}
 
 		parsedColumns = append(parsedColumns, schema.Column{
@@ -75,25 +90,26 @@ func (t TableAdapter) GetFieldConverters() ([]transformer.FieldConverter, error)
 	// Exclude columns (if any) from the table metadata
 	cols, err := column.FilterOutExcludedColumns(parsedColumns, t.tableCfg.ExcludeColumns, t.PartitionKeys())
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// Include columns (if any) from the table metadata
 	cols, err = column.FilterForIncludedColumns(cols, t.tableCfg.IncludeColumns, t.PartitionKeys())
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	fieldConverters := make([]transformer.FieldConverter, len(cols))
 	for i, col := range cols {
 		converter, err := converters.ValueConverterForType(col.Type, col.Opts)
 		if err != nil {
-			return nil, fmt.Errorf("failed to build value converter for column %q: %w", col.Name, err)
+			return fmt.Errorf("failed to build value converter for column %q: %w", col.Name, err)
 		}
 		fieldConverters[i] = transformer.FieldConverter{Name: col.Name, ValueConverter: converter}
 	}
 
-	return fieldConverters, nil
+	t.fieldConverters = fieldConverters
+	return nil
 }
 
 type SchemaAdapter struct {
@@ -145,7 +161,12 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event, unixTs int64) error {
 			})
 		}
 
-		s.adapters[result.GetTable()] = TableAdapter{columns: cols, unixTs: unixTs}
+		tblAdapter, err := NewTableAdapter(cols, unixTs)
+		if err != nil {
+			return fmt.Errorf("failed to create table adapter: %w", err)
+		}
+
+		s.adapters[result.GetTable()] = tblAdapter
 		return nil
 	}
 
@@ -210,6 +231,10 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event, unixTs int64) error {
 	}
 
 	tblAdapter.unixTs = unixTs
+	if err := tblAdapter.buildFieldConverters(); err != nil {
+		return fmt.Errorf("failed to build field converters: %w", err)
+	}
+
 	s.adapters[result.GetTable()] = tblAdapter
 	return nil
 }
