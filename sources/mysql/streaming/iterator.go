@@ -38,6 +38,7 @@ func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persiste
 	// Are there any tables that are in the included list, but not in the schema adapter yet?
 	for _, tbl := range cfg.Tables {
 		if _, ok := schemaAdapter.adapters[tbl.Name]; !ok {
+			slog.Info("Table not found in schema adapter, retrieving the table ddl and adding it to the adapter", slog.String("tableName", tbl.Name))
 			ddl, err := schema.GetCreateTableDDL(db, tbl.Name)
 			if err != nil {
 				return SchemaAdapter{}, fmt.Errorf("failed to get create table DDL: %w", err)
