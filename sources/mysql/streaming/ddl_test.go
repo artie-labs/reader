@@ -208,6 +208,17 @@ func TestSchemaAdapter_ApplyDDL(t *testing.T) {
 				assert.Equal(t, Column{Name: "new_column1", DataType: "INT"}, adapter.adapters["test_table"].columns[2])
 				assert.Equal(t, Column{Name: "email", DataType: "VARCHAR(255)"}, adapter.adapters["test_table"].columns[3])
 			}
+			{
+				adapter = initializeAdapter(t)
+				// After + first
+				assert.NoError(t, adapter.ApplyDDL("ALTER TABLE test_table ADD COLUMN new_column2 INT FIRST, ADD COLUMN new_column3 VARCHAR(255) AFTER name;"))
+				assert.Len(t, adapter.adapters["test_table"].columns, 5)
+				assert.Equal(t, Column{Name: "new_column2", DataType: "INT"}, adapter.adapters["test_table"].columns[0])
+				assert.Equal(t, Column{Name: "id", DataType: "INT", PrimaryKey: true}, adapter.adapters["test_table"].columns[1])
+				assert.Equal(t, Column{Name: "name", DataType: "VARCHAR(255)"}, adapter.adapters["test_table"].columns[2])
+				assert.Equal(t, Column{Name: "new_column3", DataType: "VARCHAR(255)"}, adapter.adapters["test_table"].columns[3])
+				assert.Equal(t, Column{Name: "email", DataType: "VARCHAR(255)"}, adapter.adapters["test_table"].columns[4])
+			}
 		}
 	}
 }
