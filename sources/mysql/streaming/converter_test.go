@@ -1,10 +1,11 @@
 package streaming
 
 import (
-	"github.com/go-mysql-org/go-mysql/replication"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/go-mysql-org/go-mysql/replication"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestConvertHeaderToOperation(t *testing.T) {
