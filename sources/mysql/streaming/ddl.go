@@ -134,10 +134,9 @@ func (s *SchemaAdapter) ApplyDDL(query string) error {
 }
 
 func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
-	switch castedResult := result.(type) {
-	case antlr.CreateTableEvent:
+	if _, ok := result.(antlr.CreateTableEvent); ok {
 		var cols []Column
-		for _, col := range castedResult.GetColumns() {
+		for _, col := range result.GetColumns() {
 			cols = append(cols, Column{
 				Name:       col.Name,
 				PrimaryKey: col.PrimaryKey,
@@ -145,13 +144,17 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 			})
 		}
 
-		s.adapters[castedResult.TableName] = TableAdapter{columns: cols}
-	case antlr.RenameColumnEvent:
-		tblAdapter, ok := s.adapters[castedResult.GetTable()]
-		if !ok {
-			return fmt.Errorf("table not found: %q", castedResult.GetTable())
-		}
+		s.adapters[result.GetTable()] = TableAdapter{columns: cols}
+		return nil
+	}
 
+	tblAdapter, ok := s.adapters[result.GetTable()]
+	if !ok {
+		return fmt.Errorf("table not found: %q", result.GetTable())
+	}
+
+	switch castedResult := result.(type) {
+	case antlr.RenameColumnEvent:
 		for _, col := range castedResult.GetColumns() {
 			columnIdx := slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.PreviousName })
 			if columnIdx == -1 {
@@ -162,11 +165,6 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 			tblAdapter.columns[columnIdx].Name = col.Name
 		}
 	case antlr.AddPrimaryKeyEvent:
-		tblAdapter, ok := s.adapters[castedResult.GetTable()]
-		if !ok {
-			return fmt.Errorf("table not found: %q", castedResult.GetTable())
-		}
-
 		for _, col := range castedResult.GetColumns() {
 			columnIdx := slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name })
 			if columnIdx == -1 {
@@ -175,27 +173,7 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 
 			tblAdapter.columns[columnIdx].PrimaryKey = true
 		}
-	case antlr.ModifyColumnEvent:
-		tblAdapter, ok := s.adapters[castedResult.GetTable()]
-		if !ok {
-			return fmt.Errorf("table not found: %q", castedResult.GetTable())
-		}
-
-		for _, col := range castedResult.GetColumns() {
-			columnIdx := slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name })
-			if columnIdx == -1 {
-				return fmt.Errorf("column not found: %q", col.Name)
-			}
-
-			// TODO: Handle position
-			tblAdapter.columns[columnIdx].DataType = col.DataType
-		}
 	case antlr.DropColumnsEvent:
-		tblAdapter, ok := s.adapters[castedResult.GetTable()]
-		if !ok {
-			return fmt.Errorf("table not found: %q", castedResult.GetTable())
-		}
-
 		for _, col := range castedResult.GetColumns() {
 			columnIdx := slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name })
 			if columnIdx == -1 {
@@ -206,28 +184,70 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 		}
 
 		s.adapters[castedResult.GetTable()] = tblAdapter
-	case antlr.AddColumnsEvent:
-		tblAdapter, ok := s.adapters[castedResult.GetTable()]
-		if !ok {
-			return fmt.Errorf("table not found: %q", castedResult.GetTable())
-		}
+	case antlr.ModifyColumnEvent:
+		for _, col := range castedResult.GetColumns() {
+			columnIdx := slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name })
+			if columnIdx == -1 {
+				return fmt.Errorf("column not found: %q", col.Name)
+			}
 
+			tblAdapter.columns[columnIdx].DataType = col.DataType
+		}
+	case antlr.AddColumnsEvent:
 		for _, col := range castedResult.GetColumns() {
 			if slices.ContainsFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name }) {
 				return fmt.Errorf("column already exists: %q", col.Name)
 			}
 
-			// TODO: Handle position
 			tblAdapter.columns = append(tblAdapter.columns, Column{
 				Name:     col.Name,
 				DataType: col.DataType,
 			})
 		}
-
-		s.adapters[castedResult.GetTable()] = tblAdapter
 	default:
 		slog.Info("Skipping event type", slog.Any("eventType", fmt.Sprintf("%T", result)))
 	}
 
+	for _, col := range result.GetColumns() {
+		if col.Position != nil {
+			switch castedPosition := col.Position.(type) {
+			case antlr.FirstPosition:
+				// Find the current position, delete it and insert it at the first position
+				columnIdx := slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name })
+				if columnIdx == -1 {
+					return fmt.Errorf("column not found: %q", col.Name)
+				}
+
+				_col := tblAdapter.columns[columnIdx]
+				// Delete the column
+				tblAdapter.columns = slices.Delete(tblAdapter.columns, columnIdx, columnIdx+1)
+				// Then insert it at the first position
+				tblAdapter.columns = slices.Insert(tblAdapter.columns, 0, _col)
+			case antlr.AfterPosition:
+				// Find the current position, delete it and insert it after the specified column
+				columnIdx := slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == col.Name })
+				if columnIdx == -1 {
+					return fmt.Errorf("column not found: %q", col.Name)
+				}
+
+				_col := tblAdapter.columns[columnIdx]
+				// Delete the column
+				tblAdapter.columns = slices.Delete(tblAdapter.columns, columnIdx, columnIdx+1)
+
+				// Find the column to insert after
+				afterColumnIdx := slices.IndexFunc(tblAdapter.columns, func(x Column) bool { return x.Name == castedPosition.Column() })
+				if afterColumnIdx == -1 {
+					return fmt.Errorf("column not found: %q", castedPosition.Column())
+				}
+
+				// Insert the column after the specified column
+				tblAdapter.columns = slices.Insert(tblAdapter.columns, afterColumnIdx+1, _col)
+			default:
+				return fmt.Errorf("unknown position type: %T", castedPosition)
+			}
+		}
+	}
+
+	s.adapters[result.GetTable()] = tblAdapter
 	return nil
 }
