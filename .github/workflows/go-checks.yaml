@@ -17,16 +17,6 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
-      - name: Install antlr
-        run: |
-          curl -O https://www.antlr.org/download/antlr-4.13.2-complete.jar
-          echo "ANTLR_JAR=$(pwd)/antlr-4.13.2-complete.jar" >> $GITHUB_ENV
-
-      - name: Generate antlr files
-        run: make gh_antlr
-        env:
-            ANTLR: java -jar ${{ env.ANTLR_JAR }}
-
       - name: Run vet
         run: make vet
 
