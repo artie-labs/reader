@@ -36,7 +36,7 @@ func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
 	var latestSchemaUnixTs int64
 	schemaAdapter := SchemaAdapter{adapters: make(map[string]TableAdapter)}
 	for _, schemaHistory := range schemaHistoryList.GetData() {
-		if err = schemaAdapter.ApplyDDL(schemaHistory.Query); err != nil {
+		if err = schemaAdapter.ApplyDDL(schemaHistory.Query, schemaHistory.UnixTs); err != nil {
 			return Iterator{}, fmt.Errorf("failed to apply DDL: %w", err)
 		}
 
