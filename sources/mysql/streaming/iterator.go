@@ -2,6 +2,7 @@ package streaming
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -13,13 +14,53 @@ import (
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
+	"github.com/artie-labs/reader/lib/mysql/schema"
 	"github.com/artie-labs/reader/lib/storage/persistedlist"
 	"github.com/artie-labs/reader/lib/storage/persistedmap"
 )
 
+func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persistedlist.PersistedList[SchemaHistory], pos Position) (SchemaAdapter, error) {
+	var latestSchemaUnixTs int64
+	schemaAdapter := SchemaAdapter{adapters: make(map[string]TableAdapter)}
+	for _, schemaHistory := range schemaHistoryList.GetData() {
+		if err := schemaAdapter.ApplyDDL(schemaHistory.Query, schemaHistory.UnixTs); err != nil {
+			return SchemaAdapter{}, fmt.Errorf("failed to apply DDL: %w", err)
+		}
+
+		latestSchemaUnixTs = schemaHistory.UnixTs
+	}
+
+	// Check the position's timestamp
+	if latestSchemaUnixTs > pos.UnixTs {
+		return SchemaAdapter{}, fmt.Errorf("latest schema timestamp %d is greater than the current position's timestamp %d", latestSchemaUnixTs, pos.UnixTs)
+	}
+
+	// Are there any tables that are in the included list, but not in the schema adapter yet?
+	for _, tbl := range cfg.Tables {
+		if _, ok := schemaAdapter.adapters[tbl.Name]; !ok {
+			slog.Info("Table not found in schema adapter, retrieving the table ddl and adding it to the adapter", slog.String("tableName", tbl.Name))
+			ddl, err := schema.GetCreateTableDDL(db, tbl.Name)
+			if err != nil {
+				return SchemaAdapter{}, fmt.Errorf("failed to get create table DDL: %w", err)
+			}
+
+			now := time.Now().Unix()
+			if err = schemaHistoryList.Push(SchemaHistory{Query: ddl, UnixTs: now}); err != nil {
+				return SchemaAdapter{}, fmt.Errorf("failed to push schema history: %w", err)
+			}
+
+			if err = schemaAdapter.ApplyDDL(ddl, now); err != nil {
+				return SchemaAdapter{}, fmt.Errorf("failed to apply DDL: %w", err)
+			}
+		}
+	}
+
+	return schemaAdapter, nil
+}
+
 const offsetKey = "offset"
 
-func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
+func BuildStreamingIterator(db *sql.DB, cfg config.MySQL) (Iterator, error) {
 	var pos Position
 	offsets := persistedmap.NewPersistedMap[Position](cfg.StreamingSettings.OffsetFile)
 	if _pos, isOk := offsets.Get(offsetKey); isOk {
@@ -32,22 +73,6 @@ func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
 		return Iterator{}, fmt.Errorf("failed to create persisted list: %w", err)
 	}
 
-	// Apply DDLs
-	var latestSchemaUnixTs int64
-	schemaAdapter := SchemaAdapter{adapters: make(map[string]TableAdapter)}
-	for _, schemaHistory := range schemaHistoryList.GetData() {
-		if err = schemaAdapter.ApplyDDL(schemaHistory.Query); err != nil {
-			return Iterator{}, fmt.Errorf("failed to apply DDL: %w", err)
-		}
-
-		latestSchemaUnixTs = schemaHistory.UnixTs
-	}
-
-	// Check the position's timestamp
-	if latestSchemaUnixTs > pos.UnixTs {
-		return Iterator{}, fmt.Errorf("latest schema timestamp %d is greater than the current position's timestamp %d", latestSchemaUnixTs, pos.UnixTs)
-	}
-
 	syncer := replication.NewBinlogSyncer(
 		replication.BinlogSyncerConfig{
 			ServerID: cfg.StreamingSettings.ServerID,
@@ -58,6 +83,11 @@ func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
 			Password: cfg.Password,
 		},
 	)
+
+	schemaAdapter, err := buildSchemaAdapter(db, cfg, schemaHistoryList, pos)
+	if err != nil {
+		return Iterator{}, fmt.Errorf("failed to build schema adapter: %w", err)
+	}
 
 	streamer, err := syncer.StartSync(pos.ToMySQLPosition())
 	if err != nil {
@@ -118,6 +148,9 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 			}
 
 			switch event.Header.EventType {
+			case replication.ROTATE_EVENT:
+				// We are handling the [ROTATE_EVENT] in [UpdatePosition] method.
+				continue
 			case replication.QUERY_EVENT:
 				query, err := typing.AssertType[*replication.QueryEvent](event.Event)
 				if err != nil {

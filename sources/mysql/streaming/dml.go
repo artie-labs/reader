@@ -2,6 +2,7 @@ package streaming
 
 import (
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/typing"
@@ -23,6 +24,15 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 		return nil, nil
 	}
 
+	if tblAdapter.unixTs > ts.Unix() {
+		slog.Warn("Skipping event, our table adapter is newer than the event",
+			slog.String("tableName", tableName),
+			slog.Int64("eventTs", ts.Unix()),
+			slog.Int64("tblAdapter unixTs", tblAdapter.unixTs),
+		)
+		return nil, nil
+	}
+
 	operation, err := convertHeaderToOperation(event.Header.EventType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert header to operation: %w", err)
@@ -34,12 +44,11 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 	}
 
 	var rawMsgs []lib.RawMessage
-	fieldConverters, err := tblAdapter.GetFieldConverters()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get field converters: %w", err)
 	}
 
-	dbz := transformer.NewLightDebeziumTransformer(tableName, tblAdapter.PartitionKeys(), fieldConverters)
+	dbz := transformer.NewLightDebeziumTransformer(tableName, tblAdapter.PartitionKeys(), tblAdapter.GetFieldConverters())
 	for before, after := range beforeAndAfters {
 		var beforeRow map[string]any
 		if len(before) > 0 {
