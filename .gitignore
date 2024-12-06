@@ -1,6 +1,7 @@
 ## Generated ANTLR
 lib/antlr/generated/*
 !lib/antlr/generated/*.g4
+!lib/antlr/generated/*.go
 
 ### Terraform ###
 # Local .terraform directories
