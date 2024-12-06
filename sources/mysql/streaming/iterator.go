@@ -17,6 +17,25 @@ import (
 	"github.com/artie-labs/reader/lib/storage/persistedmap"
 )
 
+func buildSchemaAdapter(schemaHistoryList persistedlist.PersistedList[SchemaHistory], pos Position) (SchemaAdapter, error) {
+	var latestSchemaUnixTs int64
+	schemaAdapter := SchemaAdapter{adapters: make(map[string]TableAdapter)}
+	for _, schemaHistory := range schemaHistoryList.GetData() {
+		if err := schemaAdapter.ApplyDDL(schemaHistory.Query, schemaHistory.UnixTs); err != nil {
+			return SchemaAdapter{}, fmt.Errorf("failed to apply DDL: %w", err)
+		}
+
+		latestSchemaUnixTs = schemaHistory.UnixTs
+	}
+
+	// Check the position's timestamp
+	if latestSchemaUnixTs > pos.UnixTs {
+		return SchemaAdapter{}, fmt.Errorf("latest schema timestamp %d is greater than the current position's timestamp %d", latestSchemaUnixTs, pos.UnixTs)
+	}
+
+	return schemaAdapter, nil
+}
+
 const offsetKey = "offset"
 
 func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
@@ -32,22 +51,6 @@ func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
 		return Iterator{}, fmt.Errorf("failed to create persisted list: %w", err)
 	}
 
-	// Apply DDLs
-	var latestSchemaUnixTs int64
-	schemaAdapter := SchemaAdapter{adapters: make(map[string]TableAdapter)}
-	for _, schemaHistory := range schemaHistoryList.GetData() {
-		if err = schemaAdapter.ApplyDDL(schemaHistory.Query, schemaHistory.UnixTs); err != nil {
-			return Iterator{}, fmt.Errorf("failed to apply DDL: %w", err)
-		}
-
-		latestSchemaUnixTs = schemaHistory.UnixTs
-	}
-
-	// Check the position's timestamp
-	if latestSchemaUnixTs > pos.UnixTs {
-		return Iterator{}, fmt.Errorf("latest schema timestamp %d is greater than the current position's timestamp %d", latestSchemaUnixTs, pos.UnixTs)
-	}
-
 	syncer := replication.NewBinlogSyncer(
 		replication.BinlogSyncerConfig{
 			ServerID: cfg.StreamingSettings.ServerID,
@@ -58,6 +61,11 @@ func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
 			Password: cfg.Password,
 		},
 	)
+
+	schemaAdapter, err := buildSchemaAdapter(schemaHistoryList, pos)
+	if err != nil {
+		return Iterator{}, fmt.Errorf("failed to build schema adapter: %w", err)
+	}
 
 	streamer, err := syncer.StartSync(pos.ToMySQLPosition())
 	if err != nil {
