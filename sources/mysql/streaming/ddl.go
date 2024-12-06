@@ -174,7 +174,6 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 				return fmt.Errorf("column not found: %q", col.Name)
 			}
 
-			// TODO: Handle position
 			tblAdapter.columns[columnIdx].DataType = col.DataType
 		}
 	case antlr.AddColumnsEvent:
@@ -183,7 +182,6 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 				return fmt.Errorf("column already exists: %q", col.Name)
 			}
 
-			// TODO: Handle position
 			tblAdapter.columns = append(tblAdapter.columns, Column{
 				Name:     col.Name,
 				DataType: col.DataType,
@@ -191,6 +189,19 @@ func (s *SchemaAdapter) applyDDL(result antlr.Event) error {
 		}
 	default:
 		slog.Info("Skipping event type", slog.Any("eventType", fmt.Sprintf("%T", result)))
+	}
+
+	for _, col := range result.GetColumns() {
+		if col.Position != nil {
+			switch castedPosition := col.Position.(type) {
+			case antlr.FirstPosition:
+			// TODO
+			case antlr.AfterPosition:
+			// TODO
+			default:
+				return fmt.Errorf("unknown position type: %T", castedPosition)
+			}
+		}
 	}
 
 	s.adapters[result.GetTable()] = tblAdapter
