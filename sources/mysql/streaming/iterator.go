@@ -57,7 +57,6 @@ func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
 	}
 
 	return Iterator{
-		cfg:               cfg,
 		batchSize:         cfg.GetStreamingBatchSize(),
 		cfg:               cfg,
 		position:          pos,
