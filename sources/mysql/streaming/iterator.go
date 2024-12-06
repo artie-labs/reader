@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/typing"
@@ -31,6 +32,22 @@ func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
 		return Iterator{}, fmt.Errorf("failed to create persisted list: %w", err)
 	}
 
+	// Apply DDLs
+	var latestSchemaUnixTs int64
+	schemaAdapter := SchemaAdapter{adapters: make(map[string]TableAdapter)}
+	for _, schemaHistory := range schemaHistoryList.GetData() {
+		if err = schemaAdapter.ApplyDDL(schemaHistory.Query); err != nil {
+			return Iterator{}, fmt.Errorf("failed to apply DDL: %w", err)
+		}
+
+		latestSchemaUnixTs = schemaHistory.UnixTs
+	}
+
+	// Check the position's timestamp
+	if latestSchemaUnixTs > pos.UnixTs {
+		return Iterator{}, fmt.Errorf("latest schema timestamp %d is greater than the current position's timestamp %d", latestSchemaUnixTs, pos.UnixTs)
+	}
+
 	syncer := replication.NewBinlogSyncer(
 		replication.BinlogSyncerConfig{
 			ServerID: cfg.StreamingSettings.ServerID,
@@ -55,9 +72,7 @@ func BuildStreamingIterator(cfg config.MySQL) (Iterator, error) {
 		streamer:          streamer,
 		offsets:           offsets,
 		schemaHistoryList: &schemaHistoryList,
-		schemaAdapter: &SchemaAdapter{
-			adapters: make(map[string]TableAdapter),
-		},
+		schemaAdapter:     &schemaAdapter,
 	}, nil
 }
 
@@ -66,7 +81,10 @@ func (i *Iterator) HasNext() bool {
 }
 
 func (i *Iterator) CommitOffset() {
-	slog.Info("Committing offset", slog.String("position", i.position.String()))
+	slog.Info("Committing offset",
+		slog.String("position", i.position.String()),
+		slog.Int64("unixTs", i.position.UnixTs),
+	)
 	i.offsets.Set(offsetKey, i.position)
 }
 
@@ -95,7 +113,7 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 			}
 
 			ts := getTimeFromEvent(event)
-			if err = i.position.UpdatePosition(event); err != nil {
+			if err = i.position.UpdatePosition(ts, event); err != nil {
 				return nil, fmt.Errorf("failed to update position: %w", err)
 			}
 
@@ -110,7 +128,12 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 					return nil, fmt.Errorf("failed to persist DDL: %w", err)
 				}
 			case replication.WRITE_ROWS_EVENTv2, replication.UPDATE_ROWS_EVENTv2, replication.DELETE_ROWS_EVENTv2:
-			// TODO: process DML
+				rows, err := i.processDML(ts, event)
+				if err != nil {
+					return nil, fmt.Errorf("failed to process DML: %w", err)
+				}
+
+				rawMsgs = append(rawMsgs, rows...)
 			default:
 				slog.Info("Skipping event", slog.Any("eventType", event.Header.EventType))
 			}
@@ -123,4 +146,20 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 	}
 
 	return rawMsgs, nil
+}
+
+func (i *Iterator) getTableAdapter(tableName string) (TableAdapter, bool) {
+	tblAdapter, ok := i.schemaAdapter.adapters[tableName]
+	if !ok {
+		return TableAdapter{}, ok
+	}
+
+	idx := slices.IndexFunc(i.cfg.Tables, func(tbl *config.MySQLTable) bool { return tbl.Name == tableName })
+	if idx == -1 {
+		return TableAdapter{}, false
+	}
+
+	tblAdapter.tableCfg = *i.cfg.Tables[idx]
+	tblAdapter.dbName = i.cfg.Database
+	return tblAdapter, ok
 }
