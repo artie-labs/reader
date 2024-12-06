@@ -149,6 +149,14 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 			}
 
 			switch event.Header.EventType {
+			case
+				replication.ANONYMOUS_GTID_EVENT,
+				// We don't need TableMapEvent because we are handling it by consuming DDL queries, applying it to our schema adapter
+				replication.TABLE_MAP_EVENT,
+				// RotateEvent is handled by [UpdatePosition]
+				replication.ROTATE_EVENT,
+				replication.XID_EVENT:
+				continue
 			case replication.QUERY_EVENT:
 				query, err := typing.AssertType[*replication.QueryEvent](event.Event)
 				if err != nil {
