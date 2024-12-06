@@ -143,6 +143,9 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 			}
 
 			switch event.Header.EventType {
+			case replication.ROTATE_EVENT:
+				// We are handling the [ROTATE_EVENT] in [UpdatePosition] method.
+				continue
 			case replication.QUERY_EVENT:
 				query, err := typing.AssertType[*replication.QueryEvent](event.Event)
 				if err != nil {
