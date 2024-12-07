@@ -2,6 +2,7 @@ package schema
 
 import (
 	"database/sql"
+	"encoding/csv"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -57,9 +58,10 @@ const (
 )
 
 type Opts struct {
-	Scale     *uint16
-	Precision *int
-	Size      *int
+	Scale      *uint16
+	Precision  *int
+	Size       *int
+	EnumValues []string
 }
 
 type Column = column.Column[DataType, Opts]
@@ -113,6 +115,28 @@ func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 	return result, nil
 }
 
+func unescape(s string) string {
+	s = s[1 : len(s)-1]
+	s = strings.ReplaceAll(s, `\\`, `\`)
+	return strings.ReplaceAll(s, "''", "'")
+}
+
+func parseEnumValues(metadata string) ([]string, error) {
+	r := csv.NewReader(strings.NewReader(metadata))
+	r.Comma = ','
+
+	values, err := r.Read()
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse ENUM values: %w", err)
+	}
+
+	for idx, val := range values {
+		values[idx] = unescape(val)
+	}
+
+	return values, nil
+}
+
 func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
 	// Preserve the original value, so we can return the error message without the actual value being mutated.
 	s := strings.ToLower(originalS)
@@ -135,11 +159,12 @@ func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
 	}
 
 	switch s {
-	case "tinyint":
+	case "tinyint", "boolean", "bool":
 		if unsigned {
 			return SmallInt, nil, nil
 		}
 
+		// Boolean is an alias for tinyint(1)
 		return TinyInt, nil, nil
 	case "smallint":
 		if unsigned {
@@ -179,7 +204,9 @@ func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
 		return Decimal, &Opts{Precision: typing.ToPtr(precision), Scale: typing.ToPtr(uint16(scale))}, nil
 	case "float":
 		return Float, nil, nil
-	case "double":
+	case "double", "real":
+		// TODO: We should either use TableMapEvent or understand SQL_MODE so that we know if we should use a float32 or float64 for real
+		// https://dev.mysql.com/doc/refman/8.4/en/sql-mode.html#sqlmode_real_as_float
 		return Double, nil, nil
 	case "bit":
 		size, err := strconv.Atoi(metadata)
@@ -221,7 +248,17 @@ func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
 	case "longtext":
 		return LongText, nil, nil
 	case "enum":
-		return Enum, nil, nil
+		parts, err := parseEnumValues(metadata)
+		if err != nil {
+			return -1, nil, fmt.Errorf("failed to parse metadata %q: %w", metadata, err)
+		}
+
+		fmt.Println("parts")
+		for _, part := range parts {
+			fmt.Println("part", part, "len", len(part))
+		}
+
+		return Enum, &Opts{EnumValues: parts}, nil
 	case "set":
 		return Set, nil, nil
 	case "json":
