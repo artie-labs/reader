@@ -57,9 +57,10 @@ const (
 )
 
 type Opts struct {
-	Scale     *uint16
-	Precision *int
-	Size      *int
+	Scale      *uint16
+	Precision  *int
+	Size       *int
+	EnumValues []string
 }
 
 type Column = column.Column[DataType, Opts]
@@ -224,6 +225,7 @@ func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
 	case "longtext":
 		return LongText, nil, nil
 	case "enum":
+		fmt.Println("originS", originalS, "metadata", metadata)
 		return Enum, nil, nil
 	case "set":
 		return Set, nil, nil

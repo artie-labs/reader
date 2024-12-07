@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"os"
 	"slices"
 	"time"
 
@@ -150,16 +149,9 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 			}
 
 			switch event.Header.EventType {
-			case replication.TABLE_MAP_EVENT:
-				tableMap, err := typing.AssertType[*replication.TableMapEvent](event.Event)
-				if err != nil {
-					return nil, fmt.Errorf("failed to assert a table map event: %w", err)
-				}
-
-				tableMap.Dump(os.Stdout)
 			case
 				replication.ANONYMOUS_GTID_EVENT,
-				//replication.TABLE_MAP_EVENT,
+				replication.TABLE_MAP_EVENT,
 				// We don't need TableMapEvent because we are handling it by consuming DDL queries, applying it to our schema adapter
 				// RotateEvent is handled by [UpdatePosition]
 				replication.ROTATE_EVENT,
