@@ -7,6 +7,8 @@ import (
 
 func asInt16(value any) (int16, error) {
 	switch castValue := value.(type) {
+	case int8:
+		return int16(castValue), nil
 	case int16:
 		return castValue, nil
 	case int32:

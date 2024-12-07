@@ -3,6 +3,7 @@ package converters
 import (
 	"fmt"
 	"github.com/artie-labs/transfer/lib/typing"
+	"math"
 
 	"github.com/artie-labs/transfer/lib/debezium"
 )
@@ -71,6 +72,10 @@ func (Int64Passthrough) Convert(value any) (any, error) {
 // float32, float64 -> float32
 type FloatPassthrough struct{}
 
+func canFitInFloat32(value float64) bool {
+	return value >= -math.MaxFloat32 && value <= math.MaxFloat32
+}
+
 func (FloatPassthrough) ToField(name string) debezium.Field {
 	return debezium.Field{
 		FieldName: name,
@@ -82,6 +87,12 @@ func (FloatPassthrough) Convert(value any) (any, error) {
 	switch castValue := value.(type) {
 	case float32:
 		return castValue, nil
+	case float64:
+		if canFitInFloat32(castValue) {
+			return float32(castValue), nil
+		}
+
+		return nil, fmt.Errorf("value %v is too large to fit in a float32", castValue)
 	}
 	return nil, fmt.Errorf("expected float32 got %T with value: %v", value, value)
 }
@@ -117,12 +128,14 @@ func (StringPassthrough) ToField(name string) debezium.Field {
 }
 
 func (StringPassthrough) Convert(value any) (any, error) {
-	castedValue, err := typing.AssertType[string](value)
-	if err != nil {
-		return nil, err
+	switch castedValue := value.(type) {
+	case string:
+		return castedValue, nil
+	case []byte:
+		return string(castedValue), nil
+	default:
+		return nil, fmt.Errorf("expected string/[]bytes got %T with value: %v", value, value)
 	}
-
-	return castedValue, nil
 }
 
 // bytes -> bytes
