@@ -2,10 +2,10 @@ package converters
 
 import (
 	"fmt"
-	"github.com/artie-labs/transfer/lib/typing"
 	"math"
 
 	"github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/typing"
 )
 
 // bool -> bool
