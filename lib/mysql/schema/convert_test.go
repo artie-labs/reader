@@ -58,6 +58,59 @@ func TestConvertValue(t *testing.T) {
 			assert.ErrorContains(t, err, "value overflows float32")
 		}
 	}
+	{
+		// Set
+		{
+			// Passed in as a string
+			value, err := ConvertValue("dogs,cats,mouse", Set, &Opts{EnumValues: []string{"dogs", "cats", "mouse"}})
+			assert.NoError(t, err)
+			assert.Equal(t, "dogs,cats,mouse", value)
+		}
+		{
+			// Passed in as int64
+			opts := &Opts{EnumValues: []string{"dogs", "cats", "mouse"}}
+			{
+				value, err := ConvertValue(int64(0), Set, opts)
+				assert.NoError(t, err)
+				assert.Equal(t, "", value)
+			}
+			{
+				value, err := ConvertValue(int64(1), Set, opts)
+				assert.NoError(t, err)
+				assert.Equal(t, "dogs", value)
+			}
+			{
+				value, err := ConvertValue(int64(2), Set, opts)
+				assert.NoError(t, err)
+				assert.Equal(t, "cats", value)
+			}
+			{
+				value, err := ConvertValue(int64(5), Set, opts)
+				assert.NoError(t, err)
+				assert.Equal(t, "dogs,mouse", value)
+			}
+			{
+				value, err := ConvertValue(int64(7), Set, opts)
+				assert.NoError(t, err)
+				assert.Equal(t, "dogs,cats,mouse", value)
+			}
+		}
+	}
+	{
+		// Enum
+		{
+			// Passed in as a string
+			value, err := ConvertValue("dogs", Enum, &Opts{EnumValues: []string{"dogs", "cats", "mouse"}})
+			assert.NoError(t, err)
+			assert.Equal(t, "dogs", value)
+		}
+		{
+			// Passed in as int64
+			value, err := ConvertValue(int64(0), Enum, &Opts{EnumValues: []string{"dogs", "cats", "mouse"}})
+			assert.NoError(t, err)
+			assert.Equal(t, "dogs", value)
+		}
+	}
 
 	tests := []struct {
 		name        string
@@ -262,18 +315,6 @@ func TestConvertValue(t *testing.T) {
 			dataType: Text,
 			value:    []byte("hello world"),
 			expected: "hello world",
-		},
-		{
-			name:     "enum",
-			dataType: Enum,
-			value:    []byte("orange"),
-			expected: "orange",
-		},
-		{
-			name:     "set",
-			dataType: Set,
-			value:    []byte("orange"),
-			expected: "orange",
 		},
 		{
 			name:     "json",
