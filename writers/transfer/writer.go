@@ -34,8 +34,9 @@ type Writer struct {
 	tc          kafkalib.TopicConfig
 	destination destination.Baseline
 
-	beforeBackfill config.BeforeBackfill
-	primaryKeys    []string
+	beforeBackfill    config.BeforeBackfill
+	ranBeforeBackfill bool
+	primaryKeys       []string
 }
 
 func NewWriter(cfg transferConfig.Config, statsD mtr.Client, beforeBackfill config.BeforeBackfill) (*Writer, error) {
@@ -170,6 +171,13 @@ func (w *Writer) Write(ctx context.Context, messages []lib.RawMessage) error {
 		events = append(events, evt)
 	}
 
+	if !w.ranBeforeBackfill {
+		if err := w.onBackfillStart(ctx, events[0].Table); err != nil {
+			return fmt.Errorf("failed running onBackfillStart: %w", err)
+		}
+		w.ranBeforeBackfill = true
+	}
+
 	tags := map[string]string{
 		"mode":     w.cfg.Mode.String(),
 		"op":       "r",
@@ -277,7 +285,7 @@ func (w *Writer) getTableID(tableName string) sql.TableIdentifier {
 	return w.destination.IdentifierFor(w.tc, tableName)
 }
 
-func (w *Writer) BeforeBackfill(ctx context.Context, tableName string) error {
+func (w *Writer) onBackfillStart(ctx context.Context, tableName string) error {
 	switch w.beforeBackfill {
 	case config.BeforeBackfillDoNothing:
 		return nil

@@ -45,10 +45,6 @@ func (s Snapshot) snapshotTable(ctx context.Context, writer writers.Writer, tabl
 		return fmt.Errorf("failed to create MySQL adapter: %w", err)
 	}
 
-	if err := writer.BeforeBackfill(ctx, dbzAdapter.TableName()); err != nil {
-		return err
-	}
-
 	dbzTransformer, err := transformer.NewDebeziumTransformer(dbzAdapter)
 	if err != nil {
 		if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {

@@ -16,7 +16,6 @@ import (
 type DestinationWriter interface {
 	CreateTable(ctx context.Context, tableName string, columns []columns.Column) error
 	Write(ctx context.Context, rawMsgs []lib.RawMessage) error
-	BeforeBackfill(ctx context.Context, tableName string) error
 	OnComplete(ctx context.Context) error
 }
 
@@ -70,14 +69,6 @@ func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMess
 	}
 
 	return count, nil
-}
-
-func (w *Writer) BeforeBackfill(ctx context.Context, tableName string) error {
-	if err := w.destinationWriter.BeforeBackfill(ctx, tableName); err != nil {
-		return fmt.Errorf("failed running destination BeforeBackfill: %w", err)
-	}
-
-	return nil
 }
 
 func (w *Writer) OnComplete(ctx context.Context) error {
