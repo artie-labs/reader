@@ -34,9 +34,10 @@ type Writer struct {
 	tc          kafkalib.TopicConfig
 	destination destination.Baseline
 
+	primaryKeys []string
+
 	beforeBackfill     config.BeforeBackfill
 	ranOnBackfillStart bool
-	primaryKeys        []string
 }
 
 func NewWriter(cfg transferConfig.Config, statsD mtr.Client, beforeBackfill config.BeforeBackfill) (*Writer, error) {
