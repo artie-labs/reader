@@ -127,6 +127,42 @@ func (w *Writer) CreateTable(ctx context.Context, tableName string, columns []co
 	return nil
 }
 
+func (w *Writer) DropTable(ctx context.Context, tableName string) error {
+	dwh, ok := w.destination.(destination.DataWarehouse)
+	if !ok {
+		return nil
+	}
+
+	dropTableSQL, err := dwh.Dialect().BuildDropTableQuery(w.getTableID(tableName))
+	if err != nil {
+		return fmt.Errorf("failed to build drop table SQL: %w", err)
+	}
+
+	if _, err = dwh.ExecContext(ctx, dropTableSQL); err != nil {
+		return fmt.Errorf("failed to drop table: %w", err)
+	}
+
+	return nil
+}
+
+func (w *Writer) TruncateTable(ctx context.Context, tableName string) error {
+	dwh, ok := w.destination.(destination.DataWarehouse)
+	if !ok {
+		return nil
+	}
+
+	truncateTableSQL, err := dwh.Dialect().BuildTruncateTableQuery(w.getTableID(tableName))
+	if err != nil {
+		return fmt.Errorf("failed to build truncate table SQL: %w", err)
+	}
+
+	if _, err = dwh.ExecContext(ctx, truncateTableSQL); err != nil {
+		return fmt.Errorf("failed to truncate table: %w", err)
+	}
+
+	return nil
+}
+
 func (w *Writer) Write(ctx context.Context, messages []lib.RawMessage) error {
 	if len(messages) == 0 {
 		return nil

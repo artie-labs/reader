@@ -19,8 +19,9 @@ import (
 )
 
 type Snapshot struct {
-	cfg config.MySQL
-	db  *sql.DB
+	cfg            config.MySQL
+	beforeBackfill config.BeforeBackfill
+	db             *sql.DB
 }
 
 func (s Snapshot) Close() error {
@@ -43,6 +44,10 @@ func (s Snapshot) snapshotTable(ctx context.Context, writer writers.Writer, tabl
 	dbzAdapter, err := adapter.NewMySQLAdapter(s.db, s.cfg.Database, tableCfg)
 	if err != nil {
 		return fmt.Errorf("failed to create MySQL adapter: %w", err)
+	}
+
+	if err := writer.BeforeSnapshot(ctx, s.beforeBackfill, dbzAdapter.TableName()); err != nil {
+		return err
 	}
 
 	dbzTransformer, err := transformer.NewDebeziumTransformer(dbzAdapter)
