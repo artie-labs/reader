@@ -128,14 +128,12 @@ func (StringPassthrough) ToField(name string) debezium.Field {
 }
 
 func (StringPassthrough) Convert(value any) (any, error) {
-	switch castedValue := value.(type) {
-	case string:
-		return castedValue, nil
-	case []byte:
-		return string(castedValue), nil
-	default:
-		return nil, fmt.Errorf("expected string/[]bytes got %T with value: %v", value, value)
+	castedValue, err := typing.AssertType[string](value)
+	if err != nil {
+		return nil, err
 	}
+
+	return castedValue, nil
 }
 
 // bytes -> bytes

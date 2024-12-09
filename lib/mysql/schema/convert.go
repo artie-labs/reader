@@ -9,6 +9,17 @@ import (
 	"time"
 )
 
+func asString(val any) (string, error) {
+	switch val.(type) {
+	case string:
+		return val.(string), nil
+	case []byte:
+		return string(val.([]byte)), nil
+	default:
+		return "", fmt.Errorf("expected string or []byte got %T for value: %v", val, val)
+	}
+}
+
 const DateTimeFormat = "2006-01-02 15:04:05.999999999"
 
 // ConvertValue takes a value returned from the MySQL driver and converts it to a native Go type.
@@ -91,12 +102,11 @@ func ConvertValue(value any, colType DataType, opts *Opts) (any, error) {
 		// MySQL supports 0000-00-00 for dates so we can't use time.Time
 		return string(bytesValue), nil
 	case DateTime, Timestamp:
-		bytesValue, ok := value.([]byte)
-		if !ok {
-			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
+		stringValue, err := asString(value)
+		if err != nil {
+			return nil, err
 		}
 
-		stringValue := string(bytesValue)
 		if hasNonStrictModeInvalidDate(stringValue) {
 			return nil, nil
 		}
@@ -118,15 +128,7 @@ func ConvertValue(value any, colType DataType, opts *Opts) (any, error) {
 		Set,
 		JSON:
 		// Types that we expect as a byte array that will be converted to strings
-		switch castValue := value.(type) {
-		case []byte:
-			return string(castValue), nil
-		case string:
-			// The driver should return these these types as []byte but no reason not to support strings too
-			return castValue, nil
-		default:
-			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
-		}
+		return asString(value)
 	case Point:
 		bytes, ok := value.([]byte)
 		if !ok {
