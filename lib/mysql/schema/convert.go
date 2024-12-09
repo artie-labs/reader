@@ -9,6 +9,23 @@ import (
 	"time"
 )
 
+func asInt64(val any) (int64, error) {
+	switch castedValue := val.(type) {
+	case int64:
+		return castedValue, nil
+	case int32:
+		return int64(castedValue), nil
+	case int16:
+		return int64(castedValue), nil
+	case int8:
+		return int64(castedValue), nil
+	case int:
+		return int64(castedValue), nil
+	default:
+		return 0, fmt.Errorf("expected integers, got %T with value: %v", val, val)
+	}
+}
+
 func asString(val any) (string, error) {
 	switch val.(type) {
 	case string:
@@ -81,12 +98,7 @@ func ConvertValue(value any, colType DataType, opts *Opts) (any, error) {
 		Int,
 		BigInt,
 		Year:
-		// Types we expect as int64
-		_, ok := value.(int64)
-		if !ok {
-			return nil, fmt.Errorf("expected int64 got %T for value: %v", value, value)
-		}
-		return value, nil
+		return asInt64(value)
 	case Float:
 		return asFloat32(value)
 	case Double:

@@ -22,12 +22,12 @@ func preprocessRow(row map[string]any, parsedColumns []schema.Column) (map[strin
 			return nil, fmt.Errorf("column %q not found in row", col.Name)
 		}
 
-		val, err := schema.ConvertValue(val, col.Type, col.Opts)
+		parsedValue, err := schema.ConvertValue(val, col.Type, col.Opts)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert value '%v': %w", val, err)
 		}
 
-		out[col.Name] = val
+		out[col.Name] = parsedValue
 	}
 
 	return out, nil
