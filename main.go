@@ -70,7 +70,7 @@ func buildDestinationWriter(ctx context.Context, cfg *config.Settings, statsD mt
 		)
 		return kafkalib.NewBatchWriter(ctx, *kafkaCfg, statsD)
 	case config.DestinationTransfer:
-		return transfer.NewWriter(*cfg.Transfer, statsD)
+		return transfer.NewWriter(*cfg.Transfer, statsD, cfg.BeforeBackfill)
 	default:
 		panic(fmt.Sprintf("unknown destination %q", cfg.Destination)) // should never happen
 	}
