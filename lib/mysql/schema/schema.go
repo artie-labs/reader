@@ -57,9 +57,10 @@ const (
 )
 
 type Opts struct {
-	Scale     *uint16
-	Precision *int
-	Size      *int
+	Scale      *uint16
+	Precision  *int
+	Size       *int
+	EnumValues []string
 }
 
 type Column = column.Column[DataType, Opts]
@@ -130,7 +131,7 @@ func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
 			// Make sure the format looks like int (n) unsigned
 			return -1, nil, fmt.Errorf("malformed data type: %q", originalS)
 		}
-		metadata = s[parenIndex+1 : len(s)-1]
+		metadata = originalS[parenIndex+1 : len(s)-1]
 		s = s[:parenIndex]
 	}
 
@@ -223,10 +224,18 @@ func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
 		return MediumText, nil, nil
 	case "longtext":
 		return LongText, nil, nil
-	case "enum":
-		return Enum, nil, nil
-	case "set":
-		return Set, nil, nil
+	case "enum", "set":
+		dataType := Enum
+		if s == "set" {
+			dataType = Set
+		}
+
+		values, err := parseEnumValues(metadata)
+		if err != nil {
+			return -1, nil, fmt.Errorf("failed to parse enum values: %w", err)
+		}
+
+		return dataType, &Opts{EnumValues: values}, nil
 	case "json":
 		return JSON, nil, nil
 	case "point":

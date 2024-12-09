@@ -9,6 +9,38 @@ import (
 	"time"
 )
 
+// asSet will parse values that come from streaming and snapshot processes
+// - Snapshot will emit the value as a string, and we'll return it directly.
+// - Streaming will emit the value as an int64 (which is the bitset), and we'll convert it to a string.
+func asSet(val any, opts []string) (string, error) {
+	if castedValue, ok := val.(int64); ok {
+		var out []string
+		for i, opt := range opts {
+			if castedValue&(1<<uint(i)) > 0 {
+				out = append(out, opt)
+			}
+		}
+
+		return strings.Join(out, ","), nil
+	}
+
+	return asString(val)
+}
+
+// asEnum will parse values that come from streaming and snapshot processes
+// - Snapshot will emit the value as a string, and we'll return it directly.
+// - Streaming will emit the value as an int64 (which is the index), and we'll convert it to a string.
+func asEnum(val any, opts []string) (string, error) {
+	if castedValue, ok := val.(int64); ok {
+		if int(castedValue) >= len(opts) {
+			return "", fmt.Errorf("enum value %d not in range [0, %d]", castedValue, len(opts)-1)
+		}
+		return opts[castedValue], nil
+	}
+
+	return asString(val)
+}
+
 func asInt64(val any) (int64, error) {
 	switch castedValue := val.(type) {
 	case int64:
@@ -133,6 +165,18 @@ func ConvertValue(value any, colType DataType, opts *Opts) (any, error) {
 			return nil, err
 		}
 		return timeValue, nil
+	case Enum:
+		if opts == nil {
+			return nil, fmt.Errorf("enum column has no options")
+		}
+
+		return asEnum(value, opts.EnumValues)
+	case Set:
+		if opts == nil {
+			return nil, fmt.Errorf("set column has no options")
+		}
+
+		return asSet(value, opts.EnumValues)
 	case Decimal,
 		Time,
 		Char,
@@ -141,8 +185,6 @@ func ConvertValue(value any, colType DataType, opts *Opts) (any, error) {
 		TinyText,
 		MediumText,
 		LongText,
-		Enum,
-		Set,
 		JSON:
 		// Types that we expect as a byte array that will be converted to strings
 		return asString(value)
@@ -239,4 +281,53 @@ func hasNonStrictModeInvalidDate(d string) bool {
 		}
 	}
 	return false
+}
+
+func peek(s string, position uint) (byte, bool) {
+	if len(s) <= int(position) {
+		return 0, false
+	}
+
+	return s[position], true
+}
+
+// parseEnumValues will parse the metadata string for an ENUM or SET column and return the values.
+// Note: This was not implemented using Go's CSV stdlib as we cannot modify the quote char from `"` to `'`. Ref: https://github.com/golang/go/issues/8458
+func parseEnumValues(metadata string) ([]string, error) {
+	var quoteByte byte = '\''
+	var result []string
+	var current strings.Builder
+	var inQuotes bool
+
+	for i := 0; i < len(metadata); i++ {
+		char := metadata[i]
+		switch char {
+		case quoteByte:
+			if inQuotes {
+				if nextChar, ok := peek(metadata, uint(i+1)); ok && nextChar == quoteByte {
+					current.WriteByte(quoteByte)
+					i++
+				} else {
+					inQuotes = false
+				}
+			} else {
+				inQuotes = true
+			}
+		case ',':
+			if inQuotes {
+				current.WriteByte(char)
+			} else {
+				result = append(result, current.String())
+				current.Reset()
+			}
+		default:
+			current.WriteByte(char)
+		}
+	}
+
+	if current.Len() > 0 {
+		result = append(result, current.String())
+	}
+
+	return result, nil
 }
