@@ -240,3 +240,52 @@ func hasNonStrictModeInvalidDate(d string) bool {
 	}
 	return false
 }
+
+func peek(s string, position uint) (rune, bool) {
+	if len(s) <= int(position) {
+		return 0, false
+	}
+
+	return rune(s[position]), true
+}
+
+// parseEnumValues will parse the metadata string for an ENUM or SET column and return the values.
+// Note: This was not implemented using Go's CSV stdlib as we cannot modify the quote char from `"` to `'`. Ref: https://github.com/golang/go/issues/8458
+func parseEnumValues(metadata string) ([]string, error) {
+	quoteRune := '\''
+	var result []string
+	var current strings.Builder
+	var inQuotes bool
+
+	for i := 0; i < len(metadata); i++ {
+		char := rune(metadata[i])
+		switch char {
+		case quoteRune:
+			if inQuotes {
+				if nextChar, ok := peek(metadata, uint(i+1)); ok && nextChar == quoteRune {
+					current.WriteRune(quoteRune)
+					i++
+				} else {
+					inQuotes = false
+				}
+			} else {
+				inQuotes = true
+			}
+		case ',':
+			if inQuotes {
+				current.WriteRune(char)
+			} else {
+				result = append(result, current.String())
+				current.Reset()
+			}
+		default:
+			current.WriteRune(char)
+		}
+	}
+
+	if current.Len() > 0 {
+		result = append(result, current.String())
+	}
+
+	return result, nil
+}

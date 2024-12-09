@@ -93,6 +93,33 @@ func TestParseColumnDataType(t *testing.T) {
 		assert.Equal(t, &Opts{Precision: typing.ToPtr(5), Scale: typing.ToPtr(uint16(2))}, opts)
 	}
 	{
+		// Enum
+		{
+			// No need to escape
+			dataType, opts, err := ParseColumnDataType("enum('a','b','c')")
+			assert.NoError(t, err)
+			assert.Equal(t, Enum, dataType)
+			assert.Equal(t, &Opts{EnumValues: []string{"a", "b", "c"}}, opts)
+		}
+		{
+			// Need to escape
+			dataType, opts, err := ParseColumnDataType(`enum('newline\n','tab	','backslash\\','quote''s')`)
+			assert.NoError(t, err)
+			assert.Equal(t, Enum, dataType)
+			assert.Equal(t, &Opts{EnumValues: []string{"newline\\n", "tab\t", "backslash\\\\", "quote's"}}, opts)
+			assert.Equal(t, &Opts{EnumValues: []string{"newline\\n", `tab	`, `backslash\\`, "quote's"}}, opts)
+
+		}
+		{
+			// Need to escape another one
+			dataType, opts, err := ParseColumnDataType("ENUM('active','inactive','on hold','approved by ''manager''','needs \\\\review')")
+			assert.NoError(t, err)
+			assert.Equal(t, Enum, dataType)
+			assert.Equal(t, &Opts{EnumValues: []string{"active", "inactive", "on hold", "approved by 'manager'", "needs \\\\review"}}, opts)
+			assert.Equal(t, &Opts{EnumValues: []string{"active", "inactive", "on hold", `approved by 'manager'`, `needs \\review`}}, opts)
+		}
+	}
+	{
 		// Blob
 		for _, blob := range []string{"blob", "tinyblob", "mediumblob", "longblob"} {
 			dataType, _, err := ParseColumnDataType(blob)
