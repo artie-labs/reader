@@ -183,7 +183,7 @@ func (b *BatchWriter) Write(ctx context.Context, rawMsgs []lib.RawMessage) error
 	return b.write(ctx, msgs, sampleExecutionTime)
 }
 
-func (*BatchWriter) BeforeBackfill(ctx context.Context, _ string) error {
+func (*BatchWriter) BeforeBackfill(_ context.Context, _ string) error {
 	return nil
 }
 
