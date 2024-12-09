@@ -130,7 +130,7 @@ func (w *Writer) CreateTable(ctx context.Context, tableName string, columns []co
 	return nil
 }
 
-func (w *Writer) DropTable(ctx context.Context, tableName string) error {
+func (w *Writer) dropTable(ctx context.Context, tableName string) error {
 	dwh, ok := w.destination.(destination.DataWarehouse)
 	if !ok {
 		return nil
@@ -146,7 +146,7 @@ func (w *Writer) DropTable(ctx context.Context, tableName string) error {
 	return nil
 }
 
-func (w *Writer) TruncateTable(ctx context.Context, tableName string) error {
+func (w *Writer) truncateTable(ctx context.Context, tableName string) error {
 	dwh, ok := w.destination.(destination.DataWarehouse)
 	if !ok {
 		return nil
@@ -288,12 +288,12 @@ func (w *Writer) BeforeBackfill(ctx context.Context, tableName string) error {
 	case config.BeforeBackfillDoNothing:
 		return nil
 	case config.BeforeBackfillTruncateTable:
-		if err := w.TruncateTable(ctx, tableName); err != nil {
+		if err := w.truncateTable(ctx, tableName); err != nil {
 			return fmt.Errorf("failed to truncate table: %w", err)
 		}
 		return nil
 	case config.BeforeBackfillDropTable:
-		if err := w.DropTable(ctx, tableName); err != nil {
+		if err := w.dropTable(ctx, tableName); err != nil {
 			return fmt.Errorf("failed to drop table: %w", err)
 		}
 		return nil
