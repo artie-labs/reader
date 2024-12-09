@@ -102,6 +102,13 @@ func TestParseColumnDataType(t *testing.T) {
 			assert.Equal(t, &Opts{EnumValues: []string{"a", "b", "c"}}, opts)
 		}
 		{
+			// No need to escape, testing for capitalization
+			dataType, opts, err := ParseColumnDataType("ENUM('A','B','C')")
+			assert.NoError(t, err)
+			assert.Equal(t, Enum, dataType)
+			assert.Equal(t, &Opts{EnumValues: []string{"A", "B", "C"}}, opts)
+		}
+		{
 			// Need to escape
 			dataType, opts, err := ParseColumnDataType(`enum('newline\n','tab	','backslash\\','quote''s')`)
 			assert.NoError(t, err)
@@ -117,6 +124,23 @@ func TestParseColumnDataType(t *testing.T) {
 			assert.Equal(t, Enum, dataType)
 			assert.Equal(t, &Opts{EnumValues: []string{"active", "inactive", "on hold", "approved by 'manager'", "needs \\\\review"}}, opts)
 			assert.Equal(t, &Opts{EnumValues: []string{"active", "inactive", "on hold", `approved by 'manager'`, `needs \\review`}}, opts)
+		}
+	}
+	{
+		// Set
+		{
+			// No need to escape
+			dataType, opts, err := ParseColumnDataType("set('a','b','c')")
+			assert.NoError(t, err)
+			assert.Equal(t, Set, dataType)
+			assert.Equal(t, &Opts{EnumValues: []string{"a", "b", "c"}}, opts)
+		}
+		{
+			// No need to escape, testing for capitalization
+			dataType, opts, err := ParseColumnDataType("SET('A','B','C')")
+			assert.NoError(t, err)
+			assert.Equal(t, Set, dataType)
+			assert.Equal(t, &Opts{EnumValues: []string{"A", "B", "C"}}, opts)
 		}
 	}
 	{
