@@ -2,7 +2,6 @@ package schema
 
 import (
 	"database/sql"
-	"encoding/csv"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -58,10 +57,9 @@ const (
 )
 
 type Opts struct {
-	Scale      *uint16
-	Precision  *int
-	Size       *int
-	EnumValues []string
+	Scale     *uint16
+	Precision *int
+	Size      *int
 }
 
 type Column = column.Column[DataType, Opts]
@@ -113,28 +111,6 @@ func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 		})
 	}
 	return result, nil
-}
-
-func unescape(s string) string {
-	s = s[1 : len(s)-1]
-	s = strings.ReplaceAll(s, `\\`, `\`)
-	return strings.ReplaceAll(s, "''", "'")
-}
-
-func parseEnumValues(metadata string) ([]string, error) {
-	r := csv.NewReader(strings.NewReader(metadata))
-	r.Comma = ','
-
-	values, err := r.Read()
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse ENUM values: %w", err)
-	}
-
-	for idx, val := range values {
-		values[idx] = unescape(val)
-	}
-
-	return values, nil
 }
 
 func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
@@ -248,17 +224,7 @@ func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
 	case "longtext":
 		return LongText, nil, nil
 	case "enum":
-		parts, err := parseEnumValues(metadata)
-		if err != nil {
-			return -1, nil, fmt.Errorf("failed to parse metadata %q: %w", metadata, err)
-		}
-
-		fmt.Println("parts")
-		for _, part := range parts {
-			fmt.Println("part", part, "len", len(part))
-		}
-
-		return Enum, &Opts{EnumValues: parts}, nil
+		return Enum, nil, nil
 	case "set":
 		return Set, nil, nil
 	case "json":
