@@ -2,6 +2,8 @@ package schema
 
 import (
 	"encoding/base64"
+	"fmt"
+	"math"
 	"testing"
 	"time"
 
@@ -18,6 +20,33 @@ func mustDecodeBase64(value string) []byte {
 }
 
 func TestConvertValue(t *testing.T) {
+	{
+		// Floats
+		{
+			// Invalid type
+			_, err := ConvertValue("bad float", Float, nil)
+			assert.ErrorContains(t, err, "expected float32 or float64 got string with value: bad float")
+		}
+		{
+			// Float32
+			value, err := ConvertValue(float32(1.234), Float, nil)
+			assert.NoError(t, err)
+			assert.Equal(t, float32(1.234), value)
+		}
+		{
+			// Float64 (within range)
+			value, err := ConvertValue(float64(1.234), Float, nil)
+			assert.NoError(t, err)
+			assert.Equal(t, float32(1.234), value)
+		}
+		{
+			// Float64 (overflow)
+			_, err := ConvertValue(float64(math.MaxFloat32*1.5), Float, nil)
+			fmt.Println("err", err)
+			assert.ErrorContains(t, err, "value overflows float32")
+		}
+	}
+
 	tests := []struct {
 		name        string
 		dataType    DataType
@@ -125,18 +154,6 @@ func TestConvertValue(t *testing.T) {
 			dataType: Year,
 			value:    int64(2021),
 			expected: int64(2021),
-		},
-		{
-			name:     "float",
-			dataType: Float,
-			value:    float32(1.234),
-			expected: float32(1.234),
-		},
-		{
-			name:        "float - malformed",
-			dataType:    Float,
-			value:       "bad float",
-			expectedErr: "expected float32 got string for value",
 		},
 		{
 			name:     "double",
