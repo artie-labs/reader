@@ -34,9 +34,9 @@ type Writer struct {
 	tc          kafkalib.TopicConfig
 	destination destination.Baseline
 
-	beforeBackfill    config.BeforeBackfill
-	ranBeforeBackfill bool
-	primaryKeys       []string
+	beforeBackfill     config.BeforeBackfill
+	ranOnBackfillStart bool
+	primaryKeys        []string
 }
 
 func NewWriter(cfg transferConfig.Config, statsD mtr.Client, beforeBackfill config.BeforeBackfill) (*Writer, error) {
@@ -171,11 +171,11 @@ func (w *Writer) Write(ctx context.Context, messages []lib.RawMessage) error {
 		events = append(events, evt)
 	}
 
-	if !w.ranBeforeBackfill {
+	if !w.ranOnBackfillStart {
 		if err := w.onBackfillStart(ctx, events[0].Table); err != nil {
 			return fmt.Errorf("failed running onBackfillStart: %w", err)
 		}
-		w.ranBeforeBackfill = true
+		w.ranOnBackfillStart = true
 	}
 
 	tags := map[string]string{
