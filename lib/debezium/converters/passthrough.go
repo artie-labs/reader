@@ -2,8 +2,6 @@ package converters
 
 import (
 	"fmt"
-	"math"
-
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/artie-labs/transfer/lib/typing"
 )
@@ -69,12 +67,8 @@ func (Int64Passthrough) Convert(value any) (any, error) {
 	return asInt64(value)
 }
 
-// float32, float64 -> float32
+// float32 -> float32
 type FloatPassthrough struct{}
-
-func canFitInFloat32(value float64) bool {
-	return value >= -math.MaxFloat32 && value <= math.MaxFloat32
-}
 
 func (FloatPassthrough) ToField(name string) debezium.Field {
 	return debezium.Field{
@@ -87,12 +81,6 @@ func (FloatPassthrough) Convert(value any) (any, error) {
 	switch castValue := value.(type) {
 	case float32:
 		return castValue, nil
-	case float64:
-		if canFitInFloat32(castValue) {
-			return float32(castValue), nil
-		}
-
-		return nil, fmt.Errorf("value %v is too large to fit in a float32", castValue)
 	}
 	return nil, fmt.Errorf("expected float32 got %T with value: %v", value, value)
 }
