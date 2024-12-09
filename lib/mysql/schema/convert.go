@@ -11,20 +11,17 @@ import (
 
 func asSet(val any, opts []string) (string, error) {
 	if castedValue, ok := val.(int64); ok {
-		// Set stores the values as bitmaps
-		var result strings.Builder
+		var out []string
 		for i, opt := range opts {
 			if castedValue&(1<<uint(i)) > 0 {
-				if result.Len() > 0 {
-					result.WriteString(",")
-				}
-				result.WriteString(opt)
+				out = append(out, opt)
 			}
 		}
 
-		return result.String(), nil
+		return strings.Join(out, ","), nil
 	}
 
+	// Snapshot will emit it as a string
 	return asString(val)
 }
 
@@ -36,6 +33,7 @@ func asEnum(val any, opts []string) (string, error) {
 		return opts[castedValue], nil
 	}
 
+	// Snapshot will emit it as a string
 	return asString(val)
 }
 
