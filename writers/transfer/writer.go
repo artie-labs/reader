@@ -173,10 +173,10 @@ func (w *Writer) Write(ctx context.Context, messages []lib.RawMessage) error {
 	}
 
 	if !w.ranOnBackfillStart {
+		w.ranOnBackfillStart = true
 		if err := w.onBackfillStart(ctx, events[0].Table); err != nil {
 			return fmt.Errorf("failed running onBackfillStart: %w", err)
 		}
-		w.ranOnBackfillStart = true
 	}
 
 	tags := map[string]string{
