@@ -140,7 +140,7 @@ func (w *Writer) dropTable(ctx context.Context, tableName string) error {
 
 	tableID := w.getTableID(tableName)
 
-	slog.Info("Dropping table...", slog.String("table", tableID.FullyQualifiedName()))
+	slog.Info("Dropping table before backfill...", slog.String("table", tableID.FullyQualifiedName()))
 	_, err := dwh.ExecContext(ctx, dwh.Dialect().BuildDropTableQuery(tableID))
 	return err
 }
@@ -153,7 +153,7 @@ func (w *Writer) truncateTable(ctx context.Context, tableName string) error {
 
 	tableID := w.getTableID(tableName)
 
-	slog.Info("Truncating table...", slog.String("table", tableID.FullyQualifiedName()))
+	slog.Info("Truncating table before backfill...", slog.String("table", tableID.FullyQualifiedName()))
 	_, err := dwh.ExecContext(ctx, dwh.Dialect().BuildTruncateTableQuery(tableID))
 	return err
 }
