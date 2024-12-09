@@ -136,10 +136,10 @@ func (w *Writer) dropTable(ctx context.Context, tableName string) error {
 		return nil
 	}
 
-	dropTableSQL := dwh.Dialect().BuildDropTableQuery(w.getTableID(tableName))
+	tableID := w.getTableID(tableName)
 
-	slog.Info("Dropping table...", slog.String("table", tableName))
-	if _, err := dwh.ExecContext(ctx, dropTableSQL); err != nil {
+	slog.Info("Dropping table...", slog.String("table", tableID.FullyQualifiedName()))
+	if _, err := dwh.ExecContext(ctx, dwh.Dialect().BuildDropTableQuery(tableID)); err != nil {
 		return fmt.Errorf("failed to drop table: %w", err)
 	}
 
@@ -152,10 +152,10 @@ func (w *Writer) truncateTable(ctx context.Context, tableName string) error {
 		return nil
 	}
 
-	truncateTableSQL := dwh.Dialect().BuildTruncateTableQuery(w.getTableID(tableName))
+	tableID := w.getTableID(tableName)
 
-	slog.Info("Truncating table...", slog.String("table", tableName))
-	if _, err := dwh.ExecContext(ctx, truncateTableSQL); err != nil {
+	slog.Info("Truncating table...", slog.String("table", tableID.FullyQualifiedName()))
+	if _, err := dwh.ExecContext(ctx, dwh.Dialect().BuildTruncateTableQuery(tableID)); err != nil {
 		return fmt.Errorf("failed to truncate table: %w", err)
 	}
 
