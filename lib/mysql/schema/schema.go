@@ -135,11 +135,12 @@ func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
 	}
 
 	switch s {
-	case "tinyint":
+	case "tinyint", "boolean", "bool":
 		if unsigned {
 			return SmallInt, nil, nil
 		}
 
+		// Boolean is an alias for tinyint(1)
 		return TinyInt, nil, nil
 	case "smallint":
 		if unsigned {
@@ -179,7 +180,9 @@ func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
 		return Decimal, &Opts{Precision: typing.ToPtr(precision), Scale: typing.ToPtr(uint16(scale))}, nil
 	case "float":
 		return Float, nil, nil
-	case "double":
+	case "double", "real":
+		// TODO: We should either use TableMapEvent or understand SQL_MODE so that we know if we should use a float32 or float64 for real
+		// https://dev.mysql.com/doc/refman/8.4/en/sql-mode.html#sqlmode_real_as_float
 		return Double, nil, nil
 	case "bit":
 		size, err := strconv.Atoi(metadata)

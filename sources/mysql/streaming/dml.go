@@ -49,6 +49,11 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 		return nil, fmt.Errorf("failed to get field converters: %w", err)
 	}
 
+	parsedColumns, err := tblAdapter.GetParsedColumns()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get parsed columns: %w", err)
+	}
+
 	dbz := transformer.NewLightDebeziumTransformer(tableName, tblAdapter.PartitionKeys(), fieldConverters)
 	for before, after := range beforeAndAfters {
 		var beforeRow map[string]any
@@ -65,6 +70,17 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 			if err != nil {
 				return nil, fmt.Errorf("failed to convert row to map:%w", err)
 			}
+		}
+
+		// Preprocess
+		beforeRow, err = preprocessRow(beforeRow, parsedColumns)
+		if err != nil {
+			return nil, fmt.Errorf("failed to preprocess before row: %w", err)
+		}
+
+		afterRow, err = preprocessRow(afterRow, parsedColumns)
+		if err != nil {
+			return nil, fmt.Errorf("failed to preprocess after row: %w", err)
 		}
 
 		dbzMessage, err := dbz.BuildEventPayload(beforeRow, afterRow, operation, ts)

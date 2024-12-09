@@ -6,8 +6,32 @@ import (
 	"slices"
 	"time"
 
+	"github.com/artie-labs/reader/lib/mysql/schema"
 	"github.com/go-mysql-org/go-mysql/replication"
 )
+
+func preprocessRow(row map[string]any, parsedColumns []schema.Column) (map[string]any, error) {
+	out := make(map[string]any)
+	if len(row) == 0 {
+		return out, nil
+	}
+
+	for _, col := range parsedColumns {
+		val, ok := row[col.Name]
+		if !ok {
+			return nil, fmt.Errorf("column %q not found in row", col.Name)
+		}
+
+		parsedValue, err := schema.ConvertValue(val, col.Type, col.Opts)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert value '%v': %w", val, err)
+		}
+
+		out[col.Name] = parsedValue
+	}
+
+	return out, nil
+}
 
 func convertHeaderToOperation(evtType replication.EventType) (string, error) {
 	switch evtType {
