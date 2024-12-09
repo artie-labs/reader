@@ -9,6 +9,36 @@ import (
 	"time"
 )
 
+func asSet(val any, opts []string) (string, error) {
+	if castedValue, ok := val.(int64); ok {
+		// Set stores the values as bitmaps
+		var result strings.Builder
+		for i, opt := range opts {
+			if castedValue&(1<<uint(i)) > 0 {
+				if result.Len() > 0 {
+					result.WriteString(",")
+				}
+				result.WriteString(opt)
+			}
+		}
+
+		return result.String(), nil
+	}
+
+	return asString(val)
+}
+
+func asEnum(val any, opts []string) (string, error) {
+	if castedValue, ok := val.(int64); ok {
+		if int(castedValue) >= len(opts) {
+			return "", fmt.Errorf("enum value %d not in range [0, %d]", castedValue, len(opts)-1)
+		}
+		return opts[castedValue], nil
+	}
+
+	return asString(val)
+}
+
 func asInt64(val any) (int64, error) {
 	switch castedValue := val.(type) {
 	case int64:
@@ -133,6 +163,18 @@ func ConvertValue(value any, colType DataType, opts *Opts) (any, error) {
 			return nil, err
 		}
 		return timeValue, nil
+	case Enum:
+		if opts == nil {
+			return nil, fmt.Errorf("enum column has no options")
+		}
+
+		return asEnum(value, opts.EnumValues)
+	case Set:
+		if opts == nil {
+			return nil, fmt.Errorf("set column has no options")
+		}
+
+		return asSet(value, opts.EnumValues)
 	case Decimal,
 		Time,
 		Char,
@@ -141,8 +183,6 @@ func ConvertValue(value any, colType DataType, opts *Opts) (any, error) {
 		TinyText,
 		MediumText,
 		LongText,
-		Enum,
-		Set,
 		JSON:
 		// Types that we expect as a byte array that will be converted to strings
 		return asString(value)

@@ -131,7 +131,7 @@ func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
 			// Make sure the format looks like int (n) unsigned
 			return -1, nil, fmt.Errorf("malformed data type: %q", originalS)
 		}
-		metadata = s[parenIndex+1 : len(s)-1]
+		metadata = originalS[parenIndex+1 : len(s)-1]
 		s = s[:parenIndex]
 	}
 
@@ -224,15 +224,18 @@ func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
 		return MediumText, nil, nil
 	case "longtext":
 		return LongText, nil, nil
-	case "enum":
+	case "enum", "set":
+		dataType := Enum
+		if s == "set" {
+			dataType = Set
+		}
+
 		values, err := parseEnumValues(metadata)
 		if err != nil {
 			return -1, nil, fmt.Errorf("failed to parse enum values: %w", err)
 		}
 
-		return Enum, &Opts{EnumValues: values}, nil
-	case "set":
-		return Set, nil, nil
+		return dataType, &Opts{EnumValues: values}, nil
 	case "json":
 		return JSON, nil, nil
 	case "point":

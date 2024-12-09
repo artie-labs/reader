@@ -72,6 +72,8 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 			}
 		}
 
+		fmt.Println("beforeRow", beforeRow, "afterRow", afterRow)
+
 		// Preprocess
 		beforeRow, err = preprocessRow(beforeRow, parsedColumns)
 		if err != nil {
