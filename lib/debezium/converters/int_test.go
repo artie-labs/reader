@@ -13,6 +13,12 @@ func TestAsInt16(t *testing.T) {
 		assert.ErrorContains(t, err, "expected int/int16/int32/int64 got string with value: not an int")
 	}
 	{
+		// int8
+		value, err := asInt16(int8(123))
+		assert.NoError(t, err)
+		assert.Equal(t, int16(123), value)
+	}
+	{
 		value, err := asInt16(int16(1234))
 		assert.NoError(t, err)
 		assert.Equal(t, int16(1234), value)

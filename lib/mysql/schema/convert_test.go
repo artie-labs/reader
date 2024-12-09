@@ -238,7 +238,7 @@ func TestConvertValue(t *testing.T) {
 			name:        "varchar - malformed",
 			dataType:    Varchar,
 			value:       1234,
-			expectedErr: "expected []byte got int for value: 1234",
+			expectedErr: "expected string or []byte got int for value: 1234",
 		},
 		{
 			name:     "text",
