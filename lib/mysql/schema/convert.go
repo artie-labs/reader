@@ -27,11 +27,11 @@ func asInt64(val any) (int64, error) {
 }
 
 func asString(val any) (string, error) {
-	switch val.(type) {
+	switch castedVal := val.(type) {
 	case string:
-		return val.(string), nil
+		return castedVal, nil
 	case []byte:
-		return string(val.([]byte)), nil
+		return string(castedVal), nil
 	default:
 		return "", fmt.Errorf("expected string or []byte got %T for value: %v", val, val)
 	}
@@ -116,13 +116,8 @@ func ConvertValue(value any, colType DataType, opts *Opts) (any, error) {
 		}
 		return value, nil
 	case Date:
-		bytesValue, ok := value.([]byte)
-		if !ok {
-			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
-		}
-
 		// MySQL supports 0000-00-00 for dates so we can't use time.Time
-		return string(bytesValue), nil
+		return asString(value)
 	case DateTime, Timestamp:
 		stringValue, err := asString(value)
 		if err != nil {
