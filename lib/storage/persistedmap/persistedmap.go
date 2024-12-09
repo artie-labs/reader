@@ -2,11 +2,12 @@ package persistedmap
 
 import (
 	"fmt"
-	"github.com/artie-labs/reader/lib/logger"
 	"gopkg.in/yaml.v3"
 	"io"
 	"log/slog"
 	"os"
+
+	"github.com/artie-labs/reader/lib/logger"
 )
 
 type PersistedMap[T any] struct {
@@ -34,7 +35,7 @@ func NewPersistedMap[T any](filePath string) *PersistedMap[T] {
 
 func (p *PersistedMap[T]) Set(key string, value T) error {
 	p.data[key] = value
-	
+
 	file, err := os.Create(p.filePath)
 	if err != nil {
 		return fmt.Errorf("failed to create file: %w", err)
