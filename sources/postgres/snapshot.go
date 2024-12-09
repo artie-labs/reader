@@ -49,6 +49,10 @@ func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
 			return fmt.Errorf("failed to create PostgreSQL adapter: %w", err)
 		}
 
+		if err := writer.BeforeBackfill(ctx, dbzAdapter.TableName()); err != nil {
+			return err
+		}
+
 		dbzTransformer, err := transformer.NewDebeziumTransformer(dbzAdapter)
 		if err != nil {
 			if errors.Is(err, rdbms.ErrNoPkValuesForEmptyTable) {
