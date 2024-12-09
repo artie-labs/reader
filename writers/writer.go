@@ -3,7 +3,6 @@ package writers
 import (
 	"context"
 	"fmt"
-	"github.com/artie-labs/reader/lib/logger"
 	"log/slog"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/iterator"
+	"github.com/artie-labs/reader/lib/logger"
 )
 
 type DestinationWriter interface {
