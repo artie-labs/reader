@@ -241,29 +241,29 @@ func hasNonStrictModeInvalidDate(d string) bool {
 	return false
 }
 
-func peek(s string, position uint) (rune, bool) {
+func peek(s string, position uint) (byte, bool) {
 	if len(s) <= int(position) {
 		return 0, false
 	}
 
-	return rune(s[position]), true
+	return s[position], true
 }
 
 // parseEnumValues will parse the metadata string for an ENUM or SET column and return the values.
 // Note: This was not implemented using Go's CSV stdlib as we cannot modify the quote char from `"` to `'`. Ref: https://github.com/golang/go/issues/8458
 func parseEnumValues(metadata string) ([]string, error) {
-	quoteRune := '\''
+	var quoteByte byte = '\''
 	var result []string
 	var current strings.Builder
 	var inQuotes bool
 
 	for i := 0; i < len(metadata); i++ {
-		char := rune(metadata[i])
+		char := metadata[i]
 		switch char {
-		case quoteRune:
+		case quoteByte:
 			if inQuotes {
-				if nextChar, ok := peek(metadata, uint(i+1)); ok && nextChar == quoteRune {
-					current.WriteRune(quoteRune)
+				if nextChar, ok := peek(metadata, uint(i+1)); ok && nextChar == quoteByte {
+					current.WriteByte(quoteByte)
 					i++
 				} else {
 					inQuotes = false
@@ -273,13 +273,13 @@ func parseEnumValues(metadata string) ([]string, error) {
 			}
 		case ',':
 			if inQuotes {
-				current.WriteRune(char)
+				current.WriteByte(char)
 			} else {
 				result = append(result, current.String())
 				current.Reset()
 			}
 		default:
-			current.WriteRune(char)
+			current.WriteByte(char)
 		}
 	}
 
