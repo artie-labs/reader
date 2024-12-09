@@ -37,7 +37,7 @@ func asEnum(val any, opts []string) (string, error) {
 		}
 		return opts[castedValue], nil
 	}
-	
+
 	return asString(val)
 }
 

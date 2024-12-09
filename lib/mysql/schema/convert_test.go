@@ -106,9 +106,18 @@ func TestConvertValue(t *testing.T) {
 		}
 		{
 			// Passed in as int64
-			value, err := ConvertValue(int64(0), Enum, &Opts{EnumValues: []string{"dogs", "cats", "mouse"}})
-			assert.NoError(t, err)
-			assert.Equal(t, "dogs", value)
+			opts := &Opts{EnumValues: []string{"dogs", "cats", "mouse"}}
+			{
+				// Valid
+				value, err := ConvertValue(int64(0), Enum, opts)
+				assert.NoError(t, err)
+				assert.Equal(t, "dogs", value)
+			}
+			{
+				// Invalid
+				_, err := ConvertValue(int64(3), Enum, opts)
+				assert.ErrorContains(t, err, "enum value 3 not in range [0, 2]")
+			}
 		}
 	}
 
