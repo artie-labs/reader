@@ -11,7 +11,7 @@ import (
 	"github.com/artie-labs/transfer/clients/mssql/dialect"
 	"github.com/artie-labs/transfer/lib/artie"
 	"github.com/artie-labs/transfer/lib/cdc/mongo"
-	"github.com/artie-labs/transfer/lib/config"
+	transferConfig "github.com/artie-labs/transfer/lib/config"
 	"github.com/artie-labs/transfer/lib/config/constants"
 	"github.com/artie-labs/transfer/lib/destination"
 	"github.com/artie-labs/transfer/lib/destination/ddl"
@@ -22,21 +22,23 @@ import (
 	"github.com/artie-labs/transfer/models"
 	"github.com/artie-labs/transfer/models/event"
 
+	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/mtr"
 )
 
 type Writer struct {
-	cfg         config.Config
+	cfg         transferConfig.Config
 	statsD      mtr.Client
 	inMemDB     *models.DatabaseData
 	tc          kafkalib.TopicConfig
 	destination destination.Baseline
 
-	primaryKeys []string
+	beforeBackfill config.BeforeBackfill
+	primaryKeys    []string
 }
 
-func NewWriter(cfg config.Config, statsD mtr.Client) (*Writer, error) {
+func NewWriter(cfg transferConfig.Config, statsD mtr.Client, beforeBackfill config.BeforeBackfill) (*Writer, error) {
 	if cfg.Kafka == nil {
 		return nil, fmt.Errorf("kafka config should not be nil")
 	}
@@ -46,10 +48,11 @@ func NewWriter(cfg config.Config, statsD mtr.Client) (*Writer, error) {
 	}
 
 	writer := &Writer{
-		cfg:     cfg,
-		statsD:  statsD,
-		inMemDB: models.NewMemoryDB(),
-		tc:      *cfg.Kafka.TopicConfigs[0],
+		cfg:            cfg,
+		statsD:         statsD,
+		inMemDB:        models.NewMemoryDB(),
+		tc:             *cfg.Kafka.TopicConfigs[0],
+		beforeBackfill: beforeBackfill,
 	}
 
 	if utils.IsOutputBaseline(cfg) {
@@ -95,10 +98,10 @@ func (w *Writer) messageToEvent(message lib.RawMessage) (event.Event, error) {
 			return event.Event{}, err
 		}
 
-		return event.ToMemoryEvent(evt, partitionKey, w.tc, config.Replication)
+		return event.ToMemoryEvent(evt, partitionKey, w.tc, transferConfig.Replication)
 	}
 
-	memoryEvent, err := event.ToMemoryEvent(evt, message.PartitionKey(), w.tc, config.Replication)
+	memoryEvent, err := event.ToMemoryEvent(evt, message.PartitionKey(), w.tc, transferConfig.Replication)
 	if err != nil {
 		return event.Event{}, err
 	}
@@ -133,12 +136,10 @@ func (w *Writer) DropTable(ctx context.Context, tableName string) error {
 		return nil
 	}
 
-	dropTableSQL, err := dwh.Dialect().BuildDropTableQuery(w.getTableID(tableName))
-	if err != nil {
-		return fmt.Errorf("failed to build drop table SQL: %w", err)
-	}
+	dropTableSQL := dwh.Dialect().BuildDropTableQuery(w.getTableID(tableName))
 
-	if _, err = dwh.ExecContext(ctx, dropTableSQL); err != nil {
+	slog.Info("Dropping table...", slog.String("table", tableName))
+	if _, err := dwh.ExecContext(ctx, dropTableSQL); err != nil {
 		return fmt.Errorf("failed to drop table: %w", err)
 	}
 
@@ -151,12 +152,10 @@ func (w *Writer) TruncateTable(ctx context.Context, tableName string) error {
 		return nil
 	}
 
-	truncateTableSQL, err := dwh.Dialect().BuildTruncateTableQuery(w.getTableID(tableName))
-	if err != nil {
-		return fmt.Errorf("failed to build truncate table SQL: %w", err)
-	}
+	truncateTableSQL := dwh.Dialect().BuildTruncateTableQuery(w.getTableID(tableName))
 
-	if _, err = dwh.ExecContext(ctx, truncateTableSQL); err != nil {
+	slog.Info("Truncating table...", slog.String("table", tableName))
+	if _, err := dwh.ExecContext(ctx, truncateTableSQL); err != nil {
 		return fmt.Errorf("failed to truncate table: %w", err)
 	}
 
@@ -282,6 +281,25 @@ func (w *Writer) flush(ctx context.Context, reason string) error {
 
 func (w *Writer) getTableID(tableName string) sql.TableIdentifier {
 	return w.destination.IdentifierFor(w.tc, tableName)
+}
+
+func (w *Writer) BeforeBackfill(ctx context.Context, tableName string) error {
+	switch w.beforeBackfill {
+	case config.BeforeBackfillDoNothing:
+		return nil
+	case config.BeforeBackfillTruncateTable:
+		if err := w.TruncateTable(ctx, tableName); err != nil {
+			return fmt.Errorf("failed to truncate table: %w", err)
+		}
+		return nil
+	case config.BeforeBackfillDropTable:
+		if err := w.DropTable(ctx, tableName); err != nil {
+			return fmt.Errorf("failed to drop table: %w", err)
+		}
+		return nil
+	default:
+		return fmt.Errorf("unsupported before backfill value: %q", w.beforeBackfill)
+	}
 }
 
 func (w *Writer) OnComplete(ctx context.Context) error {

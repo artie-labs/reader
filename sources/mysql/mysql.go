@@ -8,7 +8,7 @@ import (
 	"github.com/artie-labs/reader/sources"
 )
 
-func Load(cfg config.MySQL, beforeBackfill config.BeforeBackfill) (sources.Source, bool, error) {
+func Load(cfg config.MySQL) (sources.Source, bool, error) {
 	db, err := sql.Open("mysql", cfg.ToDSN())
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to connect to MySQL: %w", err)
@@ -23,5 +23,5 @@ func Load(cfg config.MySQL, beforeBackfill config.BeforeBackfill) (sources.Sourc
 		return stream, true, nil
 	}
 
-	return &Snapshot{cfg: cfg, db: db, beforeBackfill: beforeBackfill}, false, nil
+	return &Snapshot{cfg: cfg, db: db}, false, nil
 }

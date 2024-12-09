@@ -8,7 +8,6 @@ import (
 
 	"github.com/artie-labs/transfer/lib/typing/columns"
 
-	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/iterator"
 	"github.com/artie-labs/reader/lib/logger"
@@ -16,9 +15,8 @@ import (
 
 type DestinationWriter interface {
 	CreateTable(ctx context.Context, tableName string, columns []columns.Column) error
-	DropTable(ctx context.Context, tableName string) error
-	TruncateTable(ctx context.Context, tableName string) error
 	Write(ctx context.Context, rawMsgs []lib.RawMessage) error
+	BeforeBackfill(ctx context.Context, tableName string) error
 	OnComplete(ctx context.Context) error
 }
 
@@ -74,23 +72,12 @@ func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMess
 	return count, nil
 }
 
-func (w *Writer) BeforeSnapshot(ctx context.Context, mode config.BeforeBackfill, tableName string) error {
-	switch mode {
-	case config.BeforeBackfillDoNothing:
-		return nil
-	case config.BeforeBackfillTruncateTable:
-		if err := w.destinationWriter.TruncateTable(ctx, tableName); err != nil {
-			return fmt.Errorf("failed to truncate table: %w", err)
-		}
-		return nil
-	case config.BeforeBackfillDropTable:
-		if err := w.destinationWriter.DropTable(ctx, tableName); err != nil {
-			return fmt.Errorf("failed to drop table: %w", err)
-		}
-		return nil
-	default:
-		return fmt.Errorf("unsupported before backfill value: %q", mode)
+func (w *Writer) BeforeBackfill(ctx context.Context, tableName string) error {
+	if err := w.destinationWriter.BeforeBackfill(ctx, tableName); err != nil {
+		return fmt.Errorf("failed running destination BeforeBackfill: %w", err)
 	}
+
+	return nil
 }
 
 func (w *Writer) OnComplete(ctx context.Context) error {
