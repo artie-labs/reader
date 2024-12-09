@@ -151,8 +151,8 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 			switch event.Header.EventType {
 			case
 				replication.ANONYMOUS_GTID_EVENT,
-				// We don't need TableMapEvent because we are handling it by consuming DDL queries, applying it to our schema adapter
 				replication.TABLE_MAP_EVENT,
+				// We don't need TableMapEvent because we are handling it by consuming DDL queries, applying it to our schema adapter
 				// RotateEvent is handled by [UpdatePosition]
 				replication.ROTATE_EVENT,
 				replication.XID_EVENT:

@@ -56,8 +56,7 @@ func (t TableAdapter) PartitionKeys() []string {
 	return keys
 }
 
-func (t TableAdapter) GetFieldConverters() ([]transformer.FieldConverter, error) {
-	//  TODO: Make this more efficient.
+func (t TableAdapter) GetParsedColumns() ([]schema.Column, error) {
 	var parsedColumns []schema.Column
 	for _, col := range t.columns {
 		dataType, opts, err := schema.ParseColumnDataType(col.DataType)
@@ -70,6 +69,16 @@ func (t TableAdapter) GetFieldConverters() ([]transformer.FieldConverter, error)
 			Type: dataType,
 			Opts: opts,
 		})
+	}
+
+	return parsedColumns, nil
+}
+
+func (t TableAdapter) GetFieldConverters() ([]transformer.FieldConverter, error) {
+	//  TODO: Make this more efficient.
+	parsedColumns, err := t.GetParsedColumns()
+	if err != nil {
+		return nil, err
 	}
 
 	// Exclude columns (if any) from the table metadata

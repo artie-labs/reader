@@ -2,9 +2,8 @@ package converters
 
 import (
 	"fmt"
-	"github.com/artie-labs/transfer/lib/typing"
-
 	"github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/typing"
 )
 
 // bool -> bool
@@ -68,7 +67,7 @@ func (Int64Passthrough) Convert(value any) (any, error) {
 	return asInt64(value)
 }
 
-// float32, float64 -> float32
+// float32 -> float32
 type FloatPassthrough struct{}
 
 func (FloatPassthrough) ToField(name string) debezium.Field {
