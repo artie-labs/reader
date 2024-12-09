@@ -29,10 +29,6 @@ func (m *mockDestination) Write(_ context.Context, msgs []lib.RawMessage) error 
 	return nil
 }
 
-func (m *mockDestination) BeforeBackfill(_ context.Context, _ string) error {
-	return nil
-}
-
 func (m *mockDestination) OnComplete(_ context.Context) error {
 	return nil
 }
