@@ -9,6 +9,9 @@ import (
 	"time"
 )
 
+// asSet will parse values that come from streaming and snapshot processes
+// - Snapshot will emit the value as a string, and we'll return it directly.
+// - Streaming will emit the value as an int64 (which is the bitset), and we'll convert it to a string.
 func asSet(val any, opts []string) (string, error) {
 	if castedValue, ok := val.(int64); ok {
 		var out []string
@@ -21,10 +24,12 @@ func asSet(val any, opts []string) (string, error) {
 		return strings.Join(out, ","), nil
 	}
 
-	// Snapshot will emit it as a string
 	return asString(val)
 }
 
+// asEnum will parse values that come from streaming and snapshot processes
+// - Snapshot will emit the value as a string, and we'll return it directly.
+// - Streaming will emit the value as an int64 (which is the index), and we'll convert it to a string.
 func asEnum(val any, opts []string) (string, error) {
 	if castedValue, ok := val.(int64); ok {
 		if int(castedValue) >= len(opts) {
@@ -32,8 +37,7 @@ func asEnum(val any, opts []string) (string, error) {
 		}
 		return opts[castedValue], nil
 	}
-
-	// Snapshot will emit it as a string
+	
 	return asString(val)
 }
 
