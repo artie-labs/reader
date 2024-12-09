@@ -27,11 +27,11 @@ func asInt64(val any) (int64, error) {
 }
 
 func asString(val any) (string, error) {
-	switch castedVal := val.(type) {
+	switch castedValue := val.(type) {
 	case string:
-		return castedVal, nil
+		return castedValue, nil
 	case []byte:
-		return string(castedVal), nil
+		return string(castedValue), nil
 	default:
 		return "", fmt.Errorf("expected string or []byte got %T for value: %v", val, val)
 	}
