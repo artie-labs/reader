@@ -90,10 +90,10 @@ func (s *streaming) HasNext() bool {
 	return true
 }
 
-func (s *streaming) CommitOffset() {
+func (s *streaming) CommitOffset() error {
 	offset := base64.StdEncoding.EncodeToString(s.changeStream.ResumeToken())
 	slog.Info("Committing offset", slog.String("offset", offset))
-	s.offsets.Set(offsetKey, offset)
+	return s.offsets.Set(offsetKey, offset)
 }
 
 func (s *streaming) Next() ([]lib.RawMessage, error) {

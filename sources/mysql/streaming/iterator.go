@@ -111,12 +111,13 @@ func (i *Iterator) HasNext() bool {
 	return true
 }
 
-func (i *Iterator) CommitOffset() {
+func (i *Iterator) CommitOffset() error {
 	slog.Info("Committing offset",
 		slog.String("position", i.position.String()),
 		slog.Int64("unixTs", i.position.UnixTs),
 	)
-	i.offsets.Set(offsetKey, i.position)
+
+	return i.offsets.Set(offsetKey, i.position)
 }
 
 func (i *Iterator) Close() error {

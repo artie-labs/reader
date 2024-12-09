@@ -2,22 +2,16 @@ package persistedmap
 
 import (
 	"fmt"
+	"github.com/artie-labs/reader/lib/logger"
 	"gopkg.in/yaml.v3"
 	"io"
 	"log/slog"
 	"os"
-	"sync"
-	"time"
-
-	"github.com/artie-labs/reader/lib/logger"
 )
 
 type PersistedMap[T any] struct {
-	filePath    string
-	shouldSave  bool
-	mu          sync.RWMutex
-	data        map[string]T
-	flushTicker *time.Ticker
+	filePath string
+	data     map[string]T
 }
 
 func NewPersistedMap[T any](filePath string) *PersistedMap[T] {
@@ -35,50 +29,17 @@ func NewPersistedMap[T any](filePath string) *PersistedMap[T] {
 		persistedMap.data = data
 	}
 
-	persistedMap.flushTicker = time.NewTicker(30 * time.Second)
-	go persistedMap.flushRoutine()
-
 	return persistedMap
 }
 
-func (p *PersistedMap[T]) Set(key string, value T) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
+func (p *PersistedMap[T]) Set(key string, value T) error {
 	p.data[key] = value
-	p.shouldSave = true
-}
 
-func (p *PersistedMap[T]) Get(key string) (T, bool) {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	value, isOk := p.data[key]
-	return value, isOk
-}
-
-func (p *PersistedMap[T]) flushRoutine() {
-	for range p.flushTicker.C {
-		if err := p.flush(); err != nil {
-			logger.Panic("Failed to flush data", slog.Any("err", err))
-		}
-	}
-}
-
-func (p *PersistedMap[T]) flush() error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	if !p.shouldSave {
-		return nil
-	}
-
+	// Open the file
 	file, err := os.Create(p.filePath)
 	if err != nil {
 		return fmt.Errorf("failed to create file: %w", err)
 	}
-
-	defer file.Close()
 
 	yamlBytes, err := yaml.Marshal(p.data)
 	if err != nil {
@@ -89,8 +50,12 @@ func (p *PersistedMap[T]) flush() error {
 		return fmt.Errorf("failed to write to file: %w", err)
 	}
 
-	p.shouldSave = false
-	return nil
+	return file.Close()
+}
+
+func (p *PersistedMap[T]) Get(key string) (T, bool) {
+	value, isOk := p.data[key]
+	return value, isOk
 }
 
 func loadFromFile[T any](filePath string) (map[string]T, error) {

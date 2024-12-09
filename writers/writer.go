@@ -3,6 +3,7 @@ package writers
 import (
 	"context"
 	"fmt"
+	"github.com/artie-labs/reader/lib/logger"
 	"log/slog"
 	"time"
 
@@ -43,7 +44,9 @@ func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMess
 
 			// Is it a streaming iterator? if so, let's commit the offset.
 			if streamingIter, isOk := iter.(iterator.StreamingIterator[[]lib.RawMessage]); isOk {
-				streamingIter.CommitOffset()
+				if err = streamingIter.CommitOffset(); err != nil {
+					logger.Panic("Failed to commit offset", slog.Any("err", err))
+				}
 			}
 
 			count += len(msgs)

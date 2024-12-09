@@ -7,7 +7,7 @@ type Iterator[T any] interface {
 
 type StreamingIterator[T any] interface {
 	Iterator[T]
-	CommitOffset()
+	CommitOffset() error
 }
 
 // Collect returns a new slice containing all the items from an [Iterator].
