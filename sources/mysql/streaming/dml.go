@@ -19,15 +19,19 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 	}
 
 	tableName := string(rowsEvent.Table.Table)
-	tblAdapter, ok := i.getTableAdapter(tableName)
+	tblAdapter, ok := i.schemaAdapter.GetTableAdapter(tableName)
 	if !ok {
 		return nil, nil
 	}
 
-	if tblAdapter.unixTs > ts.Unix() {
+	if !tblAdapter.ShouldReplicate() {
+		return nil, nil
+	}
+
+	if tblAdapter.GetUnixTs() > ts.Unix() {
 		slog.Warn("Skipping this event since the event timestamp is older than the schema timestamp",
 			slog.Int64("event_ts", ts.Unix()),
-			slog.Int64("schema_ts", tblAdapter.unixTs),
+			slog.Int64("schema_ts", tblAdapter.GetUnixTs()),
 		)
 
 		return nil, nil
@@ -44,17 +48,12 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 	}
 
 	var rawMsgs []lib.RawMessage
-	fieldConverters, err := tblAdapter.GetFieldConverters()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get field converters: %w", err)
-	}
-
-	parsedColumns, err := tblAdapter.GetParsedColumns()
+	parsedColumns := tblAdapter.GetParsedColumns()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get parsed columns: %w", err)
 	}
 
-	dbz := transformer.NewLightDebeziumTransformer(tableName, tblAdapter.PartitionKeys(), fieldConverters)
+	dbz := transformer.NewLightDebeziumTransformer(tableName, tblAdapter.PartitionKeys(), tblAdapter.GetFieldConverters())
 	for before, after := range beforeAndAfters {
 		var beforeRow map[string]any
 		if len(before) > 0 {
