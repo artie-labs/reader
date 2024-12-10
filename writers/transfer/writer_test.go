@@ -1,10 +1,13 @@
 package transfer
 
 import (
+	"fmt"
 	"testing"
 
 	transferCfg "github.com/artie-labs/transfer/lib/config"
 	"github.com/artie-labs/transfer/lib/kafkalib"
+	"github.com/artie-labs/transfer/lib/typing"
+	"github.com/artie-labs/transfer/lib/typing/columns"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -12,6 +15,58 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/mongo"
 )
+
+func generateBasicColumns(n uint) []columns.Column {
+	cols := make([]columns.Column, n)
+	for i := range cols {
+		cols[i] = columns.NewColumn(fmt.Sprintf("col-%d", i), typing.String)
+	}
+
+	return cols
+}
+
+func assertOneColumn(t *testing.T, expected columns.Column, actual []columns.Column) {
+	assert.Len(t, actual, 1)
+	assert.Equal(t, expected, actual[0])
+}
+
+func TestBuildColumns(t *testing.T) {
+	{
+		// TopicConfig is not set
+		basicCols := generateBasicColumns(3)
+		assert.Equal(t, basicCols, buildColumns(basicCols, kafkalib.TopicConfig{}))
+	}
+	{
+		// IncludeArtieUpdatedAt = true
+		basicCols := generateBasicColumns(3)
+		cols := buildColumns(basicCols, kafkalib.TopicConfig{
+			IncludeArtieUpdatedAt: true,
+		})
+
+		assert.Equal(t, basicCols, cols[:3])
+		assertOneColumn(t, columns.NewColumn("__artie_updated_at", typing.TimestampTZ), cols[3:])
+	}
+	{
+		// IncludeDatabaseUpdatedAt = true
+		basicCols := generateBasicColumns(3)
+		cols := buildColumns(basicCols, kafkalib.TopicConfig{
+			IncludeDatabaseUpdatedAt: true,
+		})
+
+		assert.Equal(t, basicCols, cols[:3])
+		assertOneColumn(t, columns.NewColumn("__artie_db_updated_at", typing.TimestampTZ), cols[3:])
+	}
+	{
+		// SoftDelete = true
+		basicCols := generateBasicColumns(3)
+		cols := buildColumns(basicCols, kafkalib.TopicConfig{
+			SoftDelete: true,
+		})
+
+		assert.Equal(t, basicCols, cols[:3])
+		assertOneColumn(t, columns.NewColumn("__artie_delete", typing.Boolean), cols[3:])
+	}
+}
 
 func TestWriter_MessageToEvent(t *testing.T) {
 	objId, err := primitive.ObjectIDFromHex("507f1f77bcf86cd799439011")
