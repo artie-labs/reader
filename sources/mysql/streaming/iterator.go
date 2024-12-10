@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/artie-labs/reader/sources/mysql/streaming/ddl"
 	"log/slog"
 	"time"
 
@@ -17,6 +16,7 @@ import (
 	"github.com/artie-labs/reader/lib/mysql/schema"
 	"github.com/artie-labs/reader/lib/storage/persistedlist"
 	"github.com/artie-labs/reader/lib/storage/persistedmap"
+	"github.com/artie-labs/reader/sources/mysql/streaming/ddl"
 )
 
 const offsetKey = "offset"
