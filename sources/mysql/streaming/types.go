@@ -2,7 +2,6 @@ package streaming
 
 import (
 	"fmt"
-	"github.com/artie-labs/reader/sources/mysql/streaming/ddl"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/typing"
@@ -12,6 +11,7 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/storage/persistedlist"
 	"github.com/artie-labs/reader/lib/storage/persistedmap"
+	"github.com/artie-labs/reader/sources/mysql/streaming/ddl"
 )
 
 type Iterator struct {
