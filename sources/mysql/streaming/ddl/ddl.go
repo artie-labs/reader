@@ -7,125 +7,18 @@ import (
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/antlr"
-	"github.com/artie-labs/reader/lib/debezium/transformer"
-	"github.com/artie-labs/reader/lib/mysql/converters"
-	"github.com/artie-labs/reader/lib/mysql/schema"
-	"github.com/artie-labs/reader/lib/rdbms/column"
 )
-
-type Column struct {
-	Name       string
-	DataType   string
-	PrimaryKey bool
-}
-
-type TableAdapter struct {
-	dbName   string
-	tableCfg *config.MySQLTable
-	columns  []Column
-	unixTs   int64
-}
-
-func (t TableAdapter) ShouldReplicate() bool {
-	return t.tableCfg != nil
-}
-
-func (t TableAdapter) GetUnixTs() int64 {
-	return t.unixTs
-}
-
-func NewTableAdapter(dbName string, tableCfg *config.MySQLTable, columns []Column, unixTs int64) TableAdapter {
-	return TableAdapter{
-		dbName:   dbName,
-		tableCfg: tableCfg,
-		columns:  columns,
-		unixTs:   unixTs,
-	}
-}
-
-func (t TableAdapter) TopicSuffix() string {
-	return fmt.Sprintf("%s.%s", t.dbName, t.tableCfg.Name)
-}
-
-func (t TableAdapter) ColumnNames() []string {
-	var colNames []string
-	for _, col := range t.columns {
-		colNames = append(colNames, col.Name)
-	}
-
-	return colNames
-}
-
-func (t TableAdapter) PartitionKeys() []string {
-	var keys []string
-	for _, col := range t.columns {
-		if col.PrimaryKey {
-
-			keys = append(keys, col.Name)
-		}
-	}
-
-	return keys
-}
-
-func (t TableAdapter) GetParsedColumns() ([]schema.Column, error) {
-	var parsedColumns []schema.Column
-	for _, col := range t.columns {
-		dataType, opts, err := schema.ParseColumnDataType(col.DataType)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse column data type: %w", err)
-		}
-
-		parsedColumns = append(parsedColumns, schema.Column{
-			Name: col.Name,
-			Type: dataType,
-			Opts: opts,
-		})
-	}
-
-	return parsedColumns, nil
-}
-
-func (t TableAdapter) GetFieldConverters() ([]transformer.FieldConverter, error) {
-	//  TODO: Make this more efficient.
-	parsedColumns, err := t.GetParsedColumns()
-	if err != nil {
-		return nil, err
-	}
-
-	// Exclude columns (if any) from the table metadata
-	cols, err := column.FilterOutExcludedColumns(parsedColumns, t.tableCfg.ExcludeColumns, t.PartitionKeys())
-	if err != nil {
-		return nil, err
-	}
-
-	// Include columns (if any) from the table metadata
-	cols, err = column.FilterForIncludedColumns(cols, t.tableCfg.IncludeColumns, t.PartitionKeys())
-	if err != nil {
-		return nil, err
-	}
-
-	fieldConverters := make([]transformer.FieldConverter, len(cols))
-	for i, col := range cols {
-		converter, err := converters.ValueConverterForType(col.Type, col.Opts)
-		if err != nil {
-			return nil, fmt.Errorf("failed to build value converter for column %q: %w", col.Name, err)
-		}
-		fieldConverters[i] = transformer.FieldConverter{Name: col.Name, ValueConverter: converter}
-	}
-
-	return fieldConverters, nil
-}
 
 type SchemaAdapter struct {
 	adapters    map[string]TableAdapter
-	tableCfgMap map[string]config.MySQLTable
+	tableCfgMap map[string]*config.MySQLTable
+	dbName      string
 }
 
 func NewSchemaAdapter(cfg config.MySQL) SchemaAdapter {
-	tableCfgMap := make(map[string]config.MySQLTable)
+	tableCfgMap := make(map[string]*config.MySQLTable)
 	for _, tbl := range cfg.Tables {
-		tableCfgMap[tbl.Name] = *tbl
+		tableCfgMap[tbl.Name] = tbl
 	}
 
 	return SchemaAdapter{
@@ -169,7 +62,12 @@ func (s *SchemaAdapter) applyDDL(unixTs int64, result antlr.Event) error {
 			})
 		}
 
-		s.adapters[result.GetTable()] = TableAdapter{columns: cols, unixTs: unixTs}
+		tblAdapter, err := NewTableAdapter(s.dbName, s.tableCfgMap[result.GetTable()], cols, unixTs)
+		if err != nil {
+			return err
+		}
+
+		s.adapters[result.GetTable()] = tblAdapter
 		return nil
 	}
 
