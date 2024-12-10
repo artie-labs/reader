@@ -28,6 +28,22 @@ import (
 	"github.com/artie-labs/reader/lib/mtr"
 )
 
+func buildColumns(cols []columns.Column, tc kafkalib.TopicConfig) []columns.Column {
+	if tc.IncludeArtieUpdatedAt {
+		cols = append(cols, columns.NewColumn(constants.UpdateColumnMarker, typing.TimestampTZ))
+	}
+
+	if tc.IncludeDatabaseUpdatedAt {
+		cols = append(cols, columns.NewColumn(constants.DatabaseUpdatedColumnMarker, typing.TimestampTZ))
+	}
+
+	if tc.SoftDelete {
+		cols = append(cols, columns.NewColumn(constants.DeleteColumnMarker, typing.Boolean))
+	}
+
+	return cols
+}
+
 type Writer struct {
 	cfg         transferConfig.Config
 	statsD      mtr.Client
@@ -112,22 +128,6 @@ func (w *Writer) messageToEvent(message lib.RawMessage) (event.Event, error) {
 	// Setting the deleted column flag.
 	memoryEvent.Data[constants.DeleteColumnMarker] = false
 	return memoryEvent, nil
-}
-
-func buildColumns(cols []columns.Column, tc kafkalib.TopicConfig) []columns.Column {
-	if tc.IncludeArtieUpdatedAt {
-		cols = append(cols, columns.NewColumn(constants.UpdateColumnMarker, typing.TimestampTZ))
-	}
-
-	if tc.IncludeDatabaseUpdatedAt {
-		cols = append(cols, columns.NewColumn(constants.DatabaseUpdatedColumnMarker, typing.TimestampTZ))
-	}
-
-	if tc.SoftDelete {
-		cols = append(cols, columns.NewColumn(constants.DeleteColumnMarker, typing.Boolean))
-	}
-
-	return cols
 }
 
 func (w *Writer) CreateTable(ctx context.Context, tableName string, cols []columns.Column) error {
