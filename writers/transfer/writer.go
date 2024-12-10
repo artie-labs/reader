@@ -18,6 +18,7 @@ import (
 	"github.com/artie-labs/transfer/lib/destination/utils"
 	"github.com/artie-labs/transfer/lib/kafkalib"
 	"github.com/artie-labs/transfer/lib/sql"
+	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/artie-labs/transfer/lib/typing/columns"
 	"github.com/artie-labs/transfer/models"
 	"github.com/artie-labs/transfer/models/event"
@@ -113,14 +114,32 @@ func (w *Writer) messageToEvent(message lib.RawMessage) (event.Event, error) {
 	return memoryEvent, nil
 }
 
-func (w *Writer) CreateTable(ctx context.Context, tableName string, columns []columns.Column) error {
+func buildColumns(cols []columns.Column, tc kafkalib.TopicConfig) []columns.Column {
+	if tc.IncludeArtieUpdatedAt {
+		cols = append(cols, columns.NewColumn(constants.UpdateColumnMarker, typing.TimestampTZ))
+	}
+
+	if tc.IncludeDatabaseUpdatedAt {
+		cols = append(cols, columns.NewColumn(constants.DatabaseUpdatedColumnMarker, typing.TimestampTZ))
+	}
+
+	if tc.SoftDelete {
+		cols = append(cols, columns.NewColumn(constants.DeleteColumnMarker, typing.Boolean))
+	}
+
+	return cols
+}
+
+func (w *Writer) CreateTable(ctx context.Context, tableName string, cols []columns.Column) error {
 	dwh, ok := w.destination.(destination.DataWarehouse)
 	if !ok {
 		// Don't create the table if it's not a data warehouse.
 		return nil
 	}
 
-	createTableSQL, err := ddl.BuildCreateTableSQL(w.cfg.SharedDestinationSettings.ColumnSettings, dwh.Dialect(), w.getTableID(tableName), false, w.cfg.Mode, columns)
+	// We should include additional columns based in the typing config
+	cols = buildColumns(cols, w.tc)
+	createTableSQL, err := ddl.BuildCreateTableSQL(w.cfg.SharedDestinationSettings.ColumnSettings, dwh.Dialect(), w.getTableID(tableName), false, w.cfg.Mode, cols)
 	if err != nil {
 		return fmt.Errorf("failed to build create table SQL: %w", err)
 	}
