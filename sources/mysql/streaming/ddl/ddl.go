@@ -171,6 +171,11 @@ func (s *SchemaAdapter) applyDDL(unixTs int64, result antlr.Event) error {
 		}
 	}
 
+	tblAdapter, err := tblAdapter.buildGeneratedFields()
+	if err != nil {
+		return fmt.Errorf("failed to build generated fields: %w", err)
+	}
+
 	tblAdapter.unixTs = unixTs
 	s.adapters[result.GetTable()] = tblAdapter
 	return nil
