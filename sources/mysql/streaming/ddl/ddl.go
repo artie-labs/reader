@@ -1,131 +1,39 @@
-package streaming
+package ddl
 
 import (
 	"fmt"
 	"log/slog"
 	"slices"
-	"time"
-
-	"github.com/go-mysql-org/go-mysql/replication"
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/antlr"
-	"github.com/artie-labs/reader/lib/debezium/transformer"
-	"github.com/artie-labs/reader/lib/mysql/converters"
-	"github.com/artie-labs/reader/lib/mysql/schema"
-	"github.com/artie-labs/reader/lib/rdbms/column"
 )
 
-type Column struct {
-	Name       string
-	DataType   string
-	PrimaryKey bool
-}
-
-type TableAdapter struct {
-	columns []Column
-	unixTs  int64
-
-	// These are injected when we retrieve tableAdapter.
-	tableCfg config.MySQLTable
-	dbName   string
-}
-
-func (t TableAdapter) TopicSuffix() string {
-	return fmt.Sprintf("%s.%s", t.dbName, t.tableCfg.Name)
-}
-
-func (t TableAdapter) ColumnNames() []string {
-	var colNames []string
-	for _, col := range t.columns {
-		colNames = append(colNames, col.Name)
-	}
-
-	return colNames
-}
-
-func (t TableAdapter) PartitionKeys() []string {
-	var keys []string
-	for _, col := range t.columns {
-		if col.PrimaryKey {
-
-			keys = append(keys, col.Name)
-		}
-	}
-
-	return keys
-}
-
-func (t TableAdapter) GetParsedColumns() ([]schema.Column, error) {
-	var parsedColumns []schema.Column
-	for _, col := range t.columns {
-		dataType, opts, err := schema.ParseColumnDataType(col.DataType)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse column data type: %w", err)
-		}
-
-		parsedColumns = append(parsedColumns, schema.Column{
-			Name: col.Name,
-			Type: dataType,
-			Opts: opts,
-		})
-	}
-
-	return parsedColumns, nil
-}
-
-func (t TableAdapter) GetFieldConverters() ([]transformer.FieldConverter, error) {
-	//  TODO: Make this more efficient.
-	parsedColumns, err := t.GetParsedColumns()
-	if err != nil {
-		return nil, err
-	}
-
-	// Exclude columns (if any) from the table metadata
-	cols, err := column.FilterOutExcludedColumns(parsedColumns, t.tableCfg.ExcludeColumns, t.PartitionKeys())
-	if err != nil {
-		return nil, err
-	}
-
-	// Include columns (if any) from the table metadata
-	cols, err = column.FilterForIncludedColumns(cols, t.tableCfg.IncludeColumns, t.PartitionKeys())
-	if err != nil {
-		return nil, err
-	}
-
-	fieldConverters := make([]transformer.FieldConverter, len(cols))
-	for i, col := range cols {
-		converter, err := converters.ValueConverterForType(col.Type, col.Opts)
-		if err != nil {
-			return nil, fmt.Errorf("failed to build value converter for column %q: %w", col.Name, err)
-		}
-		fieldConverters[i] = transformer.FieldConverter{Name: col.Name, ValueConverter: converter}
-	}
-
-	return fieldConverters, nil
-}
-
 type SchemaAdapter struct {
-	adapters map[string]TableAdapter
+	adapters    map[string]TableAdapter
+	tableCfgMap map[string]*config.MySQLTable
+	dbName      string
 }
 
-func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Time) error {
-	if evt.ErrorCode != 0 {
-		// Don't process a non-zero error code DDL.
-		return nil
+func NewSchemaAdapter(cfg config.MySQL) SchemaAdapter {
+	tableCfgMap := make(map[string]*config.MySQLTable)
+	for _, tbl := range cfg.Tables {
+		tableCfgMap[tbl.Name] = tbl
 	}
 
-	query := string(evt.Query)
-	schemaHistory := SchemaHistory{
-		Query:  query,
-		UnixTs: ts.Unix(),
+	return SchemaAdapter{
+		adapters:    make(map[string]TableAdapter),
+		tableCfgMap: tableCfgMap,
+	}
+}
+
+func (s *SchemaAdapter) GetTableAdapter(tableName string) (TableAdapter, bool) {
+	tblAdapter, ok := s.adapters[tableName]
+	if !ok {
+		return TableAdapter{}, ok
 	}
 
-	if err := i.schemaHistoryList.Push(schemaHistory); err != nil {
-		return fmt.Errorf("failed to push schema history: %w", err)
-	}
-
-	return i.schemaAdapter.ApplyDDL(ts.Unix(), query)
+	return tblAdapter, ok
 }
 
 func (s *SchemaAdapter) ApplyDDL(unixTs int64, query string) error {
@@ -154,7 +62,12 @@ func (s *SchemaAdapter) applyDDL(unixTs int64, result antlr.Event) error {
 			})
 		}
 
-		s.adapters[result.GetTable()] = TableAdapter{columns: cols, unixTs: unixTs}
+		tblAdapter, err := NewTableAdapter(s.dbName, s.tableCfgMap[result.GetTable()], cols, unixTs)
+		if err != nil {
+			return err
+		}
+
+		s.adapters[result.GetTable()] = tblAdapter
 		return nil
 	}
 
@@ -256,6 +169,11 @@ func (s *SchemaAdapter) applyDDL(unixTs int64, result antlr.Event) error {
 				return fmt.Errorf("unknown position type: %T", castedPosition)
 			}
 		}
+	}
+
+	tblAdapter, err := tblAdapter.buildGeneratedFields()
+	if err != nil {
+		return fmt.Errorf("failed to build generated fields: %w", err)
 	}
 
 	tblAdapter.unixTs = unixTs

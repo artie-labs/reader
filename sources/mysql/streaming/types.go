@@ -11,6 +11,7 @@ import (
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/storage/persistedlist"
 	"github.com/artie-labs/reader/lib/storage/persistedmap"
+	"github.com/artie-labs/reader/sources/mysql/streaming/ddl"
 )
 
 type Iterator struct {
@@ -21,7 +22,7 @@ type Iterator struct {
 	offsets           *persistedmap.PersistedMap[Position]
 	schemaHistoryList *persistedlist.PersistedList[SchemaHistory]
 
-	schemaAdapter *SchemaAdapter
+	schemaAdapter *ddl.SchemaAdapter
 	streamer      *replication.BinlogStreamer
 	syncer        *replication.BinlogSyncer
 }
