@@ -28,6 +28,7 @@ import (
 	"github.com/artie-labs/reader/lib/mtr"
 )
 
+// buildColumns - This will append additional columns based on [kafkalib.TopicConfig]
 func buildColumns(cols []columns.Column, tc kafkalib.TopicConfig) []columns.Column {
 	if tc.IncludeArtieUpdatedAt {
 		cols = append(cols, columns.NewColumn(constants.UpdateColumnMarker, typing.TimestampTZ))
