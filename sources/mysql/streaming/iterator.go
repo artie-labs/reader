@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"slices"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/typing"
@@ -23,7 +22,7 @@ const offsetKey = "offset"
 
 func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persistedlist.PersistedList[SchemaHistory], pos Position) (SchemaAdapter, error) {
 	var latestSchemaUnixTs int64
-	schemaAdapter := SchemaAdapter{adapters: make(map[string]TableAdapter)}
+	schemaAdapter := NewSchemaAdapter(cfg)
 	for _, schemaHistory := range schemaHistoryList.GetData() {
 		if err := schemaAdapter.ApplyDDL(schemaHistory.UnixTs, schemaHistory.Query); err != nil {
 			return SchemaAdapter{}, fmt.Errorf("failed to apply DDL: %w", err)
@@ -190,16 +189,5 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 
 func (i *Iterator) getTableAdapter(tableName string) (TableAdapter, bool) {
 	tblAdapter, ok := i.schemaAdapter.adapters[tableName]
-	if !ok {
-		return TableAdapter{}, ok
-	}
-
-	idx := slices.IndexFunc(i.cfg.Tables, func(tbl *config.MySQLTable) bool { return tbl.Name == tableName })
-	if idx == -1 {
-		return TableAdapter{}, false
-	}
-
-	tblAdapter.tableCfg = *i.cfg.Tables[idx]
-	tblAdapter.dbName = i.cfg.Database
 	return tblAdapter, ok
 }

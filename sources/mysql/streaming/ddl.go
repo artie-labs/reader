@@ -22,13 +22,23 @@ type Column struct {
 	PrimaryKey bool
 }
 
+func NewTableAdapter(columns []Column, unixTs int64, cfg config.MySQLTable, dbName string) TableAdapter {
+	return TableAdapter{columns: columns, unixTs: unixTs, dirty: true, tableCfg: cfg, dbName: dbName}
+}
+
 type TableAdapter struct {
 	columns []Column
 	unixTs  int64
+	dirty   bool
 
 	// These are injected when we retrieve tableAdapter.
 	tableCfg config.MySQLTable
 	dbName   string
+
+	// Generated
+
+	parsedColumns   []schema.Column
+	fieldConverters []transformer.FieldConverter
 }
 
 func (t TableAdapter) TopicSuffix() string {
@@ -56,12 +66,38 @@ func (t TableAdapter) PartitionKeys() []string {
 	return keys
 }
 
-func (t TableAdapter) GetParsedColumns() ([]schema.Column, error) {
+func (t *TableAdapter) buildFieldConverters() error {
+	// Exclude columns (if any) from the table metadata
+	cols, err := column.FilterOutExcludedColumns(t.GetParsedColumns(), t.tableCfg.ExcludeColumns, t.PartitionKeys())
+	if err != nil {
+		return err
+	}
+
+	// Include columns (if any) from the table metadata
+	cols, err = column.FilterForIncludedColumns(cols, t.tableCfg.IncludeColumns, t.PartitionKeys())
+	if err != nil {
+		return err
+	}
+
+	fieldConverters := make([]transformer.FieldConverter, len(cols))
+	for i, col := range cols {
+		converter, err := converters.ValueConverterForType(col.Type, col.Opts)
+		if err != nil {
+			return fmt.Errorf("failed to build value converter for column %q: %w", col.Name, err)
+		}
+		fieldConverters[i] = transformer.FieldConverter{Name: col.Name, ValueConverter: converter}
+	}
+
+	t.fieldConverters = fieldConverters
+	return nil
+}
+
+func (t *TableAdapter) buildParsedColumns() error {
 	var parsedColumns []schema.Column
 	for _, col := range t.columns {
 		dataType, opts, err := schema.ParseColumnDataType(col.DataType)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse column data type: %w", err)
+			return fmt.Errorf("failed to parse column data type: %w", err)
 		}
 
 		parsedColumns = append(parsedColumns, schema.Column{
@@ -71,42 +107,52 @@ func (t TableAdapter) GetParsedColumns() ([]schema.Column, error) {
 		})
 	}
 
-	return parsedColumns, nil
+	t.parsedColumns = parsedColumns
+	return nil
 }
 
-func (t TableAdapter) GetFieldConverters() ([]transformer.FieldConverter, error) {
-	//  TODO: Make this more efficient.
-	parsedColumns, err := t.GetParsedColumns()
-	if err != nil {
-		return nil, err
+func (t *TableAdapter) Rebuild() error {
+	if !t.dirty {
+		return nil
 	}
 
-	// Exclude columns (if any) from the table metadata
-	cols, err := column.FilterOutExcludedColumns(parsedColumns, t.tableCfg.ExcludeColumns, t.PartitionKeys())
-	if err != nil {
-		return nil, err
+	if err := t.buildParsedColumns(); err != nil {
+		return fmt.Errorf("failed to build parsed columns: %w", err)
 	}
 
-	// Include columns (if any) from the table metadata
-	cols, err = column.FilterForIncludedColumns(cols, t.tableCfg.IncludeColumns, t.PartitionKeys())
-	if err != nil {
-		return nil, err
+	if err := t.buildFieldConverters(); err != nil {
+		return fmt.Errorf("failed to build field converters: %w", err)
 	}
 
-	fieldConverters := make([]transformer.FieldConverter, len(cols))
-	for i, col := range cols {
-		converter, err := converters.ValueConverterForType(col.Type, col.Opts)
-		if err != nil {
-			return nil, fmt.Errorf("failed to build value converter for column %q: %w", col.Name, err)
-		}
-		fieldConverters[i] = transformer.FieldConverter{Name: col.Name, ValueConverter: converter}
-	}
+	t.dirty = false
+	return nil
+}
 
-	return fieldConverters, nil
+func (t TableAdapter) GetParsedColumns() []schema.Column {
+	return t.parsedColumns
+}
+
+func (t TableAdapter) GetFieldConverters() []transformer.FieldConverter {
+	return t.fieldConverters
 }
 
 type SchemaAdapter struct {
-	adapters map[string]TableAdapter
+	adapters    map[string]TableAdapter
+	dbName      string
+	tableCfgMap map[string]config.MySQLTable
+}
+
+func NewSchemaAdapter(cfg config.MySQL) SchemaAdapter {
+	tableCfgMap := make(map[string]config.MySQLTable)
+	for _, tbl := range cfg.Tables {
+		tableCfgMap[tbl.Name] = *tbl
+	}
+
+	return SchemaAdapter{
+		adapters:    make(map[string]TableAdapter),
+		dbName:      cfg.Database,
+		tableCfgMap: tableCfgMap,
+	}
 }
 
 func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Time) error {
@@ -154,7 +200,12 @@ func (s *SchemaAdapter) applyDDL(unixTs int64, result antlr.Event) error {
 			})
 		}
 
-		s.adapters[result.GetTable()] = TableAdapter{columns: cols, unixTs: unixTs}
+		var tableCfg config.MySQLTable
+		if cfg, ok := s.tableCfgMap[result.GetTable()]; ok {
+			tableCfg = cfg
+		}
+
+		s.adapters[result.GetTable()] = NewTableAdapter(cols, unixTs, tableCfg, s.dbName)
 		return nil
 	}
 
@@ -259,6 +310,7 @@ func (s *SchemaAdapter) applyDDL(unixTs int64, result antlr.Event) error {
 	}
 
 	tblAdapter.unixTs = unixTs
+	tblAdapter.dirty = true
 	s.adapters[result.GetTable()] = tblAdapter
 	return nil
 }
