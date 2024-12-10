@@ -138,8 +138,7 @@ func (w *Writer) CreateTable(ctx context.Context, tableName string, cols []colum
 	}
 
 	// We should include additional columns based in the typing config
-	cols = buildColumns(cols, w.tc)
-	createTableSQL, err := ddl.BuildCreateTableSQL(w.cfg.SharedDestinationSettings.ColumnSettings, dwh.Dialect(), w.getTableID(tableName), false, w.cfg.Mode, cols)
+	createTableSQL, err := ddl.BuildCreateTableSQL(w.cfg.SharedDestinationSettings.ColumnSettings, dwh.Dialect(), w.getTableID(tableName), false, w.cfg.Mode, buildColumns(cols, w.tc))
 	if err != nil {
 		return fmt.Errorf("failed to build create table SQL: %w", err)
 	}
