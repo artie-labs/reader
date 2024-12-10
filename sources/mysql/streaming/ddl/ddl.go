@@ -1,19 +1,15 @@
-package streaming
+package ddl
 
 import (
 	"fmt"
-	"log/slog"
-	"slices"
-	"time"
-
-	"github.com/go-mysql-org/go-mysql/replication"
-
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/antlr"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/mysql/converters"
 	"github.com/artie-labs/reader/lib/mysql/schema"
 	"github.com/artie-labs/reader/lib/rdbms/column"
+	"log/slog"
+	"slices"
 )
 
 type Column struct {
@@ -23,12 +19,27 @@ type Column struct {
 }
 
 type TableAdapter struct {
-	columns []Column
-	unixTs  int64
-
-	// These are injected when we retrieve tableAdapter.
-	tableCfg config.MySQLTable
 	dbName   string
+	tableCfg *config.MySQLTable
+	columns  []Column
+	unixTs   int64
+}
+
+func (t TableAdapter) ShouldReplicate() bool {
+	return t.tableCfg != nil
+}
+
+func (t TableAdapter) GetUnixTs() int64 {
+	return t.unixTs
+}
+
+func NewTableAdapter(dbName string, tableCfg *config.MySQLTable, columns []Column, unixTs int64) TableAdapter {
+	return TableAdapter{
+		dbName:   dbName,
+		tableCfg: tableCfg,
+		columns:  columns,
+		unixTs:   unixTs,
+	}
 }
 
 func (t TableAdapter) TopicSuffix() string {
@@ -106,26 +117,29 @@ func (t TableAdapter) GetFieldConverters() ([]transformer.FieldConverter, error)
 }
 
 type SchemaAdapter struct {
-	adapters map[string]TableAdapter
+	adapters    map[string]TableAdapter
+	tableCfgMap map[string]config.MySQLTable
 }
 
-func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Time) error {
-	if evt.ErrorCode != 0 {
-		// Don't process a non-zero error code DDL.
-		return nil
+func NewSchemaAdapter(cfg config.MySQL) SchemaAdapter {
+	tableCfgMap := make(map[string]config.MySQLTable)
+	for _, tbl := range cfg.Tables {
+		tableCfgMap[tbl.Name] = *tbl
 	}
 
-	query := string(evt.Query)
-	schemaHistory := SchemaHistory{
-		Query:  query,
-		UnixTs: ts.Unix(),
+	return SchemaAdapter{
+		adapters:    make(map[string]TableAdapter),
+		tableCfgMap: tableCfgMap,
+	}
+}
+
+func (s *SchemaAdapter) GetTableAdapter(tableName string) (TableAdapter, bool) {
+	tblAdapter, ok := s.adapters[tableName]
+	if !ok {
+		return TableAdapter{}, ok
 	}
 
-	if err := i.schemaHistoryList.Push(schemaHistory); err != nil {
-		return fmt.Errorf("failed to push schema history: %w", err)
-	}
-
-	return i.schemaAdapter.ApplyDDL(ts.Unix(), query)
+	return tblAdapter, ok
 }
 
 func (s *SchemaAdapter) ApplyDDL(unixTs int64, query string) error {

@@ -1,4 +1,4 @@
-package streaming
+package ddl
 
 import (
 	"github.com/stretchr/testify/assert"

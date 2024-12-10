@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/artie-labs/reader/sources/mysql/streaming/ddl"
 	"log/slog"
-	"slices"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/typing"
@@ -21,12 +21,12 @@ import (
 
 const offsetKey = "offset"
 
-func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persistedlist.PersistedList[SchemaHistory], pos Position) (SchemaAdapter, error) {
+func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persistedlist.PersistedList[SchemaHistory], pos Position) (ddl.SchemaAdapter, error) {
 	var latestSchemaUnixTs int64
-	schemaAdapter := SchemaAdapter{adapters: make(map[string]TableAdapter)}
+	schemaAdapter := ddl.NewSchemaAdapter(cfg)
 	for _, schemaHistory := range schemaHistoryList.GetData() {
 		if err := schemaAdapter.ApplyDDL(schemaHistory.UnixTs, schemaHistory.Query); err != nil {
-			return SchemaAdapter{}, fmt.Errorf("failed to apply DDL: %w", err)
+			return ddl.SchemaAdapter{}, fmt.Errorf("failed to apply DDL: %w", err)
 		}
 
 		latestSchemaUnixTs = schemaHistory.UnixTs
@@ -34,26 +34,26 @@ func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persiste
 
 	// Check the position's timestamp
 	if latestSchemaUnixTs > pos.UnixTs {
-		return SchemaAdapter{}, fmt.Errorf("latest schema timestamp %d is greater than the current position's timestamp %d", latestSchemaUnixTs, pos.UnixTs)
+		return ddl.SchemaAdapter{}, fmt.Errorf("latest schema timestamp %d is greater than the current position's timestamp %d", latestSchemaUnixTs, pos.UnixTs)
 	}
 
 	// Check if there are any additional tables that we should be tracking that don't exist in our schema adapter
 	for _, tbl := range cfg.Tables {
-		if _, ok := schemaAdapter.adapters[tbl.Name]; !ok {
+		if _, ok := schemaAdapter.GetTableAdapter(tbl.Name); !ok {
 			now := time.Now().Unix()
 			ddlQuery, err := schema.GetCreateTableDDL(db, tbl.Name)
 			if err != nil {
-				return SchemaAdapter{}, fmt.Errorf("failed to get columns: %w", err)
+				return ddl.SchemaAdapter{}, fmt.Errorf("failed to get columns: %w", err)
 			}
 
 			// Persist the DDL
 			if err = schemaHistoryList.Push(SchemaHistory{Query: ddlQuery, UnixTs: now}); err != nil {
-				return SchemaAdapter{}, fmt.Errorf("failed to push schema history: %w", err)
+				return ddl.SchemaAdapter{}, fmt.Errorf("failed to push schema history: %w", err)
 			}
 
 			// Apply the DDL
 			if err = schemaAdapter.ApplyDDL(now, ddlQuery); err != nil {
-				return SchemaAdapter{}, fmt.Errorf("failed to apply DDL: %w", err)
+				return ddl.SchemaAdapter{}, fmt.Errorf("failed to apply DDL: %w", err)
 			}
 		}
 	}
@@ -188,18 +188,21 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 	return rawMsgs, nil
 }
 
-func (i *Iterator) getTableAdapter(tableName string) (TableAdapter, bool) {
-	tblAdapter, ok := i.schemaAdapter.adapters[tableName]
-	if !ok {
-		return TableAdapter{}, ok
+func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Time) error {
+	if evt.ErrorCode != 0 {
+		// Don't process a non-zero error code DDL.
+		return nil
 	}
 
-	idx := slices.IndexFunc(i.cfg.Tables, func(tbl *config.MySQLTable) bool { return tbl.Name == tableName })
-	if idx == -1 {
-		return TableAdapter{}, false
+	query := string(evt.Query)
+	schemaHistory := SchemaHistory{
+		Query:  query,
+		UnixTs: ts.Unix(),
 	}
 
-	tblAdapter.tableCfg = *i.cfg.Tables[idx]
-	tblAdapter.dbName = i.cfg.Database
-	return tblAdapter, ok
+	if err := i.schemaHistoryList.Push(schemaHistory); err != nil {
+		return fmt.Errorf("failed to push schema history: %w", err)
+	}
+
+	return i.schemaAdapter.ApplyDDL(ts.Unix(), query)
 }

@@ -2,6 +2,7 @@ package streaming
 
 import (
 	"fmt"
+	"github.com/artie-labs/reader/sources/mysql/streaming/ddl"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/typing"
@@ -21,7 +22,7 @@ type Iterator struct {
 	offsets           *persistedmap.PersistedMap[Position]
 	schemaHistoryList *persistedlist.PersistedList[SchemaHistory]
 
-	schemaAdapter *SchemaAdapter
+	schemaAdapter *ddl.SchemaAdapter
 	streamer      *replication.BinlogStreamer
 	syncer        *replication.BinlogSyncer
 }
