@@ -1,6 +1,7 @@
 package transfer
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -302,7 +303,8 @@ func (w *Writer) flush(ctx context.Context, reason string) error {
 }
 
 func (w *Writer) getTableID(tableName string) sql.TableIdentifier {
-	return w.destination.IdentifierFor(w.tc, tableName)
+	// [w.tc.TableName] could be empty, in that case we'll fall back on [tableName]
+	return w.destination.IdentifierFor(w.tc, cmp.Or(w.tc.TableName, tableName))
 }
 
 func (w *Writer) onBackfillStart(ctx context.Context, tableName string) error {
