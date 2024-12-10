@@ -62,6 +62,10 @@ func (t TableAdapter) buildGeneratedFields() (TableAdapter, error) {
 }
 
 func (t TableAdapter) buildFieldConverters() ([]transformer.FieldConverter, error) {
+	if t.tableCfg == nil {
+		return nil, nil
+	}
+
 	// Exclude columns (if any) from the table metadata
 	cols, err := column.FilterOutExcludedColumns(t.GetParsedColumns(), t.tableCfg.ExcludeColumns, t.PartitionKeys())
 	if err != nil {

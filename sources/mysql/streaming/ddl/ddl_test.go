@@ -1,12 +1,13 @@
 package ddl
 
 import (
+	"github.com/artie-labs/reader/config"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func initializeAdapter(t *testing.T) SchemaAdapter {
-	adapter := SchemaAdapter{adapters: map[string]TableAdapter{}}
+	adapter := NewSchemaAdapter(config.MySQL{})
 	// Create a table first
 	assert.NoError(t, adapter.ApplyDDL(99, "CREATE TABLE test_table (id INT PRIMARY KEY, name VARCHAR(255), email VARCHAR(255));"))
 
