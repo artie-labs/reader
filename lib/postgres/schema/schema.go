@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strconv"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
@@ -56,9 +57,31 @@ type Opts struct {
 type Column = column.Column[DataType, Opts]
 
 const describeTableQuery = `
-SELECT column_name, data_type, numeric_precision, numeric_scale, udt_name, character_maximum_length
-FROM information_schema.columns
-WHERE table_schema = $1 AND table_name = $2`
+SELECT 
+    a.attname AS column_name,
+    pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,
+    t.typname AS udt_name
+FROM 
+    pg_catalog.pg_attribute a
+JOIN 
+    pg_catalog.pg_class cl ON a.attrelid = cl.oid
+JOIN 
+    pg_catalog.pg_namespace n ON cl.relnamespace = n.oid
+JOIN 
+    information_schema.columns c 
+    ON c.column_name = a.attname
+    AND c.table_name = cl.relname
+    AND c.table_schema = n.nspname
+JOIN 
+    pg_catalog.pg_type t ON a.atttypid = t.oid
+WHERE 
+    c.table_schema = $1
+    AND c.table_name = $2
+    AND a.attnum > 0
+    AND NOT a.attisdropped
+ORDER BY 
+    a.attnum;
+`
 
 func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 	query := strings.TrimSpace(describeTableQuery)
@@ -72,12 +95,8 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 	for rows.Next() {
 		var colName string
 		var colType string
-		var numericPrecision *int
-		var numericScale *uint16
-		var udtName *string
-		var charMaxLength *int
-		err = rows.Scan(&colName, &colType, &numericPrecision, &numericScale, &udtName, &charMaxLength)
-		if err != nil {
+		var udtName string
+		if err = rows.Scan(&colName, &colType, &udtName); err != nil {
 			return nil, err
 		}
 
@@ -88,7 +107,7 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 			continue
 		}
 
-		dataType, opts, err := parseColumnDataType(colType, numericPrecision, numericScale, charMaxLength, udtName)
+		dataType, opts, err := parseColumnDataType(colType, udtName)
 		if err != nil {
 			return nil, fmt.Errorf("unable to identify type %q for column %q", colType, colName)
 		}
@@ -102,19 +121,37 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 	return cols, nil
 }
 
-func parseColumnDataType(colKind string, precision *int, scale *uint16, charMaxLength *int, udtName *string) (DataType, *Opts, error) {
-	colKind = strings.ToLower(colKind)
-	switch colKind {
+func parseColumnDataType(originalS string, udtName string) (DataType, *Opts, error) {
+	s := strings.ToLower(originalS)
+	var metadata string
+
+	parenIndex := strings.Index(s, "(")
+	if parenIndex != -1 {
+		if s[len(s)-1] != ')' {
+			// Make sure the format looks like int (n) unsigned
+			return -1, nil, fmt.Errorf("malformed data type: %q", originalS)
+		}
+		metadata = originalS[parenIndex+1 : len(s)-1]
+		s = s[:parenIndex]
+	}
+
+	switch s {
 	case "bit":
-		if charMaxLength == nil {
-			return -1, nil, fmt.Errorf("invalid bit column: missing character maximum length")
+		size, err := strconv.Atoi(metadata)
+		if err != nil {
+			return -1, nil, fmt.Errorf("failed to parse metadata value %q: %w", s, err)
 		}
 
-		return Bit, &Opts{CharMaxLength: *charMaxLength}, nil
+		return Bit, &Opts{CharMaxLength: size}, nil
 	case "bit varying":
 		opts := &Opts{}
-		if charMaxLength != nil {
-			opts.CharMaxLength = *charMaxLength
+		if metadata != "" {
+			size, err := strconv.Atoi(metadata)
+			if err != nil {
+				return -1, nil, fmt.Errorf("failed to parse metadata value %q: %w", s, err)
+			}
+
+			opts.CharMaxLength = size
 		}
 
 		return BitVarying, opts, nil
@@ -134,8 +171,22 @@ func parseColumnDataType(colKind string, precision *int, scale *uint16, charMaxL
 		return Money, nil, nil
 	case "bytea":
 		return Bytea, nil, nil
-	case "character varying", "text", "character", "xml", "cidr", "inet", "macaddr", "macaddr8",
-		"int4range", "int8range", "numrange", "daterange", "tsrange", "tstzrange":
+	case
+		"character varying",
+		"text",
+		"citext",
+		"character",
+		"xml",
+		"cidr",
+		"inet",
+		"macaddr",
+		"macaddr8",
+		"int4range",
+		"int8range",
+		"numrange",
+		"daterange",
+		"tsrange",
+		"tstzrange":
 		return Text, nil, nil
 	case "time without time zone":
 		return Time, nil, nil
@@ -157,6 +208,12 @@ func parseColumnDataType(colKind string, precision *int, scale *uint16, charMaxL
 		return JSON, nil, nil
 	case "point":
 		return Point, nil, nil
+	case "hstore":
+		return HStore, nil, nil
+	case "geometry":
+		return Geometry, nil, nil
+	case "geography":
+		return Geography, nil, nil
 	case "user-defined":
 		if udtName != nil && *udtName == "hstore" {
 			return HStore, nil, nil
@@ -167,26 +224,30 @@ func parseColumnDataType(colKind string, precision *int, scale *uint16, charMaxL
 		} else {
 			return UserDefinedText, nil, nil
 		}
-	default:
-		if strings.Contains(colKind, "numeric") {
-			if precision == nil && scale == nil {
-				return VariableNumeric, nil, nil
-			} else if precision != nil && scale != nil {
-				return Numeric, &Opts{
-					Scale:     *scale,
-					Precision: *precision,
-				}, nil
-			} else {
-				return -1, nil, fmt.Errorf(
-					"expected precision (nil: %t) and scale (nil: %t) to both be nil or not-nil",
-					precision == nil,
-					scale == nil,
-				)
-			}
+	case "numeric":
+		if metadata == "" {
+			return VariableNumeric, nil, nil
 		}
+
+		parts := strings.Split(metadata, ",")
+		if len(parts) != 2 {
+			return -1, nil, fmt.Errorf("expected precision and scale to both be set or not set, got %q", originalS)
+		}
+
+		precision, err := strconv.Atoi(parts[0])
+		if err != nil {
+			return -1, nil, fmt.Errorf("failed to parse precision value %q: %w", metadata, err)
+		}
+
+		scale, err := strconv.ParseUint(parts[1], 10, 16)
+		if err != nil {
+			return -1, nil, fmt.Errorf("failed to parse scale value %q: %w", metadata, err)
+		}
+
+		return Numeric, &Opts{Precision: precision, Scale: uint16(scale)}, nil
 	}
 
-	return -1, nil, fmt.Errorf("unknown data type: %q", colKind)
+	return -1, nil, fmt.Errorf("unknown data type: %q", originalS)
 }
 
 // This is a fork of: https://wiki.postgresql.org/wiki/Retrieve_primary_key_columns
