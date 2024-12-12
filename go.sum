@@ -102,8 +102,8 @@ github.com/apache/thrift v0.0.0-20181112125854-24918abba929/go.mod h1:cp2SuWMxlE
 github.com/apache/thrift v0.14.2/go.mod h1:cp2SuWMxlEZw2r+iP2GNCdIi4C1qmUzdZFSVb+bacwQ=
 github.com/apache/thrift v0.17.0 h1:cMd2aj52n+8VoAtvSvLn4kDC3aZ6IAkBuqWQ2IDu7wo=
 github.com/apache/thrift v0.17.0/go.mod h1:OLxhMRJxomX+1I/KUw03qoV3mMz16BwaKI+d4fPBx7Q=
-github.com/artie-labs/transfer v1.27.45-ptr h1:KpTl23J5oScAUjKnbISxK80cFFyRdIbYKl46Ibo8fEA=
-github.com/artie-labs/transfer v1.27.45-ptr/go.mod h1:9KfxO41Oe3Gf5duYDv3dIwwng1/tkfUSZOqa8LQprZ4=
+github.com/artie-labs/transfer v1.27.46 h1:zzrLyQM4pfOh8jAvf8zyeabcxf6cJbivNBMEpMi6/7Y=
+github.com/artie-labs/transfer v1.27.46/go.mod h1:9KfxO41Oe3Gf5duYDv3dIwwng1/tkfUSZOqa8LQprZ4=
 github.com/aws/aws-sdk-go v1.30.19/go.mod h1:5zCpMtNQVjRREroY7sYe8lOMRSxkhG6MZveU8YkpAk0=
 github.com/aws/aws-sdk-go-v2 v1.16.12/go.mod h1:C+Ym0ag2LIghJbXhfXZ0YEEp49rBWowxKzJLUoob0ts=
 github.com/aws/aws-sdk-go-v2 v1.30.3 h1:jUeBtG0Ih+ZIFH0F4UkmL9w3cSpaMv9tYYDbzILP8dY=
