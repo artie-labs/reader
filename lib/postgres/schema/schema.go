@@ -89,8 +89,8 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to run query: %s: %w", query, err)
 	}
-	defer rows.Close()
 
+	defer rows.Close()
 	var cols []Column
 	for rows.Next() {
 		var colName string
