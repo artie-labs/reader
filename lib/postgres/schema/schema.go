@@ -57,30 +57,25 @@ type Opts struct {
 type Column = column.Column[DataType, Opts]
 
 const describeTableQuery = `
-SELECT 
-    a.attname AS column_name,
-    pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,
-    t.typname AS udt_name
-FROM 
-    pg_catalog.pg_attribute a
-JOIN 
-    pg_catalog.pg_class cl ON a.attrelid = cl.oid
-JOIN 
-    pg_catalog.pg_namespace n ON cl.relnamespace = n.oid
-JOIN 
-    information_schema.columns c 
-    ON c.column_name = a.attname
-    AND c.table_name = cl.relname
-    AND c.table_schema = n.nspname
-JOIN 
-    pg_catalog.pg_type t ON a.atttypid = t.oid
-WHERE 
-    c.table_schema = $1
-    AND c.table_name = $2
-    AND a.attnum > 0
-    AND NOT a.attisdropped
-ORDER BY 
-    a.attnum;
+SELECT a.attname                                       AS column_name,
+       pg_catalog.Format_type(a.atttypid, a.atttypmod) AS data_type,
+       c.data_type                                     AS udt_name
+FROM   pg_catalog.pg_attribute a
+       JOIN pg_catalog.pg_class cl
+         ON a.attrelid = cl.oid
+       JOIN pg_catalog.pg_namespace n
+         ON cl.relnamespace = n.oid
+       JOIN information_schema.columns c
+         ON c.column_name = a.attname
+            AND c.table_name = cl.relname
+            AND c.table_schema = n.nspname
+       JOIN pg_catalog.pg_type t
+         ON a.atttypid = t.oid
+WHERE  c.table_schema = $1
+       AND c.table_name = $2
+       AND a.attnum > 0
+       AND NOT a.attisdropped
+ORDER  BY a.attnum; 
 `
 
 func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
@@ -89,8 +84,8 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to run query: %s: %w", query, err)
 	}
-
 	defer rows.Close()
+
 	var cols []Column
 	for rows.Next() {
 		var colName string
@@ -124,7 +119,6 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 func parseColumnDataType(originalS string, udtName string) (DataType, *Opts, error) {
 	s := strings.ToLower(originalS)
 	var metadata string
-
 	parenIndex := strings.Index(s, "(")
 	if parenIndex != -1 {
 		if s[len(s)-1] != ')' {
@@ -202,8 +196,6 @@ func parseColumnDataType(originalS string, udtName string) (DataType, *Opts, err
 		return Interval, nil, nil
 	case "uuid":
 		return UUID, nil, nil
-	case "array":
-		return Array, nil, nil
 	case "json", "jsonb":
 		return JSON, nil, nil
 	case "point":
@@ -214,16 +206,6 @@ func parseColumnDataType(originalS string, udtName string) (DataType, *Opts, err
 		return Geometry, nil, nil
 	case "geography":
 		return Geography, nil, nil
-	case "user-defined":
-		if udtName != nil && *udtName == "hstore" {
-			return HStore, nil, nil
-		} else if udtName != nil && *udtName == "geometry" {
-			return Geometry, nil, nil
-		} else if udtName != nil && *udtName == "geography" {
-			return Geography, nil, nil
-		} else {
-			return UserDefinedText, nil, nil
-		}
 	case "numeric":
 		if metadata == "" {
 			return VariableNumeric, nil, nil
@@ -245,9 +227,13 @@ func parseColumnDataType(originalS string, udtName string) (DataType, *Opts, err
 		}
 
 		return Numeric, &Opts{Precision: precision, Scale: uint16(scale)}, nil
-	}
+	default:
+		if strings.EqualFold(udtName, "USER-DEFINED") {
+			return UserDefinedText, nil, nil
+		}
 
-	return -1, nil, fmt.Errorf("unknown data type: %q", originalS)
+		return -1, nil, fmt.Errorf("unknown data type: %q", originalS)
+	}
 }
 
 // This is a fork of: https://wiki.postgresql.org/wiki/Retrieve_primary_key_columns
