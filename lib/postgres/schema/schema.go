@@ -129,6 +129,13 @@ func parseColumnDataType(originalS string, udtName string) (DataType, *Opts, err
 		s = s[:parenIndex]
 	}
 
+	// If the data type is scoped to a schema, we need to remove the schema name
+	// from the data type to match the data type to the list of known data types.
+	// For example, if the data type is "public.geometry", we need to remove "public."
+	if parts := strings.Split(s, "."); len(parts) > 1 {
+		s = parts[len(parts)-1]
+	}
+
 	switch s {
 	case "bit":
 		size, err := strconv.Atoi(metadata)
