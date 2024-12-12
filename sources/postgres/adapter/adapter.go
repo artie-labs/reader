@@ -135,6 +135,10 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 	case schema.UUID:
 		return converters.UUIDConverter{}, nil
 	case schema.Array:
+		if opts == nil {
+			return nil, fmt.Errorf("missing options for array data type")
+		}
+
 		return converters.ArrayConverter{}, nil
 	case schema.JSON:
 		return converters.JSONConverter{}, nil
