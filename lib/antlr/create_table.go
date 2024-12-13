@@ -9,7 +9,7 @@ import (
 	"github.com/artie-labs/reader/lib/antlr/generated"
 )
 
-func (c Column) buildDataTypePrimaryKey(ctx generated.IColumnDefinitionContext) Column {
+func (c Column) buildDataTypePrimaryKey(ctx generated.IColumnDefinitionContext) (Column, error) {
 	var pk bool
 	for _, defChild := range ctx.AllColumnConstraint() {
 		switch defChild.(type) {
@@ -20,10 +20,23 @@ func (c Column) buildDataTypePrimaryKey(ctx generated.IColumnDefinitionContext) 
 
 	var parts []string
 	for _, child := range ctx.DataType().GetChildren() {
-		if pt, ok := child.(antlr.ParseTree); ok {
-			parts = append(parts, pt.GetText())
-		} else {
-			slog.Warn("Skipping type that is not a parse tree", slog.String("type", fmt.Sprintf("%T", child)))
+		switch castedChild := child.(type) {
+		case *generated.CharSetContext:
+			for _, node := range castedChild.GetChildren() {
+				part, err := getTextFromSingleNodeBranch(node)
+				if err != nil {
+					return Column{}, fmt.Errorf("failed to extract charset: %w", err)
+				}
+
+				parts = append(parts, part)
+			}
+
+		default:
+			if pt, ok := child.(antlr.ParseTree); ok {
+				parts = append(parts, pt.GetText())
+			} else {
+				slog.Warn("Skipping type that is not a parse tree", slog.String("type", fmt.Sprintf("%T", child)))
+			}
 		}
 	}
 
@@ -45,7 +58,7 @@ func (c Column) buildDataTypePrimaryKey(ctx generated.IColumnDefinitionContext) 
 		Name:       c.Name,
 		DataType:   dataType,
 		PrimaryKey: pk,
-	}
+	}, nil
 }
 
 func processColumn(ctx *generated.ColumnDeclarationContext) (Column, error) {
@@ -60,7 +73,11 @@ func processColumn(ctx *generated.ColumnDeclarationContext) (Column, error) {
 
 			col.Name = colName
 		case *generated.ColumnDefinitionContext:
-			col = col.buildDataTypePrimaryKey(t)
+			var err error
+			col, err = col.buildDataTypePrimaryKey(t)
+			if err != nil {
+				return Column{}, fmt.Errorf("failed to build data type primary key: %w", err)
+			}
 		}
 	}
 

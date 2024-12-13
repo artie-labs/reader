@@ -36,7 +36,10 @@ func processAlterTable(ctx *generated.AlterTableContext) ([]Event, error) {
 			}
 
 			for i, colDef := range colDefs {
-				cols[i] = cols[i].buildDataTypePrimaryKey(colDef)
+				cols[i], err = cols[i].buildDataTypePrimaryKey(colDef)
+				if err != nil {
+					return nil, err
+				}
 			}
 
 			events = append(events, AddColumnsEvent{TableName: tableName, Columns: cols})
@@ -126,7 +129,12 @@ func processAddOrModifyColumn(ctx generated.IAlterSpecificationContext) (Column,
 	for _, child := range ctx.GetChildren() {
 		switch castedChild := child.(type) {
 		case *generated.ColumnDefinitionContext:
-			col = col.buildDataTypePrimaryKey(castedChild)
+			var err error
+			col, err = col.buildDataTypePrimaryKey(castedChild)
+			if err != nil {
+				return Column{}, fmt.Errorf("failed to build data type primary key: %w", err)
+			}
+
 		case *antlr.TerminalNodeImpl:
 			text := castedChild.GetText()
 			switch strings.ToUpper(text) {
