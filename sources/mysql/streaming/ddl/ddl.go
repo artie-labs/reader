@@ -39,12 +39,12 @@ func (s *SchemaAdapter) GetTableAdapter(tableName string) (TableAdapter, bool) {
 func (s *SchemaAdapter) ApplyDDL(unixTs int64, query string) error {
 	results, err := antlr.Parse(query)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse query %q: %w", query, err)
 	}
 
 	for _, result := range results {
 		if err = s.applyDDL(unixTs, result); err != nil {
-			return fmt.Errorf("failed to apply ddl: %w", err)
+			return fmt.Errorf("failed to apply ddl %q: %w", query, err)
 		}
 	}
 
