@@ -130,6 +130,11 @@ func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
 		s = s[:collateIdx]
 	}
 
+	if charSetIdx := strings.Index(s, " character set"); charSetIdx != -1 {
+		// Strip character set
+		s = s[:charSetIdx]
+	}
+
 	parenIndex := strings.Index(s, "(")
 	if parenIndex != -1 {
 		if s[len(s)-1] != ')' {
