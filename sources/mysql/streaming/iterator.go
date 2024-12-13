@@ -195,6 +195,10 @@ func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Tim
 	}
 
 	query := string(evt.Query)
+	if shouldSkipDDL(query) {
+		return nil
+	}
+
 	schemaHistory := SchemaHistory{
 		Query:  query,
 		UnixTs: ts.Unix(),
