@@ -11,10 +11,12 @@ import (
 func TestShouldSkipDDL(t *testing.T) {
 	{
 		// Internal DDL
+		assert.True(t, shouldSkipDDL(`BEGIN`))
 		assert.True(t, shouldSkipDDL(`INSERT INTO mysql.rds_heartbeat2(id, value) values (1,1734128356976) ON DUPLICATE KEY UPDATE value = 1734128356976`))
 	}
 	{
 		// External DDL
+		assert.False(t, shouldSkipDDL(`BEGIN TRANSACTION`))
 		assert.False(t, shouldSkipDDL(`CREATE TABLE users (id INT PRIMARY KEY, name VARCHAR(255))`))
 		assert.False(t, shouldSkipDDL(`ALTER TABLE users ADD COLUMN id INT`))
 	}
