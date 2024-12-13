@@ -125,6 +125,11 @@ func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
 		s = strings.TrimSuffix(s, " unsigned")
 	}
 
+	if collateIdx := strings.Index(s, " collate"); collateIdx != -1 {
+		// Strip collate
+		s = s[:collateIdx]
+	}
+
 	parenIndex := strings.Index(s, "(")
 	if parenIndex != -1 {
 		if s[len(s)-1] != ')' {
