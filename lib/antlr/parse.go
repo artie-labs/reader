@@ -80,7 +80,8 @@ func visit(tree antlr.Tree) ([]Event, error) {
 		*antlr.TerminalNodeImpl,
 		// Ignoring *generated.DmlStatementContext since it can pick up
 		// INSERT INTO mysql.rds_heartbeat2(id, value)
-		*generated.DmlStatementContext:
+		*generated.DmlStatementContext,
+		*generated.CommitWorkContext:
 		return nil, nil
 	default:
 		return nil, newParseError(fmt.Errorf("unsupported context type: %T", ctx))
