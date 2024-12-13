@@ -32,8 +32,8 @@ func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persiste
 		latestSchemaUnixTs = schemaHistory.UnixTs
 	}
 
-	// Check the position's timestamp
-	if latestSchemaUnixTs > pos.UnixTs {
+	// If [pos.UnixTs] is set, it should be greater than the latest schema timestamp
+	if latestSchemaUnixTs > pos.UnixTs && pos.UnixTs > 0 {
 		return ddl.SchemaAdapter{}, fmt.Errorf("latest schema timestamp %d is greater than the current position's timestamp %d", latestSchemaUnixTs, pos.UnixTs)
 	}
 
