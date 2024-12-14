@@ -24,6 +24,7 @@ func NewSchemaAdapter(cfg config.MySQL) SchemaAdapter {
 	return SchemaAdapter{
 		adapters:    make(map[string]TableAdapter),
 		tableCfgMap: tableCfgMap,
+		dbName:      cfg.Database,
 	}
 }
 
