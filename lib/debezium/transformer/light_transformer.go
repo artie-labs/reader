@@ -44,6 +44,8 @@ func (l LightDebeziumTransformer) BuildPartitionKey(beforeRow, afterRow Row) (ma
 		row = beforeRow
 	}
 
+	fmt.Println("beforeRow", beforeRow, "afterRow", afterRow, "partitionKeys", l.partitionKeys)
+
 	return convertPartitionKey(l.valueConverters, l.partitionKeys, row)
 }
 
