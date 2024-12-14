@@ -139,7 +139,11 @@ func valueConverterForType(dataType schema.DataType, opts *schema.Opts) (convert
 			return nil, fmt.Errorf("missing options for array data type")
 		}
 
-		return converters.ArrayConverter{}, nil
+		if opts.ElementType == nil {
+			return nil, fmt.Errorf("element type is not set for array data type")
+		}
+
+		return converters.NewArrayConverter(*opts.ElementType), nil
 	case schema.JSON:
 		return converters.JSONConverter{}, nil
 	case schema.HStore:
