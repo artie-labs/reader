@@ -615,7 +615,6 @@ const expectedPayloadTemplate = `{
 			"connector": "",
 			"ts_ms": %d,
 			"db": "",
-			"schema": "",
 			"table": "%s"
 		},
 		"op": "r"
