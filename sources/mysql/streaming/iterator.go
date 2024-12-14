@@ -168,7 +168,7 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 					return nil, fmt.Errorf("failed to persist DDL: %w", err)
 				}
 			case replication.WRITE_ROWS_EVENTv2, replication.UPDATE_ROWS_EVENTv2, replication.DELETE_ROWS_EVENTv2:
-				rows, err := i.processDML(ts, event)
+				rows, err := i.processDML(ts, event, i.position)
 				if err != nil {
 					return nil, fmt.Errorf("failed to process DML: %w", err)
 				}

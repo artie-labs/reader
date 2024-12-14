@@ -2,6 +2,7 @@ package streaming
 
 import (
 	"fmt"
+	"github.com/artie-labs/transfer/lib/cdc/util"
 	"iter"
 	"regexp"
 	"slices"
@@ -130,5 +131,18 @@ func splitIntoBeforeAndAfter(operation string, rows [][]any) (iter.Seq2[[]any, [
 		}, nil
 	default:
 		return nil, fmt.Errorf("unsupported operation: %q", operation)
+	}
+}
+
+func buildDebeziumSourcePayload(dbName string, tableName string, ts time.Time, position Position) util.Source {
+	return util.Source{
+		Connector: "mysql",
+		Database:  dbName,
+		Table:     tableName,
+		TsMs:      ts.UnixMilli(),
+
+		// MySQL specific
+		File: position.File,
+		Pos:  int64(position.Pos),
 	}
 }

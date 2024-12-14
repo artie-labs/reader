@@ -47,13 +47,10 @@ func (l LightDebeziumTransformer) BuildPartitionKey(beforeRow, afterRow Row) (ma
 	return convertPartitionKey(l.valueConverters, l.partitionKeys, row)
 }
 
-func (l LightDebeziumTransformer) BuildEventPayload(beforeRow Row, afterRow Row, op string, ts time.Time) (util.SchemaEventPayload, error) {
+func (l LightDebeziumTransformer) BuildEventPayload(source util.Source, beforeRow Row, afterRow Row, op string, ts time.Time) (util.SchemaEventPayload, error) {
 	schema := debezium.Schema{FieldsObject: []debezium.FieldsObject{}}
 	payload := util.Payload{
-		Source: util.Source{
-			Table: l.tableName,
-			TsMs:  ts.UnixMilli(),
-		},
+		Source:    source,
 		Operation: op,
 	}
 
