@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/artie-labs/transfer/lib/debezium"
 	"log/slog"
 	"time"
 
@@ -83,7 +84,12 @@ func buildKafkaMessageWrapper(topicPrefix string, rawMessage lib.RawMessage) (Ka
 		return KafkaMessageWrapper{}, err
 	}
 
-	keyBytes, err := json.Marshal(rawMessage.PartitionKey())
+	pk := debezium.PrimaryKeyPayload{
+		Schema:  rawMessage.PartitionKeySchema(),
+		Payload: rawMessage.PartitionKey(),
+	}
+
+	keyBytes, err := json.Marshal(pk)
 	if err != nil {
 		return KafkaMessageWrapper{}, err
 	}

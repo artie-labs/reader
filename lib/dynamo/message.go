@@ -138,5 +138,6 @@ func (m *Message) artieMessage() *util.SchemaEventPayload {
 }
 
 func (m *Message) RawMessage() lib.RawMessage {
-	return lib.NewRawMessage(m.tableName, m.primaryKey, m.artieMessage())
+	// TODO: debezium.FieldsObject is not set
+	return lib.NewRawMessage(m.tableName, debezium.FieldsObject{}, m.primaryKey, m.artieMessage())
 }

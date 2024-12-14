@@ -90,7 +90,8 @@ func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 			return nil, fmt.Errorf("failed to create Debezium payload: %w", err)
 		}
 
-		result = append(result, lib.NewRawMessage(d.adapter.TopicSuffix(), d.partitionKey(row), &payload))
+		// TODO: debezium.FieldsObject is not set
+		result = append(result, lib.NewRawMessage(d.adapter.TopicSuffix(), debezium.FieldsObject{}, d.partitionKey(row), &payload))
 	}
 
 	return result, nil
@@ -146,27 +147,29 @@ func convertRow(valueConverters map[string]converters.ValueConverter, row Row) (
 	return result, nil
 }
 
-func convertPartitionKey(valueConverters map[string]converters.ValueConverter, partitionKeys []string, row Row) (map[string]any, error) {
-	result := make(map[string]any, len(partitionKeys))
+func convertPartitionKey(valueConverters map[string]converters.ValueConverter, dbzFields []debezium.Field, partitionKeys []string, row Row) (debezium.PrimaryKeyPayload, error) {
+	payload := make(map[string]any, len(partitionKeys))
 	for _, key := range partitionKeys {
 		valueConverter, isOk := valueConverters[key]
 		if !isOk {
-			return nil, fmt.Errorf("failed to get ValueConverter for key %q", key)
+			return debezium.PrimaryKeyPayload{}, fmt.Errorf("failed to get ValueConverter for key %q", key)
 		}
 
 		// Key must exist in row
 		value, isOk := row[key]
 		if !isOk {
-			return nil, fmt.Errorf("failed to get partition key value for key %q", key)
+			return debezium.PrimaryKeyPayload{}, fmt.Errorf("failed to get partition key value for key %q", key)
 		}
 
 		convertedValue, err := valueConverter.Convert(value)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert partition key value for key %q: %w", key, err)
+			return debezium.PrimaryKeyPayload{}, fmt.Errorf("failed to convert partition key value for key %q: %w", key, err)
 		}
 
-		result[key] = convertedValue
+		payload[key] = convertedValue
 	}
 
-	return result, nil
+	return debezium.PrimaryKeyPayload{
+		Payload: payload,
+	}, nil
 }
