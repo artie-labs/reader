@@ -39,7 +39,7 @@ func (l LightDebeziumTransformer) BuildPartitionKey(beforeRow, afterRow Row) (ma
 	}
 
 	row := afterRow
-	if afterRow == nil {
+	if len(afterRow) == 0 {
 		// After row may not exist for a delete event.
 		row = beforeRow
 	}
