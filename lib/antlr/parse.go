@@ -36,6 +36,8 @@ func unescape(s string) string {
 func Parse(sqlCmd string) ([]Event, error) {
 	lexer := generated.NewMySqlLexer(antlr.NewInputStream(sqlCmd))
 	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
+	// This will go through our custom visit function. If you are trying to print out the AST, split this function into [sqlStatements] and [parser]
+	// Then have print [sqlStatements.ToStringTree(nil, parser)]
 	return visit(generated.NewMySqlParser(stream).SqlStatements())
 }
 
@@ -77,7 +79,11 @@ func visit(tree antlr.Tree) ([]Event, error) {
 		*generated.TruncateTableContext,
 		*generated.AdministrationStatementContext,
 		*generated.CreateDatabaseContext,
-		*antlr.TerminalNodeImpl:
+		*antlr.TerminalNodeImpl,
+		// Ignoring *generated.DmlStatementContext since it can pick up
+		// INSERT INTO mysql.rds_heartbeat2(id, value)
+		*generated.DmlStatementContext,
+		*generated.CommitWorkContext:
 		return nil, nil
 	default:
 		return nil, newParseError(fmt.Errorf("unsupported context type: %T", ctx))

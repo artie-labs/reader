@@ -3,13 +3,14 @@ package antlr
 import (
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
 	"github.com/artie-labs/reader/lib/antlr/generated"
 )
 
-func (c Column) buildDataTypePrimaryKey(ctx generated.IColumnDefinitionContext) Column {
+func (c Column) buildDataTypePrimaryKey(ctx generated.IColumnDefinitionContext) (Column, error) {
 	var pk bool
 	for _, defChild := range ctx.AllColumnConstraint() {
 		switch defChild.(type) {
@@ -20,10 +21,23 @@ func (c Column) buildDataTypePrimaryKey(ctx generated.IColumnDefinitionContext) 
 
 	var parts []string
 	for _, child := range ctx.DataType().GetChildren() {
-		if pt, ok := child.(antlr.ParseTree); ok {
-			parts = append(parts, pt.GetText())
-		} else {
-			slog.Warn("Skipping type that is not a parse tree", slog.String("type", fmt.Sprintf("%T", child)))
+		switch castedChild := child.(type) {
+		case *generated.CharSetContext:
+			for _, node := range castedChild.GetChildren() {
+				part, err := getTextFromSingleNodeBranch(node)
+				if err != nil {
+					return Column{}, fmt.Errorf("failed to extract charset: %w", err)
+				}
+
+				parts = append(parts, part)
+			}
+
+		default:
+			if pt, ok := child.(antlr.ParseTree); ok {
+				parts = append(parts, pt.GetText())
+			} else {
+				slog.Warn("Skipping type that is not a parse tree", slog.String("type", fmt.Sprintf("%T", child)))
+			}
 		}
 	}
 
@@ -45,7 +59,7 @@ func (c Column) buildDataTypePrimaryKey(ctx generated.IColumnDefinitionContext) 
 		Name:       c.Name,
 		DataType:   dataType,
 		PrimaryKey: pk,
-	}
+	}, nil
 }
 
 func processColumn(ctx *generated.ColumnDeclarationContext) (Column, error) {
@@ -60,11 +74,32 @@ func processColumn(ctx *generated.ColumnDeclarationContext) (Column, error) {
 
 			col.Name = colName
 		case *generated.ColumnDefinitionContext:
-			col = col.buildDataTypePrimaryKey(t)
+			var err error
+			col, err = col.buildDataTypePrimaryKey(t)
+			if err != nil {
+				return Column{}, fmt.Errorf("failed to build data type primary key: %w", err)
+			}
 		}
 	}
 
 	return col, nil
+}
+
+func processPrimaryKeyConstraintNode(node *generated.PrimaryKeyTableConstraintContext) ([]string, error) {
+	var colNames []string
+	for _, child := range node.IndexColumnNames().GetChildren() {
+		if casted, ok := child.(*generated.IndexColumnNameContext); ok {
+			colName, err := getTextFromSingleNodeBranch(casted)
+			if err != nil {
+				return nil, err
+			}
+
+			colNames = append(colNames, colName)
+		}
+	}
+
+	return colNames, nil
+
 }
 
 func processCreateTable(ctx *generated.ColumnCreateTableContext) (Event, error) {
@@ -77,14 +112,33 @@ func processCreateTable(ctx *generated.ColumnCreateTableContext) (Event, error) 
 	for _, child := range ctx.GetChildren() {
 		switch castedChild := child.(type) {
 		case *generated.CreateDefinitionsContext:
-			for _, _child := range castedChild.GetChildren() {
-				if colContext, ok := _child.(*generated.ColumnDeclarationContext); ok {
-					_col, err := processColumn(colContext)
+			for _, node := range castedChild.GetChildren() {
+				switch castedNode := node.(type) {
+				case *generated.ColumnDeclarationContext:
+					_col, err := processColumn(castedNode)
 					if err != nil {
 						return nil, err
 					}
 
 					columns = append(columns, _col)
+				case *generated.ConstraintDeclarationContext:
+					for _, constraintChild := range castedNode.GetChildren() {
+						if casted, ok := constraintChild.(*generated.PrimaryKeyTableConstraintContext); ok {
+							colNames, err := processPrimaryKeyConstraintNode(casted)
+							if err != nil {
+								return nil, err
+							}
+
+							for _, colName := range colNames {
+								columnIdx := slices.IndexFunc(columns, func(x Column) bool { return x.Name == colName })
+								if columnIdx == -1 {
+									return nil, fmt.Errorf("failed to find column %q", colName)
+								}
+
+								columns[columnIdx].PrimaryKey = true
+							}
+						}
+					}
 				}
 			}
 		}
