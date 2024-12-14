@@ -57,11 +57,12 @@ func TestArrayConverter(t *testing.T) {
 	}
 	{
 		// Array of jsonb[]
+		listOfObjects := []any{map[string]any{"a": "b"}, map[string]any{"c": "d"}}
+		listOfJsonStrings := []any{`{"a": "b"}`, `{"c": "d"}`}
 		{
 			// Invalid - item type is JSON objects
-			list := []any{map[string]any{"a": "b"}, map[string]any{"c": "d"}}
 			converter := NewArrayConverter("jsonb")
-			converted, err := converter.Convert(list)
+			converted, err := converter.Convert(listOfObjects)
 			assert.NoError(t, err)
 
 			_, err = converter.ToField("name").ParseValue(converted)
@@ -69,6 +70,13 @@ func TestArrayConverter(t *testing.T) {
 		}
 		{
 			// Valid - item type is JSON strings
+			converter := NewArrayConverter("jsonb")
+			converted, err := converter.Convert(listOfJsonStrings)
+			assert.NoError(t, err)
+
+			returnedValue, err := converter.ToField("name").ParseValue(converted)
+			assert.NoError(t, err)
+			assert.Equal(t, listOfObjects, returnedValue)
 		}
 	}
 }
