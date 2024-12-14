@@ -2,14 +2,15 @@ package streaming
 
 import (
 	"fmt"
-	"github.com/artie-labs/transfer/lib/cdc/util"
 	"iter"
 	"regexp"
 	"slices"
 	"time"
 
-	"github.com/artie-labs/reader/lib/mysql/schema"
+	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/go-mysql-org/go-mysql/replication"
+
+	"github.com/artie-labs/reader/lib/mysql/schema"
 )
 
 // ddlFilterPatterns is sourced from https://github.com/debezium/debezium/blob/8ce74a328df6a6f99fb80826630a9d9b1d9022de/debezium-core/src/main/java/io/debezium/relational/history/SchemaHistory.java#L76
