@@ -42,6 +42,40 @@ func TestCreateTable(t *testing.T) {
 		}
 	}
 	{
+		// Primary key is specified outside of the column definition
+		{
+			// Primary key is specified, column does not exist
+			events, err := Parse("CREATE TABLE table_name (id INT, PRIMARY KEY (name));")
+			assert.ErrorContains(t, err, `failed to find column "name"`)
+			assert.Len(t, events, 0)
+		}
+		{
+			// One primary key
+			events, err := Parse("CREATE TABLE table_name (id INT, name VARCHAR(255), PRIMARY KEY (id));")
+			assert.NoError(t, err)
+			assert.Len(t, events, 1)
+
+			createTableEvent, isOk := events[0].(CreateTableEvent)
+			assert.True(t, isOk)
+
+			assert.Equal(t, "table_name", createTableEvent.GetTable())
+			assert.Len(t, createTableEvent.GetColumns(), 2)
+			assert.Equal(t, []Column{{Name: "id", DataType: "INT", PrimaryKey: true}, {Name: "name", DataType: "VARCHAR(255)", PrimaryKey: false}}, createTableEvent.GetColumns())
+		}
+		{
+			// Two primary keys
+			events, err := Parse("CREATE TABLE table_name (id INT, name VARCHAR(255), PRIMARY KEY (id, name));")
+			assert.NoError(t, err)
+
+			createTableEvent, isOk := events[0].(CreateTableEvent)
+			assert.True(t, isOk)
+
+			assert.Equal(t, "table_name", createTableEvent.GetTable())
+			assert.Len(t, createTableEvent.GetColumns(), 2)
+			assert.Equal(t, []Column{{Name: "id", DataType: "INT", PrimaryKey: true}, {Name: "name", DataType: "VARCHAR(255)", PrimaryKey: true}}, createTableEvent.GetColumns())
+		}
+	}
+	{
 		// Create table with primary key
 		events, err := Parse("CREATE TABLE table_name (id INT PRIMARY KEY, name VARCHAR(255), tinyint1 TINYINT(1), bool_test BOOLEAN, `escaped_COL` BLOB);")
 		assert.NoError(t, err)

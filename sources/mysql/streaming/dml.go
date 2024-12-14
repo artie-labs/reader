@@ -92,6 +92,10 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 			return nil, fmt.Errorf("failed to build partition key: %w", err)
 		}
 
+		if len(pk) == 0 {
+			return nil, fmt.Errorf("partition key is not set for table: %q", tableName)
+		}
+
 		rawMsgs = append(rawMsgs, lib.NewRawMessage(tblAdapter.TopicSuffix(), pk, &dbzMessage))
 	}
 

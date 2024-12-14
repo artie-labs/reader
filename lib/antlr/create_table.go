@@ -3,6 +3,7 @@ package antlr
 import (
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
@@ -84,6 +85,23 @@ func processColumn(ctx *generated.ColumnDeclarationContext) (Column, error) {
 	return col, nil
 }
 
+func processPrimaryKeyConstraintNode(node *generated.PrimaryKeyTableConstraintContext) ([]string, error) {
+	var colNames []string
+	for _, child := range node.IndexColumnNames().GetChildren() {
+		if casted, ok := child.(*generated.IndexColumnNameContext); ok {
+			colName, err := getTextFromSingleNodeBranch(casted)
+			if err != nil {
+				return nil, err
+			}
+
+			colNames = append(colNames, colName)
+		}
+	}
+
+	return colNames, nil
+
+}
+
 func processCreateTable(ctx *generated.ColumnCreateTableContext) (Event, error) {
 	tableName, err := getTableNameFromNode(ctx.TableName())
 	if err != nil {
@@ -94,14 +112,33 @@ func processCreateTable(ctx *generated.ColumnCreateTableContext) (Event, error) 
 	for _, child := range ctx.GetChildren() {
 		switch castedChild := child.(type) {
 		case *generated.CreateDefinitionsContext:
-			for _, _child := range castedChild.GetChildren() {
-				if colContext, ok := _child.(*generated.ColumnDeclarationContext); ok {
-					_col, err := processColumn(colContext)
+			for _, node := range castedChild.GetChildren() {
+				switch castedNode := node.(type) {
+				case *generated.ColumnDeclarationContext:
+					_col, err := processColumn(castedNode)
 					if err != nil {
 						return nil, err
 					}
 
 					columns = append(columns, _col)
+				case *generated.ConstraintDeclarationContext:
+					for _, constraintChild := range castedNode.GetChildren() {
+						if casted, ok := constraintChild.(*generated.PrimaryKeyTableConstraintContext); ok {
+							colNames, err := processPrimaryKeyConstraintNode(casted)
+							if err != nil {
+								return nil, err
+							}
+
+							for _, colName := range colNames {
+								columnIdx := slices.IndexFunc(columns, func(x Column) bool { return x.Name == colName })
+								if columnIdx == -1 {
+									return nil, fmt.Errorf("failed to find column %q", colName)
+								}
+
+								columns[columnIdx].PrimaryKey = true
+							}
+						}
+					}
 				}
 			}
 		}
