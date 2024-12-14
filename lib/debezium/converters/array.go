@@ -1,6 +1,7 @@
 package converters
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -38,10 +39,30 @@ func (a ArrayConverter) ToField(name string) debezium.Field {
 	}
 }
 
-func (ArrayConverter) Convert(value any) (any, error) {
+func (a ArrayConverter) Convert(value any) (any, error) {
 	arrayValue, ok := value.([]any)
 	if !ok {
 		return nil, fmt.Errorf("expected []any got %T with value: %v", value, value)
 	}
+
+	if a.json {
+		var elements []any
+		for _, el := range arrayValue {
+			switch el.(type) {
+			case string:
+				elements = append(elements, el)
+			default:
+				parsedValue, err := json.Marshal(el)
+				if err != nil {
+					return nil, fmt.Errorf("failed to marshal value: %v", err)
+				}
+
+				elements = append(elements, string(parsedValue))
+			}
+		}
+
+		return elements, nil
+	}
+
 	return arrayValue, nil
 }

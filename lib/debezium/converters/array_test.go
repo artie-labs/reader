@@ -65,8 +65,9 @@ func TestArrayConverter(t *testing.T) {
 			converted, err := converter.Convert(listOfObjects)
 			assert.NoError(t, err)
 
-			_, err = converter.ToField("name").ParseValue(converted)
-			assert.ErrorContains(t, err, `expected string, got map[string]interface {}, value 'map[a:b]'`)
+			returnedValue, err := converter.ToField("name").ParseValue(converted)
+			assert.NoError(t, err)
+			assert.Equal(t, listOfObjects, returnedValue)
 		}
 		{
 			// Valid - item type is JSON strings
