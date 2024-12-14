@@ -57,8 +57,8 @@ func TestArrayConverter(t *testing.T) {
 	}
 	{
 		// Array of jsonb[]
-		listOfObjects := []any{map[string]any{"a": "b"}, map[string]any{"c": "d"}}
-		listOfJsonStrings := []any{`{"a": "b"}`, `{"c": "d"}`}
+		listOfObjects := []any{map[string]any{"a": "b"}, map[string]any{"c": "d"}, []any{"e", "f"}}
+		listOfJsonStrings := []any{`{"a": "b"}`, `{"c": "d"}`, `["e", "f"]`}
 		{
 			// Invalid - item type is JSON objects
 			converter := NewArrayConverter("jsonb")
