@@ -46,10 +46,12 @@ func (a ArrayConverter) Convert(value any) (any, error) {
 	}
 
 	if a.json {
+		// If json is enabled, we should parse the array elements to JSON strings
 		var elements []any
 		for _, el := range arrayValue {
 			switch el.(type) {
 			case string:
+				// Already JSON string, so we can skip the marshalling
 				elements = append(elements, el)
 			default:
 				parsedValue, err := json.Marshal(el)
