@@ -12,7 +12,7 @@ import (
 	"github.com/artie-labs/reader/lib/debezium/transformer"
 )
 
-func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent, position Position) ([]lib.RawMessage, error) {
+func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]lib.RawMessage, error) {
 	rowsEvent, err := typing.AssertType[*replication.RowsEvent](event.Event)
 	if err != nil {
 		return nil, fmt.Errorf("failed to assert a rows event: %w", err)
@@ -53,7 +53,7 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent, posi
 		return nil, fmt.Errorf("failed to get parsed columns: %w", err)
 	}
 
-	sourcePayload := buildDebeziumSourcePayload(i.cfg.Database, tableName, ts, position)
+	sourcePayload := buildDebeziumSourcePayload(i.cfg.Database, tableName, ts, i.position)
 	dbz := transformer.NewLightDebeziumTransformer(tableName, tblAdapter.PartitionKeys(), tblAdapter.GetFieldConverters())
 	for before, after := range beforeAndAfters {
 		var beforeRow map[string]any
