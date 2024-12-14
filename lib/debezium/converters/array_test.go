@@ -42,3 +42,33 @@ func TestArrayConverter_ToField(t *testing.T) {
 		}, field)
 	}
 }
+
+func TestArrayConverter(t *testing.T) {
+	{
+		// Array of strings
+		list := []any{"a", "b", "c"}
+		converter := NewArrayConverter("string")
+		converted, err := converter.Convert(list)
+		assert.NoError(t, err)
+
+		returnedValue, err := converter.ToField("name").ParseValue(converted)
+		assert.NoError(t, err)
+		assert.Equal(t, list, returnedValue)
+	}
+	{
+		// Array of jsonb[]
+		{
+			// Invalid - item type is JSON objects
+			list := []any{map[string]any{"a": "b"}, map[string]any{"c": "d"}}
+			converter := NewArrayConverter("jsonb")
+			converted, err := converter.Convert(list)
+			assert.NoError(t, err)
+
+			_, err = converter.ToField("name").ParseValue(converted)
+			assert.ErrorContains(t, err, `expected string, got map[string]interface {}, value 'map[a:b]'`)
+		}
+		{
+			// Valid - item type is JSON strings
+		}
+	}
+}
