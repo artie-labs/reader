@@ -7,7 +7,8 @@ import (
 )
 
 func initializeAdapter(t *testing.T) SchemaAdapter {
-	adapter := NewSchemaAdapter(config.MySQL{})
+	adapter := NewSchemaAdapter(config.MySQL{Database: "foo"})
+	assert.Equal(t, "foo", adapter.dbName)
 	// Create a table first
 	assert.NoError(t, adapter.ApplyDDL(99, "CREATE TABLE test_table (id INT PRIMARY KEY, name VARCHAR(255), email VARCHAR(255));"))
 

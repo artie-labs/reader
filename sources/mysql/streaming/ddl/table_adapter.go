@@ -125,7 +125,6 @@ func (t TableAdapter) PartitionKeys() []string {
 	var keys []string
 	for _, col := range t.columns {
 		if col.PrimaryKey {
-
 			keys = append(keys, col.Name)
 		}
 	}

@@ -67,7 +67,7 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 		if len(after) > 0 {
 			afterRow, err = zipSlicesToMap[string](tblAdapter.ColumnNames(), after)
 			if err != nil {
-				return nil, fmt.Errorf("failed to convert row to map:%w", err)
+				return nil, fmt.Errorf("failed to convert row to map for table %q: %w", tableName, err)
 			}
 		}
 
@@ -90,6 +90,10 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 		pk, err := dbz.BuildPartitionKey(beforeRow, afterRow)
 		if err != nil {
 			return nil, fmt.Errorf("failed to build partition key: %w", err)
+		}
+
+		if len(pk) == 0 {
+			return nil, fmt.Errorf("partition key is not set for table: %q", tableName)
 		}
 
 		rawMsgs = append(rawMsgs, lib.NewRawMessage(tblAdapter.TopicSuffix(), pk, &dbzMessage))

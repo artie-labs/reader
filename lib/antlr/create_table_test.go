@@ -14,6 +14,19 @@ func TestCreateTable(t *testing.T) {
 		assert.Len(t, events, 0)
 	}
 	{
+		// Create table with column as CHARACTER SET and collation specified at the column level
+		events, err := Parse("CREATE TABLE table_name (id INT, name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci);")
+		assert.NoError(t, err)
+		assert.Len(t, events, 1)
+
+		createTableEvent, isOk := events[0].(CreateTableEvent)
+		assert.True(t, isOk)
+
+		assert.Equal(t, "table_name", createTableEvent.GetTable())
+		assert.Len(t, createTableEvent.GetColumns(), 2)
+		assert.Equal(t, []Column{{Name: "id", DataType: "INT", PrimaryKey: false}, {Name: "name", DataType: "VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", PrimaryKey: false}}, createTableEvent.GetColumns())
+	}
+	{
 		// Single create table
 		for _, tableName := range []string{"table_name", "`table_name`", "db_name.table_name", "`db_name`.`table_name`"} {
 			events, err := Parse(fmt.Sprintf("CREATE TABLE %s (id INT, name VARCHAR(255));", tableName))
@@ -26,6 +39,40 @@ func TestCreateTable(t *testing.T) {
 			assert.Equal(t, "table_name", createTableEvent.GetTable())
 			assert.Len(t, createTableEvent.GetColumns(), 2)
 			assert.Equal(t, []Column{{Name: "id", DataType: "INT", PrimaryKey: false}, {Name: "name", DataType: "VARCHAR(255)", PrimaryKey: false}}, createTableEvent.GetColumns())
+		}
+	}
+	{
+		// Primary key is specified outside of the column definition
+		{
+			// Primary key is specified, column does not exist
+			events, err := Parse("CREATE TABLE table_name (id INT, PRIMARY KEY (name));")
+			assert.ErrorContains(t, err, `failed to find column "name"`)
+			assert.Len(t, events, 0)
+		}
+		{
+			// One primary key
+			events, err := Parse("CREATE TABLE table_name (id INT, name VARCHAR(255), PRIMARY KEY (id));")
+			assert.NoError(t, err)
+			assert.Len(t, events, 1)
+
+			createTableEvent, isOk := events[0].(CreateTableEvent)
+			assert.True(t, isOk)
+
+			assert.Equal(t, "table_name", createTableEvent.GetTable())
+			assert.Len(t, createTableEvent.GetColumns(), 2)
+			assert.Equal(t, []Column{{Name: "id", DataType: "INT", PrimaryKey: true}, {Name: "name", DataType: "VARCHAR(255)", PrimaryKey: false}}, createTableEvent.GetColumns())
+		}
+		{
+			// Two primary keys
+			events, err := Parse("CREATE TABLE table_name (id INT, name VARCHAR(255), PRIMARY KEY (id, name));")
+			assert.NoError(t, err)
+
+			createTableEvent, isOk := events[0].(CreateTableEvent)
+			assert.True(t, isOk)
+
+			assert.Equal(t, "table_name", createTableEvent.GetTable())
+			assert.Len(t, createTableEvent.GetColumns(), 2)
+			assert.Equal(t, []Column{{Name: "id", DataType: "INT", PrimaryKey: true}, {Name: "name", DataType: "VARCHAR(255)", PrimaryKey: true}}, createTableEvent.GetColumns())
 		}
 	}
 	{
