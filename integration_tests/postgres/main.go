@@ -139,7 +139,8 @@ CREATE TABLE %s (
 	c_geometry geometry,
 	c_geography geography(Point),
 	-- Arrays
-	c_int_array int[]
+	c_int_array int[],
+	c_jsonb_array jsonb[]
 )
 `
 
@@ -270,7 +271,9 @@ INSERT INTO %s VALUES (
 	-- c_geography
 		'POINT(-118.4079 33.9434)',
 	-- c_int_array
-		'{0,2,4,6}'
+		'{0,2,4,6}',
+	-- c_jsonb_array
+		ARRAY['{"key1": "value1"}'::jsonb,'{"key2": "value2"}'::jsonb]
 )
 `
 
@@ -706,6 +709,19 @@ const expectedPayloadTemplate = `{
 						"field": "c_int_array",
 						"name": "",
 						"parameters": null
+					},
+					{
+						"type": "array",
+						"optional": false,
+						"default": null,
+						"field": "c_jsonb_array",
+						"name": "",
+						"parameters": null,
+						"items": {
+							"type": "",
+							"optional": false,
+							"name": "io.debezium.data.Json"
+						}
 					}
 				],
 				"optional": false,
@@ -761,6 +777,10 @@ const expectedPayloadTemplate = `{
 			"c_interval": 7200000000,
 			"c_json": "{\"foo\": \"bar\", \"baz\": 1234}",
 			"c_jsonb": "{\"baz\": 4321, \"foo\": \"bar\"}",
+			"c_jsonb_array": [
+				"{\"key1\":\"value1\"}",
+				"{\"key2\":\"value2\"}"
+			],
 			"c_macaddr": "12:34:56:78:90:ab",
 			"c_macaddr8": "12:34:56:78:90:ab:cd:ef",
 			"c_money": "T30t",
