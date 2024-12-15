@@ -53,6 +53,7 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 		return nil, fmt.Errorf("failed to get parsed columns: %w", err)
 	}
 
+	sourcePayload := buildDebeziumSourcePayload(i.cfg.Database, tableName, ts, i.position)
 	dbz := transformer.NewLightDebeziumTransformer(tableName, tblAdapter.PartitionKeys(), tblAdapter.GetFieldConverters())
 	for before, after := range beforeAndAfters {
 		var beforeRow map[string]any
@@ -82,7 +83,7 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 			return nil, fmt.Errorf("failed to preprocess after row: %w", err)
 		}
 
-		dbzMessage, err := dbz.BuildEventPayload(beforeRow, afterRow, operation, ts)
+		dbzMessage, err := dbz.BuildEventPayload(sourcePayload, beforeRow, afterRow, operation, ts)
 		if err != nil {
 			return nil, fmt.Errorf("failed to build event payload: %w", err)
 		}
