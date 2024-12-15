@@ -94,13 +94,56 @@ func TestColumn_DefaultValue(t *testing.T) {
 		}
 	}
 	{
-		// Setting default value via ALTER TABLE
-		events, err := Parse(`ALTER TABLE users ALTER COLUMN status SET DEFAULT 'inactive';`)
+		// via ALTER TABLE
+		{
+			// Setting #1
+			events, err := Parse(`ALTER TABLE users ALTER COLUMN status SET DEFAULT 'inactive';`)
+			assert.NoError(t, err)
+
+			cols := retrieveColumnFromSingleEvent(t, events)
+			assert.Len(t, cols, 1)
+			assert.Equal(t, Column{Name: "status", DataType: "", DefaultValue: "inactive", PrimaryKey: false}, cols[0])
+		}
+		{
+			// Setting #2
+			events, err := Parse(`ALTER TABLE orders ADD COLUMN delivery_status VARCHAR(20) DEFAULT 'pending';`)
+			assert.NoError(t, err)
+
+			cols := retrieveColumnFromSingleEvent(t, events)
+			assert.Len(t, cols, 1)
+			assert.Equal(t, Column{Name: "delivery_status", DataType: "VARCHAR(20)", DefaultValue: "pending", PrimaryKey: false}, cols[0])
+		}
+		{
+			// Dropping
+			events, err := Parse(`ALTER TABLE table_name ALTER COLUMN column_name DROP DEFAULT;`)
+			assert.NoError(t, err)
+
+			cols := retrieveColumnFromSingleEvent(t, events)
+			assert.Len(t, cols, 1)
+			assert.Equal(t, Column{Name: "column_name", DataType: "", DefaultValue: "", PrimaryKey: false}, cols[0])
+		}
+
+	}
+	{
+		// via MODIFY
+		events, err := Parse(`ALTER TABLE users MODIFY COLUMN age INT DEFAULT 18;`)
 		assert.NoError(t, err)
 
 		cols := retrieveColumnFromSingleEvent(t, events)
 		assert.Len(t, cols, 1)
-		assert.Equal(t, Column{Name: "status", DataType: "", DefaultValue: "inactive", PrimaryKey: false}, cols[0])
+		assert.Equal(t, Column{Name: "age", DataType: "INT", DefaultValue: "18", PrimaryKey: false}, cols[0])
+	}
+	{
+		// via MODIFY (2 columns)
+		events, err := Parse(`ALTER TABLE inventory MODIFY COLUMN stock INT DEFAULT 0, MODIFY COLUMN restock_date DATE DEFAULT '2024-01-01';`)
+		assert.NoError(t, err)
+
+		assert.Len(t, events, 2)
+		assert.Equal(t, "inventory", events[0].GetTable())
+		assert.Equal(t, "inventory", events[1].GetTable())
+
+		assertOneElement(t, Column{Name: "stock", DataType: "INT", DefaultValue: "0", PrimaryKey: false}, events[0].GetColumns())
+		assertOneElement(t, Column{Name: "restock_date", DataType: "DATE", DefaultValue: "2024-01-01", PrimaryKey: false}, events[1].GetColumns())
 	}
 }
 
