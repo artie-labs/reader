@@ -11,11 +11,30 @@ import (
 )
 
 func (c Column) buildDataTypePrimaryKey(ctx generated.IColumnDefinitionContext) (Column, error) {
-	var pk bool
-	for _, defChild := range ctx.AllColumnConstraint() {
-		switch defChild.(type) {
+	returnedCol := Column{
+		Name: c.Name,
+	}
+
+	for _, constraint := range ctx.AllColumnConstraint() {
+		switch castedConstraint := constraint.(type) {
 		case *generated.PrimaryKeyColumnConstraintContext:
-			pk = true
+			returnedCol.PrimaryKey = true
+		case *generated.DefaultColumnConstraintContext:
+			var defaultValue string
+			for _, child := range castedConstraint.DefaultValue().GetChildren() {
+				switch castedChild := child.(type) {
+				case
+					*generated.CurrentTimestampContext,
+					*antlr.TerminalNodeImpl:
+					continue
+				case *generated.ConstantContext:
+					defaultValue = castedChild.GetText()
+				default:
+					slog.Warn("Skipping default value that is not a constant", slog.String("type", fmt.Sprintf("%T", child)))
+				}
+			}
+
+			returnedCol.DefaultValue = defaultValue
 		}
 	}
 
@@ -55,11 +74,8 @@ func (c Column) buildDataTypePrimaryKey(ctx generated.IColumnDefinitionContext) 
 		}
 	}
 
-	return Column{
-		Name:       c.Name,
-		DataType:   dataType,
-		PrimaryKey: pk,
-	}, nil
+	returnedCol.DataType = dataType
+	return returnedCol, nil
 }
 
 func processColumn(ctx *generated.ColumnDeclarationContext) (Column, error) {

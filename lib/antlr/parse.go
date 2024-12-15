@@ -24,6 +24,15 @@ func IsParseError(err error) bool {
 	return errors.Is(err, ParseError{})
 }
 
+func unescapeSingleQuotedString(s string) string {
+	if strings.Count(s, "'") == 2 && strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'") {
+		// Remove single quotes if they are present
+		return s[1 : len(s)-1]
+	}
+
+	return s
+}
+
 func unescape(s string) string {
 	if strings.Count(s, "`") == 2 && strings.HasPrefix(s, "`") && strings.HasSuffix(s, "`") {
 		// Remove backticks if they are present
@@ -38,7 +47,13 @@ func Parse(sqlCmd string) ([]Event, error) {
 	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
 	// This will go through our custom visit function. If you are trying to print out the AST, split this function into [sqlStatements] and [parser]
 	// Then have print [sqlStatements.ToStringTree(nil, parser)]
-	return visit(generated.NewMySqlParser(stream).SqlStatements())
+
+	parser := generated.NewMySqlParser(stream)
+	statements := parser.SqlStatements()
+
+	fmt.Println("query", sqlCmd, "tree", statements.ToStringTree(nil, parser))
+
+	return visit(statements)
 }
 
 func visit(tree antlr.Tree) ([]Event, error) {
