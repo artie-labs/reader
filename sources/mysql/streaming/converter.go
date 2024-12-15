@@ -7,8 +7,10 @@ import (
 	"slices"
 	"time"
 
-	"github.com/artie-labs/reader/lib/mysql/schema"
+	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/go-mysql-org/go-mysql/replication"
+
+	"github.com/artie-labs/reader/lib/mysql/schema"
 )
 
 // ddlFilterPatterns is sourced from https://github.com/debezium/debezium/blob/8ce74a328df6a6f99fb80826630a9d9b1d9022de/debezium-core/src/main/java/io/debezium/relational/history/SchemaHistory.java#L76
@@ -130,5 +132,18 @@ func splitIntoBeforeAndAfter(operation string, rows [][]any) (iter.Seq2[[]any, [
 		}, nil
 	default:
 		return nil, fmt.Errorf("unsupported operation: %q", operation)
+	}
+}
+
+func buildDebeziumSourcePayload(dbName string, tableName string, ts time.Time, position Position) util.Source {
+	return util.Source{
+		Connector: "mysql",
+		Database:  dbName,
+		Table:     tableName,
+		TsMs:      ts.UnixMilli(),
+
+		// MySQL specific
+		File: position.File,
+		Pos:  int64(position.Pos),
 	}
 }
