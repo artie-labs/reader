@@ -50,7 +50,9 @@ func processAlterTable(ctx *generated.AlterTableContext) ([]Event, error) {
 			}
 
 			events = append(events, AddColumnsEvent{TableName: tableName, Columns: []Column{col}})
-		case *generated.AlterByModifyColumnContext:
+		case
+			*generated.AlterByModifyColumnContext,
+			*generated.AlterByChangeDefaultContext:
 			col, err := processAddOrModifyColumn(spec)
 			if err != nil {
 				return nil, err
@@ -152,8 +154,10 @@ func processAddOrModifyColumn(ctx generated.IAlterSpecificationContext) (Column,
 			}
 
 			names = append(names, name)
+		case *generated.DefaultValueContext:
+			col.DefaultValue = parseDefaultValue(castedChild)
 		default:
-			slog.Warn("Unsupported alter specification child", slog.String("type", fmt.Sprintf("%T", castedChild)))
+			slog.Warn("Unsupported alter specification child", slog.String("type", fmt.Sprintf("%T", castedChild)), slog.String("text", castedChild.(antlr.ParseTree).GetText()))
 		}
 	}
 

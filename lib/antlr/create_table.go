@@ -20,21 +20,7 @@ func (c Column) buildDataTypePrimaryKey(ctx generated.IColumnDefinitionContext) 
 		case *generated.PrimaryKeyColumnConstraintContext:
 			returnedCol.PrimaryKey = true
 		case *generated.DefaultColumnConstraintContext:
-			var defaultValue string
-			for _, child := range castedConstraint.DefaultValue().GetChildren() {
-				switch castedChild := child.(type) {
-				case
-					*generated.CurrentTimestampContext,
-					*antlr.TerminalNodeImpl:
-					continue
-				case *generated.ConstantContext:
-					defaultValue = castedChild.GetText()
-				default:
-					slog.Warn("Skipping default value that is not a constant", slog.String("type", fmt.Sprintf("%T", child)))
-				}
-			}
-
-			returnedCol.DefaultValue = defaultValue
+			returnedCol.DefaultValue = parseDefaultValue(castedConstraint.DefaultValue())
 		}
 	}
 

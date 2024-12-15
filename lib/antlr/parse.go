@@ -41,7 +41,12 @@ func Parse(sqlCmd string) ([]Event, error) {
 	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
 	// This will go through our custom visit function. If you are trying to print out the AST, split this function into [sqlStatements] and [parser]
 	// Then have print [sqlStatements.ToStringTree(nil, parser)]
-	return visit(generated.NewMySqlParser(stream).SqlStatements())
+
+	parser := generated.NewMySqlParser(stream)
+	statements := parser.SqlStatements()
+
+	fmt.Println("### query", sqlCmd, statements.ToStringTree(nil, parser))
+	return visit(statements)
 }
 
 func visit(tree antlr.Tree) ([]Event, error) {
