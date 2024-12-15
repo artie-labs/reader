@@ -33,6 +33,15 @@ func TestColumn_DefaultValue(t *testing.T) {
 			assert.Equal(t, Column{Name: "id", DataType: "INT", PrimaryKey: false}, cols[0])
 		}
 		{
+			// Float
+			events, err := Parse("CREATE TABLE table_name (price DECIMAL(10, 2) DEFAULT 99.99);")
+			assert.NoError(t, err)
+
+			cols := retrieveColumnsFromCreateTableEvent(t, events)
+			assert.Len(t, cols, 1)
+			assert.Equal(t, Column{Name: "price", DataType: "DECIMAL(10,2)", DefaultValue: "99.99", PrimaryKey: false}, cols[0])
+		}
+		{
 			// Integer
 			events, err := Parse("CREATE TABLE table_name (id INT DEFAULT 0);")
 			assert.NoError(t, err)
@@ -67,6 +76,24 @@ func TestColumn_DefaultValue(t *testing.T) {
 			cols := retrieveColumnsFromCreateTableEvent(t, events)
 			assert.Len(t, cols, 1)
 			assert.Equal(t, Column{Name: "name", DataType: "VARCHAR(50)", DefaultValue: "default_name", PrimaryKey: false}, cols[0])
+		}
+		{
+			// Enum
+			events, err := Parse("CREATE TABLE table_name (status ENUM('active', 'inactive', 'pending') DEFAULT 'active');")
+			assert.NoError(t, err)
+
+			cols := retrieveColumnsFromCreateTableEvent(t, events)
+			assert.Len(t, cols, 1)
+			assert.Equal(t, Column{Name: "status", DataType: "ENUM('active','inactive','pending')", DefaultValue: "active", PrimaryKey: false}, cols[0])
+		}
+		{
+			// JSON
+			events, err := Parse(`CREATE TABLE table_name (config JSON DEFAULT '{"key": "value"}');`)
+			assert.NoError(t, err)
+
+			cols := retrieveColumnsFromCreateTableEvent(t, events)
+			assert.Len(t, cols, 1)
+			assert.Equal(t, Column{Name: "config", DataType: "JSON", DefaultValue: `{"key": "value"}`, PrimaryKey: false}, cols[0])
 		}
 	}
 }
