@@ -24,22 +24,20 @@ func IsParseError(err error) bool {
 	return errors.Is(err, ParseError{})
 }
 
-func unescapeSingleQuotedString(s string) string {
-	if strings.Count(s, "'") == 2 && strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'") {
-		// Remove single quotes if they are present
+func baseUnescape(s string, unescapeChar string) string {
+	if strings.Count(s, unescapeChar) == 2 && strings.HasPrefix(s, unescapeChar) && strings.HasSuffix(s, unescapeChar) {
 		return s[1 : len(s)-1]
 	}
 
 	return s
 }
 
-func unescape(s string) string {
-	if strings.Count(s, "`") == 2 && strings.HasPrefix(s, "`") && strings.HasSuffix(s, "`") {
-		// Remove backticks if they are present
-		return s[1 : len(s)-1]
-	}
+func unescapeSingleQuotedString(s string) string {
+	return baseUnescape(s, `'`)
+}
 
-	return s
+func unescape(s string) string {
+	return baseUnescape(s, "`")
 }
 
 func Parse(sqlCmd string) ([]Event, error) {
