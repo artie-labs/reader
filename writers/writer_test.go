@@ -3,9 +3,9 @@ package writers
 import (
 	"context"
 	"fmt"
-	"github.com/artie-labs/transfer/lib/debezium"
 	"testing"
 
+	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/artie-labs/transfer/lib/typing/columns"
 	"github.com/stretchr/testify/assert"
 
