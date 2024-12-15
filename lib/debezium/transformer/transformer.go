@@ -147,8 +147,9 @@ func convertRow(valueConverters map[string]converters.ValueConverter, row Row) (
 	return result, nil
 }
 
-func convertPartitionKey(valueConverters map[string]converters.ValueConverter, dbzFields []debezium.Field, partitionKeys []string, row Row) (debezium.PrimaryKeyPayload, error) {
+func convertPartitionKey(valueConverters map[string]converters.ValueConverter, partitionKeys []string, row Row) (debezium.PrimaryKeyPayload, error) {
 	payload := make(map[string]any, len(partitionKeys))
+	pkFields := make([]debezium.Field, len(partitionKeys))
 	for _, key := range partitionKeys {
 		valueConverter, isOk := valueConverters[key]
 		if !isOk {
@@ -167,9 +168,14 @@ func convertPartitionKey(valueConverters map[string]converters.ValueConverter, d
 		}
 
 		payload[key] = convertedValue
+		pkFields = append(pkFields, valueConverter.ToField(key))
 	}
 
 	return debezium.PrimaryKeyPayload{
 		Payload: payload,
+		Schema: debezium.FieldsObject{
+			FieldObjectType: string(debezium.Struct),
+			Fields:          pkFields,
+		},
 	}, nil
 }
