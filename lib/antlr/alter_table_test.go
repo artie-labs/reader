@@ -33,13 +33,40 @@ func TestColumn_DefaultValue(t *testing.T) {
 			assert.Equal(t, Column{Name: "id", DataType: "INT", PrimaryKey: false}, cols[0])
 		}
 		{
-			// Default value as an integer
+			// Integer
 			events, err := Parse("CREATE TABLE table_name (id INT DEFAULT 0);")
 			assert.NoError(t, err)
 
 			cols := retrieveColumnsFromCreateTableEvent(t, events)
 			assert.Len(t, cols, 1)
 			assert.Equal(t, Column{Name: "id", DataType: "INT", DefaultValue: "0", PrimaryKey: false}, cols[0])
+		}
+		{
+			// Boolean
+			events, err := Parse("CREATE TABLE table_name (is_active BOOLEAN DEFAULT TRUE);")
+			assert.NoError(t, err)
+
+			cols := retrieveColumnsFromCreateTableEvent(t, events)
+			assert.Len(t, cols, 1)
+			assert.Equal(t, Column{Name: "is_active", DataType: "BOOLEAN", DefaultValue: "TRUE", PrimaryKey: false}, cols[0])
+		}
+		{
+			// CURRENT_TIMESTAMP (ignored)
+			events, err := Parse("CREATE TABLE table_name (created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);")
+			assert.NoError(t, err)
+
+			cols := retrieveColumnsFromCreateTableEvent(t, events)
+			assert.Len(t, cols, 1)
+			assert.Equal(t, Column{Name: "created_at", DataType: "TIMESTAMP", DefaultValue: "", PrimaryKey: false}, cols[0])
+		}
+		{
+			// String
+			events, err := Parse("CREATE TABLE table_name (name VARCHAR(50) DEFAULT 'default_name');")
+			assert.NoError(t, err)
+
+			cols := retrieveColumnsFromCreateTableEvent(t, events)
+			assert.Len(t, cols, 1)
+			assert.Equal(t, Column{Name: "name", DataType: "VARCHAR(50)", DefaultValue: "default_name", PrimaryKey: false}, cols[0])
 		}
 	}
 }
