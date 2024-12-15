@@ -38,13 +38,11 @@ func TestConvertPartitionKey(t *testing.T) {
 	}
 	{
 		// Make sure that we are correctly parsing ints
-
 		valueConverters := map[string]converters.ValueConverter{
 			"id":   converters.Int64Passthrough{},
 			"name": converters.StringPassthrough{},
 		}
 		partitionKeys := []string{"id", "name"}
-
 		pkPayload, err := convertPartitionKey(valueConverters, partitionKeys, row)
 		assert.NoError(t, err)
 
