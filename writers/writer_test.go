@@ -3,6 +3,7 @@ package writers
 import (
 	"context"
 	"fmt"
+	"github.com/artie-labs/transfer/lib/debezium"
 	"testing"
 
 	"github.com/artie-labs/transfer/lib/typing/columns"
@@ -78,11 +79,11 @@ func TestWriter_Write(t *testing.T) {
 		destination := &mockDestination{}
 		writer := New(destination, false)
 		iter := iterator.ForSlice([][]lib.RawMessage{
-			{lib.NewRawMessage("a", nil, nil)},
+			{lib.NewRawMessage("a", debezium.FieldsObject{}, nil, nil)},
 			{},
 			{
-				lib.NewRawMessage("b", nil, nil),
-				lib.NewRawMessage("c", nil, nil),
+				lib.NewRawMessage("b", debezium.FieldsObject{}, nil, nil),
+				lib.NewRawMessage("c", debezium.FieldsObject{}, nil, nil),
 			},
 		})
 		count, err := writer.Write(context.Background(), iter)
@@ -97,7 +98,7 @@ func TestWriter_Write(t *testing.T) {
 		// Destination error
 		destination := &mockDestination{emitError: true}
 		writer := New(destination, false)
-		iter := iterator.Once([]lib.RawMessage{lib.NewRawMessage("a", nil, nil)})
+		iter := iterator.Once([]lib.RawMessage{lib.NewRawMessage("a", debezium.FieldsObject{}, nil, nil)})
 		_, err := writer.Write(context.Background(), iter)
 		assert.ErrorContains(t, err, "failed to write messages: test write-raw-messages error")
 		assert.Empty(t, destination.messages)
