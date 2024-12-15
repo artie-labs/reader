@@ -157,7 +157,7 @@ func processAddOrModifyColumn(ctx generated.IAlterSpecificationContext) (Column,
 		case *generated.DefaultValueContext:
 			col.DefaultValue = parseDefaultValue(castedChild)
 		default:
-			slog.Warn("Unsupported alter specification child", slog.String("type", fmt.Sprintf("%T", castedChild)), slog.String("text", castedChild.(antlr.ParseTree).GetText()))
+			slog.Warn("Unsupported alter specification child", slog.String("type", fmt.Sprintf("%T", castedChild)))
 		}
 	}
 
