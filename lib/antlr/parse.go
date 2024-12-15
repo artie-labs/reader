@@ -32,10 +32,6 @@ func baseUnescape(s string, unescapeChar string) string {
 	return s
 }
 
-func unescapeSingleQuotedString(s string) string {
-	return baseUnescape(s, `'`)
-}
-
 func unescape(s string) string {
 	return baseUnescape(s, "`")
 }
