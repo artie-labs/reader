@@ -1,16 +1,56 @@
 package transformer
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/artie-labs/transfer/lib/debezium"
+	"github.com/artie-labs/transfer/lib/kafkalib"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/iterator"
 )
+
+func parseUsingTransfer(payload debezium.PrimaryKeyPayload) (map[string]any, error) {
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	return debezium.ParsePartitionKey(payloadBytes, kafkalib.JSONKeyFmt)
+}
+
+func TestConvertPartitionKey(t *testing.T) {
+	row := map[string]any{"id": 12, "name": "bar"}
+	{
+		// If the schema is not provided, it will still parse fine.
+		payload := debezium.PrimaryKeyPayload{
+			Payload: row,
+		}
+
+		val, err := parseUsingTransfer(payload)
+		assert.NoError(t, err)
+		// This is a float64 since we didn't pass in a schema and JSON unmarshalls numbers as float64.
+		assert.Equal(t, map[string]any{"id": float64(12), "name": "bar"}, val)
+	}
+	{
+		// Make sure that we are correctly parsing ints
+		valueConverters := map[string]converters.ValueConverter{
+			"id":   converters.Int64Passthrough{},
+			"name": converters.StringPassthrough{},
+		}
+		partitionKeys := []string{"id", "name"}
+		pkPayload, err := convertPartitionKey(valueConverters, partitionKeys, row)
+		assert.NoError(t, err)
+
+		val, err := parseUsingTransfer(pkPayload)
+		assert.NoError(t, err)
+		assert.Equal(t, map[string]any{"id": int64(12), "name": "bar"}, val)
+	}
+}
 
 type testConverter struct {
 	intField  bool

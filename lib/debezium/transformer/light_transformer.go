@@ -33,9 +33,9 @@ func NewLightDebeziumTransformer(tableName string, partitionKeys []string, field
 	}
 }
 
-func (l LightDebeziumTransformer) BuildPartitionKey(beforeRow, afterRow Row) (map[string]any, error) {
+func (l LightDebeziumTransformer) BuildPartitionKey(beforeRow, afterRow Row) (debezium.PrimaryKeyPayload, error) {
 	if beforeRow == nil && afterRow == nil {
-		return nil, fmt.Errorf("both before and after rows are nil")
+		return debezium.PrimaryKeyPayload{}, fmt.Errorf("both before and after rows are nil")
 	}
 
 	row := afterRow

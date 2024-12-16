@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/artie-labs/transfer/lib/batch"
+	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/artie-labs/transfer/lib/kafkalib"
 	"github.com/artie-labs/transfer/lib/retry"
 	"github.com/artie-labs/transfer/lib/typing/columns"
@@ -83,7 +84,12 @@ func buildKafkaMessageWrapper(topicPrefix string, rawMessage lib.RawMessage) (Ka
 		return KafkaMessageWrapper{}, err
 	}
 
-	keyBytes, err := json.Marshal(rawMessage.PartitionKey())
+	pk := debezium.PrimaryKeyPayload{
+		Schema:  rawMessage.PartitionKeySchema(),
+		Payload: rawMessage.PartitionKey(),
+	}
+
+	keyBytes, err := json.Marshal(pk)
 	if err != nil {
 		return KafkaMessageWrapper{}, err
 	}
