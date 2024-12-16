@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/typing"
@@ -24,7 +25,7 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 		slog.String("schema", string(rowsEvent.Table.Schema)),
 	)
 
-	if string(rowsEvent.Table.Schema) != i.cfg.Database {
+	if strings.EqualFold(i.cfg.Database, string(rowsEvent.Table.Schema)) {
 		slog.Warn("Skipping this event since the schema does not match the database",
 			slog.String("schema", string(rowsEvent.Table.Schema)),
 			slog.String("database", i.cfg.Database),
