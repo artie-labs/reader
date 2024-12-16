@@ -60,7 +60,13 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 		if len(before) > 0 {
 			beforeRow, err = zipSlicesToMap[string](tblAdapter.ColumnNames(), before)
 			if err != nil {
-				return nil, fmt.Errorf("failed to convert row to map:%w", err)
+				slog.Info("Failed to convert before row to map",
+					slog.String("table", tableName),
+					slog.String("op", operation),
+					slog.Any("columnNames", tblAdapter.ColumnNames()),
+					slog.Any("before", before),
+				)
+				return nil, fmt.Errorf("failed to convert before row to map:%w", err)
 			}
 		}
 
