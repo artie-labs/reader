@@ -194,6 +194,7 @@ func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Tim
 		return nil
 	}
 
+	// TODO: Check if we need to handle schemas
 	query := string(evt.Query)
 	if shouldSkipDDL(query) {
 		return nil
