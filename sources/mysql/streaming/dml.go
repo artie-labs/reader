@@ -3,6 +3,7 @@ package streaming
 import (
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/typing"
@@ -16,6 +17,15 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 	rowsEvent, err := typing.AssertType[*replication.RowsEvent](event.Event)
 	if err != nil {
 		return nil, fmt.Errorf("failed to assert a rows event: %w", err)
+	}
+
+	if !strings.EqualFold(i.cfg.Database, string(rowsEvent.Table.Schema)) {
+		slog.Info("Skipping this event since the database does not match the configured database",
+			slog.String("config_db", i.cfg.Database),
+			slog.String("event_db", string(rowsEvent.Table.Schema)),
+		)
+
+		return nil, nil
 	}
 
 	tableName := string(rowsEvent.Table.Table)
@@ -60,7 +70,7 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 		if len(before) > 0 {
 			beforeRow, err = zipSlicesToMap[string](tblAdapter.ColumnNames(), before)
 			if err != nil {
-				return nil, fmt.Errorf("failed to convert row to map:%w", err)
+				return nil, fmt.Errorf("failed to convert before row to map:%w", err)
 			}
 		}
 
