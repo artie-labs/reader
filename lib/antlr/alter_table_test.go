@@ -11,6 +11,142 @@ func assertOneElement[T any](t *testing.T, expected T, actual []T, msgAndArgs ..
 	assert.Equal(t, expected, actual[0], msgAndArgs)
 }
 
+func retrieveColumnFromSingleEvent(t *testing.T, singleEvent []Event) []Column {
+	assert.Len(t, singleEvent, 1)
+
+	return singleEvent[0].GetColumns()
+}
+
+func TestColumn_DefaultValue(t *testing.T) {
+	// Different ways to set a default value
+	{
+		{
+			// No default value
+			events, err := Parse("CREATE TABLE table_name (id INT);")
+			assert.NoError(t, err)
+
+			cols := retrieveColumnFromSingleEvent(t, events)
+			assert.Len(t, cols, 1)
+			assert.Equal(t, Column{Name: "id", DataType: "INT", PrimaryKey: false}, cols[0])
+		}
+		{
+			// Float
+			events, err := Parse("CREATE TABLE table_name (price DECIMAL(10, 2) DEFAULT 99.99);")
+			assert.NoError(t, err)
+
+			cols := retrieveColumnFromSingleEvent(t, events)
+			assert.Len(t, cols, 1)
+			assert.Equal(t, Column{Name: "price", DataType: "DECIMAL(10,2)", DefaultValue: "99.99", PrimaryKey: false}, cols[0])
+		}
+		{
+			// Integer
+			events, err := Parse("CREATE TABLE table_name (id INT DEFAULT 0);")
+			assert.NoError(t, err)
+
+			cols := retrieveColumnFromSingleEvent(t, events)
+			assert.Len(t, cols, 1)
+			assert.Equal(t, Column{Name: "id", DataType: "INT", DefaultValue: "0", PrimaryKey: false}, cols[0])
+		}
+		{
+			// Boolean
+			events, err := Parse("CREATE TABLE table_name (is_active BOOLEAN DEFAULT TRUE);")
+			assert.NoError(t, err)
+
+			cols := retrieveColumnFromSingleEvent(t, events)
+			assert.Len(t, cols, 1)
+			assert.Equal(t, Column{Name: "is_active", DataType: "BOOLEAN", DefaultValue: "TRUE", PrimaryKey: false}, cols[0])
+		}
+		{
+			// CURRENT_TIMESTAMP (ignored)
+			events, err := Parse("CREATE TABLE table_name (created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);")
+			assert.NoError(t, err)
+
+			cols := retrieveColumnFromSingleEvent(t, events)
+			assert.Len(t, cols, 1)
+			assert.Equal(t, Column{Name: "created_at", DataType: "TIMESTAMP", DefaultValue: "", PrimaryKey: false}, cols[0])
+		}
+		{
+			// String
+			events, err := Parse("CREATE TABLE table_name (name VARCHAR(50) DEFAULT 'default_name');")
+			assert.NoError(t, err)
+
+			cols := retrieveColumnFromSingleEvent(t, events)
+			assert.Len(t, cols, 1)
+			assert.Equal(t, Column{Name: "name", DataType: "VARCHAR(50)", DefaultValue: "default_name", PrimaryKey: false}, cols[0])
+		}
+		{
+			// Enum
+			events, err := Parse("CREATE TABLE table_name (status ENUM('active', 'inactive', 'pending') DEFAULT 'active');")
+			assert.NoError(t, err)
+
+			cols := retrieveColumnFromSingleEvent(t, events)
+			assert.Len(t, cols, 1)
+			assert.Equal(t, Column{Name: "status", DataType: "ENUM('active','inactive','pending')", DefaultValue: "active", PrimaryKey: false}, cols[0])
+		}
+		{
+			// JSON
+			events, err := Parse(`CREATE TABLE table_name (config JSON DEFAULT '{"key": "value"}');`)
+			assert.NoError(t, err)
+
+			cols := retrieveColumnFromSingleEvent(t, events)
+			assert.Len(t, cols, 1)
+			assert.Equal(t, Column{Name: "config", DataType: "JSON", DefaultValue: `{"key": "value"}`, PrimaryKey: false}, cols[0])
+		}
+	}
+	{
+		// via ALTER TABLE
+		{
+			// Setting #1
+			events, err := Parse(`ALTER TABLE users ALTER COLUMN status SET DEFAULT 'inactive';`)
+			assert.NoError(t, err)
+
+			cols := retrieveColumnFromSingleEvent(t, events)
+			assert.Len(t, cols, 1)
+			assert.Equal(t, Column{Name: "status", DataType: "", DefaultValue: "inactive", PrimaryKey: false}, cols[0])
+		}
+		{
+			// Setting #2
+			events, err := Parse(`ALTER TABLE orders ADD COLUMN delivery_status VARCHAR(20) DEFAULT 'pending';`)
+			assert.NoError(t, err)
+
+			cols := retrieveColumnFromSingleEvent(t, events)
+			assert.Len(t, cols, 1)
+			assert.Equal(t, Column{Name: "delivery_status", DataType: "VARCHAR(20)", DefaultValue: "pending", PrimaryKey: false}, cols[0])
+		}
+		{
+			// Dropping
+			events, err := Parse(`ALTER TABLE table_name ALTER COLUMN column_name DROP DEFAULT;`)
+			assert.NoError(t, err)
+
+			cols := retrieveColumnFromSingleEvent(t, events)
+			assert.Len(t, cols, 1)
+			assert.Equal(t, Column{Name: "column_name", DataType: "", DefaultValue: "", PrimaryKey: false}, cols[0])
+		}
+
+	}
+	{
+		// via MODIFY
+		events, err := Parse(`ALTER TABLE users MODIFY COLUMN age INT DEFAULT 18;`)
+		assert.NoError(t, err)
+
+		cols := retrieveColumnFromSingleEvent(t, events)
+		assert.Len(t, cols, 1)
+		assert.Equal(t, Column{Name: "age", DataType: "INT", DefaultValue: "18", PrimaryKey: false}, cols[0])
+	}
+	{
+		// via MODIFY (2 columns)
+		events, err := Parse(`ALTER TABLE inventory MODIFY COLUMN stock INT DEFAULT 0, MODIFY COLUMN restock_date DATE DEFAULT '2024-01-01';`)
+		assert.NoError(t, err)
+
+		assert.Len(t, events, 2)
+		assert.Equal(t, "inventory", events[0].GetTable())
+		assert.Equal(t, "inventory", events[1].GetTable())
+
+		assertOneElement(t, Column{Name: "stock", DataType: "INT", DefaultValue: "0", PrimaryKey: false}, events[0].GetColumns())
+		assertOneElement(t, Column{Name: "restock_date", DataType: "DATE", DefaultValue: "2024-01-01", PrimaryKey: false}, events[1].GetColumns())
+	}
+}
+
 // TestAlterTable - These queries are generated from: https://github.com/antlr/grammars-v4/blob/master/sql/mysql/Positive-Technologies/examples/ddl_alter.sql
 func TestAlterTable(t *testing.T) {
 	{
@@ -195,17 +331,17 @@ func TestAlterTable(t *testing.T) {
 			addColEvent1, isOk := events[0].(AddColumnsEvent)
 			assert.True(t, isOk)
 			assert.Equal(t, "order", addColEvent1.GetTable())
-			assertOneElement(t, Column{Name: "cancelled", DataType: "TINYINT(1)", PrimaryKey: false}, addColEvent1.GetColumns())
+			assertOneElement(t, Column{Name: "cancelled", DataType: "TINYINT(1)", DefaultValue: "0", PrimaryKey: false}, addColEvent1.GetColumns())
 
 			addColEvent2, isOk := events[1].(AddColumnsEvent)
 			assert.True(t, isOk)
 			assert.Equal(t, "order", addColEvent2.GetTable())
-			assertOneElement(t, Column{Name: "delivered", DataType: "TINYINT(1)", PrimaryKey: false}, addColEvent2.GetColumns())
+			assertOneElement(t, Column{Name: "delivered", DataType: "TINYINT(1)", DefaultValue: "0", PrimaryKey: false}, addColEvent2.GetColumns())
 
 			addColEvent3, isOk := events[2].(AddColumnsEvent)
 			assert.True(t, isOk)
 			assert.Equal(t, "order", addColEvent3.GetTable())
-			assertOneElement(t, Column{Name: "returning", DataType: "TINYINT(1)", PrimaryKey: false}, addColEvent3.GetColumns())
+			assertOneElement(t, Column{Name: "returning", DataType: "TINYINT(1)", DefaultValue: "0", PrimaryKey: false}, addColEvent3.GetColumns())
 		}
 		{
 			// Adding column + including a comment

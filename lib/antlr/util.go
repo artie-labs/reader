@@ -2,10 +2,29 @@ package antlr
 
 import (
 	"fmt"
+	"log/slog"
+	"strings"
+
 	"github.com/antlr4-go/antlr/v4"
 	"github.com/artie-labs/reader/lib/antlr/generated"
-	"strings"
 )
+
+func parseDefaultValue(node generated.IDefaultValueContext) string {
+	for _, child := range node.GetChildren() {
+		switch castedChild := child.(type) {
+		case
+			*generated.CurrentTimestampContext,
+			*antlr.TerminalNodeImpl:
+			continue
+		case *generated.ConstantContext:
+			return castedChild.GetText()
+		default:
+			slog.Warn("Skipping default value that is not a constant", slog.String("type", fmt.Sprintf("%T", child)))
+		}
+	}
+
+	return ""
+}
 
 // getTextFromSingleNodeBranch - Will visit the entire branch and return the text when it reaches the terminal node.
 // This will error out if the tree has more than one child.

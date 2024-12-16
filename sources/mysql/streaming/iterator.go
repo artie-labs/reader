@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/typing"
@@ -191,6 +192,15 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Time) error {
 	if evt.ErrorCode != 0 {
 		// Don't process a non-zero error code DDL.
+		return nil
+	}
+
+	if !strings.EqualFold(i.cfg.Database, string(evt.Schema)) {
+		slog.Info("Skipping this event since the database does not match the configured database",
+			slog.String("config_db", i.cfg.Database),
+			slog.String("event_db", string(evt.Schema)),
+		)
+
 		return nil
 	}
 

@@ -11,11 +11,16 @@ import (
 )
 
 func (c Column) buildDataTypePrimaryKey(ctx generated.IColumnDefinitionContext) (Column, error) {
-	var pk bool
-	for _, defChild := range ctx.AllColumnConstraint() {
-		switch defChild.(type) {
+	returnedCol := Column{
+		Name: c.Name,
+	}
+
+	for _, constraint := range ctx.AllColumnConstraint() {
+		switch castedConstraint := constraint.(type) {
 		case *generated.PrimaryKeyColumnConstraintContext:
-			pk = true
+			returnedCol.PrimaryKey = true
+		case *generated.DefaultColumnConstraintContext:
+			returnedCol.DefaultValue = parseDefaultValue(castedConstraint.DefaultValue())
 		}
 	}
 
@@ -55,11 +60,8 @@ func (c Column) buildDataTypePrimaryKey(ctx generated.IColumnDefinitionContext) 
 		}
 	}
 
-	return Column{
-		Name:       c.Name,
-		DataType:   dataType,
-		PrimaryKey: pk,
-	}, nil
+	returnedCol.DataType = dataType
+	return returnedCol, nil
 }
 
 func processColumn(ctx *generated.ColumnDeclarationContext) (Column, error) {
