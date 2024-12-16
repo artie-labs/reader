@@ -3,7 +3,6 @@ package streaming
 import (
 	"fmt"
 	"log/slog"
-	"os"
 	"strings"
 	"time"
 
@@ -20,16 +19,12 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 		return nil, fmt.Errorf("failed to assert a rows event: %w", err)
 	}
 
-	slog.Info("#### Table ####",
-		slog.String("tableName", string(rowsEvent.Table.Table)),
-		slog.String("schema", string(rowsEvent.Table.Schema)),
-	)
-
 	if !strings.EqualFold(i.cfg.Database, string(rowsEvent.Table.Schema)) {
-		slog.Warn("Skipping this event since the schema does not match the database",
-			slog.String("schema", string(rowsEvent.Table.Schema)),
-			slog.String("database", i.cfg.Database),
+		slog.Warn("Skipping this event since the database does not match the configured database",
+			slog.String("config_db", i.cfg.Database),
+			slog.String("event_db", string(rowsEvent.Table.Schema)),
 		)
+
 		return nil, nil
 	}
 
@@ -75,15 +70,6 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 		if len(before) > 0 {
 			beforeRow, err = zipSlicesToMap[string](tblAdapter.ColumnNames(), before)
 			if err != nil {
-				slog.Info("Failed to convert before row to map",
-					slog.String("table", tableName),
-					slog.String("op", operation),
-					slog.Any("columnNames", tblAdapter.ColumnNames()),
-					slog.Any("before", before),
-				)
-
-				slog.Info("### Event dump ###")
-				event.Dump(os.Stdout)
 				return nil, fmt.Errorf("failed to convert before row to map:%w", err)
 			}
 		}
