@@ -3,6 +3,7 @@ package streaming
 import (
 	"fmt"
 	"log/slog"
+	"os"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/typing"
@@ -18,6 +19,10 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 		return nil, fmt.Errorf("failed to assert a rows event: %w", err)
 	}
 
+	slog.Info("#### Table ####",
+		slog.String("tableName", string(rowsEvent.Table.Table)),
+		slog.String("schema", string(rowsEvent.Table.Schema)),
+	)
 	tableName := string(rowsEvent.Table.Table)
 	tblAdapter, ok := i.schemaAdapter.GetTableAdapter(tableName)
 	if !ok {
@@ -66,6 +71,9 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 					slog.Any("columnNames", tblAdapter.ColumnNames()),
 					slog.Any("before", before),
 				)
+
+				slog.Info("### Event dump ###")
+				event.Dump(os.Stdout)
 				return nil, fmt.Errorf("failed to convert before row to map:%w", err)
 			}
 		}
