@@ -23,6 +23,15 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 		slog.String("tableName", string(rowsEvent.Table.Table)),
 		slog.String("schema", string(rowsEvent.Table.Schema)),
 	)
+
+	if string(rowsEvent.Table.Schema) != i.cfg.Database {
+		slog.Warn("Skipping this event since the schema does not match the database",
+			slog.String("schema", string(rowsEvent.Table.Schema)),
+			slog.String("database", i.cfg.Database),
+		)
+		return nil, nil
+	}
+
 	tableName := string(rowsEvent.Table.Table)
 	tblAdapter, ok := i.schemaAdapter.GetTableAdapter(tableName)
 	if !ok {
