@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/typing"
@@ -194,7 +195,15 @@ func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Tim
 		return nil
 	}
 
-	// TODO: Check if we need to handle schemas
+	if !strings.EqualFold(i.cfg.Database, string(evt.Schema)) {
+		slog.Info("Skipping this event since the database does not match the configured database",
+			slog.String("config_db", i.cfg.Database),
+			slog.String("event_db", string(evt.Schema)),
+		)
+
+		return nil
+	}
+
 	query := string(evt.Query)
 	if shouldSkipDDL(query) {
 		return nil
