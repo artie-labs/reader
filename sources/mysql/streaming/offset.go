@@ -2,10 +2,11 @@ package streaming
 
 import (
 	"fmt"
+	"time"
+	
 	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/go-mysql-org/go-mysql/mysql"
 	"github.com/go-mysql-org/go-mysql/replication"
-	"time"
 )
 
 type Position struct {
@@ -24,7 +25,6 @@ func (p Position) String() string {
 
 func (p Position) ToGTIDSet() (mysql.GTIDSet, error) {
 	return mysql.ParseGTIDSet(mysql.MySQLFlavor, p.GTIDSet)
-
 }
 
 func (p Position) ToMySQLPosition() mysql.Position {
