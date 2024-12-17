@@ -92,8 +92,6 @@ func BuildStreamingIterator(db *sql.DB, cfg config.MySQL, sqlMode []string) (Ite
 	)
 
 	var streamer *replication.BinlogStreamer
-	var err error
-
 	if cfg.StreamingSettings.EnableGTID {
 		gtidSet, err := pos.ToGTIDSet()
 		if err != nil {
