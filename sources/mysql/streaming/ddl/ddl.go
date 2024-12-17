@@ -13,9 +13,10 @@ type SchemaAdapter struct {
 	adapters    map[string]TableAdapter
 	tableCfgMap map[string]*config.MySQLTable
 	dbName      string
+	sqlMode     string
 }
 
-func NewSchemaAdapter(cfg config.MySQL) SchemaAdapter {
+func NewSchemaAdapter(cfg config.MySQL, sqlMode string) SchemaAdapter {
 	tableCfgMap := make(map[string]*config.MySQLTable)
 	for _, tbl := range cfg.Tables {
 		tableCfgMap[tbl.Name] = tbl
@@ -25,6 +26,7 @@ func NewSchemaAdapter(cfg config.MySQL) SchemaAdapter {
 		adapters:    make(map[string]TableAdapter),
 		tableCfgMap: tableCfgMap,
 		dbName:      cfg.Database,
+		sqlMode:     sqlMode,
 	}
 }
 
@@ -63,7 +65,7 @@ func (s *SchemaAdapter) applyDDL(unixTs int64, result antlr.Event) error {
 			})
 		}
 
-		tblAdapter, err := NewTableAdapter(s.dbName, s.tableCfgMap[result.GetTable()], cols, unixTs)
+		tblAdapter, err := NewTableAdapter(s.dbName, s.tableCfgMap[result.GetTable()], cols, unixTs, s.sqlMode)
 		if err != nil {
 			return err
 		}
