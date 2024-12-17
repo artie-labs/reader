@@ -2,12 +2,13 @@ package ddl
 
 import (
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/mysql/schema"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func initializeAdapter(t *testing.T) SchemaAdapter {
-	adapter := NewSchemaAdapter(config.MySQL{Database: "foo"})
+	adapter := NewSchemaAdapter(config.MySQL{Database: "foo"}, nil)
 	assert.Equal(t, "foo", adapter.dbName)
 	// Create a table first
 	assert.NoError(t, adapter.ApplyDDL(99, "CREATE TABLE test_table (id INT PRIMARY KEY, name VARCHAR(255), email VARCHAR(255));"))
@@ -20,6 +21,41 @@ func initializeAdapter(t *testing.T) SchemaAdapter {
 	assert.Equal(t, Column{Name: "name", DataType: "VARCHAR(255)"}, adapter.adapters["test_table"].columns[1])
 	assert.Equal(t, Column{Name: "email", DataType: "VARCHAR(255)"}, adapter.adapters["test_table"].columns[2])
 	return adapter
+}
+
+func TestSchemaAdapter_SQLMode(t *testing.T) {
+	{
+		// SQL mode for `REAL_AS_FLOAT` is configured
+		adapter := NewSchemaAdapter(config.MySQL{Database: "foo"}, []string{"REAL_AS_FLOAT"})
+		assert.Equal(t, "foo", adapter.dbName)
+
+		assert.NoError(t, adapter.ApplyDDL(99, "CREATE TABLE foo (real_test REAL);"))
+		assert.Len(t, adapter.adapters, 1)
+
+		tblAdapter, ok := adapter.GetTableAdapter("foo")
+		assert.True(t, ok)
+
+		parsedCols, err := tblAdapter.buildParsedColumns()
+		assert.NoError(t, err)
+		assert.Len(t, parsedCols, 1)
+		assert.Equal(t, schema.Float, parsedCols[0].Type)
+	}
+	{
+		// No SQL mode
+		adapter := NewSchemaAdapter(config.MySQL{Database: "foo"}, []string{""})
+		assert.Equal(t, "foo", adapter.dbName)
+
+		assert.NoError(t, adapter.ApplyDDL(99, "CREATE TABLE foo (real_test REAL);"))
+		assert.Len(t, adapter.adapters, 1)
+
+		tblAdapter, ok := adapter.GetTableAdapter("foo")
+		assert.True(t, ok)
+
+		parsedCols, err := tblAdapter.buildParsedColumns()
+		assert.NoError(t, err)
+		assert.Len(t, parsedCols, 1)
+		assert.Equal(t, schema.Double, parsedCols[0].Type)
+	}
 }
 
 func TestSchemaAdapter_ApplyDDL(t *testing.T) {
