@@ -2,8 +2,9 @@ package antlr
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func assertOneElement[T any](t *testing.T, expected T, actual []T, msgAndArgs ...any) {
@@ -508,6 +509,72 @@ func TestAlterTable(t *testing.T) {
 			assert.Len(t, addPrimaryKeyEvent.GetColumns(), 2)
 			assert.Equal(t, Column{Name: "id", DataType: "", PrimaryKey: true}, addPrimaryKeyEvent.GetColumns()[0])
 			assert.Equal(t, Column{Name: "name", DataType: "", PrimaryKey: true}, addPrimaryKeyEvent.GetColumns()[1])
+		}
+		{
+			// 'Change' statement: alter name and definition
+			events, err := Parse("ALTER TABLE table_name CHANGE COLUMN id newid VARCHAR(255);")
+			assert.NoError(t, err)
+			assert.Len(t, events, 1)
+
+			modifyColEvent, isOk := events[0].(ModifyColumnEvent)
+			assert.True(t, isOk)
+			assert.Equal(t, "table_name", modifyColEvent.GetTable())
+			assertOneElement(t, Column{Name: "newid", PreviousName: "id", DataType: "VARCHAR(255)", PrimaryKey: false}, modifyColEvent.GetColumns())
+		}
+		{
+			// 'Change' statement: alter name and definition, set first position
+			events, err := Parse("ALTER TABLE table_name CHANGE COLUMN id newid VARCHAR(255) FIRST;")
+			assert.NoError(t, err)
+			assert.Len(t, events, 1)
+
+			modifyColEvent, isOk := events[0].(ModifyColumnEvent)
+			assert.True(t, isOk)
+			assert.Equal(t, "table_name", modifyColEvent.GetTable())
+			assertOneElement(t, Column{Name: "newid", PreviousName: "id", DataType: "VARCHAR(255)", PrimaryKey: false, Position: FirstPosition{}}, modifyColEvent.GetColumns())
+		}
+		{
+			// 'Change' statement: alter name and definition, set after position
+			events, err := Parse("ALTER TABLE table_name CHANGE COLUMN id newid VARCHAR(255) AFTER name;")
+			assert.NoError(t, err)
+			assert.Len(t, events, 1)
+
+			modifyColEvent, isOk := events[0].(ModifyColumnEvent)
+			assert.True(t, isOk)
+			assert.Equal(t, "table_name", modifyColEvent.GetTable())
+			assertOneElement(t, Column{Name: "newid", PreviousName: "id", DataType: "VARCHAR(255)", PrimaryKey: false, Position: AfterPosition{column: "name"}}, modifyColEvent.GetColumns())
+		}
+		{
+			// 'Change' statement: alter definition without renaming, set first position
+			events, err := Parse("ALTER TABLE table_name CHANGE COLUMN id id VARCHAR(255) FIRST;")
+			assert.NoError(t, err)
+			assert.Len(t, events, 1)
+
+			modifyColEvent, isOk := events[0].(ModifyColumnEvent)
+			assert.True(t, isOk)
+			assert.Equal(t, "table_name", modifyColEvent.GetTable())
+			assertOneElement(t, Column{Name: "id", PreviousName: "id", DataType: "VARCHAR(255)", PrimaryKey: false, Position: FirstPosition{}}, modifyColEvent.GetColumns())
+		}
+		{
+			// 'Change' statement: alter definition without renaming, set after position
+			events, err := Parse("ALTER TABLE table_name CHANGE COLUMN id id VARCHAR(255) AFTER name;")
+			assert.NoError(t, err)
+			assert.Len(t, events, 1)
+
+			modifyColEvent, isOk := events[0].(ModifyColumnEvent)
+			assert.True(t, isOk)
+			assert.Equal(t, "table_name", modifyColEvent.GetTable())
+			assertOneElement(t, Column{Name: "id", PreviousName: "id", DataType: "VARCHAR(255)", PrimaryKey: false, Position: AfterPosition{column: "name"}}, modifyColEvent.GetColumns())
+		}
+		{
+			// 'Change' statement: alter name and definition, set default value
+			events, err := Parse("ALTER TABLE orders CHANGE order_status delivery_status VARCHAR(50) DEFAULT 'pending';")
+			assert.NoError(t, err)
+			assert.Len(t, events, 1)
+
+			modifyColEvent, isOk := events[0].(ModifyColumnEvent)
+			assert.True(t, isOk)
+			assert.Equal(t, "orders", modifyColEvent.GetTable())
+			assertOneElement(t, Column{Name: "delivery_status", PreviousName: "order_status", DataType: "VARCHAR(50)", DefaultValue: "pending", PrimaryKey: false}, modifyColEvent.GetColumns())
 		}
 	}
 }
