@@ -2,6 +2,7 @@ package antlr
 
 import (
 	"fmt"
+	"github.com/artie-labs/transfer/lib/typing"
 	"log/slog"
 	"strings"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/artie-labs/reader/lib/antlr/generated"
 )
 
-func parseDefaultValue(node generated.IDefaultValueContext) string {
+func parseDefaultValue(node generated.IDefaultValueContext) *string {
 	for _, child := range node.GetChildren() {
 		switch castedChild := child.(type) {
 		case
@@ -17,13 +18,13 @@ func parseDefaultValue(node generated.IDefaultValueContext) string {
 			*antlr.TerminalNodeImpl:
 			continue
 		case *generated.ConstantContext:
-			return castedChild.GetText()
+			return typing.ToPtr(castedChild.GetText())
 		default:
 			slog.Warn("Skipping default value that is not a constant", slog.String("type", fmt.Sprintf("%T", child)))
 		}
 	}
 
-	return ""
+	return nil
 }
 
 // getTextFromSingleNodeBranch - Will visit the entire branch and return the text when it reaches the terminal node.

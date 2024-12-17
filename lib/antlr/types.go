@@ -1,21 +1,28 @@
 package antlr
 
+import "github.com/artie-labs/transfer/lib/typing"
+
 type Column struct {
 	Name string
 	// Optionally set depending on the context
 	PreviousName string
 	DataType     string
-	DefaultValue string
+	DefaultValue *string
 	PrimaryKey   bool
 	Position     Position
 }
 
 func (c Column) clean() Column {
+	var defaultValue *string
+	if c.DefaultValue != nil {
+		defaultValue = typing.ToPtr(baseUnescape(*c.DefaultValue, `'`))
+	}
+
 	col := Column{
 		Name:         unescape(c.Name),
 		PreviousName: unescape(c.PreviousName),
 		DataType:     c.DataType,
-		DefaultValue: baseUnescape(c.DefaultValue, `'`),
+		DefaultValue: defaultValue,
 		PrimaryKey:   c.PrimaryKey,
 		Position:     c.Position,
 	}

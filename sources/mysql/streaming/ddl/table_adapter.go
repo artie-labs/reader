@@ -10,9 +10,10 @@ import (
 )
 
 type Column struct {
-	Name       string
-	DataType   string
-	PrimaryKey bool
+	Name         string
+	DataType     string
+	DefaultValue *string
+	PrimaryKey   bool
 }
 
 type TableAdapter struct {

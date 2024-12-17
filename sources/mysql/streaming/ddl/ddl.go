@@ -57,9 +57,10 @@ func (s *SchemaAdapter) applyDDL(unixTs int64, result antlr.Event) error {
 		var cols []Column
 		for _, col := range result.GetColumns() {
 			cols = append(cols, Column{
-				Name:       col.Name,
-				PrimaryKey: col.PrimaryKey,
-				DataType:   col.DataType,
+				Name:         col.Name,
+				DefaultValue: col.DefaultValue,
+				PrimaryKey:   col.PrimaryKey,
+				DataType:     col.DataType,
 			})
 		}
 
@@ -116,6 +117,7 @@ func (s *SchemaAdapter) applyDDL(unixTs int64, result antlr.Event) error {
 			}
 
 			tblAdapter.columns[columnIdx].DataType = col.DataType
+			tblAdapter.columns[columnIdx].DefaultValue = col.DefaultValue
 		}
 	case antlr.AddColumnsEvent:
 		for _, col := range castedResult.GetColumns() {
@@ -124,8 +126,9 @@ func (s *SchemaAdapter) applyDDL(unixTs int64, result antlr.Event) error {
 			}
 
 			tblAdapter.columns = append(tblAdapter.columns, Column{
-				Name:     col.Name,
-				DataType: col.DataType,
+				Name:         col.Name,
+				DataType:     col.DataType,
+				DefaultValue: col.DefaultValue,
 			})
 		}
 	default:
