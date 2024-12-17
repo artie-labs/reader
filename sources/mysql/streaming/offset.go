@@ -32,7 +32,11 @@ func (p Position) ToMySQLPosition() mysql.Position {
 }
 
 func (p *Position) UpdatePosition(ts time.Time, evt *replication.BinlogEvent) error {
+	// We should always update the log position
+	p.Pos = evt.Header.LogPos
 	p.UnixTs = ts.Unix()
+
+	// If the event is a GTID event, let's set the GTID Set.
 	if gtidEvent, ok := evt.Event.(*replication.GTIDEvent); ok {
 		set, err := gtidEvent.GTIDNext()
 		if err != nil {
@@ -40,11 +44,8 @@ func (p *Position) UpdatePosition(ts time.Time, evt *replication.BinlogEvent) er
 		}
 
 		p.GTIDSet = set.String()
-		return nil
 	}
 
-	// We should always update the log position
-	p.Pos = evt.Header.LogPos
 	if evt.Header.EventType == replication.ROTATE_EVENT {
 		// When we encounter a rotate event, we'll then update the log file
 		rotate, err := typing.AssertType[*replication.RotateEvent](evt.Event)
