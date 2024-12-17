@@ -15,22 +15,17 @@ func Load(cfg config.MySQL) (sources.Source, bool, error) {
 		return nil, false, fmt.Errorf("failed to connect to MySQL: %w", err)
 	}
 
-	version, err := retrieveVersion(db)
+	settings, err := retrieveSettings(db)
 	if err != nil {
-		return nil, false, fmt.Errorf("failed to retrieve MySQL version: %w", err)
-	}
-
-	sqlMode, err := retrieveSessionSQLMode(db)
-	if err != nil {
-		return nil, false, fmt.Errorf("failed to retrieve MySQL session sql_mode: %w", err)
+		return nil, false, fmt.Errorf("failed to retrieve MySQL settings: %w", err)
 	}
 
 	slog.Info("Loading MySQL connector",
-		slog.String("version", version),
-		slog.String("sqlMode", sqlMode),
+		slog.String("version", settings.Version),
+		slog.String("sqlMode", settings.SQLMode),
 	)
 	if cfg.StreamingSettings.Enabled {
-		stream, err := buildStreamingConfig(db, cfg, sqlMode)
+		stream, err := buildStreamingConfig(db, cfg, settings.SQLMode)
 		if err != nil {
 			return nil, false, fmt.Errorf("failed to build streaming config: %w", err)
 		}
@@ -39,22 +34,4 @@ func Load(cfg config.MySQL) (sources.Source, bool, error) {
 	}
 
 	return &Snapshot{cfg: cfg, db: db}, false, nil
-}
-
-func retrieveVersion(db *sql.DB) (string, error) {
-	var version string
-	if err := db.QueryRow(`SELECT VERSION();`).Scan(&version); err != nil {
-		return "", err
-	}
-
-	return version, nil
-}
-
-func retrieveSessionSQLMode(db *sql.DB) (string, error) {
-	var sqlMode string
-	if err := db.QueryRow(`SELECT @@SESSION.sql_mode;`).Scan(&sqlMode); err != nil {
-		return "", err
-	}
-
-	return sqlMode, nil
 }
