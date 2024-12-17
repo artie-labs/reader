@@ -192,12 +192,13 @@ func ParseColumnDataType(originalS string, optionalSQLMode string) (DataType, *O
 		return Decimal, &Opts{Precision: typing.ToPtr(precision), Scale: typing.ToPtr(uint16(scale))}, nil
 	case "float":
 		return Float, nil, nil
-	case "double", "real":
+	case "real":
 		if s == "real" && slices.Contains(strings.Split(optionalSQLMode, ","), "REAL_AS_FLOAT") {
 			// https://dev.mysql.com/doc/refman/8.4/en/sql-mode.html#sqlmode_real_as_float
 			return Float, nil, nil
 		}
-
+		return Double, nil, nil
+	case "double":
 		return Double, nil, nil
 	case "bit":
 		size, err := strconv.Atoi(metadata)
