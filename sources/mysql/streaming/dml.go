@@ -93,7 +93,7 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 			return nil, fmt.Errorf("failed to preprocess after row: %w", err)
 		}
 
-		dbzMessage, err := dbz.BuildEventPayload(sourcePayload, beforeRow, afterRow, operation, ts)
+		dbzMessage, err := dbz.BuildEventPayload(sourcePayload, beforeRow, afterRow, operation)
 		if err != nil {
 			return nil, fmt.Errorf("failed to build event payload: %w", err)
 		}
