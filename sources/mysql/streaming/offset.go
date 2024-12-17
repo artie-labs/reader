@@ -19,7 +19,12 @@ type Position struct {
 }
 
 func (p Position) String() string {
-	return fmt.Sprintf("File: %s, Pos: %d", p.File, p.Pos)
+	return fmt.Sprintf("File: %q, Pos: %d, GTIDSet (if enabled): %q", p.File, p.Pos, p.GTIDSet)
+}
+
+func (p Position) ToGTIDSet() (mysql.GTIDSet, error) {
+	return mysql.ParseGTIDSet(mysql.MySQLFlavor, p.GTIDSet)
+
 }
 
 func (p Position) ToMySQLPosition() mysql.Position {
@@ -27,8 +32,18 @@ func (p Position) ToMySQLPosition() mysql.Position {
 }
 
 func (p *Position) UpdatePosition(ts time.Time, evt *replication.BinlogEvent) error {
-	// We should always update the log position
 	p.UnixTs = ts.Unix()
+	if gtidEvent, ok := evt.Event.(*replication.GTIDEvent); ok {
+		set, err := gtidEvent.GTIDNext()
+		if err != nil {
+			return fmt.Errorf("failed to retrieve next GTID set: %w", err)
+		}
+
+		p.GTIDSet = set.String()
+		return nil
+	}
+
+	// We should always update the log position
 	p.Pos = evt.Header.LogPos
 	if evt.Header.EventType == replication.ROTATE_EVENT {
 		// When we encounter a rotate event, we'll then update the log file

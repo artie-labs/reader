@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/go-mysql-org/go-mysql/mysql"
 	"log/slog"
 	"os"
 	"strings"
@@ -64,20 +63,7 @@ func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persiste
 	return schemaAdapter, nil
 }
 
-func getOffset(cfg config.MySQL) (Offset, error) {
-	if cfg.StreamingSettings.EnableGTID {
-		return &GTIDPosition{}, nil
-	}
-
-	return &Position{}, nil
-}
-
 func BuildStreamingIterator(db *sql.DB, cfg config.MySQL, sqlMode []string) (Iterator, error) {
-	offset, err := getOffset(cfg)
-	if err != nil {
-		return Iterator{}, fmt.Errorf("failed to get offset: %w", err)
-	}
-
 	var pos Position
 	offsets := persistedmap.NewPersistedMap[Position](cfg.StreamingSettings.OffsetFile)
 	if _pos, isOk := offsets.Get(offsetKey); isOk {
@@ -110,7 +96,7 @@ func BuildStreamingIterator(db *sql.DB, cfg config.MySQL, sqlMode []string) (Ite
 	//	syncer.StartSyncGTID(nil)
 	//}
 
-	gtid, err := mysql.ParseGTIDSet(mysql.MySQLFlavor, "")
+	gtid, err := pos.ToGTIDSet()
 	if err != nil {
 		return Iterator{}, fmt.Errorf("failed to parse GTID: %w", err)
 	}
