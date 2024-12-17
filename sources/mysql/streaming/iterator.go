@@ -22,9 +22,9 @@ import (
 
 const offsetKey = "offset"
 
-func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persistedlist.PersistedList[SchemaHistory], pos Position) (ddl.SchemaAdapter, error) {
+func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persistedlist.PersistedList[SchemaHistory], pos Position, sqlMode []string) (ddl.SchemaAdapter, error) {
 	var latestSchemaUnixTs int64
-	schemaAdapter := ddl.NewSchemaAdapter(cfg)
+	schemaAdapter := ddl.NewSchemaAdapter(cfg, sqlMode)
 	for _, schemaHistory := range schemaHistoryList.GetData() {
 		if err := schemaAdapter.ApplyDDL(schemaHistory.UnixTs, schemaHistory.Query); err != nil {
 			return ddl.SchemaAdapter{}, fmt.Errorf("failed to apply DDL: %w", err)
@@ -62,7 +62,7 @@ func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persiste
 	return schemaAdapter, nil
 }
 
-func BuildStreamingIterator(db *sql.DB, cfg config.MySQL) (Iterator, error) {
+func BuildStreamingIterator(db *sql.DB, cfg config.MySQL, sqlMode []string) (Iterator, error) {
 	var pos Position
 	offsets := persistedmap.NewPersistedMap[Position](cfg.StreamingSettings.OffsetFile)
 	if _pos, isOk := offsets.Get(offsetKey); isOk {
@@ -75,7 +75,7 @@ func BuildStreamingIterator(db *sql.DB, cfg config.MySQL) (Iterator, error) {
 		return Iterator{}, fmt.Errorf("failed to create persisted list: %w", err)
 	}
 
-	schemaAdapter, err := buildSchemaAdapter(db, cfg, schemaHistoryList, pos)
+	schemaAdapter, err := buildSchemaAdapter(db, cfg, schemaHistoryList, pos, sqlMode)
 	if err != nil {
 		return Iterator{}, fmt.Errorf("failed to build schema adapter: %w", err)
 	}
