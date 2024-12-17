@@ -193,7 +193,7 @@ func ParseColumnDataType(originalS string, optionalSQLMode string) (DataType, *O
 	case "float":
 		return Float, nil, nil
 	case "real":
-		if s == "real" && slices.Contains(strings.Split(optionalSQLMode, ","), "REAL_AS_FLOAT") {
+		if slices.Contains(strings.Split(optionalSQLMode, ","), "REAL_AS_FLOAT") {
 			// https://dev.mysql.com/doc/refman/8.4/en/sql-mode.html#sqlmode_real_as_float
 			return Float, nil, nil
 		}
