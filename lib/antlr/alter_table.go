@@ -44,7 +44,7 @@ func processAlterTable(ctx *generated.AlterTableContext) ([]Event, error) {
 
 			events = append(events, AddColumnsEvent{TableName: tableName, Columns: cols})
 		case *generated.AlterByAddColumnContext:
-			col, err := processAddOrModifyColumn(spec, false)
+			col, err := processAddOrModifyColumn(spec)
 			if err != nil {
 				return nil, err
 			}
@@ -53,7 +53,7 @@ func processAlterTable(ctx *generated.AlterTableContext) ([]Event, error) {
 		case
 			*generated.AlterByModifyColumnContext,
 			*generated.AlterByChangeDefaultContext:
-			col, err := processAddOrModifyColumn(spec, false)
+			col, err := processAddOrModifyColumn(spec)
 			if err != nil {
 				return nil, err
 			}
@@ -128,7 +128,7 @@ func processAddPrimaryKey(ctx *generated.AlterByAddPrimaryKeyContext) ([]Column,
 	return cols, nil
 }
 
-func processAddOrModifyColumn(ctx generated.IAlterSpecificationContext, isChangeEvent bool) (Column, error) {
+func processAddOrModifyColumn(ctx generated.IAlterSpecificationContext) (Column, error) {
 	var names []string
 	var first bool
 	var after bool
@@ -169,7 +169,7 @@ func processAddOrModifyColumn(ctx generated.IAlterSpecificationContext, isChange
 		}
 	}
 
-	if isChangeEvent {
+	if _, isChangeEvent := ctx.(*generated.AlterByChangeColumnContext); isChangeEvent {
 		// The first name in the list is the column's previous name and isn't relevant here
 		names = names[1:]
 	}
@@ -195,7 +195,7 @@ func processAddOrModifyColumn(ctx generated.IAlterSpecificationContext, isChange
 }
 
 func processChangeColumn(tableName string, spec *generated.AlterByChangeColumnContext) (ModifyColumnEvent, error) {
-	col, err := processAddOrModifyColumn(spec, true)
+	col, err := processAddOrModifyColumn(spec)
 	if err != nil {
 		return ModifyColumnEvent{}, err
 	}
