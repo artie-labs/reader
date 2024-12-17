@@ -12,10 +12,10 @@ type Position struct {
 	// Binlog position
 	File string `yaml:"file"`
 	Pos  uint32 `yaml:"pos"`
-
-	// GTID set
+	// GTID
 	GTIDSet string `yaml:"gtidSet"`
-	UnixTs  int64  `yaml:"unixTs"`
+
+	UnixTs int64 `yaml:"unixTs"`
 }
 
 func (p Position) String() string {
