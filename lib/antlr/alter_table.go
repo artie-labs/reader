@@ -169,6 +169,11 @@ func processAddOrModifyColumn(ctx generated.IAlterSpecificationContext, isChange
 		}
 	}
 
+	if isChangeEvent {
+		// The first name in the list is the column's previous name and isn't relevant here
+		names = names[1:]
+	}
+
 	switch len(names) {
 	case 1:
 		col.Name = names[0]
@@ -176,22 +181,12 @@ func processAddOrModifyColumn(ctx generated.IAlterSpecificationContext, isChange
 			col.Position = FirstPosition{}
 		}
 	case 2:
-		if !after && !isChangeEvent {
+		if !after {
 			return Column{}, fmt.Errorf("expected after to be set if there are two names")
 		}
 
 		col.Name = names[0]
-		if !isChangeEvent {
-			col.Position = AfterPosition{column: names[1]}
-		} else if first {
-			col.Position = FirstPosition{}
-		}
-	case 3:
-		if !isChangeEvent {
-			return Column{}, fmt.Errorf("expected isChangeEvent to be true if there are three names")
-		}
-		col.Name = names[1]
-		col.Position = AfterPosition{column: names[2]}
+		col.Position = AfterPosition{column: names[1]}
 	default:
 		return Column{}, fmt.Errorf("unexpected number of names: %d", len(names))
 	}
