@@ -511,7 +511,7 @@ func TestAlterTable(t *testing.T) {
 			assert.Equal(t, Column{Name: "name", DataType: "", PrimaryKey: true}, addPrimaryKeyEvent.GetColumns()[1])
 		}
 		{
-			// Change (alter name and definition)
+			// 'Change' statement: alter name and definition
 			events, err := Parse("ALTER TABLE table_name CHANGE COLUMN id newid VARCHAR(255);")
 			assert.NoError(t, err)
 			assert.Len(t, events, 1)
@@ -522,7 +522,7 @@ func TestAlterTable(t *testing.T) {
 			assertOneElement(t, Column{Name: "newid", PreviousName: "id", DataType: "VARCHAR(255)", PrimaryKey: false}, modifyColEvent.GetColumns())
 		}
 		{
-			// Change (alter name, definition, and first position)
+			// 'Change' statement: alter name and definition, set first position
 			events, err := Parse("ALTER TABLE table_name CHANGE COLUMN id newid VARCHAR(255) FIRST;")
 			assert.NoError(t, err)
 			assert.Len(t, events, 1)
@@ -533,7 +533,7 @@ func TestAlterTable(t *testing.T) {
 			assertOneElement(t, Column{Name: "newid", PreviousName: "id", DataType: "VARCHAR(255)", PrimaryKey: false, Position: FirstPosition{}}, modifyColEvent.GetColumns())
 		}
 		{
-			// Change (alter name, definition, and after position)
+			// 'Change' statement: alter name and definition, set after position
 			events, err := Parse("ALTER TABLE table_name CHANGE COLUMN id newid VARCHAR(255) AFTER name;")
 			assert.NoError(t, err)
 			assert.Len(t, events, 1)
@@ -544,7 +544,18 @@ func TestAlterTable(t *testing.T) {
 			assertOneElement(t, Column{Name: "newid", PreviousName: "id", DataType: "VARCHAR(255)", PrimaryKey: false, Position: AfterPosition{column: "name"}}, modifyColEvent.GetColumns())
 		}
 		{
-			// Change (alter definition and after position)
+			// 'Change' statement: alter definition without renaming, set first position
+			events, err := Parse("ALTER TABLE table_name CHANGE COLUMN id id VARCHAR(255) FIRST;")
+			assert.NoError(t, err)
+			assert.Len(t, events, 1)
+
+			modifyColEvent, isOk := events[0].(ModifyColumnEvent)
+			assert.True(t, isOk)
+			assert.Equal(t, "table_name", modifyColEvent.GetTable())
+			assertOneElement(t, Column{Name: "id", PreviousName: "id", DataType: "VARCHAR(255)", PrimaryKey: false, Position: FirstPosition{}}, modifyColEvent.GetColumns())
+		}
+		{
+			// 'Change' statement: alter definition without renaming, set after position
 			events, err := Parse("ALTER TABLE table_name CHANGE COLUMN id id VARCHAR(255) AFTER name;")
 			assert.NoError(t, err)
 			assert.Len(t, events, 1)
@@ -555,7 +566,7 @@ func TestAlterTable(t *testing.T) {
 			assertOneElement(t, Column{Name: "id", PreviousName: "id", DataType: "VARCHAR(255)", PrimaryKey: false, Position: AfterPosition{column: "name"}}, modifyColEvent.GetColumns())
 		}
 		{
-			// Default value
+			// 'Change' statement: alter name and definition, set default value
 			events, err := Parse("ALTER TABLE orders CHANGE order_status delivery_status VARCHAR(50) DEFAULT 'pending';")
 			assert.NoError(t, err)
 			assert.Len(t, events, 1)

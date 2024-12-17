@@ -205,6 +205,7 @@ func processChangeColumn(tableName string, spec *generated.AlterByChangeColumnCo
 		return ModifyColumnEvent{}, err
 	}
 
+	// Fold the rename event into the modify event
 	col.PreviousName = renameEvent.Column.PreviousName
 	col.Name = renameEvent.Column.Name
 
