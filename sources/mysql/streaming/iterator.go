@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/go-mysql-org/go-mysql/mysql"
 	"log/slog"
+	"os"
 	"strings"
 	"time"
 
@@ -62,7 +64,20 @@ func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persiste
 	return schemaAdapter, nil
 }
 
+func getOffset(cfg config.MySQL) (Offset, error) {
+	if cfg.StreamingSettings.EnableGTID {
+		return &GTIDPosition{}, nil
+	}
+
+	return &Position{}, nil
+}
+
 func BuildStreamingIterator(db *sql.DB, cfg config.MySQL, sqlMode []string) (Iterator, error) {
+	offset, err := getOffset(cfg)
+	if err != nil {
+		return Iterator{}, fmt.Errorf("failed to get offset: %w", err)
+	}
+
 	var pos Position
 	offsets := persistedmap.NewPersistedMap[Position](cfg.StreamingSettings.OffsetFile)
 	if _pos, isOk := offsets.Get(offsetKey); isOk {
@@ -91,7 +106,16 @@ func BuildStreamingIterator(db *sql.DB, cfg config.MySQL, sqlMode []string) (Ite
 		},
 	)
 
-	streamer, err := syncer.StartSync(pos.ToMySQLPosition())
+	//if cfg.StreamingSettings.EnableGTID {
+	//	syncer.StartSyncGTID(nil)
+	//}
+
+	gtid, err := mysql.ParseGTIDSet(mysql.MySQLFlavor, "")
+	if err != nil {
+		return Iterator{}, fmt.Errorf("failed to parse GTID: %w", err)
+	}
+
+	streamer, err := syncer.StartSyncGTID(gtid)
 	if err != nil {
 		return Iterator{}, fmt.Errorf("failed to start sync: %w", err)
 	}
@@ -168,6 +192,11 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 				if err = i.persistAndProcessDDL(query, ts); err != nil {
 					return nil, fmt.Errorf("failed to persist DDL: %w", err)
 				}
+			case replication.PREVIOUS_GTIDS_EVENT, replication.FORMAT_DESCRIPTION_EVENT, replication.GTID_EVENT:
+				// We don't need to do anything with this event
+				// Log it though
+				slog.Info(fmt.Sprintf("Encountered event: %T", event.Header.EventType))
+				event.Dump(os.Stdout)
 			case replication.WRITE_ROWS_EVENTv2, replication.UPDATE_ROWS_EVENTv2, replication.DELETE_ROWS_EVENTv2:
 				rows, err := i.processDML(ts, event)
 				if err != nil {
