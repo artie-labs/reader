@@ -14,7 +14,10 @@ import (
 )
 
 type MySQLStreamingSettings struct {
-	Enabled           bool   `yaml:"enabled,omitempty"`
+	Enabled bool `yaml:"enabled,omitempty"`
+	// TODO: Remove TODO once GTID is fully functional.
+	EnableGTID bool `yaml:"enableGTID,omitempty"`
+
 	OffsetFile        string `yaml:"offsetFile,omitempty"`
 	SchemaHistoryFile string `yaml:"schemaHistoryFile,omitempty"`
 	// ServerID - Unique ID in the cluster.

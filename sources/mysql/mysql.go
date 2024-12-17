@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log/slog"
@@ -9,7 +10,7 @@ import (
 	"github.com/artie-labs/reader/sources"
 )
 
-func Load(cfg config.MySQL) (sources.Source, bool, error) {
+func Load(ctx context.Context, cfg config.MySQL) (sources.Source, bool, error) {
 	db, err := sql.Open("mysql", cfg.ToDSN())
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to connect to MySQL: %w", err)
@@ -25,7 +26,7 @@ func Load(cfg config.MySQL) (sources.Source, bool, error) {
 		slog.Any("sqlMode", settings.SQLMode),
 	)
 	if cfg.StreamingSettings.Enabled {
-		stream, err := buildStreamingConfig(db, cfg, settings.SQLMode)
+		stream, err := buildStreamingConfig(ctx, db, cfg, settings.SQLMode)
 		if err != nil {
 			return nil, false, fmt.Errorf("failed to build streaming config: %w", err)
 		}

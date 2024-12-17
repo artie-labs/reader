@@ -15,7 +15,12 @@ type Streaming struct {
 	db       *sql.DB
 }
 
-func buildStreamingConfig(db *sql.DB, cfg config.MySQL, sqlMode []string) (Streaming, error) {
+func buildStreamingConfig(ctx context.Context, db *sql.DB, cfg config.MySQL, sqlMode []string) (Streaming, error) {
+	// Validate to ensure that we can use streaming.
+	if err := ValidateMySQL(ctx, db, true, cfg.StreamingSettings.EnableGTID); err != nil {
+		return Streaming{}, fmt.Errorf("failed validation: %w", err)
+	}
+
 	iter, err := streaming.BuildStreamingIterator(db, cfg, sqlMode)
 	if err != nil {
 		return Streaming{}, err
