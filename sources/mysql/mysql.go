@@ -22,7 +22,7 @@ func Load(cfg config.MySQL) (sources.Source, bool, error) {
 
 	slog.Info("Loading MySQL connector",
 		slog.String("version", settings.Version),
-		slog.String("sqlMode", settings.SQLMode),
+		slog.Any("sqlMode", settings.SQLMode),
 	)
 	if cfg.StreamingSettings.Enabled {
 		stream, err := buildStreamingConfig(db, cfg, settings.SQLMode)

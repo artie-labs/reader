@@ -3,11 +3,12 @@ package mysql
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 )
 
 type Settings struct {
 	Version string
-	SQLMode string
+	SQLMode []string
 }
 
 func retrieveSettings(db *sql.DB) (Settings, error) {
@@ -36,11 +37,11 @@ func retrieveVersion(db *sql.DB) (string, error) {
 	return version, nil
 }
 
-func retrieveSessionSQLMode(db *sql.DB) (string, error) {
+func retrieveSessionSQLMode(db *sql.DB) ([]string, error) {
 	var sqlMode string
 	if err := db.QueryRow(`SELECT @@SESSION.sql_mode;`).Scan(&sqlMode); err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return sqlMode, nil
+	return strings.Split(sqlMode, ","), nil
 }

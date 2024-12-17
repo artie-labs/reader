@@ -15,7 +15,7 @@ type Streaming struct {
 	db       *sql.DB
 }
 
-func buildStreamingConfig(db *sql.DB, cfg config.MySQL, sqlMode string) (Streaming, error) {
+func buildStreamingConfig(db *sql.DB, cfg config.MySQL, sqlMode []string) (Streaming, error) {
 	iter, err := streaming.BuildStreamingIterator(db, cfg, sqlMode)
 	if err != nil {
 		return Streaming{}, err

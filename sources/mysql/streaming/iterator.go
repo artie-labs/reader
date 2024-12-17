@@ -22,7 +22,7 @@ import (
 
 const offsetKey = "offset"
 
-func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persistedlist.PersistedList[SchemaHistory], pos Position, sqlMode string) (ddl.SchemaAdapter, error) {
+func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persistedlist.PersistedList[SchemaHistory], pos Position, sqlMode []string) (ddl.SchemaAdapter, error) {
 	var latestSchemaUnixTs int64
 	schemaAdapter := ddl.NewSchemaAdapter(cfg, sqlMode)
 	for _, schemaHistory := range schemaHistoryList.GetData() {
@@ -62,7 +62,7 @@ func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persiste
 	return schemaAdapter, nil
 }
 
-func BuildStreamingIterator(db *sql.DB, cfg config.MySQL, sqlMode string) (Iterator, error) {
+func BuildStreamingIterator(db *sql.DB, cfg config.MySQL, sqlMode []string) (Iterator, error) {
 	var pos Position
 	offsets := persistedmap.NewPersistedMap[Position](cfg.StreamingSettings.OffsetFile)
 	if _pos, isOk := offsets.Get(offsetKey); isOk {
