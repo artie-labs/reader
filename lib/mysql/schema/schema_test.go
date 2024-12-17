@@ -73,6 +73,21 @@ func TestParseColumnDataType(t *testing.T) {
 		}
 	}
 	{
+		// REAL
+		{
+			// No SQL mode
+			dataType, _, err := ParseColumnDataType("real", nil)
+			assert.NoError(t, err)
+			assert.Equal(t, Double, dataType)
+		}
+		{
+			// SQL Mode for [REAL_AS_FLOAT] is set
+			dataType, _, err := ParseColumnDataType("real", []string{"REAL_AS_FLOAT"})
+			assert.NoError(t, err)
+			assert.Equal(t, Float, dataType)
+		}
+	}
+	{
 		// tinyint(1) should still be an integer
 		dataType, _, err := ParseColumnDataType("tinyint(1)", nil)
 		assert.NoError(t, err)
