@@ -200,7 +200,12 @@ func processChangeColumn(tableName string, spec *generated.AlterByChangeColumnCo
 		return ModifyColumnEvent{}, err
 	}
 
-	renameEvent, err := processRenameColumn(tableName, spec.AllUid()[:2])
+	allUids := spec.AllUid()
+	if len(allUids) < 2 || len(allUids) > 3 {
+		return ModifyColumnEvent{}, fmt.Errorf("expected 2 or 3 uids, got %d", len(allUids))
+	}
+
+	renameEvent, err := processRenameColumn(tableName, allUids[:2])
 	if err != nil {
 		return ModifyColumnEvent{}, err
 	}
