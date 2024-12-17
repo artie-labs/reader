@@ -36,7 +36,7 @@ func (p *Position) UpdatePosition(ts time.Time, evt *replication.BinlogEvent) er
 	p.Pos = evt.Header.LogPos
 	p.UnixTs = ts.Unix()
 
-	// If the event is a GTID event, let's set the GTID Set.
+	// If the event is a [*replication.GTIDEvent], then let's parse it and grab the next GTID set
 	if gtidEvent, ok := evt.Event.(*replication.GTIDEvent); ok {
 		set, err := gtidEvent.GTIDNext()
 		if err != nil {
