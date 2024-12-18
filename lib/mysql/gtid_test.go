@@ -5,6 +5,7 @@ import (
 	"github.com/go-mysql-org/go-mysql/mysql"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"strings"
 	"testing"
 )
 
@@ -29,6 +30,21 @@ func TestShouldProcessRow(t *testing.T) {
 		assert.NoError(t, err)
 
 		shouldProcess, err := ShouldProcessRow(set, getGTID(sid, 2))
+		assert.NoError(t, err)
+		assert.True(t, shouldProcess)
+	}
+	{
+		// There's more than one SID pre-existing
+		sid1 := uuid.New()
+		sid2 := uuid.New()
+		set, err := mysql.ParseGTIDSet(mysql.MySQLFlavor, strings.Join([]string{getGTID(sid1, 1), getGTID(sid2, 1)}, ","))
+		assert.NoError(t, err)
+
+		shouldProcess, err := ShouldProcessRow(set, getGTID(sid1, 2))
+		assert.NoError(t, err)
+		assert.True(t, shouldProcess)
+
+		shouldProcess, err = ShouldProcessRow(set, getGTID(sid2, 2))
 		assert.NoError(t, err)
 		assert.True(t, shouldProcess)
 	}
