@@ -58,6 +58,44 @@ func TestSchemaAdapter_SQLMode(t *testing.T) {
 	}
 }
 
+func TestSchemaAdapter_ColumnFiltering(t *testing.T) {
+	{
+		// Excluding column [exclude_me]
+		adapter := NewSchemaAdapter(config.MySQL{Database: "foo", Tables: []*config.MySQLTable{{Name: "test_table", ExcludeColumns: []string{"exclude_me"}}}}, nil)
+		assert.Equal(t, "foo", adapter.dbName)
+
+		assert.NoError(t, adapter.ApplyDDL(99, "CREATE TABLE test_table (id INT PRIMARY KEY, exclude_me VARCHAR(255));"))
+		assert.Len(t, adapter.adapters, 1)
+
+		tblAdapter, ok := adapter.GetTableAdapter("test_table")
+		assert.True(t, ok)
+
+		assert.Len(t, tblAdapter.columns, 2)
+
+		parsedCols, err := tblAdapter.buildParsedColumns()
+		assert.NoError(t, err)
+		assert.Len(t, parsedCols, 1)
+		assert.Equal(t, "id", parsedCols[0].Name)
+	}
+	{
+		// Not excluding
+		adapter := NewSchemaAdapter(config.MySQL{Database: "foo", Tables: []*config.MySQLTable{{Name: "test_table"}}}, nil)
+		assert.Equal(t, "foo", adapter.dbName)
+
+		assert.NoError(t, adapter.ApplyDDL(99, "CREATE TABLE test_table (id INT PRIMARY KEY, name VARCHAR(255));"))
+		assert.Len(t, adapter.adapters, 1)
+
+		tblAdapter, ok := adapter.GetTableAdapter("test_table")
+		assert.True(t, ok)
+
+		assert.Len(t, tblAdapter.columns, 2)
+
+		parsedCols, err := tblAdapter.buildParsedColumns()
+		assert.NoError(t, err)
+		assert.Len(t, parsedCols, 2)
+	}
+}
+
 func TestSchemaAdapter_ApplyDDL(t *testing.T) {
 	{
 		// Column rename
