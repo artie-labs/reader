@@ -62,7 +62,7 @@ func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persiste
 	return schemaAdapter, nil
 }
 
-func BuildStreamingIterator(db *sql.DB, cfg config.MySQL, sqlMode []string) (Iterator, error) {
+func BuildStreamingIterator(db *sql.DB, cfg config.MySQL, sqlMode []string, gtidEnabled bool) (Iterator, error) {
 	var pos Position
 	offsets := persistedmap.NewPersistedMap[Position](cfg.StreamingSettings.OffsetFile)
 	if _pos, isOk := offsets.Get(offsetKey); isOk {
@@ -91,9 +91,22 @@ func BuildStreamingIterator(db *sql.DB, cfg config.MySQL, sqlMode []string) (Ite
 		},
 	)
 
-	streamer, err := syncer.StartSync(pos.ToMySQLPosition())
-	if err != nil {
-		return Iterator{}, fmt.Errorf("failed to start sync: %w", err)
+	var streamer *replication.BinlogStreamer
+	if gtidEnabled {
+		gtidSet, err := pos.ToGTIDSet()
+		if err != nil {
+			return Iterator{}, fmt.Errorf("failed to parse GTID: %w", err)
+		}
+
+		streamer, err = syncer.StartSyncGTID(gtidSet)
+		if err != nil {
+			return Iterator{}, fmt.Errorf("failed to start sync: %w", err)
+		}
+	} else {
+		streamer, err = syncer.StartSync(pos.ToMySQLPosition())
+		if err != nil {
+			return Iterator{}, fmt.Errorf("failed to start sync: %w", err)
+		}
 	}
 
 	return Iterator{
@@ -152,6 +165,10 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 
 			switch event.Header.EventType {
 			case
+				// We don't need these events, [GTID_EVENT] will contain the offsets via GTID sets, which is handled in [UpdatePosition]
+				replication.GTID_EVENT,
+				replication.PREVIOUS_GTIDS_EVENT,
+				replication.FORMAT_DESCRIPTION_EVENT,
 				replication.ANONYMOUS_GTID_EVENT,
 				replication.TABLE_MAP_EVENT,
 				// We don't need TableMapEvent because we are handling it by consuming DDL queries, applying it to our schema adapter
