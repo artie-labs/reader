@@ -1,3 +1,3 @@
-FROM --platform=linux/amd64 alpine:3.20
+FROM --platform=linux/amd64 alpine:3.21
 COPY reader /reader
 ENTRYPOINT ["/reader"]
