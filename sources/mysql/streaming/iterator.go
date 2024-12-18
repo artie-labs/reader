@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/artie-labs/reader/lib/mysql"
 	"log/slog"
 	"strings"
 	"time"
@@ -156,6 +157,23 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 				}
 
 				return nil, fmt.Errorf("failed to get binlog event: %w", err)
+			}
+
+			if gtidEvent, ok := event.Event.(*replication.GTIDEvent); ok {
+				next, err := gtidEvent.GTIDNext()
+				if err != nil {
+					return nil, fmt.Errorf("failed to retrieve next GTID set: %w", err)
+				}
+
+				shouldProcess, err := mysql.ShouldProcessRow(i.position._gtidSet, next.String())
+				if err != nil {
+					return nil, fmt.Errorf("failed to check if we should process row: %w", err)
+				}
+
+				if !shouldProcess {
+					// We should skip this row since we have already processed it
+					continue
+				}
 			}
 
 			ts := getTimeFromEvent(event)

@@ -16,6 +16,9 @@ type Position struct {
 	// GTID
 	GTIDSet string `yaml:"gtidSet"`
 
+	// Generated
+	_gtidSet mysql.GTIDSet `yaml:"-"`
+
 	UnixTs int64 `yaml:"unixTs"`
 }
 
@@ -23,8 +26,14 @@ func (p Position) String() string {
 	return fmt.Sprintf("File: %q, Pos: %d, GTIDSet (if enabled): %q", p.File, p.Pos, p.GTIDSet)
 }
 
-func (p Position) ToGTIDSet() (mysql.GTIDSet, error) {
-	return mysql.ParseGTIDSet(mysql.MySQLFlavor, p.GTIDSet)
+func (p *Position) ToGTIDSet() (mysql.GTIDSet, error) {
+	_gtidSet, err := mysql.ParseGTIDSet(mysql.MySQLFlavor, p.GTIDSet)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse GTID set: %w", err)
+	}
+
+	p._gtidSet = _gtidSet
+	return _gtidSet, nil
 }
 
 func (p Position) ToMySQLPosition() mysql.Position {
@@ -47,7 +56,11 @@ func (p *Position) UpdatePosition(ts time.Time, evt *replication.BinlogEvent) er
 			return fmt.Errorf("failed to retrieve next GTID set: %w", err)
 		}
 
-		p.GTIDSet = set.String()
+		if err = p._gtidSet.Update(set.String()); err != nil {
+			return fmt.Errorf("failed to update GTID set: %w", err)
+		}
+
+		p.GTIDSet = p._gtidSet.String()
 	}
 
 	if evt.Header.EventType == replication.ROTATE_EVENT {
