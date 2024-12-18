@@ -42,6 +42,6 @@ func ShouldProcessRow(set mysql.GTIDSet, currentGTID string) (bool, error) {
 		}
 	}
 
-	// We should process if the current txID is above the highest txID we have seen
+	// We should process if the current txID is above or equal to the highest txID we have seen
 	return txID >= highestTxID, nil
 }
