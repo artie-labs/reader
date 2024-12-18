@@ -68,20 +68,8 @@ func (t TableAdapter) buildFieldConverters() ([]transformer.FieldConverter, erro
 		return nil, nil
 	}
 
-	// Exclude columns (if any) from the table metadata
-	cols, err := column.FilterOutExcludedColumns(t.GetParsedColumns(), t.tableCfg.ExcludeColumns, t.PartitionKeys())
-	if err != nil {
-		return nil, err
-	}
-
-	// Include columns (if any) from the table metadata
-	cols, err = column.FilterForIncludedColumns(cols, t.tableCfg.IncludeColumns, t.PartitionKeys())
-	if err != nil {
-		return nil, err
-	}
-
-	fieldConverters := make([]transformer.FieldConverter, len(cols))
-	for i, col := range cols {
+	fieldConverters := make([]transformer.FieldConverter, len(t.parsedColumns))
+	for i, col := range t.parsedColumns {
 		converter, err := converters.ValueConverterForType(col.Type, col.Opts)
 		if err != nil {
 			return nil, fmt.Errorf("failed to build value converter for column %q: %w", col.Name, err)
@@ -107,7 +95,23 @@ func (t TableAdapter) buildParsedColumns() ([]schema.Column, error) {
 		})
 	}
 
-	return parsedColumns, nil
+	if t.tableCfg == nil {
+		return parsedColumns, nil
+	}
+
+	// Exclude columns (if any) from the table metadata
+	cols, err := column.FilterOutExcludedColumns(parsedColumns, t.tableCfg.ExcludeColumns, t.PartitionKeys())
+	if err != nil {
+		return nil, err
+	}
+
+	// Include columns (if any) from the table metadata
+	cols, err = column.FilterForIncludedColumns(cols, t.tableCfg.IncludeColumns, t.PartitionKeys())
+	if err != nil {
+		return nil, err
+	}
+
+	return cols, nil
 }
 
 func (t TableAdapter) TopicSuffix() string {
