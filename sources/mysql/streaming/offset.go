@@ -36,8 +36,12 @@ func (p *Position) UpdatePosition(ts time.Time, evt *replication.BinlogEvent) er
 	p.Pos = evt.Header.LogPos
 	p.UnixTs = ts.Unix()
 
-	// If the event is a [*replication.GTIDEvent], then let's parse it and grab the next GTID set
-	if gtidEvent, ok := evt.Event.(*replication.GTIDEvent); ok {
+	if evt.Header.EventType == replication.GTID_EVENT {
+		gtidEvent, err := typing.AssertType[*replication.GTIDEvent](evt.Event)
+		if err != nil {
+			return err
+		}
+
 		set, err := gtidEvent.GTIDNext()
 		if err != nil {
 			return fmt.Errorf("failed to retrieve next GTID set: %w", err)
