@@ -3,7 +3,7 @@ package streaming
 import (
 	"fmt"
 	"time"
-	
+
 	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/go-mysql-org/go-mysql/mysql"
 	"github.com/go-mysql-org/go-mysql/replication"
