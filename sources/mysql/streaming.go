@@ -4,8 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"strings"
-
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/sources/mysql/streaming"
 	"github.com/artie-labs/reader/writers"
@@ -44,20 +42,4 @@ func (s Streaming) Close() error {
 func (s Streaming) Run(ctx context.Context, writer writers.Writer) error {
 	_, err := writer.Write(ctx, s.iterator)
 	return err
-}
-
-func hasGTIDEnabled(ctx context.Context, db *sql.DB) (bool, error) {
-	requiredVariables := []string{"gtid_mode", "enforce_gtid_consistency"}
-	for _, requiredVariable := range requiredVariables {
-		value, err := fetchVariable(ctx, db, requiredVariable)
-		if err != nil {
-			return false, err
-		}
-
-		if strings.ToUpper(value) != "ON" {
-			return false, nil
-		}
-	}
-
-	return true, nil
 }

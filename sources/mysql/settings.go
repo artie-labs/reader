@@ -53,3 +53,19 @@ func retrieveSessionSQLMode(db *sql.DB) ([]string, error) {
 
 	return strings.Split(sqlMode, ","), nil
 }
+
+func hasGTIDEnabled(ctx context.Context, db *sql.DB) (bool, error) {
+	requiredVariables := []string{"gtid_mode", "enforce_gtid_consistency"}
+	for _, requiredVariable := range requiredVariables {
+		value, err := fetchVariable(ctx, db, requiredVariable)
+		if err != nil {
+			return false, err
+		}
+
+		if strings.ToUpper(value) != "ON" {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
