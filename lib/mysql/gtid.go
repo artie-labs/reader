@@ -8,6 +8,11 @@ import (
 )
 
 func ShouldProcessRow(set mysql.GTIDSet, currentGTID string) (bool, error) {
+	if set == nil {
+		// We have not seen any GTIDs yet, so we should process this one.
+		return true, nil
+	}
+
 	gtidSet, ok := set.(*mysql.MysqlGTIDSet)
 	if !ok {
 		return false, fmt.Errorf("unsupported GTID set type: %T", set)

@@ -15,6 +15,12 @@ func getGTID(sid uuid.UUID, txID int64) string {
 
 func TestShouldProcessRow(t *testing.T) {
 	{
+		// GTID is not set, should still return
+		shouldProcess, err := ShouldProcessRow(nil, "foo:1")
+		assert.NoError(t, err)
+		assert.True(t, shouldProcess)
+	}
+	{
 		// Nothing defined for the set, so we should process it.
 		set, err := mysql.ParseGTIDSet(mysql.MySQLFlavor, "")
 		assert.NoError(t, err)
