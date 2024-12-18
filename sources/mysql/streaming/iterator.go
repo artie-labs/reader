@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/artie-labs/reader/lib/mysql"
 	"log/slog"
 	"strings"
 	"time"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib"
+	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/mysql/schema"
 	"github.com/artie-labs/reader/lib/storage/persistedlist"
 	"github.com/artie-labs/reader/lib/storage/persistedmap"
