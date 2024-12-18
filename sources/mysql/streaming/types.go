@@ -10,9 +10,10 @@ import (
 )
 
 type Iterator struct {
-	cfg       config.MySQL
-	batchSize int32
-	position  Position
+	gtidEnabled bool
+	cfg         config.MySQL
+	batchSize   int32
+	position    Position
 
 	offsets           *persistedmap.PersistedMap[Position]
 	schemaHistoryList *persistedlist.PersistedList[SchemaHistory]

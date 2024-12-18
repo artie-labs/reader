@@ -111,6 +111,7 @@ func BuildStreamingIterator(db *sql.DB, cfg config.MySQL, sqlMode []string, gtid
 	}
 
 	return Iterator{
+		gtidEnabled:       gtidEnabled,
 		batchSize:         cfg.GetStreamingBatchSize(),
 		cfg:               cfg,
 		position:          pos,
@@ -159,20 +160,22 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 				return nil, fmt.Errorf("failed to get binlog event: %w", err)
 			}
 
-			if gtidEvent, ok := event.Event.(*replication.GTIDEvent); ok {
-				next, err := gtidEvent.GTIDNext()
-				if err != nil {
-					return nil, fmt.Errorf("failed to retrieve next GTID set: %w", err)
-				}
+			if i.gtidEnabled {
+				if gtidEvent, ok := event.Event.(*replication.GTIDEvent); ok {
+					next, err := gtidEvent.GTIDNext()
+					if err != nil {
+						return nil, fmt.Errorf("failed to retrieve next GTID set: %w", err)
+					}
 
-				shouldProcess, err := mysql.ShouldProcessRow(i.position._gtidSet, next.String())
-				if err != nil {
-					return nil, fmt.Errorf("failed to check if we should process row: %w", err)
-				}
+					shouldProcess, err := mysql.ShouldProcessRow(i.position._gtidSet, next.String())
+					if err != nil {
+						return nil, fmt.Errorf("failed to check if we should process row: %w", err)
+					}
 
-				if !shouldProcess {
-					// We should skip this row since we have already processed it
-					continue
+					if !shouldProcess {
+						// We should skip this row since we have already processed it
+						continue
+					}
 				}
 			}
 
