@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -100,7 +101,7 @@ func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 			return nil, fmt.Errorf("failed to scan: %w", err)
 		}
 
-		dataType, opts, err := ParseColumnDataType(colType)
+		dataType, opts, err := ParseColumnDataType(colType, nil)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse data type: %w", err)
 		}
@@ -114,7 +115,7 @@ func DescribeTable(db *sql.DB, table string) ([]Column, error) {
 	return result, nil
 }
 
-func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
+func ParseColumnDataType(originalS string, optionalSQLMode []string) (DataType, *Opts, error) {
 	// Preserve the original value, so we can return the error message without the actual value being mutated.
 	s := strings.ToLower(originalS)
 	var metadata string
@@ -191,9 +192,13 @@ func ParseColumnDataType(originalS string) (DataType, *Opts, error) {
 		return Decimal, &Opts{Precision: typing.ToPtr(precision), Scale: typing.ToPtr(uint16(scale))}, nil
 	case "float":
 		return Float, nil, nil
-	case "double", "real":
-		// TODO: We should either use TableMapEvent or understand SQL_MODE so that we know if we should use a float32 or float64 for real
+	case "real":
 		// https://dev.mysql.com/doc/refman/8.4/en/sql-mode.html#sqlmode_real_as_float
+		if slices.Contains(optionalSQLMode, "REAL_AS_FLOAT") {
+			return Float, nil, nil
+		}
+		return Double, nil, nil
+	case "double":
 		return Double, nil, nil
 	case "bit":
 		size, err := strconv.Atoi(metadata)

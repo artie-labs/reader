@@ -41,7 +41,8 @@ func (m *Message) ToRawMessage(collection config.Collection, database string) (l
 		"payload": m.pkMap,
 	}
 
-	return lib.NewRawMessage(collection.TopicSuffix(database), pkMap, evt), nil
+	// MongoDB wouldn't include the schema.
+	return lib.NewRawMessage(collection.TopicSuffix(database), debezium.FieldsObject{}, pkMap, evt), nil
 }
 
 func ParseMessage(after bson.M, before *bson.M, op string) (*Message, error) {

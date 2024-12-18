@@ -2,8 +2,6 @@ package transformer
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/artie-labs/transfer/lib/debezium"
 
@@ -33,9 +31,9 @@ func NewLightDebeziumTransformer(tableName string, partitionKeys []string, field
 	}
 }
 
-func (l LightDebeziumTransformer) BuildPartitionKey(beforeRow, afterRow Row) (map[string]any, error) {
+func (l LightDebeziumTransformer) BuildPartitionKey(beforeRow, afterRow Row) (debezium.PrimaryKeyPayload, error) {
 	if beforeRow == nil && afterRow == nil {
-		return nil, fmt.Errorf("both before and after rows are nil")
+		return debezium.PrimaryKeyPayload{}, fmt.Errorf("both before and after rows are nil")
 	}
 
 	row := afterRow
@@ -47,7 +45,7 @@ func (l LightDebeziumTransformer) BuildPartitionKey(beforeRow, afterRow Row) (ma
 	return convertPartitionKey(l.valueConverters, l.partitionKeys, row)
 }
 
-func (l LightDebeziumTransformer) BuildEventPayload(source util.Source, beforeRow Row, afterRow Row, op string, ts time.Time) (util.SchemaEventPayload, error) {
+func (l LightDebeziumTransformer) BuildEventPayload(source util.Source, beforeRow Row, afterRow Row, op string) (util.SchemaEventPayload, error) {
 	schema := debezium.Schema{FieldsObject: []debezium.FieldsObject{}}
 	payload := util.Payload{
 		Source:    source,

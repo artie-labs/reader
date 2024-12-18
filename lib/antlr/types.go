@@ -5,8 +5,22 @@ type Column struct {
 	// Optionally set depending on the context
 	PreviousName string
 	DataType     string
+	DefaultValue string
 	PrimaryKey   bool
 	Position     Position
+}
+
+func (c Column) clean() Column {
+	col := Column{
+		Name:         unescape(c.Name),
+		PreviousName: unescape(c.PreviousName),
+		DataType:     c.DataType,
+		DefaultValue: baseUnescape(c.DefaultValue, `'`),
+		PrimaryKey:   c.PrimaryKey,
+		Position:     c.Position,
+	}
+
+	return col
 }
 
 type Event interface {
@@ -34,18 +48,6 @@ func (a AfterPosition) Column() string {
 
 func (a AfterPosition) Kind() string {
 	return "after"
-}
-
-func (c Column) clean() Column {
-	col := Column{
-		Name:         unescape(c.Name),
-		PreviousName: unescape(c.PreviousName),
-		DataType:     c.DataType,
-		PrimaryKey:   c.PrimaryKey,
-		Position:     c.Position,
-	}
-
-	return col
 }
 
 type CreateTableEvent struct {

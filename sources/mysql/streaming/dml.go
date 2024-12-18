@@ -93,21 +93,21 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 			return nil, fmt.Errorf("failed to preprocess after row: %w", err)
 		}
 
-		dbzMessage, err := dbz.BuildEventPayload(sourcePayload, beforeRow, afterRow, operation, ts)
+		dbzMessage, err := dbz.BuildEventPayload(sourcePayload, beforeRow, afterRow, operation)
 		if err != nil {
 			return nil, fmt.Errorf("failed to build event payload: %w", err)
 		}
 
-		pk, err := dbz.BuildPartitionKey(beforeRow, afterRow)
+		primaryKeyPayload, err := dbz.BuildPartitionKey(beforeRow, afterRow)
 		if err != nil {
 			return nil, fmt.Errorf("failed to build partition key: %w", err)
 		}
 
-		if len(pk) == 0 {
+		if len(primaryKeyPayload.Payload) == 0 {
 			return nil, fmt.Errorf("partition key is not set for table: %q", tableName)
 		}
 
-		rawMsgs = append(rawMsgs, lib.NewRawMessage(tblAdapter.TopicSuffix(), pk, &dbzMessage))
+		rawMsgs = append(rawMsgs, lib.NewRawMessage(tblAdapter.TopicSuffix(), primaryKeyPayload.Schema, primaryKeyPayload.Payload, &dbzMessage))
 	}
 
 	return rawMsgs, nil

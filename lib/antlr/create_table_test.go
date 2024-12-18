@@ -126,7 +126,7 @@ func TestCreateTable(t *testing.T) {
 			{Name: "dt6", DataType: "DATETIME", PrimaryKey: false},
 			{Name: "dt7", DataType: "DATETIME", PrimaryKey: false},
 			{Name: "dt10", DataType: "DATETIME", PrimaryKey: false},
-			{Name: "dt11", DataType: "DATETIME", PrimaryKey: false},
+			{Name: "dt11", DataType: "DATETIME", DefaultValue: "2038-01-01 00:00:00", PrimaryKey: false},
 		}, createTableEvent.GetColumns())
 	}
 	{

@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/sources/mysql/streaming"
 	"github.com/artie-labs/reader/writers"
@@ -15,8 +14,13 @@ type Streaming struct {
 	db       *sql.DB
 }
 
-func buildStreamingConfig(db *sql.DB, cfg config.MySQL) (Streaming, error) {
-	iter, err := streaming.BuildStreamingIterator(db, cfg)
+func buildStreamingConfig(ctx context.Context, db *sql.DB, cfg config.MySQL, sqlMode []string, gtidEnabled bool) (Streaming, error) {
+	// Validate to ensure that we can use streaming.
+	if err := ValidateMySQL(ctx, db, true); err != nil {
+		return Streaming{}, fmt.Errorf("failed validation: %w", err)
+	}
+
+	iter, err := streaming.BuildStreamingIterator(db, cfg, sqlMode, gtidEnabled)
 	if err != nil {
 		return Streaming{}, err
 	}

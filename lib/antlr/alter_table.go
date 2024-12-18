@@ -50,7 +50,9 @@ func processAlterTable(ctx *generated.AlterTableContext) ([]Event, error) {
 			}
 
 			events = append(events, AddColumnsEvent{TableName: tableName, Columns: []Column{col}})
-		case *generated.AlterByModifyColumnContext:
+		case
+			*generated.AlterByModifyColumnContext,
+			*generated.AlterByChangeDefaultContext:
 			col, err := processAddOrModifyColumn(spec)
 			if err != nil {
 				return nil, err
@@ -72,7 +74,14 @@ func processAlterTable(ctx *generated.AlterTableContext) ([]Event, error) {
 
 			events = append(events, AddPrimaryKeyEvent{TableName: tableName, Columns: cols})
 		case *generated.AlterByRenameColumnContext:
-			event, err := processRenameColumn(tableName, spec)
+			event, err := processRenameColumn(tableName, spec.AllUid())
+			if err != nil {
+				return nil, err
+			}
+
+			events = append(events, event)
+		case *generated.AlterByChangeColumnContext:
+			event, err := processChangeColumn(tableName, spec)
 			if err != nil {
 				return nil, err
 			}
@@ -86,8 +95,7 @@ func processAlterTable(ctx *generated.AlterTableContext) ([]Event, error) {
 	return events, nil
 }
 
-func processRenameColumn(tableName string, ctx *generated.AlterByRenameColumnContext) (RenameColumnEvent, error) {
-	allUids := ctx.AllUid()
+func processRenameColumn(tableName string, allUids []generated.IUidContext) (RenameColumnEvent, error) {
 	if len(allUids) != 2 {
 		// You can only do one column rename in an ALTER TABLE statement
 		return RenameColumnEvent{}, fmt.Errorf("expected 2 uids, got %d", len(allUids))
@@ -142,6 +150,8 @@ func processAddOrModifyColumn(ctx generated.IAlterSpecificationContext) (Column,
 				first = true
 			case "AFTER":
 				after = true
+			case "MODIFY", "COLUMN", "DROP", "DEFAULT":
+				// Do nothing
 			default:
 				slog.Warn("Unsupported alter specification terminal node", slog.String("text", text))
 			}
@@ -152,9 +162,16 @@ func processAddOrModifyColumn(ctx generated.IAlterSpecificationContext) (Column,
 			}
 
 			names = append(names, name)
+		case *generated.DefaultValueContext:
+			col.DefaultValue = parseDefaultValue(castedChild)
 		default:
 			slog.Warn("Unsupported alter specification child", slog.String("type", fmt.Sprintf("%T", castedChild)))
 		}
+	}
+
+	if _, isChangeEvent := ctx.(*generated.AlterByChangeColumnContext); isChangeEvent {
+		// The first name in the list is the column's previous name and isn't relevant here
+		names = names[1:]
 	}
 
 	switch len(names) {
@@ -175,6 +192,29 @@ func processAddOrModifyColumn(ctx generated.IAlterSpecificationContext) (Column,
 	}
 
 	return col, nil
+}
+
+func processChangeColumn(tableName string, spec *generated.AlterByChangeColumnContext) (ModifyColumnEvent, error) {
+	col, err := processAddOrModifyColumn(spec)
+	if err != nil {
+		return ModifyColumnEvent{}, err
+	}
+
+	allUids := spec.AllUid()
+	if len(allUids) < 2 || len(allUids) > 3 {
+		return ModifyColumnEvent{}, fmt.Errorf("expected 2 or 3 uids, got %d", len(allUids))
+	}
+
+	renameEvent, err := processRenameColumn(tableName, allUids[:2])
+	if err != nil {
+		return ModifyColumnEvent{}, err
+	}
+
+	// Fold the rename event into the modify event
+	col.PreviousName = renameEvent.Column.PreviousName
+	col.Name = renameEvent.Column.Name
+
+	return ModifyColumnEvent{TableName: tableName, Column: col}, nil
 }
 
 func processDropColumn(tableName string, ctx *generated.AlterByDropColumnContext) (DropColumnsEvent, error) {
