@@ -165,7 +165,7 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 
 			switch event.Header.EventType {
 			case
-				// We don't need these events, [GTID_EVENT] will contain the offsets a la GTIDSets, that is getting handled in `UpdatePosition`
+				// We don't need these events, [GTID_EVENT] will contain the offsets via GTID sets, which is handled in [UpdatePosition]
 				replication.GTID_EVENT,
 				replication.PREVIOUS_GTIDS_EVENT,
 				replication.FORMAT_DESCRIPTION_EVENT,
