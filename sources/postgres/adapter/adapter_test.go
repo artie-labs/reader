@@ -1,6 +1,7 @@
 package adapter
 
 import (
+	"github.com/artie-labs/transfer/lib/typing"
 	"testing"
 	"time"
 
@@ -65,6 +66,7 @@ func TestValueConverterForType_ToField(t *testing.T) {
 			name:     "array",
 			colName:  "foo",
 			dataType: schema.Array,
+			opts:     &schema.Opts{ElementType: typing.ToPtr("foo")},
 			expected: debezium.Field{
 				Type:      "array",
 				FieldName: "foo",

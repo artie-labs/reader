@@ -51,14 +51,27 @@ type Opts struct {
 	Scale         uint16
 	Precision     int
 	CharMaxLength int
+	ElementType   *string
 }
 
 type Column = column.Column[DataType, Opts]
 
 const describeTableQuery = `
-SELECT column_name, data_type, numeric_precision, numeric_scale, udt_name, character_maximum_length
-FROM information_schema.columns
-WHERE table_schema = $1 AND table_name = $2`
+SELECT 
+    c.column_name, 
+    c.data_type, 
+    c.numeric_precision, 
+    c.numeric_scale, 
+    c.udt_name, 
+    c.character_maximum_length,
+    CASE 
+        WHEN c.data_type = 'ARRAY' THEN t.typname
+        ELSE NULL
+    END AS element_type
+FROM information_schema.columns c
+LEFT JOIN pg_type t ON c.udt_name = t.typname
+WHERE c.table_schema = $1 AND c.table_name = $2;
+`
 
 func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 	query := strings.TrimSpace(describeTableQuery)
@@ -76,8 +89,8 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 		var numericScale *uint16
 		var udtName *string
 		var charMaxLength *int
-		err = rows.Scan(&colName, &colType, &numericPrecision, &numericScale, &udtName, &charMaxLength)
-		if err != nil {
+		var elementType *string
+		if err = rows.Scan(&colName, &colType, &numericPrecision, &numericScale, &udtName, &charMaxLength, &elementType); err != nil {
 			return nil, err
 		}
 
@@ -88,7 +101,7 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 			continue
 		}
 
-		dataType, opts, err := parseColumnDataType(colType, numericPrecision, numericScale, charMaxLength, udtName)
+		dataType, opts, err := parseColumnDataType(colType, numericPrecision, numericScale, charMaxLength, udtName, elementType)
 		if err != nil {
 			return nil, fmt.Errorf("unable to identify type %q for column %q", colType, colName)
 		}
@@ -102,7 +115,7 @@ func DescribeTable(db *sql.DB, _schema, table string) ([]Column, error) {
 	return cols, nil
 }
 
-func parseColumnDataType(colKind string, precision *int, scale *uint16, charMaxLength *int, udtName *string) (DataType, *Opts, error) {
+func parseColumnDataType(colKind string, precision *int, scale *uint16, charMaxLength *int, udtName *string, elementType *string) (DataType, *Opts, error) {
 	colKind = strings.ToLower(colKind)
 	switch colKind {
 	case "bit":
@@ -152,7 +165,17 @@ func parseColumnDataType(colKind string, precision *int, scale *uint16, charMaxL
 	case "uuid":
 		return UUID, nil, nil
 	case "array":
-		return Array, nil, nil
+		if elementType == nil {
+			return -1, nil, fmt.Errorf("missing element type for array column")
+		}
+
+		// Element type should have _ prefix, so we need to remove it
+		if !strings.HasPrefix(*elementType, "_") {
+			return -1, nil, fmt.Errorf("expected element type to have _ prefix: %q", *elementType)
+		}
+
+		*elementType = (*elementType)[1:]
+		return Array, &Opts{ElementType: elementType}, nil
 	case "json", "jsonb":
 		return JSON, nil, nil
 	case "point":
