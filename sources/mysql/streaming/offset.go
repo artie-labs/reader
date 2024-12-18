@@ -44,7 +44,6 @@ func (p *Position) UpdatePosition(ts time.Time, evt *replication.BinlogEvent) er
 	// We should always update the log position
 	p.Pos = evt.Header.LogPos
 	p.UnixTs = ts.Unix()
-
 	if evt.Header.EventType == replication.GTID_EVENT {
 		gtidEvent, err := typing.AssertType[*replication.GTIDEvent](evt.Event)
 		if err != nil {
