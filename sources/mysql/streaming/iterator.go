@@ -62,7 +62,7 @@ func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persiste
 	return schemaAdapter, nil
 }
 
-func BuildStreamingIterator(db *sql.DB, cfg config.MySQL, sqlMode []string) (Iterator, error) {
+func BuildStreamingIterator(db *sql.DB, cfg config.MySQL, sqlMode []string, gtidEnabled bool) (Iterator, error) {
 	var pos Position
 	offsets := persistedmap.NewPersistedMap[Position](cfg.StreamingSettings.OffsetFile)
 	if _pos, isOk := offsets.Get(offsetKey); isOk {
@@ -92,7 +92,7 @@ func BuildStreamingIterator(db *sql.DB, cfg config.MySQL, sqlMode []string) (Ite
 	)
 
 	var streamer *replication.BinlogStreamer
-	if cfg.StreamingSettings.EnableGTID {
+	if gtidEnabled {
 		gtidSet, err := pos.ToGTIDSet()
 		if err != nil {
 			return Iterator{}, fmt.Errorf("failed to parse GTID: %w", err)

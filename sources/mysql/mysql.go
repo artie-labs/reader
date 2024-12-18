@@ -16,7 +16,7 @@ func Load(ctx context.Context, cfg config.MySQL) (sources.Source, bool, error) {
 		return nil, false, fmt.Errorf("failed to connect to MySQL: %w", err)
 	}
 
-	settings, err := retrieveSettings(db)
+	settings, err := retrieveSettings(ctx, db)
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to retrieve MySQL settings: %w", err)
 	}
@@ -24,9 +24,11 @@ func Load(ctx context.Context, cfg config.MySQL) (sources.Source, bool, error) {
 	slog.Info("Loading MySQL connector",
 		slog.String("version", settings.Version),
 		slog.Any("sqlMode", settings.SQLMode),
+		slog.Bool("gtidEnabled", settings.GTIDEnabled),
 	)
+
 	if cfg.StreamingSettings.Enabled {
-		stream, err := buildStreamingConfig(ctx, db, cfg, settings.SQLMode)
+		stream, err := buildStreamingConfig(ctx, db, cfg, settings.SQLMode, settings.GTIDEnabled)
 		if err != nil {
 			return nil, false, fmt.Errorf("failed to build streaming config: %w", err)
 		}

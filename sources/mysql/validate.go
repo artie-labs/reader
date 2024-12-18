@@ -24,25 +24,15 @@ func fetchVariable(ctx context.Context, db *sql.DB, name string) (string, error)
 	return value, nil
 }
 
-func ValidateMySQL(ctx context.Context, db *sql.DB, validateStreaming bool, validateGTID bool) error {
-	requiredVariableToValueMap := make(map[string]string)
+func ValidateMySQL(ctx context.Context, db *sql.DB, validateStreaming bool) error {
 	if validateStreaming {
-		requiredVariableToValueMap["binlog_format"] = "ROW"
-	}
-
-	if validateGTID {
-		requiredVariableToValueMap["gtid_mode"] = "ON"
-		requiredVariableToValueMap["enforce_gtid_consistency"] = "ON"
-	}
-
-	for requiredVariable, requiredValue := range requiredVariableToValueMap {
-		value, err := fetchVariable(ctx, db, requiredVariable)
+		value, err := fetchVariable(ctx, db, "binlog_format")
 		if err != nil {
 			return err
 		}
 
-		if strings.ToUpper(value) != requiredValue {
-			return fmt.Errorf("%s must be set to %q, current value is %q", requiredVariable, requiredValue, value)
+		if strings.ToUpper(value) != "ROW" {
+			return fmt.Errorf("'binlog_format' must be set to 'ROW', current value is '%s'", value)
 		}
 	}
 
