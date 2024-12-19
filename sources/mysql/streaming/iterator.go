@@ -231,7 +231,7 @@ func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Tim
 	}
 
 	if !strings.EqualFold(i.cfg.Database, string(evt.Schema)) {
-		slog.Info("Skipping this event since the database does not match the configured database",
+		slog.Debug("Skipping this event since the database does not match the configured database",
 			slog.String("config_db", i.cfg.Database),
 			slog.String("event_db", string(evt.Schema)),
 		)
