@@ -119,7 +119,7 @@ func processCopyTable(ctx *generated.CopyCreateTableContext) (Event, error) {
 		return nil, err
 	}
 
-	return CopyTableEvent{TableName: tableName, CopyFromTableName: copiedFromTableName}, nil
+	return CopyTableEvent{tableName: tableName, copyFromTableName: copiedFromTableName}, nil
 }
 
 func processCreateTable(ctx *generated.ColumnCreateTableContext) (Event, error) {

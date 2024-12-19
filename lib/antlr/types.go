@@ -56,16 +56,16 @@ func (a AfterPosition) Kind() string {
 }
 
 type CopyTableEvent struct {
-	TableName         string
-	CopyFromTableName string
+	tableName         string
+	copyFromTableName string
 }
 
 func (c CopyTableEvent) GetTable() string {
-	return unescape(c.TableName)
+	return unescape(c.tableName)
 }
 
 func (c CopyTableEvent) GetCopyFromTableName() string {
-	return unescape(c.CopyFromTableName)
+	return unescape(c.copyFromTableName)
 }
 
 func (c CopyTableEvent) GetColumns() []Column {
