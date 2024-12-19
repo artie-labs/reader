@@ -55,8 +55,13 @@ func (a AfterPosition) Kind() string {
 	return "after"
 }
 
+type LikeTable struct {
+	TableName string
+}
+
 type CreateTableEvent struct {
 	TableName string
+	LikeTable *LikeTable
 	Columns   []Column
 }
 
