@@ -9,16 +9,10 @@ import (
 
 func TestCreateTable(t *testing.T) {
 	{
-		// Create table LIKE
-		sameQueries := []string{
-			"CREATE TABLE table_name LIKE other_table;",
-			"create table table_name (like other_table);",
-		}
-
-		for _, query := range sameQueries {
-			events, err := Parse(query)
+		{
+			// Create table LIKE by specifying schema
+			events, err := Parse("CREATE TABLE db_name.table_name LIKE db_name.other_table;")
 			assert.NoError(t, err)
-			assert.Len(t, events, 1)
 
 			createTableEvent, isOk := events[0].(CopyTableEvent)
 			assert.True(t, isOk)
@@ -27,7 +21,26 @@ func TestCreateTable(t *testing.T) {
 			assert.Len(t, createTableEvent.GetColumns(), 0)
 			assert.Equal(t, "other_table", createTableEvent.GetCopyFromTableName())
 		}
+		{
+			// Create table LIKE
+			sameQueries := []string{
+				"CREATE TABLE table_name LIKE other_table;",
+				"create table table_name (like other_table);",
+			}
 
+			for _, query := range sameQueries {
+				events, err := Parse(query)
+				assert.NoError(t, err)
+				assert.Len(t, events, 1)
+
+				createTableEvent, isOk := events[0].(CopyTableEvent)
+				assert.True(t, isOk)
+
+				assert.Equal(t, "table_name", createTableEvent.GetTable())
+				assert.Len(t, createTableEvent.GetColumns(), 0)
+				assert.Equal(t, "other_table", createTableEvent.GetCopyFromTableName())
+			}
+		}
 	}
 	{
 		// Create table with column as CHARACTER SET and collation specified at the column level
