@@ -116,6 +116,13 @@ func TestParseColumnDataType(t *testing.T) {
 			assert.Equal(t, Varchar, dataType)
 			assert.Equal(t, &Opts{Size: typing.ToPtr(255)}, opts)
 		}
+		{
+			// Using charset instead
+			dataType, opts, err := ParseColumnDataType(`varchar(255) CHARSET utf8mb3 COLLATE utf8mb3_unicode_ci`, nil)
+			assert.NoError(t, err)
+			assert.Equal(t, Varchar, dataType)
+			assert.Equal(t, &Opts{Size: typing.ToPtr(255)}, opts)
+		}
 	}
 	{
 		// Decimal
