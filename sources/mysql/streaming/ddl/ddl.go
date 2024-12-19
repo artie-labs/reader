@@ -55,7 +55,11 @@ func (s *SchemaAdapter) ApplyDDL(unixTs int64, query string) error {
 }
 
 func (s *SchemaAdapter) applyDDL(unixTs int64, result antlr.Event) error {
-	if _, ok := result.(antlr.CreateTableEvent); ok {
+	switch result.(type) {
+	case antlr.DropTableEvent:
+		delete(s.adapters, result.GetTable())
+		return nil
+	case antlr.CreateTableEvent:
 		var cols []Column
 		for _, col := range result.GetColumns() {
 			cols = append(cols, Column{

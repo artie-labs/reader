@@ -131,9 +131,11 @@ func ParseColumnDataType(originalS string, optionalSQLMode []string) (DataType, 
 		s = s[:collateIdx]
 	}
 
-	if charSetIdx := strings.Index(s, " character set"); charSetIdx != -1 {
-		// Strip character set
-		s = s[:charSetIdx]
+	for _, charSetPermutation := range []string{" character set", " charset"} {
+		if charSetIdx := strings.Index(s, charSetPermutation); charSetIdx != -1 {
+			// Strip character set
+			s = s[:charSetIdx]
+		}
 	}
 
 	parenIndex := strings.Index(s, "(")
