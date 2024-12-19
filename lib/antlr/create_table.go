@@ -161,8 +161,6 @@ func processCreateTable(ctx *generated.ColumnCreateTableContext) (Event, error) 
 					}
 				}
 			}
-		default:
-			slog.Warn(fmt.Sprintf("Skipping unsupported create table types: %T", castedChild))
 		}
 	}
 
