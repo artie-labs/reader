@@ -55,6 +55,23 @@ func (a AfterPosition) Kind() string {
 	return "after"
 }
 
+type CopyTableEvent struct {
+	tableName         string
+	copyFromTableName string
+}
+
+func (c CopyTableEvent) GetTable() string {
+	return unescape(c.tableName)
+}
+
+func (c CopyTableEvent) GetCopyFromTableName() string {
+	return unescape(c.copyFromTableName)
+}
+
+func (c CopyTableEvent) GetColumns() []Column {
+	return nil
+}
+
 type CreateTableEvent struct {
 	TableName string
 	Columns   []Column

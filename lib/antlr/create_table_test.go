@@ -9,10 +9,25 @@ import (
 
 func TestCreateTable(t *testing.T) {
 	{
-		// Create table LIKE (not currently supported)
-		events, err := Parse("CREATE TABLE table_name LIKE other_table;")
-		assert.NoError(t, err)
-		assert.Len(t, events, 0)
+		// Create table LIKE
+		sameQueries := []string{
+			"CREATE TABLE table_name LIKE other_table;",
+			"create table table_name (like other_table);",
+		}
+
+		for _, query := range sameQueries {
+			events, err := Parse(query)
+			assert.NoError(t, err)
+			assert.Len(t, events, 1)
+
+			createTableEvent, isOk := events[0].(CopyTableEvent)
+			assert.True(t, isOk)
+
+			assert.Equal(t, "table_name", createTableEvent.GetTable())
+			assert.Len(t, createTableEvent.GetColumns(), 0)
+			assert.Equal(t, "other_table", createTableEvent.GetCopyFromTableName())
+		}
+
 	}
 	{
 		// Create table with column as CHARACTER SET and collation specified at the column level
