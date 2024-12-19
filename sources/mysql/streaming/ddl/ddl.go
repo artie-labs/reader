@@ -42,6 +42,7 @@ func (s *SchemaAdapter) GetTableAdapter(tableName string) (TableAdapter, bool) {
 func (s *SchemaAdapter) ApplyDDL(unixTs int64, query string) error {
 	results, err := antlr.Parse(query)
 	if err != nil {
+		fmt.Println("query", query)
 		return fmt.Errorf("failed to parse query %q: %w", query, err)
 	}
 
@@ -55,7 +56,11 @@ func (s *SchemaAdapter) ApplyDDL(unixTs int64, query string) error {
 }
 
 func (s *SchemaAdapter) applyDDL(unixTs int64, result antlr.Event) error {
-	if _, ok := result.(antlr.CreateTableEvent); ok {
+	switch castedResult := result.(type) {
+	case antlr.DropTableEvent:
+		delete(s.adapters, result.GetTable())
+		return nil
+	case antlr.CreateTableEvent:
 		var cols []Column
 		for _, col := range result.GetColumns() {
 			cols = append(cols, Column{
@@ -66,6 +71,19 @@ func (s *SchemaAdapter) applyDDL(unixTs int64, result antlr.Event) error {
 		}
 
 		tblAdapter, err := NewTableAdapter(s.dbName, s.tableCfgMap[result.GetTable()], cols, unixTs, s.sqlMode)
+		if err != nil {
+			return err
+		}
+
+		s.adapters[result.GetTable()] = tblAdapter
+		return nil
+	case antlr.CopyTableEvent:
+		existingTableAdapter, ok := s.adapters[castedResult.GetCopyFromTableName()]
+		if !ok {
+			return fmt.Errorf("table not found: %q", castedResult.GetTable())
+		}
+
+		tblAdapter, err := NewTableAdapter(s.dbName, s.tableCfgMap[result.GetTable()], existingTableAdapter.columns, unixTs, s.sqlMode)
 		if err != nil {
 			return err
 		}

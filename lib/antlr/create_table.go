@@ -109,14 +109,22 @@ func processCopyTable(ctx *generated.CopyCreateTableContext) (Event, error) {
 		return nil, fmt.Errorf("expected exactly 2 table names, got %d", len(tableNames))
 	}
 
+	for _, tblname := range tableNames {
+		fmt.Println("tblname", tblname.GetText(), "type", fmt.Sprintf("Type %T", tblname))
+	}
+
+	for _, cc := range tableNames[0].GetChildren() {
+		fmt.Println("###", cc, "get text", cc.(antlr.ParseTree).GetText(), fmt.Sprintf("Type %T", cc))
+	}
+
 	tableName, err := getTextFromSingleNodeBranch(tableNames[0])
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to extract table name: %w", err)
 	}
 
 	copiedFromTableName, err := getTextFromSingleNodeBranch(tableNames[1])
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to extract copied from table name: %w", err)
 	}
 
 	return CopyTableEvent{tableName: tableName, copyFromTableName: copiedFromTableName}, nil
