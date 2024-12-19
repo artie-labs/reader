@@ -65,6 +65,13 @@ func visit(tree antlr.Tree) ([]Event, error) {
 		}
 
 		return events, nil
+	case *generated.CopyCreateTableContext:
+		evt, err := processCopyTable(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		return []Event{evt}, nil
 	case *generated.ColumnCreateTableContext:
 		evt, err := processCreateTable(ctx)
 		if err != nil {
@@ -78,7 +85,6 @@ func visit(tree antlr.Tree) ([]Event, error) {
 		return processDropTable(ctx)
 	case
 		*generated.EmptyStatement_Context,
-		*generated.CopyCreateTableContext,
 		*generated.TruncateTableContext,
 		*generated.AdministrationStatementContext,
 		*generated.CreateDatabaseContext,
