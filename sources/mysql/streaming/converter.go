@@ -135,7 +135,7 @@ func splitIntoBeforeAndAfter(operation string, rows [][]any) (iter.Seq2[[]any, [
 	}
 }
 
-func buildDebeziumSourcePayload(dbName string, tableName string, ts time.Time, position Position) util.Source {
+func buildDebeziumSourcePayload(dbName string, tableName string, ts time.Time, position Position, currentGTID *string) util.Source {
 	return util.Source{
 		Connector: "mysql",
 		Database:  dbName,
@@ -145,5 +145,6 @@ func buildDebeziumSourcePayload(dbName string, tableName string, ts time.Time, p
 		// MySQL specific
 		File: position.File,
 		Pos:  int64(position.Pos),
+		Gtid: currentGTID,
 	}
 }
