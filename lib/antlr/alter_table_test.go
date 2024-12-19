@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -37,7 +38,7 @@ func TestColumn_DefaultValue(t *testing.T) {
 
 			cols := retrieveColumnFromSingleEvent(t, events)
 			assert.Len(t, cols, 1)
-			assert.Equal(t, Column{Name: "price", DataType: "DECIMAL(10,2)", DefaultValue: "99.99", PrimaryKey: false}, cols[0])
+			assert.Equal(t, Column{Name: "price", DataType: "DECIMAL(10,2)", DefaultValue: typing.ToPtr("99.99"), PrimaryKey: false}, cols[0])
 		}
 		{
 			// Integer
@@ -46,7 +47,7 @@ func TestColumn_DefaultValue(t *testing.T) {
 
 			cols := retrieveColumnFromSingleEvent(t, events)
 			assert.Len(t, cols, 1)
-			assert.Equal(t, Column{Name: "id", DataType: "INT", DefaultValue: "0", PrimaryKey: false}, cols[0])
+			assert.Equal(t, Column{Name: "id", DataType: "INT", DefaultValue: typing.ToPtr("0"), PrimaryKey: false}, cols[0])
 		}
 		{
 			// Boolean
@@ -55,7 +56,7 @@ func TestColumn_DefaultValue(t *testing.T) {
 
 			cols := retrieveColumnFromSingleEvent(t, events)
 			assert.Len(t, cols, 1)
-			assert.Equal(t, Column{Name: "is_active", DataType: "BOOLEAN", DefaultValue: "TRUE", PrimaryKey: false}, cols[0])
+			assert.Equal(t, Column{Name: "is_active", DataType: "BOOLEAN", DefaultValue: typing.ToPtr("TRUE"), PrimaryKey: false}, cols[0])
 		}
 		{
 			// CURRENT_TIMESTAMP (ignored)
@@ -64,7 +65,7 @@ func TestColumn_DefaultValue(t *testing.T) {
 
 			cols := retrieveColumnFromSingleEvent(t, events)
 			assert.Len(t, cols, 1)
-			assert.Equal(t, Column{Name: "created_at", DataType: "TIMESTAMP", DefaultValue: "", PrimaryKey: false}, cols[0])
+			assert.Equal(t, Column{Name: "created_at", DataType: "TIMESTAMP", DefaultValue: nil, PrimaryKey: false}, cols[0])
 		}
 		{
 			// String
@@ -73,7 +74,7 @@ func TestColumn_DefaultValue(t *testing.T) {
 
 			cols := retrieveColumnFromSingleEvent(t, events)
 			assert.Len(t, cols, 1)
-			assert.Equal(t, Column{Name: "name", DataType: "VARCHAR(50)", DefaultValue: "default_name", PrimaryKey: false}, cols[0])
+			assert.Equal(t, Column{Name: "name", DataType: "VARCHAR(50)", DefaultValue: typing.ToPtr("default_name"), PrimaryKey: false}, cols[0])
 		}
 		{
 			// Enum
@@ -82,7 +83,7 @@ func TestColumn_DefaultValue(t *testing.T) {
 
 			cols := retrieveColumnFromSingleEvent(t, events)
 			assert.Len(t, cols, 1)
-			assert.Equal(t, Column{Name: "status", DataType: "ENUM('active','inactive','pending')", DefaultValue: "active", PrimaryKey: false}, cols[0])
+			assert.Equal(t, Column{Name: "status", DataType: "ENUM('active','inactive','pending')", DefaultValue: typing.ToPtr("active"), PrimaryKey: false}, cols[0])
 		}
 		{
 			// JSON
@@ -91,7 +92,7 @@ func TestColumn_DefaultValue(t *testing.T) {
 
 			cols := retrieveColumnFromSingleEvent(t, events)
 			assert.Len(t, cols, 1)
-			assert.Equal(t, Column{Name: "config", DataType: "JSON", DefaultValue: `{"key": "value"}`, PrimaryKey: false}, cols[0])
+			assert.Equal(t, Column{Name: "config", DataType: "JSON", DefaultValue: typing.ToPtr(`{"key": "value"}`), PrimaryKey: false}, cols[0])
 		}
 	}
 	{
@@ -103,7 +104,7 @@ func TestColumn_DefaultValue(t *testing.T) {
 
 			cols := retrieveColumnFromSingleEvent(t, events)
 			assert.Len(t, cols, 1)
-			assert.Equal(t, Column{Name: "status", DataType: "", DefaultValue: "inactive", PrimaryKey: false}, cols[0])
+			assert.Equal(t, Column{Name: "status", DataType: "", DefaultValue: typing.ToPtr("inactive"), PrimaryKey: false}, cols[0])
 		}
 		{
 			// Setting #2
@@ -112,7 +113,7 @@ func TestColumn_DefaultValue(t *testing.T) {
 
 			cols := retrieveColumnFromSingleEvent(t, events)
 			assert.Len(t, cols, 1)
-			assert.Equal(t, Column{Name: "delivery_status", DataType: "VARCHAR(20)", DefaultValue: "pending", PrimaryKey: false}, cols[0])
+			assert.Equal(t, Column{Name: "delivery_status", DataType: "VARCHAR(20)", DefaultValue: typing.ToPtr("pending"), PrimaryKey: false}, cols[0])
 		}
 		{
 			// Dropping
@@ -121,7 +122,7 @@ func TestColumn_DefaultValue(t *testing.T) {
 
 			cols := retrieveColumnFromSingleEvent(t, events)
 			assert.Len(t, cols, 1)
-			assert.Equal(t, Column{Name: "column_name", DataType: "", DefaultValue: "", PrimaryKey: false}, cols[0])
+			assert.Equal(t, Column{Name: "column_name", DataType: "", DefaultValue: nil, PrimaryKey: false}, cols[0])
 		}
 
 	}
@@ -132,7 +133,7 @@ func TestColumn_DefaultValue(t *testing.T) {
 
 		cols := retrieveColumnFromSingleEvent(t, events)
 		assert.Len(t, cols, 1)
-		assert.Equal(t, Column{Name: "age", DataType: "INT", DefaultValue: "18", PrimaryKey: false}, cols[0])
+		assert.Equal(t, Column{Name: "age", DataType: "INT", DefaultValue: typing.ToPtr("18"), PrimaryKey: false}, cols[0])
 	}
 	{
 		// via MODIFY (2 columns)
@@ -143,8 +144,8 @@ func TestColumn_DefaultValue(t *testing.T) {
 		assert.Equal(t, "inventory", events[0].GetTable())
 		assert.Equal(t, "inventory", events[1].GetTable())
 
-		assertOneElement(t, Column{Name: "stock", DataType: "INT", DefaultValue: "0", PrimaryKey: false}, events[0].GetColumns())
-		assertOneElement(t, Column{Name: "restock_date", DataType: "DATE", DefaultValue: "2024-01-01", PrimaryKey: false}, events[1].GetColumns())
+		assertOneElement(t, Column{Name: "stock", DataType: "INT", DefaultValue: typing.ToPtr("0"), PrimaryKey: false}, events[0].GetColumns())
+		assertOneElement(t, Column{Name: "restock_date", DataType: "DATE", DefaultValue: typing.ToPtr("2024-01-01"), PrimaryKey: false}, events[1].GetColumns())
 	}
 }
 
@@ -332,17 +333,17 @@ func TestAlterTable(t *testing.T) {
 			addColEvent1, isOk := events[0].(AddColumnsEvent)
 			assert.True(t, isOk)
 			assert.Equal(t, "order", addColEvent1.GetTable())
-			assertOneElement(t, Column{Name: "cancelled", DataType: "TINYINT(1)", DefaultValue: "0", PrimaryKey: false}, addColEvent1.GetColumns())
+			assertOneElement(t, Column{Name: "cancelled", DataType: "TINYINT(1)", DefaultValue: typing.ToPtr("0"), PrimaryKey: false}, addColEvent1.GetColumns())
 
 			addColEvent2, isOk := events[1].(AddColumnsEvent)
 			assert.True(t, isOk)
 			assert.Equal(t, "order", addColEvent2.GetTable())
-			assertOneElement(t, Column{Name: "delivered", DataType: "TINYINT(1)", DefaultValue: "0", PrimaryKey: false}, addColEvent2.GetColumns())
+			assertOneElement(t, Column{Name: "delivered", DataType: "TINYINT(1)", DefaultValue: typing.ToPtr("0"), PrimaryKey: false}, addColEvent2.GetColumns())
 
 			addColEvent3, isOk := events[2].(AddColumnsEvent)
 			assert.True(t, isOk)
 			assert.Equal(t, "order", addColEvent3.GetTable())
-			assertOneElement(t, Column{Name: "returning", DataType: "TINYINT(1)", DefaultValue: "0", PrimaryKey: false}, addColEvent3.GetColumns())
+			assertOneElement(t, Column{Name: "returning", DataType: "TINYINT(1)", DefaultValue: typing.ToPtr("0"), PrimaryKey: false}, addColEvent3.GetColumns())
 		}
 		{
 			// Adding column + including a comment
@@ -574,7 +575,7 @@ func TestAlterTable(t *testing.T) {
 			modifyColEvent, isOk := events[0].(ModifyColumnEvent)
 			assert.True(t, isOk)
 			assert.Equal(t, "orders", modifyColEvent.GetTable())
-			assertOneElement(t, Column{Name: "delivery_status", PreviousName: "order_status", DataType: "VARCHAR(50)", DefaultValue: "pending", PrimaryKey: false}, modifyColEvent.GetColumns())
+			assertOneElement(t, Column{Name: "delivery_status", PreviousName: "order_status", DataType: "VARCHAR(50)", DefaultValue: typing.ToPtr("pending"), PrimaryKey: false}, modifyColEvent.GetColumns())
 		}
 	}
 }
