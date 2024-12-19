@@ -108,11 +108,7 @@ func processCopyTable(ctx *generated.CopyCreateTableContext) (Event, error) {
 	if len(tableNames) != 2 {
 		return nil, fmt.Errorf("expected exactly 2 table names, got %d", len(tableNames))
 	}
-
-	for _, cc := range tableNames[0].GetChildren() {
-		fmt.Println("cc", cc, "type", fmt.Sprintf("%T", cc), "cc text", cc.(antlr.ParseTree).GetText())
-	}
-
+	
 	tableName, err := getTableNameFromNode(tableNames[0])
 	if err != nil {
 		return nil, err
