@@ -3,6 +3,7 @@ package logger
 import (
 	"log/slog"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/getsentry/sentry-go"
@@ -17,8 +18,20 @@ import (
 var handlersToTerminate []func()
 
 func NewLogger(settings *config.Settings) (*slog.Logger, func()) {
+	logLevel := slog.LevelInfo
+	if val := os.Getenv("READER_DEBUG"); val != "" {
+		debug, err := strconv.ParseBool(val)
+		if err != nil {
+			Panic("Failed to parse READER_DEBUG", slog.Any("err", err))
+		}
+
+		if debug {
+			logLevel = slog.LevelDebug
+		}
+	}
+
 	handler := tint.NewHandler(os.Stderr, &tint.Options{
-		Level:   slog.LevelInfo,
+		Level:   logLevel,
 		NoColor: !isatty.IsTerminal(os.Stderr.Fd()),
 	})
 
