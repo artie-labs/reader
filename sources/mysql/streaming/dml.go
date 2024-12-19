@@ -39,7 +39,7 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 	}
 
 	if tblAdapter.GetUnixTs() > ts.Unix() {
-		slog.Warn("Skipping this event since the event timestamp is older than the schema timestamp",
+		slog.Debug("Skipping this event since the event timestamp is older than the schema timestamp",
 			slog.Int64("event_ts", ts.Unix()),
 			slog.Int64("schema_ts", tblAdapter.GetUnixTs()),
 		)
