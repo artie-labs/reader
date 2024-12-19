@@ -7,22 +7,28 @@ import (
 	"testing"
 )
 
-func TestCreateTablePoC(t *testing.T) {
-	{
-		events, err := Parse("CREATE TABLE table_name LIKE other_table;")
-		assert.NoError(t, err)
-		assert.Len(t, events, 1)
-
-		createTableEvent, isOk := events[0].(CreateTableEvent)
-		assert.True(t, isOk)
-
-		assert.Equal(t, "table_name", createTableEvent.GetTable())
-		assert.Len(t, createTableEvent.GetColumns(), 0)
-		assert.Equal(t, "other_table", createTableEvent.LikeTable.TableName)
-	}
-}
-
 func TestCreateTable(t *testing.T) {
+	{
+		// Create table LIKE
+		sameQueries := []string{
+			"CREATE TABLE table_name LIKE other_table;",
+			"create table table_name (like other_table);",
+		}
+
+		for _, query := range sameQueries {
+			events, err := Parse(query)
+			assert.NoError(t, err)
+			assert.Len(t, events, 1)
+
+			createTableEvent, isOk := events[0].(CopyTableEvent)
+			assert.True(t, isOk)
+
+			assert.Equal(t, "table_name", createTableEvent.GetTable())
+			assert.Len(t, createTableEvent.GetColumns(), 0)
+			assert.Equal(t, "other_table", createTableEvent.GetCopyFromTableName())
+		}
+
+	}
 	{
 		// Create table with column as CHARACTER SET and collation specified at the column level
 		events, err := Parse("CREATE TABLE table_name (id INT, name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci);")

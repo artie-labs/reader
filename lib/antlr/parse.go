@@ -70,8 +70,12 @@ func visit(tree antlr.Tree) ([]Event, error) {
 
 		return events, nil
 	case *generated.CopyCreateTableContext:
-		fmt.Println("Here?")
-		return nil, nil
+		evt, err := processCopyTable(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		return []Event{evt}, nil
 	case *generated.ColumnCreateTableContext:
 		evt, err := processCreateTable(ctx)
 		if err != nil {
