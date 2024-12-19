@@ -27,6 +27,7 @@ func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persiste
 	var latestSchemaUnixTs int64
 	schemaAdapter := ddl.NewSchemaAdapter(cfg, sqlMode)
 	for _, schemaHistory := range schemaHistoryList.GetData() {
+		fmt.Println("query", schemaHistory.Query)
 		if err := schemaAdapter.ApplyDDL(schemaHistory.UnixTs, schemaHistory.Query); err != nil {
 			return ddl.SchemaAdapter{}, fmt.Errorf("failed to apply DDL: %w", err)
 		}
@@ -230,6 +231,7 @@ func (i *Iterator) persistAndProcessDDL(evt *replication.QueryEvent, ts time.Tim
 		return nil
 	}
 
+	fmt.Println("query", string(evt.Query))
 	if !strings.EqualFold(i.cfg.Database, string(evt.Schema)) {
 		slog.Info("Skipping this event since the database does not match the configured database",
 			slog.String("config_db", i.cfg.Database),

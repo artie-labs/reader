@@ -77,6 +77,8 @@ func visit(tree antlr.Tree) ([]Event, error) {
 	case *generated.DropTableContext:
 		return processDropTable(ctx)
 	case
+		*generated.CreateEventContext,
+		*generated.DropEventContext,
 		*generated.EmptyStatement_Context,
 		*generated.CopyCreateTableContext,
 		*generated.TruncateTableContext,
