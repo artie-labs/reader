@@ -42,7 +42,6 @@ func (s *SchemaAdapter) GetTableAdapter(tableName string) (TableAdapter, bool) {
 func (s *SchemaAdapter) ApplyDDL(unixTs int64, query string) error {
 	results, err := antlr.Parse(query)
 	if err != nil {
-		fmt.Println("query", query)
 		return fmt.Errorf("failed to parse query %q: %w", query, err)
 	}
 

@@ -111,12 +111,12 @@ func processCopyTable(ctx *generated.CopyCreateTableContext) (Event, error) {
 
 	tableName, err := getTableNameFromNode(tableNames[0])
 	if err != nil {
-		return nil, fmt.Errorf("failed to extract table name: %w", err)
+		return nil, err
 	}
 
 	copiedFromTableName, err := getTableNameFromNode(tableNames[1])
 	if err != nil {
-		return nil, fmt.Errorf("failed to extract copied from table name: %w", err)
+		return nil, err
 	}
 
 	return CopyTableEvent{tableName: tableName, copyFromTableName: copiedFromTableName}, nil
