@@ -147,7 +147,7 @@ func ConvertValue(value any, colType DataType, opts *Opts) (any, error) {
 		case []byte:
 			return castedValue, nil
 		default:
-			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
+			return nil, fmt.Errorf("expected []byte or string got %T for value: %v", value, value)
 		}
 	case Date:
 		// MySQL supports 0000-00-00 for dates so we can't use time.Time
