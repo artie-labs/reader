@@ -141,12 +141,14 @@ func ConvertValue(value any, colType DataType, opts *Opts) (any, error) {
 		}
 		return value, nil
 	case Binary, Varbinary, Blob:
-		// Types we expect as a byte array
-		_, ok := value.([]byte)
-		if !ok {
-			return nil, fmt.Errorf("expected []byte got %T for value: %v", value, value)
+		switch castedValue := value.(type) {
+		case string:
+			return []byte(castedValue), nil
+		case []byte:
+			return castedValue, nil
+		default:
+			return nil, fmt.Errorf("expected []byte or string got %T for value: %v", value, value)
 		}
-		return value, nil
 	case Date:
 		// MySQL supports 0000-00-00 for dates so we can't use time.Time
 		return asString(value)
