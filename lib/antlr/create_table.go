@@ -108,7 +108,7 @@ func processCopyTable(ctx *generated.CopyCreateTableContext) (Event, error) {
 	if len(tableNames) != 2 {
 		return nil, fmt.Errorf("expected exactly 2 table names, got %d", len(tableNames))
 	}
-	
+
 	tableName, err := getTableNameFromNode(tableNames[0])
 	if err != nil {
 		return nil, err
