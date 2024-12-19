@@ -90,6 +90,21 @@ func (s *SchemaAdapter) applyDDL(unixTs int64, result antlr.Event) error {
 
 		s.adapters[result.GetTable()] = tblAdapter
 		return nil
+	case antlr.RenameTableEvent:
+		tblAdapter, ok := s.adapters[castedResult.GetTable()]
+		if !ok {
+			return fmt.Errorf("table not found: %q", result.GetTable())
+		}
+
+		newTableAdapter, err := NewTableAdapter(s.dbName, s.tableCfgMap[castedResult.GetNewTableName()], tblAdapter.columns, unixTs, s.sqlMode)
+		if err != nil {
+			return err
+		}
+
+		// Delete the old table adapter and create a new one
+		delete(s.adapters, result.GetTable())
+		s.adapters[castedResult.GetNewTableName()] = newTableAdapter
+		return nil
 	}
 
 	tblAdapter, ok := s.adapters[result.GetTable()]
