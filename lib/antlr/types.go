@@ -55,6 +55,23 @@ func (a AfterPosition) Kind() string {
 	return "after"
 }
 
+type RenameTableEvent struct {
+	tableName    string
+	newTableName string
+}
+
+func (r RenameTableEvent) GetTable() string {
+	return unescape(r.tableName)
+}
+
+func (r RenameTableEvent) GetNewTableName() string {
+	return unescape(r.newTableName)
+}
+
+func (r RenameTableEvent) GetColumns() []Column {
+	return nil
+}
+
 type CopyTableEvent struct {
 	tableName         string
 	copyFromTableName string
