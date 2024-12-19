@@ -13,7 +13,12 @@ func processRenameTable(ctx *generated.RenameTableContext) ([]Event, error) {
 		case *generated.RenameTableClauseContext:
 			var allTableNames []string
 			for _, tableName := range castedChild.AllTableName() {
-				allTableNames = append(allTableNames, tableName.GetText())
+				parsedTableName, err := getTableNameFromNode(tableName)
+				if err != nil {
+					return nil, fmt.Errorf("failed to get table name: %w", err)
+				}
+
+				allTableNames = append(allTableNames, parsedTableName)
 			}
 
 			// Must be at least two table names

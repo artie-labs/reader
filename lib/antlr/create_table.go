@@ -109,12 +109,12 @@ func processCopyTable(ctx *generated.CopyCreateTableContext) (Event, error) {
 		return nil, fmt.Errorf("expected exactly 2 table names, got %d", len(tableNames))
 	}
 
-	tableName, err := getTextFromSingleNodeBranch(tableNames[0])
+	tableName, err := getTableNameFromNode(tableNames[0])
 	if err != nil {
 		return nil, err
 	}
 
-	copiedFromTableName, err := getTextFromSingleNodeBranch(tableNames[1])
+	copiedFromTableName, err := getTableNameFromNode(tableNames[1])
 	if err != nil {
 		return nil, err
 	}

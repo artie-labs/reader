@@ -41,6 +41,7 @@ func getTextFromSingleNodeBranch(tree antlr.Tree) (string, error) {
 	return getTextFromSingleNodeBranch(tree.GetChild(0))
 }
 
+// TODO: Extend this function to return the schema (if present)
 func getTableNameFromNode(ctx generated.ITableNameContext) (string, error) {
 	children := ctx.GetChildren()
 	if len(children) != 1 {
