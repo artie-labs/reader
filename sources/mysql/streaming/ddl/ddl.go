@@ -74,9 +74,14 @@ func (s *SchemaAdapter) applyDDL(unixTs int64, result antlr.Event) error {
 		return nil
 	}
 
+	if _, ok := result.(antlr.DropTableEvent); ok {
+		delete(s.adapters, result.GetTable())
+		return nil
+	}
+
 	tblAdapter, ok := s.adapters[result.GetTable()]
 	if !ok {
-		return fmt.Errorf("table not found: %q", result.GetTable())
+		return fmt.Errorf("table not found: %q, type: %T", result.GetTable(), result)
 	}
 
 	switch castedResult := result.(type) {

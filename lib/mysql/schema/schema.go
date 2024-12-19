@@ -131,15 +131,19 @@ func ParseColumnDataType(originalS string, optionalSQLMode []string) (DataType, 
 		s = s[:collateIdx]
 	}
 
-	if charSetIdx := strings.Index(s, " character set"); charSetIdx != -1 {
-		// Strip character set
-		s = s[:charSetIdx]
+	for _, charSetPermutation := range []string{" character set", " charset"} {
+		if charSetIdx := strings.Index(s, charSetPermutation); charSetIdx != -1 {
+			// Strip character set
+			s = s[:charSetIdx]
+		}
 	}
 
 	parenIndex := strings.Index(s, "(")
 	if parenIndex != -1 {
 		if s[len(s)-1] != ')' {
 			// Make sure the format looks like int (n) unsigned
+
+			fmt.Println("s", s)
 			return -1, nil, fmt.Errorf("malformed data type: %q", originalS)
 		}
 		metadata = originalS[parenIndex+1 : len(s)-1]
@@ -265,6 +269,7 @@ func ParseColumnDataType(originalS string, optionalSQLMode []string) (DataType, 
 		"polygon":
 		return Geometry, nil, nil
 	default:
+		fmt.Println("s", s)
 		return -1, nil, fmt.Errorf("unknown data type: %q", originalS)
 	}
 }

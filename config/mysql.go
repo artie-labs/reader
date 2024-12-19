@@ -20,6 +20,9 @@ type MySQLStreamingSettings struct {
 	// ServerID - Unique ID in the cluster.
 	ServerID  uint32 `yaml:"serverID,omitempty"`
 	BatchSize int32  `yaml:"batchSize,omitempty"`
+	// Uses [gh-ost] https://github.com/github/gh-ost
+	// We will automatically replicate rows that are from _ost tables.
+	UsesGhostMigration bool `yaml:"usesGhostMigration,omitempty"`
 }
 
 func (m MySQLStreamingSettings) Validate() error {
