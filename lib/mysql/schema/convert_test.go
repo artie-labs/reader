@@ -232,8 +232,8 @@ func TestConvertValue(t *testing.T) {
 		{
 			name:        "binary - malformed",
 			dataType:    Binary,
-			value:       "bad binary",
-			expectedErr: "expected []byte got string for value",
+			value:       true,
+			expectedErr: "expected []byte or string got bool for value",
 		},
 		{
 			name:     "varbinary",
