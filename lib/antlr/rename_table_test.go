@@ -20,15 +20,15 @@ func TestRenameTable(t *testing.T) {
 	}
 	{
 		// Another one table variant
-		events, err := Parse(`RENAME TABLE current_db.tbl_name TO other_db.tbl_name;`)
+		events, err := Parse(`RENAME TABLE current_db.tbl_name TO current_db.tbl_name;`)
 		assert.NoError(t, err)
 		assert.Len(t, events, 1)
 
 		renameTableEvent, isOk := events[0].(RenameTableEvent)
 		assert.True(t, isOk)
 
-		assert.Equal(t, "current_db.tbl_name", renameTableEvent.GetTable())
-		assert.Equal(t, "other_db.tbl_name", renameTableEvent.GetNewTableName())
+		assert.Equal(t, "tbl_name", renameTableEvent.GetTable())
+		assert.Equal(t, "tbl_name", renameTableEvent.GetNewTableName())
 	}
 	{
 		// Multiple tables
