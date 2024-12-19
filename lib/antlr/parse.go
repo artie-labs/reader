@@ -83,6 +83,8 @@ func visit(tree antlr.Tree) ([]Event, error) {
 		return processAlterTable(ctx)
 	case *generated.DropTableContext:
 		return processDropTable(ctx)
+	case *generated.RenameTableContext:
+		return processRenameTable(ctx)
 	case
 		*generated.EmptyStatement_Context,
 		*generated.TruncateTableContext,
