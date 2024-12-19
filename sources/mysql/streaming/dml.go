@@ -20,7 +20,7 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 	}
 
 	if !strings.EqualFold(i.cfg.Database, string(rowsEvent.Table.Schema)) {
-		slog.Info("Skipping this event since the database does not match the configured database",
+		slog.Debug("Skipping this event since the database does not match the configured database",
 			slog.String("config_db", i.cfg.Database),
 			slog.String("event_db", string(rowsEvent.Table.Schema)),
 		)
@@ -39,7 +39,7 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent) ([]l
 	}
 
 	if tblAdapter.GetUnixTs() > ts.Unix() {
-		slog.Warn("Skipping this event since the event timestamp is older than the schema timestamp",
+		slog.Debug("Skipping this event since the event timestamp is older than the schema timestamp",
 			slog.Int64("event_ts", ts.Unix()),
 			slog.Int64("schema_ts", tblAdapter.GetUnixTs()),
 		)
