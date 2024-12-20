@@ -9,6 +9,12 @@ import (
 
 func TestCreateTable(t *testing.T) {
 	{
+		// Skip parsing materialized tables
+		events, err := Parse(`CREATE TABLE high_salary_employees_mat AS SELECT name, position, salary FROM employees WHERE salary > 100000;`)
+		assert.NoError(t, err)
+		assert.Len(t, events, 0)
+	}
+	{
 		{
 			// Create table LIKE by specifying schema
 			events, err := Parse("CREATE TABLE db_name.table_name LIKE db_name.other_table;")
