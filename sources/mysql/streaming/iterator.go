@@ -39,7 +39,8 @@ func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persiste
 		return ddl.SchemaAdapter{}, fmt.Errorf("latest schema timestamp %d is greater than the current position's timestamp %d", latestSchemaUnixTs, pos.UnixTs)
 	}
 
-	// Find all the MySQL tables, and check if they exist in our schema adapter
+	// Find all the tables in the schema, check if they are already in the schema adapter
+	// If not, then call [GetCreateTableDDL] to get the DDL and apply it to the schema adapter
 	tables, err := schema.ListTables(db, cfg.Database)
 	if err != nil {
 		return ddl.SchemaAdapter{}, fmt.Errorf("failed to list tables: %w", err)
