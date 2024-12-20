@@ -39,11 +39,17 @@ func buildSchemaAdapter(db *sql.DB, cfg config.MySQL, schemaHistoryList persiste
 		return ddl.SchemaAdapter{}, fmt.Errorf("latest schema timestamp %d is greater than the current position's timestamp %d", latestSchemaUnixTs, pos.UnixTs)
 	}
 
-	// Check if there are any additional tables that we should be tracking that don't exist in our schema adapter
-	for _, tbl := range cfg.Tables {
-		if _, ok := schemaAdapter.GetTableAdapter(tbl.Name); !ok {
+	// Find all the tables in the schema, check if they are already in the schema adapter
+	// If not, then call [GetCreateTableDDL] to get the DDL and apply it to the schema adapter
+	tables, err := schema.ListTables(db, cfg.Database)
+	if err != nil {
+		return ddl.SchemaAdapter{}, fmt.Errorf("failed to list tables: %w", err)
+	}
+
+	for _, tbl := range tables {
+		if _, ok := schemaAdapter.GetTableAdapter(tbl); !ok {
 			now := time.Now().Unix()
-			ddlQuery, err := schema.GetCreateTableDDL(db, tbl.Name)
+			ddlQuery, err := schema.GetCreateTableDDL(db, tbl)
 			if err != nil {
 				return ddl.SchemaAdapter{}, fmt.Errorf("failed to get columns: %w", err)
 			}
