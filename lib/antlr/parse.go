@@ -86,6 +86,7 @@ func visit(tree antlr.Tree) ([]Event, error) {
 	case *generated.RenameTableContext:
 		return processRenameTable(ctx)
 	case
+		*generated.CreateIndexContext,
 		*generated.CreateEventContext,
 		*generated.DropEventContext,
 		*generated.EmptyStatement_Context,
