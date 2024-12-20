@@ -122,7 +122,8 @@ func testTypes(ctx context.Context, db *mongo.Database, mongoCfg config.MongoDB)
 	}
 
 	row := rows[0]
-	expectedPartitionKey := map[string]any{"payload": map[string]any{"id": `{"$oid":"66a95fae3776c2f21f0ff568"}`}}
+	// This should not include the payload field in here. The payload field gets injected in [kafkalib.buildKafkaMessageWrapper]
+	expectedPartitionKey := map[string]any{"id": `{"$oid":"66a95fae3776c2f21f0ff568"}`}
 	expectedPkBytes, err := json.Marshal(expectedPartitionKey)
 	if err != nil {
 		return fmt.Errorf("failed to marshal expected partition key: %w", err)
