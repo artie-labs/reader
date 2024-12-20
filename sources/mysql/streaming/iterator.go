@@ -145,6 +145,7 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 	defer cancel()
 
 	var rawMsgs []lib.RawMessage
+	var currentGTID *string
 	for i.batchSize > int32(len(rawMsgs)) {
 		select {
 		case <-ctx.Done():
@@ -165,7 +166,8 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 					return nil, fmt.Errorf("failed to retrieve next GTID set: %w", err)
 				}
 
-				shouldProcess, err := mysql.ShouldProcessRow(i.position._gtidSet, next.String())
+				currentGTID = typing.ToPtr(next.String())
+				shouldProcess, err := mysql.ShouldProcessRow(i.position._gtidSet, *currentGTID)
 				if err != nil {
 					return nil, fmt.Errorf("failed to check if we should process row: %w", err)
 				}
@@ -204,7 +206,7 @@ func (i *Iterator) Next() ([]lib.RawMessage, error) {
 					return nil, fmt.Errorf("failed to persist DDL: %w", err)
 				}
 			case replication.WRITE_ROWS_EVENTv2, replication.UPDATE_ROWS_EVENTv2, replication.DELETE_ROWS_EVENTv2:
-				rows, err := i.processDML(ts, event)
+				rows, err := i.processDML(ts, event, currentGTID)
 				if err != nil {
 					return nil, fmt.Errorf("failed to process DML: %w", err)
 				}
