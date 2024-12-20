@@ -86,6 +86,7 @@ func visit(tree antlr.Tree) ([]Event, error) {
 	case *generated.RenameTableContext:
 		return processRenameTable(ctx)
 	case
+		*generated.StartTransactionContext,
 		*generated.CreateViewContext,
 		*generated.DropViewContext,
 		// [*generated.QueryCreateTableContext] refers to materialized tables
