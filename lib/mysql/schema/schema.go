@@ -71,7 +71,7 @@ func QuoteIdentifier(s string) string {
 }
 
 func ListTables(db *sql.DB, dbName string) ([]string, error) {
-	rows, err := db.Query("SHOW FULL TABLES IN %s WHERE table_type = 'BASE TABLE'", QuoteIdentifier(dbName))
+	rows, err := db.Query(fmt.Sprintf("SHOW FULL TABLES IN %s WHERE table_type = 'BASE TABLE'", QuoteIdentifier(dbName)))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list tables: %w", err)
 	}
@@ -80,7 +80,8 @@ func ListTables(db *sql.DB, dbName string) ([]string, error) {
 	var tables []string
 	for rows.Next() {
 		var table string
-		if err = rows.Scan(&table); err != nil {
+		var unused string
+		if err = rows.Scan(&table, &unused); err != nil {
 			return nil, fmt.Errorf("failed to scan: %w", err)
 		}
 		tables = append(tables, table)
