@@ -70,6 +70,30 @@ func QuoteIdentifier(s string) string {
 	return fmt.Sprintf("`%s`", strings.ReplaceAll(s, "`", "``"))
 }
 
+func ListTables(db *sql.DB, dbName string) ([]string, error) {
+	rows, err := db.Query(fmt.Sprintf("SHOW FULL TABLES IN %s WHERE table_type = 'BASE TABLE'", QuoteIdentifier(dbName)))
+	if err != nil {
+		return nil, fmt.Errorf("failed to list tables: %w", err)
+	}
+
+	defer rows.Close()
+	var tables []string
+	for rows.Next() {
+		var table string
+		var unused string
+		if err = rows.Scan(&table, &unused); err != nil {
+			return nil, fmt.Errorf("failed to scan: %w", err)
+		}
+		tables = append(tables, table)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed to iterate over rows: %w", err)
+	}
+
+	return tables, nil
+}
+
 func GetCreateTableDDL(db *sql.DB, table string) (string, error) {
 	row := db.QueryRow("SHOW CREATE TABLE " + QuoteIdentifier(table))
 	var unused string
