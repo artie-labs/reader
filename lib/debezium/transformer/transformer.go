@@ -2,10 +2,9 @@ package transformer
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/artie-labs/transfer/lib/debezium"
+	"time"
 
 	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/debezium/converters"
@@ -30,10 +29,10 @@ type Adapter interface {
 }
 
 type DebeziumTransformer struct {
-	adapter         Adapter
-	schema          debezium.Schema
-	iter            RowsIterator
-	valueConverters map[string]converters.ValueConverter
+	adapter          Adapter
+	schema           debezium.Schema
+	iter             RowsIterator
+	lightTransformer LightDebeziumTransformer
 }
 
 func NewDebeziumTransformer(adapter Adapter) (*DebeziumTransformer, error) {
@@ -41,16 +40,15 @@ func NewDebeziumTransformer(adapter Adapter) (*DebeziumTransformer, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create iterator :%w", err)
 	}
+
 	return NewDebeziumTransformerWithIterator(adapter, iter), nil
 }
 
 func NewDebeziumTransformerWithIterator(adapter Adapter, iter RowsIterator) *DebeziumTransformer {
 	fieldConverters := adapter.FieldConverters()
 	fields := make([]debezium.Field, len(fieldConverters))
-	valueConverters := map[string]converters.ValueConverter{}
 	for i, fieldConverter := range fieldConverters {
 		fields[i] = fieldConverter.ValueConverter.ToField(fieldConverter.Name)
-		valueConverters[fieldConverter.Name] = fieldConverter.ValueConverter
 	}
 
 	schema := debezium.Schema{
@@ -61,11 +59,12 @@ func NewDebeziumTransformerWithIterator(adapter Adapter, iter RowsIterator) *Deb
 		}},
 	}
 
+	lightTransformer := NewLightDebeziumTransformer(adapter.TableName(), adapter.PartitionKeys(), fieldConverters)
 	return &DebeziumTransformer{
-		adapter:         adapter,
-		schema:          schema,
-		iter:            iter,
-		valueConverters: valueConverters,
+		adapter:          adapter,
+		schema:           schema,
+		iter:             iter,
+		lightTransformer: lightTransformer,
 	}
 }
 
@@ -90,8 +89,12 @@ func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 			return nil, fmt.Errorf("failed to create Debezium payload: %w", err)
 		}
 
-		// TODO: debezium.FieldsObject is not set
-		result = append(result, lib.NewRawMessage(d.adapter.TopicSuffix(), debezium.FieldsObject{}, d.partitionKey(row), &payload))
+		pk, err := d.lightTransformer.BuildPartitionKey(nil, row)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create partition key: %w", err)
+		}
+
+		result = append(result, lib.NewRawMessage(d.adapter.TopicSuffix(), pk.Schema, pk.Payload, &payload))
 	}
 
 	return result, nil
@@ -106,24 +109,10 @@ func (d *DebeziumTransformer) partitionKey(row Row) map[string]any {
 }
 
 func (d *DebeziumTransformer) createPayload(row Row) (util.SchemaEventPayload, error) {
-	dbzRow, err := convertRow(d.valueConverters, row)
-	if err != nil {
-		return util.SchemaEventPayload{}, err
-	}
-
-	payload := util.Payload{
-		After: dbzRow,
-		Source: util.Source{
-			Table: d.adapter.TableName(),
-			TsMs:  time.Now().UnixMilli(),
-		},
-		Operation: "r",
-	}
-
-	return util.SchemaEventPayload{
-		Schema:  d.schema,
-		Payload: payload,
-	}, nil
+	return d.lightTransformer.BuildEventPayload(util.Source{
+		Table: d.lightTransformer.tableName,
+		TsMs:  time.Now().UnixMilli(),
+	}, nil, row, "r")
 }
 
 func convertRow(valueConverters map[string]converters.ValueConverter, row Row) (Row, error) {

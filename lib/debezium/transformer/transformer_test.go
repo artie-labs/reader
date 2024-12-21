@@ -220,7 +220,7 @@ func TestDebeziumTransformer_Next(t *testing.T) {
 		)
 		assert.NoError(t, err)
 		_, err = iterator.Collect(transformer)
-		assert.ErrorContains(t, err, `failed to create Debezium payload: failed to convert row value for key "foo": test error`)
+		assert.ErrorContains(t, err, `failed to create Debezium payload: failed to convert after row: failed to convert row value for key "foo": test error`)
 	}
 	{
 		// Happy path
@@ -245,35 +245,33 @@ func TestDebeziumTransformer_Next(t *testing.T) {
 		rows := results[0]
 		assert.Len(t, rows, 1)
 		rawMessage := rows[0]
-		assert.Equal(t, Row{"foo": "bar", "qux": 12}, rawMessage.PartitionKey())
+		assert.Equal(t, Row{"foo": "converted-bar", "qux": "converted-12"}, rawMessage.PartitionKey())
 		assert.Equal(t, "im-a-little-topic-suffix", rawMessage.TopicSuffix())
 		payload, isOk := rawMessage.Event().(*util.SchemaEventPayload)
 		assert.True(t, isOk)
 		payload.Payload.Source.TsMs = 12345 // Modify source time since it'll be ~now
-		expected := util.SchemaEventPayload(
-			util.SchemaEventPayload{
-				Schema: debezium.Schema{
-					SchemaType: "",
-					FieldsObject: []debezium.FieldsObject{
-						{
-							FieldObjectType: "",
-							Fields: []debezium.Field{
-								{FieldName: "foo", Type: "string"},
-								{FieldName: "qux", Type: "int32"},
-								{FieldName: "baz", Type: "string"},
-							},
-							Optional:   false,
-							FieldLabel: "after",
+		expected := util.SchemaEventPayload{
+			Schema: debezium.Schema{
+				SchemaType: "",
+				FieldsObject: []debezium.FieldsObject{
+					{
+						FieldObjectType: "",
+						Fields: []debezium.Field{
+							{FieldName: "foo", Type: "string"},
+							{FieldName: "qux", Type: "int32"},
+							{FieldName: "baz", Type: "string"},
 						},
+						Optional:   false,
+						FieldLabel: "after",
 					},
 				},
-				Payload: util.Payload{
-					After:     map[string]any{"foo": "converted-bar", "qux": "converted-12", "baz": "converted-corge"},
-					Source:    util.Source{Connector: "", TsMs: 12345, Database: "", Schema: "", Table: "im-a-little-table"},
-					Operation: "r",
-				},
 			},
-		)
+			Payload: util.Payload{
+				After:     map[string]any{"foo": "converted-bar", "qux": "converted-12", "baz": "converted-corge"},
+				Source:    util.Source{Connector: "", TsMs: 12345, Database: "", Schema: "", Table: "im-a-little-table"},
+				Operation: "r",
+			},
+		}
 		assert.Equal(t, expected, *payload)
 	}
 }
