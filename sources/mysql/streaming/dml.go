@@ -2,6 +2,7 @@ package streaming
 
 import (
 	"fmt"
+	"github.com/artie-labs/reader/lib/kafkalib"
 	"log/slog"
 	"strings"
 	"time"
@@ -9,11 +10,10 @@ import (
 	"github.com/artie-labs/transfer/lib/typing"
 	"github.com/go-mysql-org/go-mysql/replication"
 
-	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/debezium/transformer"
 )
 
-func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent, currentGTID *string) ([]lib.RawMessage, error) {
+func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent, currentGTID *string) ([]kafkalib.Message, error) {
 	rowsEvent, err := typing.AssertType[*replication.RowsEvent](event.Event)
 	if err != nil {
 		return nil, fmt.Errorf("failed to assert a rows event: %w", err)
@@ -57,7 +57,7 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent, curr
 		return nil, err
 	}
 
-	var rawMsgs []lib.RawMessage
+	var rawMsgs []kafkalib.Message
 	parsedColumns := tblAdapter.GetParsedColumns()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get parsed columns: %w", err)
@@ -107,7 +107,7 @@ func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent, curr
 			return nil, fmt.Errorf("partition key is not set for table: %q", tableName)
 		}
 
-		rawMsgs = append(rawMsgs, lib.NewRawMessage(tblAdapter.TopicSuffix(), primaryKeyPayload.Schema, primaryKeyPayload.Payload, &dbzMessage))
+		rawMsgs = append(rawMsgs, kafkalib.NewMessage(tblAdapter.TopicSuffix(), primaryKeyPayload.Schema, primaryKeyPayload.Payload, &dbzMessage))
 	}
 
 	return rawMsgs, nil

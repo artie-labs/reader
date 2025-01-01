@@ -7,13 +7,11 @@ import (
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/artie-labs/transfer/lib/kafkalib"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/artie-labs/reader/lib"
 )
 
 func TestNewMessage(t *testing.T) {
 	pkMap := map[string]any{"key": "value"}
-	rawMessage := lib.NewRawMessage(
+	rawMessage := NewMessage(
 		"topic-suffix",
 		debezium.FieldsObject{},
 		pkMap,

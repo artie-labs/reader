@@ -3,6 +3,7 @@ package mongo
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/artie-labs/reader/lib/kafkalib"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/cdc/mongo"
@@ -12,7 +13,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib"
 )
 
 type Message struct {
@@ -22,7 +22,7 @@ type Message struct {
 	pkMap                    map[string]any
 }
 
-func (m *Message) ToRawMessage(collection config.Collection, database string) (lib.RawMessage, error) {
+func (m *Message) ToRawMessage(collection config.Collection, database string) (kafkalib.Message, error) {
 	evt := &mongo.SchemaEventPayload{
 		Schema: debezium.Schema{},
 		Payload: mongo.Payload{
@@ -37,7 +37,7 @@ func (m *Message) ToRawMessage(collection config.Collection, database string) (l
 		},
 	}
 	// MongoDB wouldn't include the schema.
-	return lib.NewRawMessage(collection.TopicSuffix(database), debezium.FieldsObject{}, m.pkMap, evt), nil
+	return kafkalib.NewMessage(collection.TopicSuffix(database), debezium.FieldsObject{}, m.pkMap, evt), nil
 }
 
 func ParseMessage(after bson.M, before *bson.M, op string) (*Message, error) {

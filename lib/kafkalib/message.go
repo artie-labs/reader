@@ -1,19 +1,19 @@
-package lib
+package kafkalib
 
 import (
 	"github.com/artie-labs/transfer/lib/cdc"
 	"github.com/artie-labs/transfer/lib/debezium"
 )
 
-type RawMessage struct {
+type Message struct {
 	topicSuffix        string
 	partitionKeySchema debezium.FieldsObject
 	partitionKey       map[string]any
 	event              cdc.Event
 }
 
-func NewRawMessage(topicSuffix string, partitionKeySchema debezium.FieldsObject, partitionKey map[string]any, event cdc.Event) RawMessage {
-	return RawMessage{
+func NewMessage(topicSuffix string, partitionKeySchema debezium.FieldsObject, partitionKey map[string]any, event cdc.Event) Message {
+	return Message{
 		topicSuffix:        topicSuffix,
 		partitionKeySchema: partitionKeySchema,
 		partitionKey:       partitionKey,
@@ -21,18 +21,18 @@ func NewRawMessage(topicSuffix string, partitionKeySchema debezium.FieldsObject,
 	}
 }
 
-func (r RawMessage) TopicSuffix() string {
+func (r Message) TopicSuffix() string {
 	return r.topicSuffix
 }
 
-func (r RawMessage) PartitionKey() map[string]any {
+func (r Message) PartitionKey() map[string]any {
 	return r.partitionKey
 }
 
-func (r RawMessage) PartitionKeySchema() debezium.FieldsObject {
+func (r Message) PartitionKeySchema() debezium.FieldsObject {
 	return r.partitionKeySchema
 }
 
-func (r RawMessage) Event() cdc.Event {
+func (r Message) Event() cdc.Event {
 	return r.event
 }

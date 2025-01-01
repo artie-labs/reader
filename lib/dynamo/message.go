@@ -2,6 +2,7 @@ package dynamo
 
 import (
 	"fmt"
+	"github.com/artie-labs/reader/lib/kafkalib"
 	"slices"
 	"strconv"
 	"time"
@@ -9,8 +10,6 @@ import (
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
-
-	"github.com/artie-labs/reader/lib"
 )
 
 type Message struct {
@@ -137,7 +136,7 @@ func (m *Message) artieMessage() *util.SchemaEventPayload {
 	}
 }
 
-func (m *Message) RawMessage() lib.RawMessage {
+func (m *Message) RawMessage() kafkalib.Message {
 	// TODO: debezium.FieldsObject is not set
-	return lib.NewRawMessage(m.tableName, debezium.FieldsObject{}, m.primaryKey, m.artieMessage())
+	return kafkalib.NewMessage(m.tableName, debezium.FieldsObject{}, m.primaryKey, m.artieMessage())
 }
