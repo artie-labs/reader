@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	kafkalib2 "github.com/artie-labs/reader/lib/kafkalib"
 	"log/slog"
 	"time"
 
@@ -26,6 +25,7 @@ import (
 	"github.com/artie-labs/transfer/models/event"
 
 	"github.com/artie-labs/reader/config"
+	readerKafkaLib "github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/mtr"
 )
 
@@ -95,7 +95,7 @@ func NewWriter(cfg transferConfig.Config, statsD mtr.Client, beforeBackfill conf
 	return writer, nil
 }
 
-func (w *Writer) messageToEvent(message kafkalib2.Message) (event.Event, error) {
+func (w *Writer) messageToEvent(message readerKafkaLib.Message) (event.Event, error) {
 	evt := message.Event()
 	if mongoEvt, ok := evt.(*mongo.SchemaEventPayload); ok {
 		bytes, err := json.Marshal(mongoEvt)
@@ -178,7 +178,7 @@ func (w *Writer) truncateTable(ctx context.Context, tableName string) error {
 	return err
 }
 
-func (w *Writer) Write(ctx context.Context, messages []kafkalib2.Message) error {
+func (w *Writer) Write(ctx context.Context, messages []readerKafkaLib.Message) error {
 	if len(messages) == 0 {
 		return nil
 	}

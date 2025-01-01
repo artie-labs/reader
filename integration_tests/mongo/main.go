@@ -5,16 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	kafkalib2 "github.com/artie-labs/reader/lib/kafkalib"
 	"log/slog"
 	"math/rand/v2"
 	"os"
 	"reflect"
 	"time"
 
-	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/integration_tests/utils"
-	"github.com/artie-labs/reader/lib/logger"
 	mongoLib "github.com/artie-labs/reader/sources/mongo"
 	xferMongo "github.com/artie-labs/transfer/lib/cdc/mongo"
 	"github.com/artie-labs/transfer/lib/kafkalib"
@@ -22,6 +18,11 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/integration_tests/utils"
+	kafkalib2 "github.com/artie-labs/reader/lib/kafkalib"
+	"github.com/artie-labs/reader/lib/logger"
 )
 
 func main() {

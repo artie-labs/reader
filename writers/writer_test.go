@@ -3,7 +3,6 @@ package writers
 import (
 	"context"
 	"fmt"
-	"github.com/artie-labs/reader/lib/kafkalib"
 	"testing"
 
 	"github.com/artie-labs/transfer/lib/debezium"
@@ -11,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/lib/iterator"
+	"github.com/artie-labs/reader/lib/kafkalib"
 )
 
 type mockDestination struct {

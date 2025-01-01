@@ -2,7 +2,6 @@ package dynamo
 
 import (
 	"fmt"
-	"github.com/artie-labs/reader/lib/kafkalib"
 	"slices"
 	"strconv"
 	"time"
@@ -10,6 +9,8 @@ import (
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
+
+	"github.com/artie-labs/reader/lib/kafkalib"
 )
 
 type Message struct {

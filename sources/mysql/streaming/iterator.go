@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/artie-labs/reader/lib/kafkalib"
 	"log/slog"
 	"strings"
 	"time"
@@ -14,6 +13,7 @@ import (
 	"github.com/go-mysql-org/go-mysql/replication"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/mysql/schema"
 	"github.com/artie-labs/reader/lib/storage/persistedlist"

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/artie-labs/reader/lib/kafkalib"
 	"log/slog"
 	"time"
 
@@ -14,6 +13,7 @@ import (
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/lib/iterator"
+	"github.com/artie-labs/reader/lib/kafkalib"
 	mongoLib "github.com/artie-labs/reader/lib/mongo"
 	"github.com/artie-labs/reader/lib/storage/persistedmap"
 )

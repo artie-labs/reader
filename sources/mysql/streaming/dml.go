@@ -2,7 +2,6 @@ package streaming
 
 import (
 	"fmt"
-	"github.com/artie-labs/reader/lib/kafkalib"
 	"log/slog"
 	"strings"
 	"time"
@@ -11,6 +10,7 @@ import (
 	"github.com/go-mysql-org/go-mysql/replication"
 
 	"github.com/artie-labs/reader/lib/debezium/transformer"
+	"github.com/artie-labs/reader/lib/kafkalib"
 )
 
 func (i *Iterator) processDML(ts time.Time, event *replication.BinlogEvent, currentGTID *string) ([]kafkalib.Message, error) {

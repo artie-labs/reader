@@ -2,7 +2,6 @@ package transformer
 
 import (
 	"fmt"
-	"github.com/artie-labs/reader/lib/kafkalib"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/cdc/util"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/iterator"
+	"github.com/artie-labs/reader/lib/kafkalib"
 )
 
 type Row = map[string]any

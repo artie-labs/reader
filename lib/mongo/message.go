@@ -3,7 +3,6 @@ package mongo
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/artie-labs/reader/lib/kafkalib"
 	"time"
 
 	"github.com/artie-labs/transfer/lib/cdc/mongo"
@@ -13,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/lib/kafkalib"
 )
 
 type Message struct {

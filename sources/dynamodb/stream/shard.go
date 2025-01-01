@@ -3,7 +3,6 @@ package stream
 import (
 	"context"
 	"fmt"
-	"github.com/artie-labs/reader/lib/kafkalib"
 	"log/slog"
 	"time"
 
@@ -14,6 +13,7 @@ import (
 
 	"github.com/artie-labs/reader/lib/dynamo"
 	"github.com/artie-labs/reader/lib/iterator"
+	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/writers"
 )

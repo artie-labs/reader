@@ -3,14 +3,15 @@ package utils
 import (
 	"database/sql"
 	"fmt"
-	"github.com/artie-labs/reader/lib/kafkalib"
-	"github.com/artie-labs/transfer/lib/cdc/mongo"
 	"log/slog"
 	"math/rand/v2"
 	"strings"
 
-	"github.com/artie-labs/reader/lib/debezium/transformer"
+	"github.com/artie-labs/transfer/lib/cdc/mongo"
 	"github.com/artie-labs/transfer/lib/cdc/util"
+
+	"github.com/artie-labs/reader/lib/debezium/transformer"
+	"github.com/artie-labs/reader/lib/kafkalib"
 )
 
 func CreateTemporaryTable(db *sql.DB, query string) (string, func()) {
