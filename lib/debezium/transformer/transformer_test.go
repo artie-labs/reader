@@ -245,8 +245,14 @@ func TestDebeziumTransformer_Next(t *testing.T) {
 		rows := results[0]
 		assert.Len(t, rows, 1)
 		rawMessage := rows[0]
-		assert.Equal(t, Row{"foo": "bar", "qux": 12}, rawMessage.PartitionKey())
-		assert.Equal(t, "im-a-little-topic-suffix", rawMessage.TopicSuffix())
+		assert.Equal(t,
+			debezium.PrimaryKeyPayload{
+				Schema:  debezium.FieldsObject{},
+				Payload: Row{"foo": "bar", "qux": 12},
+			},
+			rawMessage.PartitionKey(),
+		)
+		assert.Equal(t, "im-a-little-topic-suffix", rawMessage.Topic(""))
 		payload, isOk := rawMessage.Event().(*util.SchemaEventPayload)
 		assert.True(t, isOk)
 		payload.Payload.Source.TsMs = 12345 // Modify source time since it'll be ~now
