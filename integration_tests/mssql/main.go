@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/artie-labs/transfer/lib/debezium"
 	"log/slog"
-	"maps"
 	"os"
 
 	"github.com/lmittmann/tint"
@@ -199,8 +199,17 @@ func testTypes(db *sql.DB, dbName string) error {
 	}
 	row := rows[0]
 
-	expectedPartitionKey := map[string]any{"pk": int64(1)}
-	if !maps.Equal(row.PartitionKey(), expectedPartitionKey) {
+	expectedPartitionKey := debezium.PrimaryKeyPayload{
+		Schema:  debezium.FieldsObject{},
+		Payload: map[string]any{"pk": int64(1)},
+	}
+
+	equal, err := utils.CheckPartitionKeyDifference(expectedPartitionKey, row.PartitionKey())
+	if err != nil {
+		return fmt.Errorf("failed to check partition key difference: %w", err)
+	}
+
+	if !equal {
 		return fmt.Errorf("partition key %v does not match %v", row.PartitionKey(), expectedPartitionKey)
 	}
 

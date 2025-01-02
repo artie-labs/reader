@@ -2,7 +2,9 @@ package utils
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"github.com/artie-labs/transfer/lib/debezium"
 	"log/slog"
 	"math/rand/v2"
 	"strings"
@@ -86,4 +88,18 @@ func CheckDifference(name, expected, actual string) bool {
 	}
 	fmt.Println("--------------------------------------------------------------------------------")
 	return true
+}
+
+func CheckPartitionKeyDifference(expected, actual debezium.PrimaryKeyPayload) (bool, error) {
+	expectedBytes, err := json.Marshal(expected)
+	if err != nil {
+		return false, fmt.Errorf("failed to marshal expected: %w", err)
+	}
+
+	actualBytes, err := json.Marshal(actual)
+	if err != nil {
+		return false, fmt.Errorf("failed to marshal actual: %w", err)
+	}
+
+	return string(expectedBytes) == string(actualBytes), nil
 }
