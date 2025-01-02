@@ -11,10 +11,6 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/integration_tests/utils"
-	"github.com/artie-labs/reader/lib"
-	"github.com/artie-labs/reader/lib/logger"
 	mongoLib "github.com/artie-labs/reader/sources/mongo"
 	xferMongo "github.com/artie-labs/transfer/lib/cdc/mongo"
 	"github.com/artie-labs/transfer/lib/kafkalib"
@@ -22,6 +18,11 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/artie-labs/reader/config"
+	"github.com/artie-labs/reader/integration_tests/utils"
+	kafkalib2 "github.com/artie-labs/reader/lib/kafkalib"
+	"github.com/artie-labs/reader/lib/logger"
 )
 
 func main() {
@@ -53,8 +54,8 @@ func main() {
 	slog.Info("Test succeeded 😎")
 }
 
-func readTable(db *mongo.Database, collection config.Collection, cfg config.MongoDB) ([]lib.RawMessage, error) {
-	var totalMessages []lib.RawMessage
+func readTable(db *mongo.Database, collection config.Collection, cfg config.MongoDB) ([]kafkalib2.Message, error) {
+	var totalMessages []kafkalib2.Message
 	iter := mongoLib.NewSnapshotIterator(db, collection, cfg)
 	for iter.HasNext() {
 		msgs, err := iter.Next()

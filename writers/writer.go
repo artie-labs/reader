@@ -8,14 +8,14 @@ import (
 
 	"github.com/artie-labs/transfer/lib/typing/columns"
 
-	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/iterator"
+	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 )
 
 type DestinationWriter interface {
 	CreateTable(ctx context.Context, tableName string, columns []columns.Column) error
-	Write(ctx context.Context, rawMsgs []lib.RawMessage) error
+	Write(ctx context.Context, rawMsgs []kafkalib.Message) error
 	OnComplete(ctx context.Context) error
 }
 
@@ -29,7 +29,7 @@ func New(destinationWriter DestinationWriter, logProgress bool) Writer {
 }
 
 // Write writes all the messages from an iterator to the destination.
-func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMessage]) (int, error) {
+func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]kafkalib.Message]) (int, error) {
 	start := time.Now()
 	var count int
 	for iter.HasNext() {
@@ -43,7 +43,7 @@ func (w *Writer) Write(ctx context.Context, iter iterator.Iterator[[]lib.RawMess
 			}
 
 			// Is it a streaming iterator? if so, let's commit the offset.
-			if streamingIter, isOk := iter.(iterator.StreamingIterator[[]lib.RawMessage]); isOk {
+			if streamingIter, isOk := iter.(iterator.StreamingIterator[[]kafkalib.Message]); isOk {
 				if err = streamingIter.CommitOffset(); err != nil {
 					logger.Panic("Failed to commit offset", slog.Any("err", err))
 				}

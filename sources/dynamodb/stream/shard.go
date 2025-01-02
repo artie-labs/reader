@@ -11,9 +11,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 
-	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/dynamo"
 	"github.com/artie-labs/reader/lib/iterator"
+	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/writers"
 )
@@ -106,7 +106,7 @@ func (s *Store) processShard(ctx context.Context, shard types.Shard, writer writ
 			return
 		}
 
-		var messages []lib.RawMessage
+		var messages []kafkalib.Message
 		for _, record := range getRecordsOutput.Records {
 			msg, err := dynamo.NewMessage(record, s.tableName)
 			if err != nil {

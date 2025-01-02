@@ -16,7 +16,6 @@ import (
 	"github.com/segmentio/kafka-go"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/mtr"
 )
 
@@ -78,7 +77,7 @@ func (b *BatchWriter) reload(ctx context.Context) error {
 	return nil
 }
 
-func buildKafkaMessageWrapper(topicPrefix string, rawMessage lib.RawMessage) (KafkaMessageWrapper, error) {
+func buildKafkaMessageWrapper(topicPrefix string, rawMessage Message) (KafkaMessageWrapper, error) {
 	valueBytes, err := json.Marshal(rawMessage.Event())
 	if err != nil {
 		return KafkaMessageWrapper{}, err
@@ -169,7 +168,7 @@ func (b *BatchWriter) write(ctx context.Context, messages []KafkaMessageWrapper,
 	})
 }
 
-func (b *BatchWriter) Write(ctx context.Context, rawMsgs []lib.RawMessage) error {
+func (b *BatchWriter) Write(ctx context.Context, rawMsgs []Message) error {
 	if len(rawMsgs) == 0 {
 		return nil
 	}

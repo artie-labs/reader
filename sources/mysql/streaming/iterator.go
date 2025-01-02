@@ -13,7 +13,7 @@ import (
 	"github.com/go-mysql-org/go-mysql/replication"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib"
+	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/mysql"
 	"github.com/artie-labs/reader/lib/mysql/schema"
 	"github.com/artie-labs/reader/lib/storage/persistedlist"
@@ -146,11 +146,11 @@ func (i *Iterator) Close() error {
 	return nil
 }
 
-func (i *Iterator) Next() ([]lib.RawMessage, error) {
+func (i *Iterator) Next() ([]kafkalib.Message, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	var rawMsgs []lib.RawMessage
+	var rawMsgs []kafkalib.Message
 	var currentGTID *string
 	for i.batchSize > int32(len(rawMsgs)) {
 		select {

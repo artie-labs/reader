@@ -10,8 +10,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/iterator"
+	"github.com/artie-labs/reader/lib/kafkalib"
 	mongoLib "github.com/artie-labs/reader/lib/mongo"
 )
 
@@ -25,7 +25,7 @@ type snapshotIterator struct {
 	done   bool
 }
 
-func NewSnapshotIterator(db *mongo.Database, collection config.Collection, cfg config.MongoDB) iterator.Iterator[[]lib.RawMessage] {
+func NewSnapshotIterator(db *mongo.Database, collection config.Collection, cfg config.MongoDB) iterator.Iterator[[]kafkalib.Message] {
 	return &snapshotIterator{
 		db:         db,
 		cfg:        cfg,
@@ -37,7 +37,7 @@ func (s *snapshotIterator) HasNext() bool {
 	return !s.done
 }
 
-func (s *snapshotIterator) Next() ([]lib.RawMessage, error) {
+func (s *snapshotIterator) Next() ([]kafkalib.Message, error) {
 	if !s.HasNext() {
 		return nil, fmt.Errorf("no more rows to scan")
 	}
@@ -75,7 +75,7 @@ func (s *snapshotIterator) Next() ([]lib.RawMessage, error) {
 		s.cursor = cursor
 	}
 
-	var rawMsgs []lib.RawMessage
+	var rawMsgs []kafkalib.Message
 	for s.collection.GetBatchSize() > int32(len(rawMsgs)) && s.cursor.Next(ctx) {
 		var result bson.M
 		if err := s.cursor.Decode(&result); err != nil {

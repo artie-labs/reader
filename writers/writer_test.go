@@ -9,12 +9,12 @@ import (
 	"github.com/artie-labs/transfer/lib/typing/columns"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/iterator"
+	"github.com/artie-labs/reader/lib/kafkalib"
 )
 
 type mockDestination struct {
-	messages  []lib.RawMessage
+	messages  []kafkalib.Message
 	emitError bool
 }
 
@@ -22,7 +22,7 @@ func (m *mockDestination) CreateTable(_ context.Context, _ string, _ []columns.C
 	return nil
 }
 
-func (m *mockDestination) Write(_ context.Context, msgs []lib.RawMessage) error {
+func (m *mockDestination) Write(_ context.Context, msgs []kafkalib.Message) error {
 	if m.emitError {
 		return fmt.Errorf("test write-raw-messages error")
 	}
@@ -40,7 +40,7 @@ func (m *errorIterator) HasNext() bool {
 	return true
 }
 
-func (m *errorIterator) Next() ([]lib.RawMessage, error) {
+func (m *errorIterator) Next() ([]kafkalib.Message, error) {
 	return nil, fmt.Errorf("test iteration error")
 }
 
@@ -49,7 +49,7 @@ func TestWriter_Write(t *testing.T) {
 		// Empty iterator
 		destination := &mockDestination{}
 		writer := New(destination, false)
-		iter := iterator.ForSlice([][]lib.RawMessage{})
+		iter := iterator.ForSlice([][]kafkalib.Message{})
 		count, err := writer.Write(context.Background(), iter)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, count)
@@ -68,7 +68,7 @@ func TestWriter_Write(t *testing.T) {
 		// Two empty batches
 		destination := &mockDestination{}
 		writer := New(destination, false)
-		iter := iterator.ForSlice([][]lib.RawMessage{{}, {}})
+		iter := iterator.ForSlice([][]kafkalib.Message{{}, {}})
 		count, err := writer.Write(context.Background(), iter)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, count)
@@ -78,12 +78,12 @@ func TestWriter_Write(t *testing.T) {
 		// Three batches, two non-empty
 		destination := &mockDestination{}
 		writer := New(destination, false)
-		iter := iterator.ForSlice([][]lib.RawMessage{
-			{lib.NewRawMessage("a", debezium.FieldsObject{}, nil, nil)},
+		iter := iterator.ForSlice([][]kafkalib.Message{
+			{kafkalib.NewMessage("a", debezium.FieldsObject{}, nil, nil)},
 			{},
 			{
-				lib.NewRawMessage("b", debezium.FieldsObject{}, nil, nil),
-				lib.NewRawMessage("c", debezium.FieldsObject{}, nil, nil),
+				kafkalib.NewMessage("b", debezium.FieldsObject{}, nil, nil),
+				kafkalib.NewMessage("c", debezium.FieldsObject{}, nil, nil),
 			},
 		})
 		count, err := writer.Write(context.Background(), iter)
@@ -98,7 +98,7 @@ func TestWriter_Write(t *testing.T) {
 		// Destination error
 		destination := &mockDestination{emitError: true}
 		writer := New(destination, false)
-		iter := iterator.Once([]lib.RawMessage{lib.NewRawMessage("a", debezium.FieldsObject{}, nil, nil)})
+		iter := iterator.Once([]kafkalib.Message{kafkalib.NewMessage("a", debezium.FieldsObject{}, nil, nil)})
 		_, err := writer.Write(context.Background(), iter)
 		assert.ErrorContains(t, err, "failed to write messages: test write-raw-messages error")
 		assert.Empty(t, destination.messages)

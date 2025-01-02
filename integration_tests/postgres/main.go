@@ -15,7 +15,7 @@ import (
 
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/integration_tests/utils"
-	"github.com/artie-labs/reader/lib"
+	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/logger"
 	"github.com/artie-labs/reader/lib/rdbms"
 	"github.com/artie-labs/reader/sources/postgres/adapter"
@@ -55,7 +55,7 @@ func main() {
 	slog.Info("Test succeeded 😎")
 }
 
-func readTable(db *sql.DB, tableName string, batchSize int) ([]lib.RawMessage, error) {
+func readTable(db *sql.DB, tableName string, batchSize int) ([]kafkalib.Message, error) {
 	tableCfg := config.PostgreSQLTable{
 		Schema:    "public",
 		Name:      tableName,

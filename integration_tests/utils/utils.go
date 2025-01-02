@@ -3,14 +3,15 @@ package utils
 import (
 	"database/sql"
 	"fmt"
-	"github.com/artie-labs/transfer/lib/cdc/mongo"
 	"log/slog"
 	"math/rand/v2"
 	"strings"
 
-	"github.com/artie-labs/reader/lib"
-	"github.com/artie-labs/reader/lib/debezium/transformer"
+	"github.com/artie-labs/transfer/lib/cdc/mongo"
 	"github.com/artie-labs/transfer/lib/cdc/util"
+
+	"github.com/artie-labs/reader/lib/debezium/transformer"
+	"github.com/artie-labs/reader/lib/kafkalib"
 )
 
 func CreateTemporaryTable(db *sql.DB, query string) (string, func()) {
@@ -27,13 +28,13 @@ func CreateTemporaryTable(db *sql.DB, query string) (string, func()) {
 	}
 }
 
-func ReadTable(dbzAdapter transformer.Adapter) ([]lib.RawMessage, error) {
+func ReadTable(dbzAdapter transformer.Adapter) ([]kafkalib.Message, error) {
 	dbzTransformer, err := transformer.NewDebeziumTransformer(dbzAdapter)
 	if err != nil {
 		return nil, err
 	}
 
-	var rows []lib.RawMessage
+	var rows []kafkalib.Message
 	for dbzTransformer.HasNext() {
 		batch, err := dbzTransformer.Next()
 		if err != nil {
@@ -44,7 +45,7 @@ func ReadTable(dbzAdapter transformer.Adapter) ([]lib.RawMessage, error) {
 	return rows, nil
 }
 
-func GetMongoEvent(message lib.RawMessage) mongo.SchemaEventPayload {
+func GetMongoEvent(message kafkalib.Message) mongo.SchemaEventPayload {
 	event, ok := message.Event().(*mongo.SchemaEventPayload)
 	if !ok {
 		panic("event is not of type *mongo.SchemaEventPayload")
@@ -52,7 +53,7 @@ func GetMongoEvent(message lib.RawMessage) mongo.SchemaEventPayload {
 	return *event
 }
 
-func GetEvent(message lib.RawMessage) util.SchemaEventPayload {
+func GetEvent(message kafkalib.Message) util.SchemaEventPayload {
 	event, ok := message.Event().(*util.SchemaEventPayload)
 	if !ok {
 		panic("event is not of type *util.SchemaEventPayload")

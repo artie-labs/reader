@@ -7,9 +7,9 @@ import (
 	"github.com/artie-labs/transfer/lib/cdc/util"
 	"github.com/artie-labs/transfer/lib/debezium"
 
-	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/debezium/converters"
 	"github.com/artie-labs/reader/lib/iterator"
+	"github.com/artie-labs/reader/lib/kafkalib"
 )
 
 type Row = map[string]any
@@ -73,9 +73,9 @@ func (d *DebeziumTransformer) HasNext() bool {
 	return d != nil && d.iter.HasNext()
 }
 
-func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
+func (d *DebeziumTransformer) Next() ([]kafkalib.Message, error) {
 	if !d.HasNext() {
-		return make([]lib.RawMessage, 0), nil
+		return make([]kafkalib.Message, 0), nil
 	}
 
 	rows, err := d.iter.Next()
@@ -83,7 +83,7 @@ func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 		return nil, fmt.Errorf("failed to scan: %w", err)
 	}
 
-	var result []lib.RawMessage
+	var result []kafkalib.Message
 	for _, row := range rows {
 		payload, err := d.createPayload(row)
 		if err != nil {
@@ -91,7 +91,7 @@ func (d *DebeziumTransformer) Next() ([]lib.RawMessage, error) {
 		}
 
 		// TODO: debezium.FieldsObject is not set
-		result = append(result, lib.NewRawMessage(d.adapter.TopicSuffix(), debezium.FieldsObject{}, d.partitionKey(row), &payload))
+		result = append(result, kafkalib.NewMessage(d.adapter.TopicSuffix(), debezium.FieldsObject{}, d.partitionKey(row), &payload))
 	}
 
 	return result, nil

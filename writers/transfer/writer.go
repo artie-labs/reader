@@ -25,7 +25,7 @@ import (
 	"github.com/artie-labs/transfer/models/event"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib"
+	readerKafkaLib "github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/artie-labs/reader/lib/mtr"
 )
 
@@ -95,7 +95,7 @@ func NewWriter(cfg transferConfig.Config, statsD mtr.Client, beforeBackfill conf
 	return writer, nil
 }
 
-func (w *Writer) messageToEvent(message lib.RawMessage) (event.Event, error) {
+func (w *Writer) messageToEvent(message readerKafkaLib.Message) (event.Event, error) {
 	evt := message.Event()
 	if mongoEvt, ok := evt.(*mongo.SchemaEventPayload); ok {
 		bytes, err := json.Marshal(mongoEvt)
@@ -178,7 +178,7 @@ func (w *Writer) truncateTable(ctx context.Context, tableName string) error {
 	return err
 }
 
-func (w *Writer) Write(ctx context.Context, messages []lib.RawMessage) error {
+func (w *Writer) Write(ctx context.Context, messages []readerKafkaLib.Message) error {
 	if len(messages) == 0 {
 		return nil
 	}

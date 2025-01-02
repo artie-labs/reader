@@ -12,8 +12,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/artie-labs/reader/config"
-	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/iterator"
+	"github.com/artie-labs/reader/lib/kafkalib"
 	mongoLib "github.com/artie-labs/reader/lib/mongo"
 	"github.com/artie-labs/reader/lib/storage/persistedmap"
 )
@@ -30,7 +30,7 @@ type streaming struct {
 	batchSize             int32
 }
 
-func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.MongoDB, filePath string) (iterator.StreamingIterator[[]lib.RawMessage], error) {
+func newStreamingIterator(ctx context.Context, db *mongo.Database, cfg config.MongoDB, filePath string) (iterator.StreamingIterator[[]kafkalib.Message], error) {
 	collectionsToWatchMap := make(map[string]config.Collection)
 	for _, collection := range cfg.Collections {
 		collectionsToWatchMap[collection.Name] = collection
@@ -96,8 +96,8 @@ func (s *streaming) CommitOffset() error {
 	return s.offsets.Set(offsetKey, offset)
 }
 
-func (s *streaming) Next() ([]lib.RawMessage, error) {
-	var rawMsgs []lib.RawMessage
+func (s *streaming) Next() ([]kafkalib.Message, error) {
+	var rawMsgs []kafkalib.Message
 	for s.batchSize > int32(len(rawMsgs)) && s.changeStream.TryNext(s.ctx) {
 		var rawChangeEvent bson.M
 		if err := s.changeStream.Decode(&rawChangeEvent); err != nil {

@@ -2,8 +2,8 @@ package snapshot
 
 import (
 	"fmt"
-	"github.com/artie-labs/reader/lib"
 	"github.com/artie-labs/reader/lib/dynamo"
+	"github.com/artie-labs/reader/lib/kafkalib"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodbstreams/types"
 )
 
@@ -28,8 +28,8 @@ func (s *Iterator) HasNext() bool {
 	return !s.done
 }
 
-func (s *Iterator) Next() ([]lib.RawMessage, error) {
-	var msgs []lib.RawMessage
+func (s *Iterator) Next() ([]kafkalib.Message, error) {
+	var msgs []kafkalib.Message
 	for msg := range s.ch {
 		dynamoMsg, err := dynamo.NewMessageFromExport(msg, s.keys, s.tableName)
 		if err != nil {
