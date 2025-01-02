@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/artie-labs/transfer/lib/debezium"
 	"log/slog"
 	"os"
 
+	"github.com/artie-labs/transfer/lib/debezium"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/lmittmann/tint"
 

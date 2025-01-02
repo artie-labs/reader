@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/artie-labs/transfer/lib/debezium"
 	"log/slog"
 	"os"
 
+	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/lmittmann/tint"
 
 	"github.com/artie-labs/reader/config"

@@ -4,13 +4,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/artie-labs/transfer/lib/debezium"
 	"log/slog"
 	"math/rand/v2"
 	"strings"
 
 	"github.com/artie-labs/transfer/lib/cdc/mongo"
 	"github.com/artie-labs/transfer/lib/cdc/util"
+	"github.com/artie-labs/transfer/lib/debezium"
 
 	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/kafkalib"
