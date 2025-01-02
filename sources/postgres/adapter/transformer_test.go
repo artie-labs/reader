@@ -2,10 +2,10 @@ package adapter
 
 import (
 	"fmt"
-	"github.com/artie-labs/transfer/lib/debezium"
 	"testing"
 
 	"github.com/artie-labs/transfer/lib/cdc/util"
+	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/lib/debezium/converters"
