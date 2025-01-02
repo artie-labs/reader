@@ -162,7 +162,12 @@ func testTypes(ctx context.Context, db *mongo.Database, mongoCfg config.MongoDB)
 		return fmt.Errorf("failed to get event from bytes: %w", err)
 	}
 
-	pkMap, err := dbz.GetPrimaryKey(actualPkBytes, kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt})
+	actualPartitionKeyBytes, err := json.Marshal(row.PartitionKey())
+	if err != nil {
+		return fmt.Errorf("failed to marshal partition key: %w", err)
+	}
+
+	pkMap, err := dbz.GetPrimaryKey(actualPartitionKeyBytes, kafkalib.TopicConfig{CDCKeyFormat: kafkalib.JSONKeyFmt})
 	if err != nil {
 		return fmt.Errorf("failed to get primary key: %w", err)
 	}
