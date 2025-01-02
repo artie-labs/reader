@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/artie-labs/transfer/lib/debezium"
 	"log/slog"
 	"math/rand/v2"
 	"os"
@@ -123,20 +124,18 @@ func testTypes(ctx context.Context, db *mongo.Database, mongoCfg config.MongoDB)
 	}
 
 	row := rows[0]
-	// This should not include the payload field in here. The payload field gets injected in [kafkalib.buildKafkaMessageWrapper]
-	expectedPartitionKey := map[string]any{"id": `{"$oid":"66a95fae3776c2f21f0ff568"}`}
-	expectedPkBytes, err := json.Marshal(expectedPartitionKey)
-	if err != nil {
-		return fmt.Errorf("failed to marshal expected partition key: %w", err)
+	expectedPartitionKey := debezium.PrimaryKeyPayload{
+		Schema:  debezium.FieldsObject{},
+		Payload: map[string]any{"id": `{"$oid":"66a95fae3776c2f21f0ff568"}`},
 	}
 
-	actualPkBytes, err := json.Marshal(row.PartitionKey())
+	equal, err := utils.CheckPartitionKeyDifference(expectedPartitionKey, row.PartitionKey())
 	if err != nil {
-		return fmt.Errorf("failed to marshal actual partition key: %w", err)
+		return fmt.Errorf("failed to check partition key difference: %w", err)
 	}
 
-	if string(expectedPkBytes) != string(actualPkBytes) {
-		return fmt.Errorf("partition key %s does not match %s", actualPkBytes, expectedPkBytes)
+	if !equal {
+		return fmt.Errorf("partition key %v does not match %v", row.PartitionKey(), expectedPartitionKey)
 	}
 
 	mongoEvt := utils.GetMongoEvent(row)
