@@ -8,6 +8,7 @@ import (
 )
 
 func Load(cfg config.MSSQL) (sources.Source, bool, error) {
+	fmt.Println(" cfg.ToDSN()", cfg.ToDSN())
 	db, err := sql.Open("mssql", cfg.ToDSN())
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to connect to MSSQL: %w", err)

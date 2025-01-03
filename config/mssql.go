@@ -37,6 +37,7 @@ type MSSQLTable struct {
 func (m *MSSQL) ToDSN() string {
 	query := url.Values{}
 	query.Add("database", m.Database)
+	query.Add("encrypt", "disable") // Explicitly disable TLS
 
 	u := &url.URL{
 		Scheme:   "sqlserver",
