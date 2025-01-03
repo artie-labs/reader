@@ -1,6 +1,7 @@
 package kafkalib
 
 import (
+	"fmt"
 	"github.com/artie-labs/transfer/lib/cdc"
 	"github.com/artie-labs/transfer/lib/debezium"
 )
@@ -8,29 +9,36 @@ import (
 type Message struct {
 	topicSuffix        string
 	partitionKeySchema debezium.FieldsObject
-	partitionKey       map[string]any
+	partitionKeyValues map[string]any
 	event              cdc.Event
 }
 
-func NewMessage(topicSuffix string, partitionKeySchema debezium.FieldsObject, partitionKey map[string]any, event cdc.Event) Message {
+func NewMessage(topicSuffix string, partitionKeySchema debezium.FieldsObject, partitionKeyValues map[string]any, event cdc.Event) Message {
 	return Message{
 		topicSuffix:        topicSuffix,
 		partitionKeySchema: partitionKeySchema,
-		partitionKey:       partitionKey,
+		partitionKeyValues: partitionKeyValues,
 		event:              event,
 	}
 }
 
-func (r Message) TopicSuffix() string {
-	return r.topicSuffix
+func (r Message) Topic(prefix string) string {
+	if prefix == "" {
+		return r.topicSuffix
+	}
+
+	return fmt.Sprintf("%s.%s", prefix, r.topicSuffix)
 }
 
-func (r Message) PartitionKey() map[string]any {
-	return r.partitionKey
+func (r Message) PartitionKey() debezium.PrimaryKeyPayload {
+	return debezium.PrimaryKeyPayload{
+		Schema:  r.partitionKeySchema,
+		Payload: r.partitionKeyValues,
+	}
 }
 
-func (r Message) PartitionKeySchema() debezium.FieldsObject {
-	return r.partitionKeySchema
+func (r Message) PartitionKeyValues() map[string]any {
+	return r.partitionKeyValues
 }
 
 func (r Message) Event() cdc.Event {

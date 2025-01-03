@@ -90,9 +90,9 @@ func TestWriter_Write(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, 3, count)
 		assert.Len(t, destination.messages, 3)
-		assert.Equal(t, destination.messages[0].TopicSuffix(), "a")
-		assert.Equal(t, destination.messages[1].TopicSuffix(), "b")
-		assert.Equal(t, destination.messages[2].TopicSuffix(), "c")
+		assert.Equal(t, destination.messages[0].Topic(""), "a")
+		assert.Equal(t, destination.messages[1].Topic(""), "b")
+		assert.Equal(t, destination.messages[2].Topic(""), "c")
 	}
 	{
 		// Destination error

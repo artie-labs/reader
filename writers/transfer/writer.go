@@ -122,7 +122,7 @@ func (w *Writer) messageToEvent(message readerKafkaLib.Message) (event.Event, er
 		return event.ToMemoryEvent(evt, partitionKey, w.tc, transferConfig.Replication)
 	}
 
-	memoryEvent, err := event.ToMemoryEvent(evt, message.PartitionKey(), w.tc, transferConfig.Replication)
+	memoryEvent, err := event.ToMemoryEvent(evt, message.PartitionKeyValues(), w.tc, transferConfig.Replication)
 	if err != nil {
 		return event.Event{}, err
 	}

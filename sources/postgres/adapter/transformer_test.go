@@ -2,9 +2,10 @@ package adapter
 
 import (
 	"fmt"
-	"github.com/artie-labs/transfer/lib/cdc/util"
 	"testing"
 
+	"github.com/artie-labs/transfer/lib/cdc/util"
+	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artie-labs/reader/lib/debezium/converters"
@@ -78,20 +79,44 @@ func TestDebeziumTransformer(t *testing.T) {
 
 		msgs1 := results[0]
 		assert.Len(t, msgs1, 2)
-		assert.Equal(t, "schema.table", msgs1[0].TopicSuffix())
-		assert.Equal(t, map[string]any{"a": "1"}, msgs1[0].PartitionKey())
+		assert.Equal(t, "schema.table", msgs1[0].Topic(""))
+		assert.Equal(t,
+			debezium.PrimaryKeyPayload{
+				Schema:  debezium.FieldsObject{},
+				Payload: map[string]any{"a": "1"},
+			},
+			msgs1[0].PartitionKey(),
+		)
 		assert.Equal(t, map[string]any{"a": "1", "b": "11"}, msgs1[0].Event().(*util.SchemaEventPayload).Payload.After)
-		assert.Equal(t, "schema.table", msgs1[1].TopicSuffix())
-		assert.Equal(t, map[string]any{"a": "2"}, msgs1[1].PartitionKey())
+		assert.Equal(t, "schema.table", msgs1[1].Topic(""))
+		assert.Equal(t,
+			debezium.PrimaryKeyPayload{
+				Schema:  debezium.FieldsObject{},
+				Payload: map[string]any{"a": "2"},
+			},
+			msgs1[1].PartitionKey(),
+		)
 		assert.Equal(t, map[string]any{"a": "2", "b": "12"}, msgs1[1].Event().(*util.SchemaEventPayload).Payload.After)
 
 		msgs2 := results[1]
 		assert.Len(t, msgs2, 2)
-		assert.Equal(t, "schema.table", msgs2[0].TopicSuffix())
-		assert.Equal(t, map[string]any{"a": "3"}, msgs2[0].PartitionKey())
+		assert.Equal(t, "schema.table", msgs2[0].Topic(""))
+		assert.Equal(t,
+			debezium.PrimaryKeyPayload{
+				Schema:  debezium.FieldsObject{},
+				Payload: map[string]any{"a": "3"},
+			},
+			msgs2[0].PartitionKey(),
+		)
 		assert.Equal(t, map[string]any{"a": "3", "b": "13"}, msgs2[0].Event().(*util.SchemaEventPayload).Payload.After)
-		assert.Equal(t, "schema.table", msgs2[1].TopicSuffix())
-		assert.Equal(t, map[string]any{"a": "4"}, msgs2[1].PartitionKey())
+		assert.Equal(t, "schema.table", msgs2[1].Topic(""))
+		assert.Equal(t,
+			debezium.PrimaryKeyPayload{
+				Schema:  debezium.FieldsObject{},
+				Payload: map[string]any{"a": "4"},
+			},
+			msgs2[1].PartitionKey(),
+		)
 		assert.Equal(t, map[string]any{"a": "4", "b": "14"}, msgs2[1].Event().(*util.SchemaEventPayload).Payload.After)
 	}
 }

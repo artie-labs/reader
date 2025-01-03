@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"bytes"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"math/rand/v2"
@@ -9,6 +11,7 @@ import (
 
 	"github.com/artie-labs/transfer/lib/cdc/mongo"
 	"github.com/artie-labs/transfer/lib/cdc/util"
+	"github.com/artie-labs/transfer/lib/debezium"
 
 	"github.com/artie-labs/reader/lib/debezium/transformer"
 	"github.com/artie-labs/reader/lib/kafkalib"
@@ -86,4 +89,18 @@ func CheckDifference(name, expected, actual string) bool {
 	}
 	fmt.Println("--------------------------------------------------------------------------------")
 	return true
+}
+
+func CheckPartitionKeyDifference(expected, actual debezium.PrimaryKeyPayload) (bool, error) {
+	expectedBytes, err := json.Marshal(expected)
+	if err != nil {
+		return false, fmt.Errorf("failed to marshal expected: %w", err)
+	}
+
+	actualBytes, err := json.Marshal(actual)
+	if err != nil {
+		return false, fmt.Errorf("failed to marshal actual: %w", err)
+	}
+
+	return bytes.Equal(expectedBytes, actualBytes), nil
 }

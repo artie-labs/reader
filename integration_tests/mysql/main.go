@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"maps"
 	"os"
 
+	"github.com/artie-labs/transfer/lib/debezium"
 	"github.com/lmittmann/tint"
 
 	"github.com/artie-labs/reader/config"
@@ -649,8 +649,17 @@ func testTypes(db *sql.DB, dbName string) error {
 	}
 	row := rows[0]
 
-	expectedPartitionKey := map[string]any{"pk": int64(1)}
-	if !maps.Equal(row.PartitionKey(), expectedPartitionKey) {
+	expectedPartitionKey := debezium.PrimaryKeyPayload{
+		Schema:  debezium.FieldsObject{},
+		Payload: map[string]any{"pk": int64(1)},
+	}
+
+	equal, err := utils.CheckPartitionKeyDifference(expectedPartitionKey, row.PartitionKey())
+	if err != nil {
+		return fmt.Errorf("failed to check partition key difference: %w", err)
+	}
+
+	if !equal {
 		return fmt.Errorf("partition key %v does not match %v", row.PartitionKey(), expectedPartitionKey)
 	}
 
@@ -781,7 +790,17 @@ func testScan(db *sql.DB, dbName string) error {
 			return fmt.Errorf("expected %d rows, got %d, batch size %d", len(expectedPartitionKeys), len(rows), batchSize)
 		}
 		for i, row := range rows {
-			if !maps.Equal(row.PartitionKey(), expectedPartitionKeys[i]) {
+			expectedPartitionKey := debezium.PrimaryKeyPayload{
+				Schema:  debezium.FieldsObject{},
+				Payload: expectedPartitionKeys[i],
+			}
+
+			equal, err := utils.CheckPartitionKeyDifference(expectedPartitionKey, row.PartitionKey())
+			if err != nil {
+				return fmt.Errorf("failed to check partition key difference: %w", err)
+			}
+
+			if !equal {
 				return fmt.Errorf("partition keys are different for row %d, batch size %d, %v != %v", i, batchSize, row.PartitionKey(), expectedPartitionKeys[i])
 			}
 			textValue := utils.GetEvent(row).Payload.After["c_text_value"]
