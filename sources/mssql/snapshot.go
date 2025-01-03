@@ -23,18 +23,6 @@ type Snapshot struct {
 	db  *sql.DB
 }
 
-func Load(cfg config.MSSQL) (*Snapshot, error) {
-	db, err := sql.Open("mssql", cfg.ToDSN())
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to MSSQL: %w", err)
-	}
-
-	return &Snapshot{
-		cfg: cfg,
-		db:  db,
-	}, nil
-}
-
 func (s *Snapshot) Close() error {
 	return s.db.Close()
 }
