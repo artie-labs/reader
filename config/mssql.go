@@ -12,12 +12,13 @@ import (
 )
 
 type MSSQL struct {
-	Host     string        `yaml:"host"`
-	Port     int           `yaml:"port"`
-	Username string        `yaml:"username"`
-	Password string        `yaml:"password"`
-	Database string        `yaml:"database"`
-	Tables   []*MSSQLTable `yaml:"tables"`
+	Host      string        `yaml:"host"`
+	Port      int           `yaml:"port"`
+	Username  string        `yaml:"username"`
+	Password  string        `yaml:"password"`
+	Database  string        `yaml:"database"`
+	Tables    []*MSSQLTable `yaml:"tables"`
+	Streaming bool          `yaml:"streaming"`
 }
 
 type MSSQLTable struct {

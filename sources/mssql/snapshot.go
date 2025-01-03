@@ -18,28 +18,16 @@ import (
 	"github.com/artie-labs/reader/writers"
 )
 
-type Source struct {
+type Snapshot struct {
 	cfg config.MSSQL
 	db  *sql.DB
 }
 
-func Load(cfg config.MSSQL) (*Source, error) {
-	db, err := sql.Open("mssql", cfg.ToDSN())
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to MSSQL: %w", err)
-	}
-
-	return &Source{
-		cfg: cfg,
-		db:  db,
-	}, nil
-}
-
-func (s *Source) Close() error {
+func (s *Snapshot) Close() error {
 	return s.db.Close()
 }
 
-func (s *Source) Run(ctx context.Context, writer writers.Writer) error {
+func (s *Snapshot) Run(ctx context.Context, writer writers.Writer) error {
 	for _, tableCfg := range s.cfg.Tables {
 		logger := slog.With(slog.String("schema", tableCfg.Schema), slog.String("table", tableCfg.Name))
 		snapshotStartTime := time.Now()
