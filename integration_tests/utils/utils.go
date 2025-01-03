@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -101,5 +102,5 @@ func CheckPartitionKeyDifference(expected, actual debezium.PrimaryKeyPayload) (b
 		return false, fmt.Errorf("failed to marshal actual: %w", err)
 	}
 
-	return string(expectedBytes) == string(actualBytes), nil
+	return bytes.Equal(expectedBytes, actualBytes), nil
 }
