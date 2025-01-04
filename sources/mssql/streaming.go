@@ -3,6 +3,7 @@ package mssql
 import (
 	"context"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/writers"
@@ -54,7 +55,7 @@ func (s *Streamer) shouldProcessRow(row map[string]interface{}) bool {
 	}
 
 	if !found {
-		//fmt.Println("Wrong", row)
+		fmt.Println("Wrong", row)
 		return false
 	}
 
@@ -125,24 +126,23 @@ func (s *Streamer) Run(ctx context.Context, writer writers.Writer) error {
 				continue
 			}
 
-			//
-			//fmt.Println("Row Details:")
-			//for key, value := range row {
-			//	fmt.Println("Key", fmt.Sprintf("Type: %T", key))
-			//	if value == nil {
-			//		fmt.Printf("  %s: <nil>\n", key)
-			//	} else {
-			//		switch v := value.(type) {
-			//		case []byte:
-			//			// Convert binary data to a readable string (hex or UTF-8)
-			//			fmt.Printf("  %s: %s\n", key, hex.EncodeToString(v))
-			//		default:
-			//			// Print other types directly
-			//			fmt.Printf("  %s: %v\n", key, value)
-			//		}
-			//	}
-			//}
-			//fmt.Println()
+			fmt.Println("Row Details:")
+			for key, value := range row {
+				fmt.Println("Key", fmt.Sprintf("Type: %T", key))
+				if value == nil {
+					fmt.Printf("  %s: <nil>\n", key)
+				} else {
+					switch v := value.(type) {
+					case []byte:
+						// Convert binary data to a readable string (hex or UTF-8)
+						fmt.Printf("  %s: %s\n", key, hex.EncodeToString(v))
+					default:
+						// Print other types directly
+						fmt.Printf("  %s: %v\n", key, value)
+					}
+				}
+			}
+			fmt.Println()
 		}
 
 		time.Sleep(2 * time.Second)
