@@ -10,6 +10,7 @@ import (
 	sql2 "github.com/artie-labs/transfer/lib/sql"
 	"log/slog"
 	"slices"
+	"strings"
 )
 
 type Streamer struct {
@@ -23,7 +24,38 @@ var validOp = []string{
 	"LOP_DELETE_ROWS",
 }
 
-func shouldProcessRow(row map[string]interface{}) bool {
+func (s *Streamer) schemas() []string {
+	schemas := make([]string, len(s.cfg.Tables))
+	for i, table := range s.cfg.Tables {
+		schemas[i] = table.Schema
+	}
+	return schemas
+}
+
+func (s *Streamer) shouldProcessRow(row map[string]interface{}) bool {
+	// Check the db
+	allocUnitName, isOk := row["AllocUnitName"]
+	if !isOk {
+		return false
+	}
+
+	castedAllocUnitName, isOk := allocUnitName.(string)
+	if !isOk {
+		return false
+	}
+
+	var found bool
+	for _, schema := range s.schemas() {
+		if strings.HasPrefix(castedAllocUnitName, schema+".") {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return false
+	}
+
 	val, isOk := row["Operation"]
 	if !isOk {
 		slog.Warn("Skipping, operation not found in row")
@@ -61,7 +93,7 @@ func (s *Streamer) Run(ctx context.Context, writer writers.Writer) error {
 	}
 
 	for _, row := range rows {
-		if !shouldProcessRow(row) {
+		if !s.shouldProcessRow(row) {
 			continue
 		}
 
