@@ -3,14 +3,15 @@ package mssql
 import (
 	"context"
 	"database/sql"
-	"encoding/hex"
 	"fmt"
 	"github.com/artie-labs/reader/config"
 	"github.com/artie-labs/reader/writers"
 	sql2 "github.com/artie-labs/transfer/lib/sql"
 	"log/slog"
 	"slices"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type Streamer struct {
@@ -53,6 +54,7 @@ func (s *Streamer) shouldProcessRow(row map[string]interface{}) bool {
 	}
 
 	if !found {
+		//fmt.Println("Wrong", row)
 		return false
 	}
 
@@ -80,40 +82,69 @@ func (s *Streamer) Close() error {
 	return s.db.Close()
 }
 
+// Convert LSN from hex format to decimal
+func convertLSN(hexLSN string) (string, error) {
+	parts := strings.Split(hexLSN, ":")
+	if len(parts) != 3 {
+		return "", fmt.Errorf("invalid LSN format: %s", hexLSN)
+	}
+
+	decimalParts := make([]string, len(parts))
+	for i, part := range parts {
+		// Convert each part from hex to decimal
+		value, err := strconv.ParseUint(part, 16, 64)
+		if err != nil {
+			return "", fmt.Errorf("failed to convert LSN part: %s, error: %w", part, err)
+		}
+		decimalParts[i] = fmt.Sprintf("%d", value)
+	}
+
+	// Join the decimal parts with colons
+	return strings.Join(decimalParts, ":"), nil
+}
+
 func (s *Streamer) Run(ctx context.Context, writer writers.Writer) error {
-	query := fmt.Sprintf("SELECT * FROM fn_dblog(NULL, NULL)")
-	sqlRows, err := s.db.QueryContext(ctx, query)
-	if err != nil {
-		return fmt.Errorf("failed to query transaction log: %w", err)
-	}
-
-	rows, err := sql2.RowsToObjects(sqlRows)
-	if err != nil {
-		return fmt.Errorf("failed to convert rows to objects: %w", err)
-	}
-
-	for _, row := range rows {
-		if !s.shouldProcessRow(row) {
-			continue
+	currentLSN := "NULL"
+	for {
+		fmt.Println("New LSN", currentLSN)
+		query := fmt.Sprintf("SELECT * FROM fn_dblog(%s, NULL)", currentLSN)
+		sqlRows, err := s.db.QueryContext(ctx, query)
+		if err != nil {
+			return fmt.Errorf("failed to query transaction log: %w", err)
 		}
 
-		fmt.Println("Row Details:")
-		for key, value := range row {
-			fmt.Println("Key", fmt.Sprintf("Type: %T", key))
-			if value == nil {
-				fmt.Printf("  %s: <nil>\n", key)
-			} else {
-				switch v := value.(type) {
-				case []byte:
-					// Convert binary data to a readable string (hex or UTF-8)
-					fmt.Printf("  %s: %s\n", key, hex.EncodeToString(v))
-				default:
-					// Print other types directly
-					fmt.Printf("  %s: %v\n", key, value)
-				}
+		rows, err := sql2.RowsToObjects(sqlRows)
+		if err != nil {
+			return fmt.Errorf("failed to convert rows to objects: %w", err)
+		}
+
+		for _, row := range rows {
+			currentLSN, _ = convertLSN(row["Current LSN"].(string))
+			currentLSN = fmt.Sprintf("'%s'", currentLSN)
+			if !s.shouldProcessRow(row) {
+				continue
 			}
+
+			//
+			//fmt.Println("Row Details:")
+			//for key, value := range row {
+			//	fmt.Println("Key", fmt.Sprintf("Type: %T", key))
+			//	if value == nil {
+			//		fmt.Printf("  %s: <nil>\n", key)
+			//	} else {
+			//		switch v := value.(type) {
+			//		case []byte:
+			//			// Convert binary data to a readable string (hex or UTF-8)
+			//			fmt.Printf("  %s: %s\n", key, hex.EncodeToString(v))
+			//		default:
+			//			// Print other types directly
+			//			fmt.Printf("  %s: %v\n", key, value)
+			//		}
+			//	}
+			//}
+			//fmt.Println()
 		}
-		fmt.Println()
+
+		time.Sleep(2 * time.Second)
 	}
-	return nil
 }
